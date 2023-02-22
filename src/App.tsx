@@ -1,24 +1,32 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { createClient } from "@remixproject/plugin-webview";
+import { PluginClient } from "@remixproject/plugin";
+import { useState } from "react";
+
+import "./App.css";
+
+import Nav from "./components/Nav";
+
+const remixClient = createClient(new PluginClient());
 
 function App() {
+  // Use state variable cairoVersion
+  const [cairoVersion, setCairoVersion] = useState("1.0.0-alpha.3");
+  // Set cairoVersion to the version of the Cairo compiler on use effect when loading the webapp
+  // Eventually we could load cairo versions from a dropdown menu
+  // useEffect(() => {
+  //   remixClient.call("cairo", "getVersion").then((version: string) => {
+  //     setCairoVersion(version);
+  //   });
+  // }, []);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="shell">
+      <div className="mb-1">
+        <label className="cairo-version-legend">
+          Using cairo version {cairoVersion}
+        </label>
+      </div>
+      <Nav remixClient={remixClient}></Nav>
     </div>
   );
 }
