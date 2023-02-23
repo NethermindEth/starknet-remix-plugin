@@ -1,6 +1,6 @@
-// Component that shows the CompileToSierra and CompileToCasm components
-
 import { useEffect, useState } from "react";
+
+import init, { compile } from "cairo-wasm";
 
 import "./styles.css";
 
@@ -23,7 +23,6 @@ function CompilationTab(props: CompilationTabProps) {
         "fileManager",
         "currentFileChanged",
         (currentFileChanged: any) => {
-          console.log(currentFileChanged);
           const fileName = currentFileChanged.split("/").pop();
           const currentFileExtension = fileName.split(".").pop() || "";
           setNoFileSelected(currentFileExtension !== "cairo");
@@ -32,6 +31,27 @@ function CompilationTab(props: CompilationTabProps) {
       );
     }, 1000);
   }, [remixClient]);
+
+  // Dummy, check for errors.
+  const getFile = async () => {
+    const currentFile = await remixClient.call(
+      "fileManager",
+      "getCurrentFile",
+      currentFileName
+    );
+
+    const currentFileContent = await remixClient.call(
+      "fileManager",
+      "readFile",
+      currentFile
+    );
+
+    init().then(() => {
+      compile(currentFileContent);
+    });
+
+    return currentFileContent;
+  };
 
   function compileToSierra() {
     setCompilingStatus(true);
@@ -55,7 +75,7 @@ function CompilationTab(props: CompilationTabProps) {
           <button
             className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-1"
             aria-disabled={noFileSelected || !currentFileName}
-            onClick={compileToSierra}
+            onClick={getFile}
           >
             <div className="d-flex align-items-center justify-content-center">
               <div className="text-truncate overflow-hidden text-nowrap">
