@@ -3693,6 +3693,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"assemblyscript@npm:^0.27.0":
+  version: 0.27.0
+  resolution: "assemblyscript@npm:0.27.0"
+  dependencies:
+    binaryen: 111.0.0-nightly.20230111
+    long: ^5.2.0
+  bin:
+    asc: bin/asc.js
+    asinit: bin/asinit.js
+  checksum: f5e641de723a4774e695f696427b412adbadd04f493aeb4ab814e78f193791546a9d372c1b675a04e1c9a8cd9ddb54527c37d03aec404b025b40e491764f2705
+  languageName: node
+  linkType: hard
+
 "ast-types-flow@npm:^0.0.7":
   version: 0.0.7
   resolution: "ast-types-flow@npm:0.0.7"
@@ -3990,6 +4003,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"binaryen@npm:111.0.0-nightly.20230111":
+  version: 111.0.0-nightly.20230111
+  resolution: "binaryen@npm:111.0.0-nightly.20230111"
+  bin:
+    wasm-opt: bin/wasm-opt
+    wasm2js: bin/wasm2js
+  checksum: b361f946d91c82b8dbebca81cfb85feebac02995707bb0def66e8d78b22ea6a666a892d7acbd5efa19b4c54cbe53f2e2e10bd17302a7321c236293a20fc52193
+  languageName: node
+  linkType: hard
+
 "bluebird@npm:^3.5.5":
   version: 3.7.2
   resolution: "bluebird@npm:3.7.2"
@@ -4145,6 +4168,13 @@ __metadata:
     tar: ^6.1.11
     unique-filename: ^2.0.0
   checksum: d91409e6e57d7d9a3a25e5dcc589c84e75b178ae8ea7de05cbf6b783f77a5fae938f6e8fda6f5257ed70000be27a681e1e44829251bfffe4c10216002f8f14e6
+  languageName: node
+  linkType: hard
+
+"cairo-wasm@file:./cairo-wasm::locator=starknet-remix-plugin%40workspace%3A.":
+  version: 1.0.0-alpha.3
+  resolution: "cairo-wasm@file:./cairo-wasm#./cairo-wasm::hash=325121&locator=starknet-remix-plugin%40workspace%3A."
+  checksum: 416728dbd86520b9bca9c22cc26309fbdabcb518343983c84a60def2e0630b2e79d0f38d563c4b8f460bc88489a127b1cac35331ef2125a8ba31e4e2ddf0d817
   languageName: node
   linkType: hard
 
@@ -8497,6 +8527,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"long@npm:^5.2.0":
+  version: 5.2.1
+  resolution: "long@npm:5.2.1"
+  checksum: 9264da12d1b7df67e5aa6da4498144293caf1ad12e7f092efe4e9a2d32c53f0bbf7334f7cef997080a2a3af061142558ab366efa71698d98b1cdb883477445a7
+  languageName: node
+  linkType: hard
+
 "loose-envify@npm:^1.1.0, loose-envify@npm:^1.4.0":
   version: 1.4.0
   resolution: "loose-envify@npm:1.4.0"
@@ -11557,6 +11594,8 @@ __metadata:
     "@types/node": ^16.18.12
     "@types/react": ^18.0.28
     "@types/react-dom": ^18.0.11
+    assemblyscript: ^0.27.0
+    cairo-wasm: ./cairo-wasm
     react: ^18.2.0
     react-dom: ^18.2.0
     react-scripts: 5.0.1
