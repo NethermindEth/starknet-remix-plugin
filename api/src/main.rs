@@ -1,18 +1,46 @@
 #[macro_use]
 extern crate rocket;
 use std::process::Command;
-// use std::fs;
 
 use rocket::data::{Data, ToByteUnit};
+use rocket::fairing::{Fairing, Info, Kind};
 use rocket::fs::NamedFile;
-use std::{thread, time};
-
-// use rocket::fs::TempFile;
+use rocket::http::{ContentType, Header, Method, Status};
+use rocket::{Request, Response};
 
 mod utils;
 use utils::lib::Hash;
 
-// Endpoint that receives a file and stores it to the upload folder
+#[derive(Default)]
+
+pub struct CORS;
+
+#[rocket::async_trait]
+impl Fairing for CORS {
+    fn info(&self) -> Info {
+        Info {
+            name: "Add CORS headers to responses",
+            kind: Kind::Response,
+        }
+    }
+
+    async fn on_response<'r>(&self, request: &'r Request<'_>, response: &mut Response<'r>) {
+        response.set_header(Header::new("Access-Control-Allow-Origin", "*"));
+        response.set_header(Header::new(
+            "Access-Control-Allow-Methods",
+            "POST, GET, PATCH, OPTIONS",
+        ));
+        response.set_header(Header::new("Access-Control-Allow-Headers", "*"));
+        response.set_header(Header::new("Access-Control-Allow-Credentials", "true"));
+        if request.method() == Method::Options {
+            let body = "";
+            response.set_header(ContentType::Plain);
+            response.set_sized_body(body.len(), std::io::Cursor::new(body));
+            response.set_status(Status::Ok);
+        }
+    }
+}
+
 #[post("/compile-to-sierra", data = "<file>")]
 async fn compile_to_sierra(file: Data<'_>) -> Option<NamedFile> {
     let file_hash = Hash::new(16);
@@ -45,9 +73,6 @@ async fn compile_to_sierra(file: Data<'_>) -> Option<NamedFile> {
         .arg("--allowed-libfuncs-list-name")
         .arg("experimental_v0.1.0")
         .spawn();
-
-    // let wait_time = time::Duration::from_millis(10000);
-    // thread::sleep(wait_time);
 
     match result {
         Ok(mut child) => match child.wait() {
@@ -103,7 +128,6 @@ async fn compile_to_casm(file: Data<'_>) -> Option<NamedFile> {
 
     match result {
         Ok(mut child) => match child.wait() {
-            // Return here?
             Ok(status) => {
                 println!("status: {}", status);
             }
@@ -121,5 +145,7 @@ async fn compile_to_casm(file: Data<'_>) -> Option<NamedFile> {
 
 #[launch]
 fn rocket() -> _ {
-    rocket::build().mount("/", routes![compile_to_sierra, compile_to_casm])
+    rocket::build()
+        .mount("/", routes![compile_to_sierra, compile_to_casm])
+        .attach(CORS)
 }
