@@ -1,0 +1,9 @@
+.shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.cairo-version-legend {
+  margin: 0 24px;
+}
