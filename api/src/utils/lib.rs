@@ -3,10 +3,11 @@ use std::path::{Path, PathBuf};
 
 use rand::{self, Rng};
 
-pub struct Id<'a>(Cow<'a, str>);
+pub struct Hash<'a>(Cow<'a, str>);
 
-impl Id<'_> {
-    pub fn new(size: usize) -> Id<'static> {
+impl Hash<'_> {
+    pub fn new(size: usize) -> Hash<'static> {
+        // Change to hash of file.
         const BASE62: &[u8] = b"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
         let mut id = String::with_capacity(size);
@@ -15,7 +16,7 @@ impl Id<'_> {
             id.push(BASE62[rng.gen::<usize>() % 62] as char);
         }
 
-        Id(Cow::Owned(id))
+        Hash(Cow::Owned(id))
     }
 
     pub fn file_path(&self, ext: &str) -> PathBuf {
@@ -32,7 +33,10 @@ impl Id<'_> {
             .with_extension("json")
     }
 
-    pub fn get_id(&self) -> String {
-        self.0.to_string()
+    pub fn casm_path(&self) -> PathBuf {
+        let root = concat!(env!("CARGO_MANIFEST_DIR"), "/", "casm/temp/");
+        Path::new(root)
+            .with_file_name(self.0.as_ref())
+            .with_extension("casm")
     }
 }

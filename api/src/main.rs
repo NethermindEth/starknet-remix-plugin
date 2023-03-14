@@ -4,34 +4,36 @@ use std::process::Command;
 // use std::fs;
 
 use rocket::data::{Data, ToByteUnit};
+use rocket::fs::NamedFile;
 use std::{thread, time};
+
 // use rocket::fs::TempFile;
 
 mod utils;
-use utils::lib::Id;
+use utils::lib::Hash;
 
 // Endpoint that receives a file and stores it to the upload folder
-#[post("/compile", data = "<file>")]
-async fn compile(file: Data<'_>) -> std::io::Result<()> {
-    // file.persist_to("upload/").await;
-    let file_id = Id::new(16);
-    let file_path = file_id.file_path("cairo");
-    // Modify to zip.
-    file.open(128_i32.kibibytes()).into_file(&file_path).await?;
+#[post("/compile-to-sierra", data = "<file>")]
+async fn compile_to_sierra(file: Data<'_>) -> Option<NamedFile> {
+    let file_hash = Hash::new(16);
+    let file_path = file_hash.file_path("cairo");
 
-    // let contents = fs::read_to_string(file_path);
-    // println!("contents: {:?}", contents.unwrap());
+    // Modify to zip and unpack.
+    let saved_file = file.open(128_i32.gibibytes()).into_file(&file_path).await;
+
+    match saved_file {
+        Ok(_) => {
+            println!("File saved successfully");
+        }
+        Err(e) => {
+            println!("Error saving file: {:?}", e);
+        }
+    }
 
     let cairo_dir = concat!(env!("CARGO_MANIFEST_DIR"), "/", "cairo/");
 
-    println!("sierra path: {:?}", file_id.sierra_path());
-
-    // Process the file through cairo:  cargo run --bin starknet-compile -- ../../../../id.cairo ../example.json --allowed-libfuncs-list-name experimental_v0.1.0
     let mut compile = Command::new("cargo");
-
     compile.current_dir(cairo_dir);
-
-    // file_id.get_id();
 
     let result = compile
         .arg("run")
@@ -39,30 +41,85 @@ async fn compile(file: Data<'_>) -> std::io::Result<()> {
         .arg("starknet-compile")
         .arg("--")
         .arg(&file_path)
-        .arg(file_id.sierra_path())
-        // .arg(format!("../upload/{}.cairo", file_id.get_id()))
-        // .arg(format!("./{}.json", file_id.get_id()))
+        .arg(file_hash.sierra_path())
         .arg("--allowed-libfuncs-list-name")
         .arg("experimental_v0.1.0")
         .spawn();
 
-    let wait_time = time::Duration::from_millis(10000);
-    thread::sleep(wait_time);
+    // let wait_time = time::Duration::from_millis(10000);
+    // thread::sleep(wait_time);
 
     match result {
-        Ok(child) => {
-            println!("child: {:?}", child.wait_with_output());
-        }
+        Ok(mut child) => match child.wait() {
+            // Return here?
+            Ok(status) => {
+                println!("status: {}", status);
+            }
+            Err(e) => {
+                println!("error: {}", e);
+            }
+        },
         Err(e) => {
             println!("error: {:?}", e);
         }
     }
-    // .expect("failed to execute process");
 
-    Ok(())
+    NamedFile::open(file_hash.sierra_path()).await.ok()
+}
+
+#[post("/compile-to-casm", data = "<file>")]
+async fn compile_to_casm(file: Data<'_>) -> Option<NamedFile> {
+    let file_hash = Hash::new(16);
+    let file_path = file_hash.file_path("json");
+    // Modify to zip.
+    println!("Saving file to: {:?}", file_path);
+    let saved_file = file.open(128_i32.gibibytes()).into_file(&file_path).await;
+    println!("After file save");
+
+    match saved_file {
+        Ok(_) => {
+            println!("File saved successfully");
+        }
+        Err(e) => {
+            println!("Error saving file: {:?}", e);
+        }
+    }
+
+    let cairo_dir = concat!(env!("CARGO_MANIFEST_DIR"), "/", "cairo/");
+
+    let mut compile = Command::new("cargo");
+    compile.current_dir(cairo_dir);
+
+    let result = compile
+        .arg("run")
+        .arg("--bin")
+        .arg("starknet-sierra-compile")
+        .arg("--")
+        .arg(&file_path)
+        .arg(file_hash.casm_path())
+        .arg("--allowed-libfuncs-list-name")
+        .arg("experimental_v0.1.0")
+        .spawn();
+
+    match result {
+        Ok(mut child) => match child.wait() {
+            // Return here?
+            Ok(status) => {
+                println!("status: {}", status);
+            }
+            Err(e) => {
+                println!("error: {}", e);
+            }
+        },
+        Err(e) => {
+            println!("error: {:?}", e);
+        }
+    }
+
+    NamedFile::open(file_hash.casm_path()).await.ok()
 }
 
 #[launch]
 fn rocket() -> _ {
-    rocket::build().mount("/", routes![compile])
+    rocket::build().mount("/", routes![compile_to_sierra, compile_to_casm])
 }
