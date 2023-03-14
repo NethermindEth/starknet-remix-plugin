@@ -1,8 +1,0 @@
-.card-header {
-  margin-top: 8px;
-}
-
-[aria-disabled="true"] {
-  opacity: 0.5;
-  cursor: "not-allowed";
-}
