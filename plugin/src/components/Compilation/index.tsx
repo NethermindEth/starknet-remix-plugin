@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Card } from "../Card";
 
 import "./styles.css";
 
@@ -111,57 +112,52 @@ function CompilationTab(props: CompilationTabProps) {
     onClick: () => {}
   ) => {
     return (
-      <div className="border-top border-bottom">
-        <div className="card-header">
-          <h5 className="mb-0">{header}</h5>
-        </div>
-        <div className="card-body">
-          <button
-            className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-1"
-            style={{
-              cursor: `${
-                !validation || !currentFileName ? "not-allowed" : "pointer"
-              }`,
-            }}
-            aria-disabled={!validation || !currentFileName}
-            onClick={onClick}
-          >
-            <div className="d-flex align-items-center justify-content-center">
-              <div className="text-truncate overflow-hidden text-nowrap">
-                {!validation ? (
-                  <span>Not a valid file</span>
-                ) : (
-                  <>
-                    <div className="d-flex align-items-center justify-content-center">
-                      {isLoading ? (
-                        <>
-                          <span
-                            className="spinner-border spinner-border-sm"
-                            role="status"
-                            aria-hidden="true"
-                          >
-                            {" "}
-                          </span>
-                          <span style={{ paddingLeft: "0.5rem" }}>
-                            Compiling...
-                          </span>
-                        </>
-                      ) : (
-                        <div className="text-truncate overflow-hidden text-nowrap">
-                          <span>Compile</span>
-                          <span className="ml-1 text-nowrap">
-                            {currentFileName}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </>
-                )}
-              </div>
+      <Card header={header}>
+        <button
+          className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-1"
+          style={{
+            cursor: `${
+              !validation || !currentFileName ? "not-allowed" : "pointer"
+            }`,
+          }}
+          aria-disabled={!validation || !currentFileName}
+          onClick={onClick}
+        >
+          <div className="d-flex align-items-center justify-content-center">
+            <div className="text-truncate overflow-hidden text-nowrap">
+              {!validation ? (
+                <span>Not a valid file</span>
+              ) : (
+                <>
+                  <div className="d-flex align-items-center justify-content-center">
+                    {isLoading ? (
+                      <>
+                        <span
+                          className="spinner-border spinner-border-sm"
+                          role="status"
+                          aria-hidden="true"
+                        >
+                          {" "}
+                        </span>
+                        <span style={{ paddingLeft: "0.5rem" }}>
+                          Compiling...
+                        </span>
+                      </>
+                    ) : (
+                      <div className="text-truncate overflow-hidden text-nowrap">
+                        <span>Compile</span>
+                        <span className="ml-1 text-nowrap">
+                          {currentFileName}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
             </div>
-          </button>
-        </div>
-      </div>
+          </div>
+        </button>
+      </Card>
     );
   };
 
