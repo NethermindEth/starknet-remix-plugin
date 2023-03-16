@@ -143,9 +143,15 @@ async fn compile_to_casm(file: Data<'_>) -> Option<NamedFile> {
     NamedFile::open(file_hash.casm_path()).await.ok()
 }
 
+// Read the version from the cairo Cargo.toml file.
+#[get("/version")]
+fn version() -> &'static str {
+    "1.0.0-alpha.4"
+}
+
 #[launch]
 fn rocket() -> _ {
     rocket::build()
-        .mount("/", routes![compile_to_sierra, compile_to_casm])
+        .mount("/", routes![compile_to_sierra, compile_to_casm, version])
         .attach(CORS)
 }
