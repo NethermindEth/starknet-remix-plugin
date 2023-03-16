@@ -11,6 +11,7 @@ interface CompilationTabProps {
 
 function CompilationTab(props: CompilationTabProps) {
   const [currentFileName, setCurrentFileName] = useState("");
+  const [isCompiling, setIsCompiling] = useState(false);
   const [isCompilingToSierra, setIsCompilingToSierraStatus] = useState(false);
   const [isCompilingToCasm, setIsCompilingToCasmStatus] = useState(false);
   const [isValidCairo, setIsValidCairo] = useState(false);
@@ -19,19 +20,19 @@ function CompilationTab(props: CompilationTabProps) {
   const { remixClient } = props;
 
   useEffect(() => {
-    // setTimeout(() => {
-    remixClient.on(
-      "fileManager",
-      "currentFileChanged",
-      (currentFileChanged: any) => {
-        const fileName = currentFileChanged.split("/").pop();
-        const currentFileExtension = fileName.split(".").pop() || "";
-        setIsValidCairo(currentFileExtension === "cairo");
-        setIsValidSierra(currentFileExtension === "json");
-        setCurrentFileName(fileName);
-      }
-    );
-    // }, 1000);
+    setTimeout(() => {
+      remixClient.on(
+        "fileManager",
+        "currentFileChanged",
+        (currentFileChanged: any) => {
+          const fileName = currentFileChanged.split("/").pop();
+          const currentFileExtension = fileName.split(".").pop() || "";
+          setIsValidCairo(currentFileExtension === "cairo");
+          setIsValidSierra(currentFileExtension === "json");
+          setCurrentFileName(fileName);
+        }
+      );
+    }, 1000);
   }, [remixClient]);
 
   useEffect(() => {
@@ -74,6 +75,49 @@ function CompilationTab(props: CompilationTabProps) {
     setIsCompilingToCasmStatus(true);
     await compileTo("casm");
     setIsCompilingToCasmStatus(false);
+  }
+
+  async function compile() {
+    setIsCompiling(true);
+    let { currentFileContent, currentFilePath } = await getFile();
+    let response = await fetch(`http://127.0.0.1:8000/compile-to-sierra`, {
+      method: "POST",
+      body: currentFileContent,
+      redirect: "follow",
+      headers: {
+        "Content-Type": "application/octet-stream",
+      },
+    });
+
+    const sierra = await response.text();
+
+    console.log("sierra", sierra);
+
+    response = await fetch(`http://127.0.0.1:8000/compile-to-casm`, {
+      method: "POST",
+      body: sierra,
+      redirect: "follow",
+      headers: {
+        "Content-Type": "application/octet-stream",
+      },
+    });
+
+    const casm = await response.text();
+    console.log("casm", casm);
+
+    let sierraPath = `${artifactFolder(currentFilePath)}/${artifactFileName(
+      ".json"
+    )}`;
+    let casmPath = `${artifactFolder(currentFilePath)}/${artifactFileName(
+      ".casm"
+    )}`;
+
+    await remixClient.call("fileManager", "setFile", sierraPath, sierra);
+    await remixClient.call("fileManager", "setFile", casmPath, casm);
+
+    remixClient.call("fileManager", "switchFile", sierraPath);
+
+    setIsCompiling(false);
   }
 
   async function compileTo(lang: string) {
@@ -162,6 +206,12 @@ function CompilationTab(props: CompilationTabProps) {
   };
 
   const compilations = [
+    {
+      header: "Compile",
+      validation: isValidCairo,
+      isLoading: isCompiling,
+      onClick: compile,
+    },
     {
       header: "Compile to Sierra",
       validation: isValidCairo,
