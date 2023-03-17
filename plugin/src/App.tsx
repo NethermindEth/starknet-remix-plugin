@@ -1,5 +1,6 @@
 import { createClient } from "@remixproject/plugin-webview";
 import { PluginClient } from "@remixproject/plugin";
+import { Provider } from "starknet";
 import { useEffect, useState } from "react";
 
 import "./App.css";
@@ -15,6 +16,10 @@ function App() {
   useEffect(() => {
     setCairoVersion("1.0.0-alpha.4");
   }, []);
+
+  const provider = new Provider({
+    sequencer: { baseUrl: "http://127.0.0.1:5050" },
+  });
 
   return (
     <div className="shell">
