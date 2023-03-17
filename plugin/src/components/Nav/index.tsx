@@ -21,23 +21,23 @@ function Nav(props: NavProps) {
 
   return (
     <div>
-      <ul className="nav nav-tabs">
+      <ul className="nav nav-tabs" style={{ borderBottom: "none" }}>
         <li
           className={`nav-link nav-item ${
             activeTab === "compile" ? "active" : ""
           }`}
           onClick={() => setActiveTab("compile")}
         >
-          Compile
+          Compile & deploy
         </li>
-        <li
+        {/* <li
           className={`nav-link nav-item ${
             activeTab === "deploy" ? "active" : ""
           }`}
           onClick={() => setActiveTab("deploy")}
         >
           Deploy
-        </li>
+        </li> */}
         <li
           className={`nav-link nav-item ${
             activeTab === "interact" ? "active" : ""
@@ -46,14 +46,14 @@ function Nav(props: NavProps) {
         >
           Interact
         </li>
-        <li
+        {/* <li
           className={`nav-link nav-item ${
             activeTab === "verify" ? "active" : ""
           }`}
           onClick={() => setActiveTab("verify")}
         >
           Verify
-        </li>
+        </li> */}
       </ul>
       <div className="tab-content">
         <div

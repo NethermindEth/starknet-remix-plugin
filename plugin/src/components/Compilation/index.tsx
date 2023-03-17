@@ -5,17 +5,15 @@ import "./styles.css";
 
 interface CompilationTabProps {
   remixClient?: any;
-  onContractChange?: any;
-  onConstructorInputsChange?: any;
 }
 
 function CompilationTab(props: CompilationTabProps) {
   const [currentFileName, setCurrentFileName] = useState("");
   const [isCompiling, setIsCompiling] = useState(false);
-  const [isCompilingToSierra, setIsCompilingToSierraStatus] = useState(false);
-  const [isCompilingToCasm, setIsCompilingToCasmStatus] = useState(false);
+  // const [isCompilingToSierra, setIsCompilingToSierraStatus] = useState(false);
+  // const [isCompilingToCasm, setIsCompilingToCasmStatus] = useState(false);
   const [isValidCairo, setIsValidCairo] = useState(false);
-  const [isValidSierra, setIsValidSierra] = useState(false);
+  // const [isValidSierra, setIsValidSierra] = useState(false);
 
   const { remixClient } = props;
 
@@ -28,18 +26,37 @@ function CompilationTab(props: CompilationTabProps) {
           const fileName = currentFileChanged.split("/").pop();
           const currentFileExtension = fileName.split(".").pop() || "";
           setIsValidCairo(currentFileExtension === "cairo");
-          setIsValidSierra(currentFileExtension === "json");
+          // setIsValidSierra(currentFileExtension === "json");
           setCurrentFileName(fileName);
         }
       );
-    }, 1000);
+    }, 10);
   }, [remixClient]);
 
-  useEffect(() => {
-    console.log("isCompilingToSierra", isCompilingToSierra);
-  }, [isCompilingToSierra]);
+  // User might want to modify sierra and compile it.
+  // Add this in advanced features.
+  const compilations = [
+    {
+      header: "Compile",
+      validation: isValidCairo,
+      isLoading: isCompiling,
+      onClick: compile,
+    },
+    // {
+    //   header: "Compile to Sierra",
+    //   validation: isValidCairo,
+    //   isLoading: isCompilingToSierra,
+    //   onClick: compileToSierra,
+    // },
+    // {
+    //   header: "Compile to Casm",
+    //   validation: isValidSierra,
+    //   isLoading: isCompilingToCasm,
+    //   onClick: compileToCasm,
+    // },
+  ];
 
-  // Dummy, check for errors.
+  // Check for errors.
   const getFile = async () => {
     const currentFilePath = await remixClient.call(
       "fileManager",
@@ -65,17 +82,17 @@ function CompilationTab(props: CompilationTabProps) {
   let artifactFileName = (ext: ".json" | ".casm") =>
     currentFileName.split(".")[0].concat(ext);
 
-  async function compileToSierra() {
-    setIsCompilingToSierraStatus(true);
-    await compileTo("sierra");
-    setIsCompilingToSierraStatus(false);
-  }
+  // async function compileToSierra() {
+  //   setIsCompilingToSierraStatus(true);
+  //   await compileTo("sierra");
+  //   setIsCompilingToSierraStatus(false);
+  // }
 
-  async function compileToCasm() {
-    setIsCompilingToCasmStatus(true);
-    await compileTo("casm");
-    setIsCompilingToCasmStatus(false);
-  }
+  // async function compileToCasm() {
+  //   setIsCompilingToCasmStatus(true);
+  //   await compileTo("casm");
+  //   setIsCompilingToCasmStatus(false);
+  // }
 
   async function compile() {
     setIsCompiling(true);
@@ -91,8 +108,6 @@ function CompilationTab(props: CompilationTabProps) {
 
     const sierra = await response.text();
 
-    console.log("sierra", sierra);
-
     response = await fetch(`http://127.0.0.1:8000/compile-to-casm`, {
       method: "POST",
       body: sierra,
@@ -103,7 +118,6 @@ function CompilationTab(props: CompilationTabProps) {
     });
 
     const casm = await response.text();
-    console.log("casm", casm);
 
     let sierraPath = `${artifactFolder(currentFilePath)}/${artifactFileName(
       ".json"
@@ -120,34 +134,34 @@ function CompilationTab(props: CompilationTabProps) {
     setIsCompiling(false);
   }
 
-  async function compileTo(lang: string) {
-    let { currentFileContent, currentFilePath } = await getFile();
+  // async function compileTo(lang: string) {
+  //   let { currentFileContent, currentFilePath } = await getFile();
 
-    // TODO: Fail gracefully, implement interaction.
+  //   // TODO: Fail gracefully, implement interaction.
 
-    const response = await fetch(
-      `http://127.0.0.1:8000/compile-to-${
-        lang === "sierra" ? "sierra" : "casm"
-      }`,
-      {
-        method: "POST",
-        body: currentFileContent,
-        redirect: "follow",
-        headers: {
-          "Content-Type": "application/octet-stream",
-        },
-      }
-    );
+  //   const response = await fetch(
+  //     `http://127.0.0.1:8000/compile-to-${
+  //       lang === "sierra" ? "sierra" : "casm"
+  //     }`,
+  //     {
+  //       method: "POST",
+  //       body: currentFileContent,
+  //       redirect: "follow",
+  //       headers: {
+  //         "Content-Type": "application/octet-stream",
+  //       },
+  //     }
+  //   );
 
-    let fileContent = await response.text();
-    let newFilePath = `${artifactFolder(currentFilePath)}/${artifactFileName(
-      lang === "sierra" ? ".json" : ".casm"
-    )}`;
+  //   let fileContent = await response.text();
+  //   let newFilePath = `${artifactFolder(currentFilePath)}/${artifactFileName(
+  //     lang === "sierra" ? ".json" : ".casm"
+  //   )}`;
 
-    await remixClient.call("fileManager", "setFile", newFilePath, fileContent);
+  //   await remixClient.call("fileManager", "setFile", newFilePath, fileContent);
 
-    remixClient.call("fileManager", "switchFile", newFilePath);
-  }
+  //   remixClient.call("fileManager", "switchFile", newFilePath);
+  // }
 
   const compilationCard = (
     header: string,
@@ -204,27 +218,6 @@ function CompilationTab(props: CompilationTabProps) {
       </Card>
     );
   };
-
-  const compilations = [
-    {
-      header: "Compile",
-      validation: isValidCairo,
-      isLoading: isCompiling,
-      onClick: compile,
-    },
-    {
-      header: "Compile to Sierra",
-      validation: isValidCairo,
-      isLoading: isCompilingToSierra,
-      onClick: compileToSierra,
-    },
-    {
-      header: "Compile to Casm",
-      validation: isValidSierra,
-      isLoading: isCompilingToCasm,
-      onClick: compileToCasm,
-    },
-  ];
 
   return (
     <div>
