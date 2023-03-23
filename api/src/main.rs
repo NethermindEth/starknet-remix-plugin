@@ -1,6 +1,6 @@
 #[macro_use]
 extern crate rocket;
-use std::process::Command;
+use std::process::{Command, Output};
 
 use rocket::data::{Data, ToByteUnit};
 use rocket::fairing::{Fairing, Info, Kind};
@@ -70,8 +70,8 @@ async fn compile_to_sierra(file: Data<'_>) -> Option<NamedFile> {
         .arg("--")
         .arg(&file_path)
         .arg(file_hash.sierra_path())
-        .arg("--allowed-libfuncs-list-name")
-        .arg("experimental_v0.1.0")
+        // .arg("--allowed-libfuncs-list-name")
+        // .arg("experimental_v0.1.0")
         .spawn();
 
     match result {
@@ -122,8 +122,8 @@ async fn compile_to_casm(file: Data<'_>) -> Option<NamedFile> {
         .arg("--")
         .arg(&file_path)
         .arg(file_hash.casm_path())
-        .arg("--allowed-libfuncs-list-name")
-        .arg("experimental_v0.1.0")
+        // .arg("--allowed-libfuncs-list-name")
+        // .arg("experimental_v0.1.0")
         .spawn();
 
     match result {
@@ -143,15 +143,92 @@ async fn compile_to_casm(file: Data<'_>) -> Option<NamedFile> {
     NamedFile::open(file_hash.casm_path()).await.ok()
 }
 
+// Should abstract writting the file.
+// TODO: Make files TempFiles.
+// UX can be improved by starting the hash calculation as soon as the file is computed in the first API call.
+#[post("/class-hash", data = "<file>")]
+async fn class_hash(file: Data<'_>) -> String {
+    let file_hash = Hash::new(16);
+    let file_path = file_hash.file_path("json");
+    println!("Saving file to: {:?}", file_path);
+    let saved_file = file.open(128_i32.gibibytes()).into_file(&file_path).await;
+    println!("After file save");
+
+    match saved_file {
+        Ok(_) => {
+            println!("File saved successfully");
+        }
+        Err(e) => {
+            println!("Error saving file: {:?}", e);
+        }
+    }
+
+    let hash = Command::new("starknet-class-hash").arg(&file_path).output();
+
+    println!("Getting the class hash");
+    match hash {
+        Ok(hash) => {
+            println!("Hash: {:?}", hash);
+            let utf8_result = String::from_utf8(hash.stdout);
+            match utf8_result {
+                Ok(hash) => {
+                    println!("UTF8: {:?}", hash);
+                    return hash;
+                }
+                Err(e) => {
+                    println!("Error: {:?}", e);
+                    return e.to_string();
+                }
+            }
+        }
+        Err(e) => {
+            println!("Error: {:?}", e);
+            return e.to_string();
+        }
+    }
+}
+
 // Read the version from the cairo Cargo.toml file.
 #[get("/version")]
-fn version() -> &'static str {
-    "1.0.0-alpha.4"
+async fn version() -> &'static str {
+    // let cairo_dir = concat!(env!("CARGO_MANIFEST_DIR"), "/", "cairo/");
+    // let mut version_caller = Command::new("cargo");
+    // version_caller.current_dir(cairo_dir);
+    // let version_response = version_caller
+    //     .arg("--bin")
+    //     .arg("cairo-compile")
+    //     .arg("--")
+    //     .arg("--version")
+    //     .spawn();
+
+    // let mut response = "1.0.0-alpha.6";
+
+    // match version_response {
+    //     Ok(mut ver_res) => match ver_res.wait() {
+    //         Ok(ver) => {
+    //             println!("Version: {:?}", ver);
+    //             response = ver.to_string().as_str();
+    //         }
+    //         Err(e) => {
+    //             println!("error: {:?}", e);
+    //             response = "1.0.0-alpha.6"
+    //         }
+    //     },
+    //     Err(e) => {
+    //         println!("error: {:?}", e);
+    //         response = "1.0.0-alpha.6"
+    //     }
+    // }
+    // response
+    "1.0.0-alpha.6"
 }
 
 #[launch]
 fn rocket() -> _ {
     rocket::build()
-        .mount("/", routes![compile_to_sierra, compile_to_casm, version])
+        .mount(
+            "/",
+            routes![compile_to_sierra, compile_to_casm, class_hash, version],
+        )
         .attach(CORS)
 }
