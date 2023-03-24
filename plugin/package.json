@@ -5,6 +5,7 @@
   "dependencies": {
     "@remixproject/plugin": "^0.3.31",
     "@remixproject/plugin-webview": "^0.3.31",
+    "@starknet-react/core": "^0.16.0",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
@@ -12,10 +13,11 @@
     "@types/node": "^16.18.12",
     "@types/react": "^18.0.28",
     "@types/react-dom": "^18.0.11",
+    "get-starknet": "^2.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-scripts": "5.0.1",
-    "starknet": "^4.22.0",
+    "starknet": "next",
     "typescript": "^4.9.5",
     "web-vitals": "^2.1.4"
   },
@@ -33,9 +35,11 @@
   },
   "browserslist": {
     "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
+      "chrome >= 67",
+      "edge >= 79",
+      "firefox >= 68",
+      "opera >= 54",
+      "safari >= 14"
     ],
     "development": [
       "last 1 chrome version",
