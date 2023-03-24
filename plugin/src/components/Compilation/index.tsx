@@ -163,14 +163,14 @@ function CompilationTab(props: CompilationTabProps) {
   //   remixClient.call("fileManager", "switchFile", newFilePath);
   // }
 
-  const compilationCard = (
+  const Compilation = (
     header: string,
     validation: boolean,
     isLoading: boolean,
     onClick: () => {}
   ) => {
     return (
-      <Card header={header}>
+      <Card header={header} key={header}>
         <button
           className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-1"
           style={{
@@ -222,7 +222,7 @@ function CompilationTab(props: CompilationTabProps) {
   return (
     <div>
       {compilations.map((compilation) => {
-        return compilationCard(
+        return Compilation(
           compilation.header,
           compilation.validation,
           compilation.isLoading,

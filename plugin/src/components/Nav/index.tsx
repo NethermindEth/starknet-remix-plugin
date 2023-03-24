@@ -1,12 +1,10 @@
 // A navigation bar that allows to navigate between the different pages of the app: the Compiles, the Deploy, the Interact and the Verify pages
 
 import { useState } from "react";
-import Compilation from "../Compilation";
-import Deploy from "../Deploy";
-// import CompilationTab from "../Interact";
-// import CompilationTab from "../Verify";
+import CompileAndRun from "../CompileAndRun";
 
 import "./styles.css";
+import { Interact } from "../Interact";
 
 interface NavProps {
   remixClient?: any;
@@ -21,65 +19,42 @@ function Nav(props: NavProps) {
 
   return (
     <div>
-      <ul className="nav nav-tabs" style={{ borderBottom: "none" }}>
+      <ul
+        className="nav nav-tabs justify-content-center text-center m-0"
+        style={{ borderBottom: "none" }}
+      >
         <li
-          className={`nav-link nav-item ${
+          className={`nav-link nav-item flex-fill ${
             activeTab === "compile" ? "active" : ""
           }`}
           onClick={() => setActiveTab("compile")}
         >
           Compile & deploy
         </li>
-        {/* <li
-          className={`nav-link nav-item ${
-            activeTab === "deploy" ? "active" : ""
-          }`}
-          onClick={() => setActiveTab("deploy")}
-        >
-          Deploy
-        </li> */}
         <li
-          className={`nav-link nav-item ${
+          className={`nav-link nav-item flex-fill ${
             activeTab === "interact" ? "active" : ""
           }`}
           onClick={() => setActiveTab("interact")}
         >
           Interact
         </li>
-        {/* <li
-          className={`nav-link nav-item ${
-            activeTab === "verify" ? "active" : ""
-          }`}
-          onClick={() => setActiveTab("verify")}
-        >
-          Verify
-        </li> */}
       </ul>
       <div className="tab-content">
         <div
           className={`tab-pane ${activeTab === "compile" ? "active" : ""}`}
           id="compile"
         >
-          {activeTab === "compile" && <Compilation remixClient={remixClient} />}
+          {activeTab === "compile" && (
+            <CompileAndRun remixClient={remixClient} />
+          )}
         </div>
         <div
           className={`tab-pane ${activeTab === "deploy" ? "active" : ""}`}
-          id="deploy"
-        >
-          {activeTab === "deploy" && <Deploy />}
-        </div>
-        {/* <div
-          className={`tab-pane ${activeTab === "interact" ? "active" : ""}`}
           id="interact"
         >
-          {activeTab === "interact" && <CompilationTab />}
+          {activeTab === "interact" && <Interact />}
         </div>
-        <div
-          className={`tab-pane ${activeTab === "verify" ? "active" : ""}`}
-          id="verify"
-        >
-          {activeTab === "verify" && <CompilationTab />}
-        </div> */}
       </div>
     </div>
   );
