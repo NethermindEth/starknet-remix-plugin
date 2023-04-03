@@ -14,8 +14,8 @@ interface NavProps {
 
 function Nav(props: NavProps) {
   const { remixClient } = props;
-
   const [activeTab, setActiveTab] = useState("compile");
+  // TODO: Move wallet connection info here or to a store.
 
   return (
     <div>

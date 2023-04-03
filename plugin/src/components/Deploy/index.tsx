@@ -1,6 +1,9 @@
+// TODO: Divide in two components: Connection and Deploy.
+
 import { useEffect, useMemo, useState } from "react";
 import { connect, disconnect } from "get-starknet";
-import { Provider, constants } from "starknet";
+import { Provider, constants, shortString } from "starknet";
+import { useDeploy } from "@starknet-react/core";
 
 import "./styles.css";
 import { Card } from "../Card";
@@ -14,37 +17,42 @@ interface FileInformation {
 interface DeployProps {
   remixClient?: any;
   fileInfo: FileInformation;
+  isCompiled: boolean;
 }
 
 const devnet = "http://127.0.0.1:5050";
 
-const getProvider = (network: string) => {
-  switch (network) {
-    case "mainnet-alpha":
-      return new Provider({
-        sequencer: { baseUrl: "https://sequencer.starknet.io" },
-      });
-    case "goerli-alpha":
-      return new Provider({
-        sequencer: { baseUrl: "https://goerli.starknet.io" },
-      });
-    case "goerli-alpha-2":
-      return new Provider({
-        sequencer: { baseUrl: "https://goerli.starknet.io" },
-      });
-    case devnet:
-      return new Provider({
-        // Let user chose port eventually.
-        sequencer: { baseUrl: "http://127.0.0.1:5050" },
-      });
-    default:
-      return new Provider({
-        sequencer: { baseUrl: "https://goerli.starknet.io" },
-      });
-  }
-};
+// const getProvider = (network: string) => {
+//   switch (network) {
+//     case "mainnet-alpha":
+//       return new Provider({
+//         sequencer: { baseUrl: "https://sequencer.starknet.io" },
+//       });
+//     case "goerli-alpha":
+//       return new Provider({
+//         sequencer: { baseUrl: "https://goerli.starknet.io" },
+//       });
+//     case "goerli-alpha-2":
+//       return new Provider({
+//         sequencer: { baseUrl: "https://goerli.starknet.io" },
+//       });
+//     case devnet:
+//       return new Provider({
+//         // Let user chose port eventually.
+//         sequencer: { baseUrl: "http://127.0.0.1:5050" },
+//       });
+//     default:
+//       return new Provider({
+//         sequencer: { baseUrl: "https://goerli.starknet.io" },
+//       });
+//   }
+// };
 
-function Deploy({ remixClient }: DeployProps) {
+function Deploy({
+  remixClient,
+  fileInfo: { fileName, isValidCairo, isValidSierra },
+  isCompiled,
+}: DeployProps) {
   const [connected, setConnected] = useState(false);
   const [provider, setProvider] = useState<any>(null);
   const [connectedProvider, setConnectedProvider] = useState<any>(null);
@@ -59,10 +67,10 @@ function Deploy({ remixClient }: DeployProps) {
     return `${account.address.slice(0, 6)}...${account.address.slice(-4)}`;
   }, [account]);
 
-  useEffect(() => {
-    setProvider(getProvider(selectedNetwork));
-    console.log("Selected provider: ", provider);
-  }, [selectedNetwork]);
+  // useEffect(() => {
+  //   setProvider(getProvider(selectedNetwork));
+  //   console.log("Selected provider: ", provider);
+  // }, [selectedNetwork]);
 
   const networks = [
     { name: "Testnet", value: "goerli-alpha" },
@@ -191,9 +199,151 @@ function Deploy({ remixClient }: DeployProps) {
     setConnected(false);
   };
 
+  // TODO: Extract to helpers.
+  let artifactFolder = (path: string) => {
+    if (path.includes("artifacts"))
+      return path.split("/").slice(0, -1).join("/");
+    return path.split("/").slice(0, -1).join("/").concat("/artifacts");
+  };
+
+  const getArtifactFile = async () => {
+    const currentFilePath = await remixClient.call(
+      "fileManager",
+      "getCurrentFile",
+      fileName
+    );
+
+    let artifactFilePath = currentFilePath;
+    const [name, extension] = fileName.split(".");
+    if (extension === "cairo") {
+      // The file location is in the artifacts folder inside the current folder.
+      artifactFilePath = artifactFolder(currentFilePath) + "/" + name + ".json";
+    } else if (extension === "json" || extension === "casm") {
+      artifactFilePath =
+        // The file location is in the current folder.
+        currentFilePath.split(".").slice(0, -1).join(".") + "json";
+    }
+
+    const sierraFileContent = await remixClient.call(
+      "fileManager",
+      "readFile",
+      artifactFilePath
+    );
+
+    return { sierraFileContent, artifactFilePath };
+  };
+
   const handleDeploy = () => {
+    // provider;
+    // getFile("json");
     console.log("Deploying to " + selectedNetwork);
   };
+
+  // A function that reads the sierra json in contracts/artifacts or wherever the file might be
+  // and gets the abi, and gets the first function, which should be the constructor function
+  // and returns the names and the types of the arguments
+
+  const getConstructorArguments = async (contractName: string) => {
+    const { sierraFileContent } = await getArtifactFile();
+    const sierraFile = JSON.parse(sierraFileContent);
+    const abi = sierraFile.abi;
+    const constructorFunction = abi.find(
+      (abiFunction: any) => abiFunction.type === "constructor"
+    );
+    // TODO: Check here.
+    const constructorArguments = constructorFunction.inputs;
+    const constructorArgumentsNames = constructorArguments.map(
+      (argument: any) => argument.name
+    );
+    const constructorArgumentsTypes = constructorArguments.map(
+      (argument: any) => argument.type
+    );
+    return {
+      constructorArgumentsNames,
+      constructorArgumentsTypes,
+      constructorArguments,
+    };
+  };
+
+  const [constructorInputs, setConstructorInputs] = useState<any>([]);
+  const [isAbiProcessed, setIsAbiProcessed] = useState(false);
+
+  useEffect(() => {
+    if (isCompiled) {
+      getConstructorArguments(fileName).then((constructorInputs) => {
+        console.log("Compilation done");
+        setConstructorInputs(constructorInputs);
+        setIsAbiProcessed(true);
+      });
+    }
+  }, [isCompiled]);
+
+  // A function that takes the names and the types and generates a form for the arguments of the
+  // constructor function
+
+  const getConstructorArgumentsForm = () => {
+    const {
+      constructorArgumentsNames,
+      constructorArgumentsTypes,
+      constructorArguments,
+    } = constructorInputs;
+    const constructorArgumentsForm = (
+      <>
+        {constructorArguments.map((argument: any, index: number) => {
+          const argumentName = constructorArgumentsNames[index];
+          const argumentType = constructorArgumentsTypes[index];
+          return (
+            <div className="flex">
+              <label className="">{argumentName}</label>
+              <input
+                className="form-control form-control-sm"
+                type="text"
+                placeholder={argumentType}
+              />
+            </div>
+          );
+        })}
+      </>
+    );
+    return constructorArgumentsForm;
+  };
+
+  // If the abi has been processed and the constructor arguments have been extracted, then
+  // show the form for the constructor arguments
+  // useEffect(() => {}, [constructorArgumentsForm]);
+
+  // A constructorCallData function that uses useMemo to set and transform the data needed for the
+  // contract deployment using encodeShortString for strings
+
+  // const getConstructorCallData = async (contractName: string) => {
+  //   const { constructorArguments } = await getConstructorArguments(
+  //     contractName
+  //   );
+  //   const constructorCallData = constructorArguments.map(
+  //     (argument: any, index: number) => {
+  //       const {type, name} = argument;
+  //       if (type === "core::felt") {
+  //         return shortString.encodeShortString(name);
+  //       }
+  //       if (type === "core::starknet::contract_address::ContractAddress") {
+  //         return name;
+  //       }
+  //       else {
+  //         return
+  //       }
+  //       // const argumentValue = document.getElementById(argumentName)
+  //       //   ?.value as string;
+  //       // if (argumentType === "string") {
+  //       //   return shortString.encodeShortString(argumentValue);
+  //       // } else {
+  //       //   return argumentValue;
+  //       // }
+  //     }
+  //   );
+  //   return constructorCallData;
+  // };
+
+  // const constructorCalldata = useMemo(() =>
 
   const getClassHash = (contractName: string) => {
     const contract = remixClient.call("fileManager", "getFile", contractName);
@@ -248,6 +398,7 @@ function Deploy({ remixClient }: DeployProps) {
               </button>
             )}
           </div>
+          {isAbiProcessed && getConstructorArgumentsForm()}
           <button
             className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3"
             style={{

@@ -10,6 +10,9 @@ function CompileAndRun({ remixClient }: CompileAndRunTabProps) {
   const [currentFileName, setCurrentFileName] = useState("");
   const [isValidCairo, setIsValidCairo] = useState(false);
   const [isValidSierra, setIsValidSierra] = useState(false);
+  const [isCompiled, setIsCompiled] = useState(false);
+  // TODO: make map contractName => classHash
+  const [compiledContracts, setCompiledContracts] = useState<any>([]);
 
   useEffect(() => {
     setTimeout(() => {
@@ -22,6 +25,7 @@ function CompileAndRun({ remixClient }: CompileAndRunTabProps) {
           setIsValidCairo(currentFileExtension === "cairo");
           setIsValidSierra(currentFileExtension === "json");
           setCurrentFileName(fileName);
+          console.log(fileName);
         }
       );
     }, 10);
@@ -29,11 +33,16 @@ function CompileAndRun({ remixClient }: CompileAndRunTabProps) {
 
   return (
     <>
-      <Compilation remixClient={remixClient}></Compilation>
+      <Compilation remixClient={remixClient} setIsCompiled={setIsCompiled} />
       <Deploy
         remixClient={remixClient}
-        fileInfo={{ fileName: currentFileName, isValidCairo, isValidSierra }}
-      ></Deploy>
+        fileInfo={{
+          fileName: currentFileName,
+          isValidCairo,
+          isValidSierra,
+        }}
+        isCompiled={isCompiled}
+      />
     </>
   );
 }

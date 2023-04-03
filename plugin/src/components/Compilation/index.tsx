@@ -5,17 +5,19 @@ import "./styles.css";
 
 interface CompilationTabProps {
   remixClient?: any;
+  setIsCompiled: (isCompiled: boolean) => void;
 }
 
-function CompilationTab(props: CompilationTabProps) {
+// TODO: Move to a config file.
+const compilationEndpoint = "http://127.0.0.1:8000";
+
+function CompilationTab({ remixClient, setIsCompiled }: CompilationTabProps) {
   const [currentFileName, setCurrentFileName] = useState("");
   const [isCompiling, setIsCompiling] = useState(false);
   // const [isCompilingToSierra, setIsCompilingToSierraStatus] = useState(false);
   // const [isCompilingToCasm, setIsCompilingToCasmStatus] = useState(false);
   const [isValidCairo, setIsValidCairo] = useState(false);
   // const [isValidSierra, setIsValidSierra] = useState(false);
-
-  const { remixClient } = props;
 
   useEffect(() => {
     setTimeout(() => {
@@ -73,6 +75,7 @@ function CompilationTab(props: CompilationTabProps) {
     return { currentFileContent, currentFilePath };
   };
 
+  // TODO: extract to helpers
   let artifactFolder = (path: string) => {
     if (path.includes("artifacts"))
       return path.split("/").slice(0, -1).join("/");
@@ -97,7 +100,7 @@ function CompilationTab(props: CompilationTabProps) {
   async function compile() {
     setIsCompiling(true);
     let { currentFileContent, currentFilePath } = await getFile();
-    let response = await fetch(`http://127.0.0.1:8000/compile-to-sierra`, {
+    let response = await fetch(`${compilationEndpoint}/compile-to-sierra`, {
       method: "POST",
       body: currentFileContent,
       redirect: "follow",
@@ -108,7 +111,7 @@ function CompilationTab(props: CompilationTabProps) {
 
     const sierra = await response.text();
 
-    response = await fetch(`http://127.0.0.1:8000/compile-to-casm`, {
+    response = await fetch(`${compilationEndpoint}/compile-to-casm`, {
       method: "POST",
       body: sierra,
       redirect: "follow",
@@ -130,7 +133,7 @@ function CompilationTab(props: CompilationTabProps) {
     await remixClient.call("fileManager", "setFile", casmPath, casm);
 
     remixClient.call("fileManager", "switchFile", sierraPath);
-
+    setIsCompiled(true);
     setIsCompiling(false);
   }
 
@@ -140,7 +143,7 @@ function CompilationTab(props: CompilationTabProps) {
   //   // TODO: Fail gracefully, implement interaction.
 
   //   const response = await fetch(
-  //     `http://127.0.0.1:8000/compile-to-${
+  //     `${compilationEndpoint}/compile-to-${
   //       lang === "sierra" ? "sierra" : "casm"
   //     }`,
   //     {
