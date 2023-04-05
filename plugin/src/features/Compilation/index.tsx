@@ -1,18 +1,24 @@
-import { useEffect, useState } from "react";
-import { Card } from "../Card";
+import { useContext, useEffect, useState } from "react";
+import { Card } from "../../components/Card";
 
+import { RemixClientContext } from "../../contexts/RemixClientContext";
+import { apiUrl } from "../../utils/provider";
 import "./styles.css";
+import {
+  artifactFilename,
+  artifactFolder,
+  getFileExtension,
+  getFileNameFromPath,
+} from "../../utils/utils";
 
 interface CompilationTabProps {
-  remixClient?: any;
   setIsCompiled: (isCompiled: boolean) => void;
 }
 
-// TODO: Move to a config file.
-const compilationEndpoint = "http://127.0.0.1:8000";
+function CompilationTab({ setIsCompiled }: CompilationTabProps) {
+  const remixClient = useContext(RemixClientContext);
 
-function CompilationTab({ remixClient, setIsCompiled }: CompilationTabProps) {
-  const [currentFileName, setCurrentFileName] = useState("");
+  const [currentFilename, setCurrentFilename] = useState("");
   const [isCompiling, setIsCompiling] = useState(false);
   // const [isCompilingToSierra, setIsCompilingToSierraStatus] = useState(false);
   // const [isCompilingToCasm, setIsCompilingToCasmStatus] = useState(false);
@@ -25,18 +31,18 @@ function CompilationTab({ remixClient, setIsCompiled }: CompilationTabProps) {
         "fileManager",
         "currentFileChanged",
         (currentFileChanged: any) => {
-          const fileName = currentFileChanged.split("/").pop();
-          const currentFileExtension = fileName.split(".").pop() || "";
+          const filename = getFileNameFromPath(currentFileChanged);
+          const currentFileExtension = getFileExtension(filename);
           setIsValidCairo(currentFileExtension === "cairo");
           // setIsValidSierra(currentFileExtension === "json");
-          setCurrentFileName(fileName);
+          setCurrentFilename(filename);
         }
       );
     }, 10);
   }, [remixClient]);
 
   // User might want to modify sierra and compile it.
-  // Add this in advanced features.
+  // TODO: Add this in advanced features.
   const compilations = [
     {
       header: "Compile",
@@ -62,8 +68,7 @@ function CompilationTab({ remixClient, setIsCompiled }: CompilationTabProps) {
   const getFile = async () => {
     const currentFilePath = await remixClient.call(
       "fileManager",
-      "getCurrentFile",
-      currentFileName
+      "getCurrentFile"
     );
 
     const currentFileContent = await remixClient.call(
@@ -74,16 +79,6 @@ function CompilationTab({ remixClient, setIsCompiled }: CompilationTabProps) {
 
     return { currentFileContent, currentFilePath };
   };
-
-  // TODO: extract to helpers
-  let artifactFolder = (path: string) => {
-    if (path.includes("artifacts"))
-      return path.split("/").slice(0, -1).join("/");
-    return path.split("/").slice(0, -1).join("/").concat("/artifacts");
-  };
-
-  let artifactFileName = (ext: ".json" | ".casm") =>
-    currentFileName.split(".")[0].concat(ext);
 
   // async function compileToSierra() {
   //   setIsCompilingToSierraStatus(true);
@@ -100,7 +95,7 @@ function CompilationTab({ remixClient, setIsCompiled }: CompilationTabProps) {
   async function compile() {
     setIsCompiling(true);
     let { currentFileContent, currentFilePath } = await getFile();
-    let response = await fetch(`${compilationEndpoint}/compile-to-sierra`, {
+    let response = await fetch(`${apiUrl}/compile-to-sierra`, {
       method: "POST",
       body: currentFileContent,
       redirect: "follow",
@@ -111,7 +106,7 @@ function CompilationTab({ remixClient, setIsCompiled }: CompilationTabProps) {
 
     const sierra = await response.text();
 
-    response = await fetch(`${compilationEndpoint}/compile-to-casm`, {
+    response = await fetch(`${apiUrl}/compile-to-casm`, {
       method: "POST",
       body: sierra,
       redirect: "follow",
@@ -122,11 +117,13 @@ function CompilationTab({ remixClient, setIsCompiled }: CompilationTabProps) {
 
     const casm = await response.text();
 
-    let sierraPath = `${artifactFolder(currentFilePath)}/${artifactFileName(
-      ".json"
+    let sierraPath = `${artifactFolder(currentFilePath)}/${artifactFilename(
+      ".json",
+      currentFilename
     )}`;
-    let casmPath = `${artifactFolder(currentFilePath)}/${artifactFileName(
-      ".casm"
+    let casmPath = `${artifactFolder(currentFilePath)}/${artifactFilename(
+      ".casm",
+      currentFilename
     )}`;
 
     await remixClient.call("fileManager", "setFile", sierraPath, sierra);
@@ -157,7 +154,7 @@ function CompilationTab({ remixClient, setIsCompiled }: CompilationTabProps) {
   //   );
 
   //   let fileContent = await response.text();
-  //   let newFilePath = `${artifactFolder(currentFilePath)}/${artifactFileName(
+  //   let newFilePath = `${artifactFolder(currentFilePath)}/${artifactFilename(
   //     lang === "sierra" ? ".json" : ".casm"
   //   )}`;
 
@@ -178,10 +175,10 @@ function CompilationTab({ remixClient, setIsCompiled }: CompilationTabProps) {
           className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-1"
           style={{
             cursor: `${
-              !validation || !currentFileName ? "not-allowed" : "pointer"
+              !validation || !currentFilename ? "not-allowed" : "pointer"
             }`,
           }}
-          aria-disabled={!validation || !currentFileName}
+          aria-disabled={!validation || !currentFilename}
           onClick={onClick}
         >
           <div className="d-flex align-items-center justify-content-center">
@@ -208,7 +205,7 @@ function CompilationTab({ remixClient, setIsCompiled }: CompilationTabProps) {
                       <div className="text-truncate overflow-hidden text-nowrap">
                         <span>Compile</span>
                         <span className="ml-1 text-nowrap">
-                          {currentFileName}
+                          {currentFilename}
                         </span>
                       </div>
                     )}

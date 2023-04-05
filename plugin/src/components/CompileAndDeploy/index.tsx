@@ -1,12 +1,13 @@
-import { useEffect, useState } from "react";
-import Compilation from "../Compilation";
-import Deploy from "../Deploy";
+import { useContext, useEffect, useState } from "react";
+import Compilation from "../../features/Compilation";
+import Deployment from "../../features/Deployment";
+import { RemixClientContext } from "../../contexts/RemixClientContext";
 
-interface CompileAndRunTabProps {
-  remixClient?: any;
-}
+interface CompileAndDeployTabProps {}
 
-function CompileAndRun({ remixClient }: CompileAndRunTabProps) {
+function CompileAndDeploy(props: CompileAndDeployTabProps) {
+  const remixClient = useContext(RemixClientContext);
+
   const [currentFileName, setCurrentFileName] = useState("");
   const [isValidCairo, setIsValidCairo] = useState(false);
   const [isValidSierra, setIsValidSierra] = useState(false);
@@ -33,9 +34,8 @@ function CompileAndRun({ remixClient }: CompileAndRunTabProps) {
 
   return (
     <>
-      <Compilation remixClient={remixClient} setIsCompiled={setIsCompiled} />
-      <Deploy
-        remixClient={remixClient}
+      <Compilation setIsCompiled={setIsCompiled} />
+      <Deployment
         fileInfo={{
           fileName: currentFileName,
           isValidCairo,
@@ -47,4 +47,4 @@ function CompileAndRun({ remixClient }: CompileAndRunTabProps) {
   );
 }
 
-export default CompileAndRun;
+export default CompileAndDeploy;

@@ -1,12 +1,12 @@
 // TODO: Divide in two components: Connection and Deploy.
 
-import { useEffect, useMemo, useState } from "react";
 import { connect, disconnect } from "get-starknet";
-import { Provider, constants, shortString } from "starknet";
-import { useDeploy } from "@starknet-react/core";
+import { useMemo, useState } from "react";
+import { constants, shortString } from "starknet";
 
+import { Card } from "../../components/Card";
+import { devnetUrl, networkEquivalents, networks } from "../../utils/constants";
 import "./styles.css";
-import { Card } from "../Card";
 
 interface FileInformation {
   fileName: string;
@@ -14,53 +14,23 @@ interface FileInformation {
   isValidSierra: boolean;
 }
 
-interface DeployProps {
+interface DeploymentProps {
   remixClient?: any;
   fileInfo: FileInformation;
   isCompiled: boolean;
 }
 
-const devnet = "http://127.0.0.1:5050";
-
-// const getProvider = (network: string) => {
-//   switch (network) {
-//     case "mainnet-alpha":
-//       return new Provider({
-//         sequencer: { baseUrl: "https://sequencer.starknet.io" },
-//       });
-//     case "goerli-alpha":
-//       return new Provider({
-//         sequencer: { baseUrl: "https://goerli.starknet.io" },
-//       });
-//     case "goerli-alpha-2":
-//       return new Provider({
-//         sequencer: { baseUrl: "https://goerli.starknet.io" },
-//       });
-//     case devnet:
-//       return new Provider({
-//         // Let user chose port eventually.
-//         sequencer: { baseUrl: "http://127.0.0.1:5050" },
-//       });
-//     default:
-//       return new Provider({
-//         sequencer: { baseUrl: "https://goerli.starknet.io" },
-//       });
-//   }
-// };
-
-function Deploy({
+function Deployment({
   remixClient,
   fileInfo: { fileName, isValidCairo, isValidSierra },
   isCompiled,
-}: DeployProps) {
+}: DeploymentProps) {
   const [connected, setConnected] = useState(false);
-  const [provider, setProvider] = useState<any>(null);
   const [connectedProvider, setConnectedProvider] = useState<any>(null);
   const [account, setAccount] = useState({ address: "", icon: "" });
+
   const [selectedNetwork, setSelectedNetwork] = useState("goerli-alpha");
   const [isWrongNetwork, setIsWrongNetwork] = useState(false);
-  const [intededNetwork, setIntededNetwork] = useState(false);
-  const [actualNetwork, setActualNetwork] = useState(false);
 
   const shortenedAddress = useMemo(() => {
     if (!account) return "";
@@ -72,19 +42,6 @@ function Deploy({
   //   console.log("Selected provider: ", provider);
   // }, [selectedNetwork]);
 
-  const networks = [
-    { name: "Testnet", value: "goerli-alpha" },
-    { name: "Testnet 2", value: "goerli-alpha-2" },
-    { name: "Devnet", value: devnet },
-    { name: "Mainnet", value: "mainnet-alpha" },
-  ];
-
-  const networkEquivalents = new Map([
-    [constants.StarknetChainId.SN_GOERLI, "goerli-alpha"],
-    [constants.StarknetChainId.SN_GOERLI2, "goerli-alpha-2"],
-    [constants.StarknetChainId.SN_MAIN, "mainnet-alpha"],
-  ]);
-
   const handleNetworkChange = (event: any) => {
     setSelectedNetwork(event.target.value);
     setIsWrongNetwork(false);
@@ -93,7 +50,7 @@ function Deploy({
       connectedProvider &&
       connectedProvider.baseUrl.startsWith("http://localhost")
     ) {
-      if (selectedNetwork !== devnet) {
+      if (selectedNetwork !== devnetUrl) {
         // Modal?
         setIsWrongNetwork(true);
       } else {
@@ -146,7 +103,7 @@ function Deploy({
           "http://localhost"
         )
       ) {
-        if (selectedNetwork !== devnet) {
+        if (selectedNetwork !== devnetUrl) {
           // Modal?
           setIsWrongNetwork(true);
         } else {
@@ -268,18 +225,15 @@ function Deploy({
   const [constructorInputs, setConstructorInputs] = useState<any>([]);
   const [isAbiProcessed, setIsAbiProcessed] = useState(false);
 
-  useEffect(() => {
-    if (isCompiled) {
-      getConstructorArguments(fileName).then((constructorInputs) => {
-        console.log("Compilation done");
-        setConstructorInputs(constructorInputs);
-        setIsAbiProcessed(true);
-      });
-    }
-  }, [isCompiled]);
-
-  // A function that takes the names and the types and generates a form for the arguments of the
-  // constructor function
+  // useEffect(() => {
+  //   if (isCompiled) {
+  //     getConstructorArguments(fileName).then((constructorInputs) => {
+  //       console.log("Compilation done");
+  //       setConstructorInputs(constructorInputs);
+  //       setIsAbiProcessed(true);
+  //     });
+  //   }
+  // }, [isCompiled]);
 
   const getConstructorArgumentsForm = () => {
     const {
@@ -310,38 +264,44 @@ function Deploy({
 
   // If the abi has been processed and the constructor arguments have been extracted, then
   // show the form for the constructor arguments
-  // useEffect(() => {}, [constructorArgumentsForm]);
+  // useEffect(() => {
+  //   function processAbi() {
+  //     const constructorArgumentsForm = getConstructorArgumentsForm();
+  //     const callData = getConstructorCallData(fileName);
+  //     setIsAbiProcessed(true);
+  //   }
+  //   processAbi();
+  // }, []);
 
   // A constructorCallData function that uses useMemo to set and transform the data needed for the
   // contract deployment using encodeShortString for strings
 
-  // const getConstructorCallData = async (contractName: string) => {
-  //   const { constructorArguments } = await getConstructorArguments(
-  //     contractName
-  //   );
-  //   const constructorCallData = constructorArguments.map(
-  //     (argument: any, index: number) => {
-  //       const {type, name} = argument;
-  //       if (type === "core::felt") {
-  //         return shortString.encodeShortString(name);
-  //       }
-  //       if (type === "core::starknet::contract_address::ContractAddress") {
-  //         return name;
-  //       }
-  //       else {
-  //         return
-  //       }
-  //       // const argumentValue = document.getElementById(argumentName)
-  //       //   ?.value as string;
-  //       // if (argumentType === "string") {
-  //       //   return shortString.encodeShortString(argumentValue);
-  //       // } else {
-  //       //   return argumentValue;
-  //       // }
-  //     }
-  //   );
-  //   return constructorCallData;
-  // };
+  const getConstructorCallData = async (contractName: string) => {
+    const { constructorArguments } = await getConstructorArguments(
+      contractName
+    );
+    const constructorCallData = constructorArguments.map(
+      (argument: any, index: number) => {
+        const { type, name } = argument;
+        if (type === "core::felt") {
+          return shortString.encodeShortString(name);
+        }
+        if (type === "core::starknet::contract_address::ContractAddress") {
+          return name;
+        } else {
+          return;
+        }
+        // const argumentValue = document.getElementById(argumentName)
+        //   ?.value as string;
+        // if (argumentType === "string") {
+        //   return shortString.encodeShortString(argumentValue);
+        // } else {
+        //   return argumentValue;
+        // }
+      }
+    );
+    return constructorCallData;
+  };
 
   // const constructorCalldata = useMemo(() =>
 
@@ -425,4 +385,4 @@ function Deploy({
   );
 }
 
-export default Deploy;
+export default Deployment;

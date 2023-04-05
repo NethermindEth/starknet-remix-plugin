@@ -1,24 +1,16 @@
-// A navigation bar that allows to navigate between the different pages of the app: the Compiles, the Deploy, the Interact and the Verify pages
-
 import { useState } from "react";
-import CompileAndRun from "../CompileAndRun";
 
+import Interaction from "../../features/Interaction";
+import CompileAndDeploy from "../CompileAndDeploy";
 import "./styles.css";
-import { Interact } from "../Interact";
 
-interface NavProps {
-  remixClient?: any;
-  onContractChange?: any;
-  onConstructorInputsChange?: any;
-}
+interface NavProps {}
 
 function Nav(props: NavProps) {
-  const { remixClient } = props;
   const [activeTab, setActiveTab] = useState("compile");
-  // TODO: Move wallet connection info here or to a store.
 
   return (
-    <div>
+    <>
       <ul
         className="nav nav-tabs justify-content-center text-center m-0"
         style={{ borderBottom: "none" }}
@@ -29,7 +21,7 @@ function Nav(props: NavProps) {
           }`}
           onClick={() => setActiveTab("compile")}
         >
-          Compile & deploy
+          Compile & Deploy
         </li>
         <li
           className={`nav-link nav-item flex-fill ${
@@ -45,18 +37,16 @@ function Nav(props: NavProps) {
           className={`tab-pane ${activeTab === "compile" ? "active" : ""}`}
           id="compile"
         >
-          {activeTab === "compile" && (
-            <CompileAndRun remixClient={remixClient} />
-          )}
+          {activeTab === "compile" && <CompileAndDeploy />}
         </div>
         <div
           className={`tab-pane ${activeTab === "deploy" ? "active" : ""}`}
           id="interact"
         >
-          {activeTab === "interact" && <Interact />}
+          {activeTab === "interact" && <Interaction />}
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
