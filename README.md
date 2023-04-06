@@ -12,11 +12,13 @@ git submodule update --init;
 cargo install;
 ```
 
-For now, the files in the examples are compiled properly with Cairo v1.0.0-alpha.4, so you'll need to checkout that cairo release tag:
+For now, the files in the examples are compiled properly with Cairo v1.0.0-alpha.6, so you'll need to checkout that cairo release tag:
 
 ```bash
-git checkout v1.0.0-alpha.4
+git checkout v1.0.0-alpha.6
 ```
+
+Cairo lang also needs to be installed in order to use the `starknet-class-hash` tool, [see](https://docs.starknet.io/documentation/getting_started/environment_setup/).
 
 ### Plugin
 
