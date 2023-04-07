@@ -9,6 +9,8 @@ import { RemixClientContext } from "./contexts/RemixClientContext";
 
 const remixClient = createClient(new PluginClient());
 function App() {
+  // Should ask permission to user to write file only once.
+  // remixClient.askUserPermission("setFile");
   return (
     <StarknetConfig connectors={connectors}>
       <RemixClientContext.Provider value={remixClient}>

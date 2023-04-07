@@ -1,28 +1,32 @@
 import { useContext, useEffect, useState } from "react";
 import { Card } from "../../components/Card";
 
+import { CompiledContractsContext } from "../../contexts/CompiledContractsContext";
 import { RemixClientContext } from "../../contexts/RemixClientContext";
-import { apiUrl } from "../../utils/provider";
-import "./styles.css";
+import { apiUrl } from "../../utils/network";
 import {
   artifactFilename,
   artifactFolder,
   getFileExtension,
   getFileNameFromPath,
 } from "../../utils/utils";
+import "./styles.css";
 
 interface CompilationTabProps {
-  setIsCompiled: (isCompiled: boolean) => void;
+  setIsLatestClassHashReady: (isLatestClassHashReady: boolean) => void;
 }
 
-function CompilationTab({ setIsCompiled }: CompilationTabProps) {
+function CompilationTab({ setIsLatestClassHashReady }: CompilationTabProps) {
   const remixClient = useContext(RemixClientContext);
+
+  const { contracts, setContracts, selectedContract, setSelectedContract } =
+    useContext(CompiledContractsContext);
 
   const [currentFilename, setCurrentFilename] = useState("");
   const [isCompiling, setIsCompiling] = useState(false);
+  const [isValidCairo, setIsValidCairo] = useState(false);
   // const [isCompilingToSierra, setIsCompilingToSierraStatus] = useState(false);
   // const [isCompilingToCasm, setIsCompilingToCasmStatus] = useState(false);
-  const [isValidCairo, setIsValidCairo] = useState(false);
   // const [isValidSierra, setIsValidSierra] = useState(false);
 
   useEffect(() => {
@@ -94,44 +98,82 @@ function CompilationTab({ setIsCompiled }: CompilationTabProps) {
 
   async function compile() {
     setIsCompiling(true);
-    let { currentFileContent, currentFilePath } = await getFile();
-    let response = await fetch(`${apiUrl}/compile-to-sierra`, {
-      method: "POST",
-      body: currentFileContent,
-      redirect: "follow",
-      headers: {
-        "Content-Type": "application/octet-stream",
-      },
-    });
+    try {
+      let { currentFileContent, currentFilePath } = await getFile();
+      let response = await fetch(`${apiUrl}/compile-to-sierra`, {
+        method: "POST",
+        body: currentFileContent,
+        redirect: "follow",
+        headers: {
+          "Content-Type": "application/octet-stream",
+        },
+      });
 
-    const sierra = await response.text();
+      const sierra = await response.text();
 
-    response = await fetch(`${apiUrl}/compile-to-casm`, {
-      method: "POST",
-      body: sierra,
-      redirect: "follow",
-      headers: {
-        "Content-Type": "application/octet-stream",
-      },
-    });
+      response = await fetch(`${apiUrl}/compile-to-casm`, {
+        method: "POST",
+        body: sierra,
+        redirect: "follow",
+        headers: {
+          "Content-Type": "application/octet-stream",
+        },
+      });
 
-    const casm = await response.text();
+      const casm = await response.text();
 
-    let sierraPath = `${artifactFolder(currentFilePath)}/${artifactFilename(
-      ".json",
-      currentFilename
-    )}`;
-    let casmPath = `${artifactFolder(currentFilePath)}/${artifactFilename(
-      ".casm",
-      currentFilename
-    )}`;
+      let sierraPath = `${artifactFolder(currentFilePath)}/${artifactFilename(
+        ".json",
+        currentFilename
+      )}`;
+      let casmPath = `${artifactFolder(currentFilePath)}/${artifactFilename(
+        ".casm",
+        currentFilename
+      )}`;
 
-    await remixClient.call("fileManager", "setFile", sierraPath, sierra);
-    await remixClient.call("fileManager", "setFile", casmPath, casm);
+      storeContract(currentFilename, sierra);
 
-    remixClient.call("fileManager", "switchFile", sierraPath);
-    setIsCompiled(true);
+      await remixClient.call("fileManager", "setFile", sierraPath, sierra);
+      await remixClient.call("fileManager", "setFile", casmPath, casm);
+
+      remixClient.call("fileManager", "switchFile", sierraPath);
+    } catch (e) {
+      console.error(e);
+    }
     setIsCompiling(false);
+  }
+
+  async function storeContract(contractName: string, sierraFile: string) {
+    setIsLatestClassHashReady(true);
+    try {
+      const sierra = await JSON.parse(sierraFile);
+      // TODO: Not necessary, remove.
+      const abi = sierra.abi;
+      const response = await fetch(`${apiUrl}/class-hash`, {
+        method: "POST",
+        body: sierraFile,
+        redirect: "follow",
+        headers: {
+          "Content-Type": "application/octet-stream",
+        },
+      });
+      const classHash = (await response.text()).trim();
+      if (selectedContract == null) {
+        setSelectedContract({
+          name: contractName,
+          abi,
+          classHash,
+          sierra,
+        });
+      }
+      setContracts([
+        ...contracts,
+        { name: contractName, abi, classHash, sierra },
+      ]);
+    } catch (e) {
+      console.error(e);
+    }
+    setIsLatestClassHashReady(false);
   }
 
   // async function compileTo(lang: string) {

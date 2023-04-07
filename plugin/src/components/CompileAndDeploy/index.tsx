@@ -1,48 +1,35 @@
-import { useContext, useEffect, useState } from "react";
+import { useState } from "react";
 import Compilation from "../../features/Compilation";
 import Deployment from "../../features/Deployment";
-import { RemixClientContext } from "../../contexts/RemixClientContext";
+import { Card } from "../Card";
 
 interface CompileAndDeployTabProps {}
 
 function CompileAndDeploy(props: CompileAndDeployTabProps) {
-  const remixClient = useContext(RemixClientContext);
-
-  const [currentFileName, setCurrentFileName] = useState("");
-  const [isValidCairo, setIsValidCairo] = useState(false);
-  const [isValidSierra, setIsValidSierra] = useState(false);
-  const [isCompiled, setIsCompiled] = useState(false);
-  // TODO: make map contractName => classHash
-  const [compiledContracts, setCompiledContracts] = useState<any>([]);
-
-  useEffect(() => {
-    setTimeout(() => {
-      remixClient.on(
-        "fileManager",
-        "currentFileChanged",
-        (currentFileChanged: any) => {
-          const fileName = currentFileChanged.split("/").pop();
-          const currentFileExtension = fileName.split(".").pop() || "";
-          setIsValidCairo(currentFileExtension === "cairo");
-          setIsValidSierra(currentFileExtension === "json");
-          setCurrentFileName(fileName);
-          console.log(fileName);
-        }
-      );
-    }, 10);
-  }, [remixClient]);
-
+  // TODO: This state should be moved to a context to survibe changing tabs.
+  const [isLatestClassHashBeingLoaded, setIsLatestClassHashBeingLoaded] =
+    useState(false);
   return (
     <>
-      <Compilation setIsCompiled={setIsCompiled} />
-      <Deployment
-        fileInfo={{
-          fileName: currentFileName,
-          isValidCairo,
-          isValidSierra,
-        }}
-        isCompiled={isCompiled}
+      <Compilation
+        setIsLatestClassHashReady={setIsLatestClassHashBeingLoaded}
       />
+      {isLatestClassHashBeingLoaded && (
+        <Card header="">
+          <div className="flex d-flex align-items-center justify-content-center">
+            <div className="spinner-border" role="status">
+              <span className="sr-only">Loading...</span>
+            </div>
+            <span className="ml-2">
+              Getting the Class Hash of the contract...
+            </span>
+          </div>
+          <p className="mt-3">
+            Feel free to explore the compiled Sierra file in the meantime.
+          </p>
+        </Card>
+      )}
+      <Deployment />
     </>
   );
 }

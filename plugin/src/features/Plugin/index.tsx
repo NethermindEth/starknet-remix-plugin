@@ -1,47 +1,65 @@
 import { useEffect, useState } from "react";
 
-import { Contract } from "../../types/contracts";
-import Nav from "../../components/Nav";
-import "./styles.css";
-import Connection from "../Connection";
 import { Card } from "../../components/Card";
+import Nav from "../../components/Nav";
+import { ConnectionContext } from "../../contexts/ConnectionContext";
+import { CompiledContractsContext } from "../../contexts/CompiledContractsContext";
+import { Connection as ConnectionType } from "../../types/accounts";
+import { Contract } from "../../types/contracts";
+import Connection from "../Connection";
+import "./styles.css";
 
 interface PluginProps {}
 
 function Plugin(props: PluginProps) {
-  const [cairoVersion, setCairoVersion] = useState("1.0.0-alpha.4");
+  const [cairoVersion, setCairoVersion] = useState("");
+  // Store connected wallet and provider
 
-  useEffect(() => {
-    // TODO: Call the API and make the api return the version of the Cairo compiler on use effect
-    setCairoVersion("1.0.0-alpha.4");
-  }, []);
+  const [connection, setConnection] = useState<ConnectionType>({
+    connected: false,
+    account: undefined,
+    provider: undefined,
+  });
 
   // Store a list of compiled contracts
   const [compiledContracts, setCompiledContracts] = useState<Contract[]>([]);
-  const [currentContract, setCurrentContract] = useState<Contract | null>(null);
+  // Store the current contract for UX purposes
+  const [selectedContract, setSelectedContract] = useState<Contract | null>(
+    null
+  );
 
-  // Show the connect wallet button if the user is not connected and if there is at least one compiled contract
+  useEffect(() => {
+    // TODO: Call the API and make the api return the version of the Cairo compiler on use effect
+    setCairoVersion("1.0.0-alpha.6");
+  }, []);
 
   return (
-    <div>
-      <div className="mb-1">
-        <label className="cairo-version-legend">
-          Using cairo version {cairoVersion}
-        </label>
-      </div>
-      <Card header={""}>
-        <Connection
-          onConnectionChange={function (
-            connected: boolean,
-            account: any,
-            provider: any
-          ): void {
-            throw new Error("Function not implemented.");
+    <>
+      <ConnectionContext.Provider value={{ connection, setConnection }}>
+        <CompiledContractsContext.Provider
+          value={{
+            contracts: compiledContracts,
+            setContracts: setCompiledContracts,
+            selectedContract: selectedContract,
+            setSelectedContract: setSelectedContract,
           }}
-        ></Connection>
-      </Card>
-      <Nav />
-    </div>
+        >
+          <div className="mb-1">
+            <label className="cairo-version-legend">
+              Using cairo version {cairoVersion}
+            </label>
+          </div>
+          <Nav />
+          <div
+            style={{ position: "fixed", bottom: "0", left: "0", right: "0" }}
+          >
+            <Card header={""}>
+              <Connection />
+            </Card>
+          </div>
+        </CompiledContractsContext.Provider>
+      </ConnectionContext.Provider>
+    </>
   );
 }
 

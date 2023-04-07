@@ -40,7 +40,7 @@ function Nav(props: NavProps) {
           {activeTab === "compile" && <CompileAndDeploy />}
         </div>
         <div
-          className={`tab-pane ${activeTab === "deploy" ? "active" : ""}`}
+          className={`tab-pane ${activeTab === "interact" ? "active" : ""}`}
           id="interact"
         >
           {activeTab === "interact" && <Interaction />}
