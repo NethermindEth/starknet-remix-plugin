@@ -11,6 +11,7 @@ import {
   getFileNameFromPath,
 } from "../../utils/utils";
 import "./styles.css";
+import { hash } from "starknet";
 
 interface CompilationTabProps {
   setIsLatestClassHashReady: (isLatestClassHashReady: boolean) => void;
@@ -19,8 +20,9 @@ interface CompilationTabProps {
 function CompilationTab({ setIsLatestClassHashReady }: CompilationTabProps) {
   const remixClient = useContext(RemixClientContext);
 
-  const { contracts, setContracts, selectedContract, setSelectedContract } =
-    useContext(CompiledContractsContext);
+  const { contracts, setContracts, setSelectedContract } = useContext(
+    CompiledContractsContext
+  );
 
   const [currentFilename, setCurrentFilename] = useState("");
   const [isCompiling, setIsCompiling] = useState(false);
@@ -148,27 +150,29 @@ function CompilationTab({ setIsLatestClassHashReady }: CompilationTabProps) {
     try {
       const sierra = await JSON.parse(sierraFile);
       // TODO: Not necessary, remove.
-      const abi = sierra.abi;
-      const response = await fetch(`${apiUrl}/class-hash`, {
-        method: "POST",
-        body: sierraFile,
-        redirect: "follow",
-        headers: {
-          "Content-Type": "application/octet-stream",
-        },
+      // const abi = sierra.abi;
+      // const response = await fetch(`${apiUrl}/class-hash`, {
+      //   method: "POST",
+      //   body: sierraFile,
+      //   redirect: "follow",
+      //   headers: {
+      //     "Content-Type": "application/octet-stream",
+      //   },
+      // });
+      // const classHash = (await response.text()).trim();
+      // if (selectedContract == null) {
+      // TODO: Review this hash computation.
+      const classHash = hash.computeSierraContractClassHash(sierra);
+      setSelectedContract({
+        name: contractName,
+        abi: sierra.abi,
+        classHash,
+        sierra,
       });
-      const classHash = (await response.text()).trim();
-      if (selectedContract == null) {
-        setSelectedContract({
-          name: contractName,
-          abi,
-          classHash,
-          sierra,
-        });
-      }
+      // }
       setContracts([
         ...contracts,
-        { name: contractName, abi, classHash, sierra },
+        { name: contractName, abi: sierra.abi, classHash, sierra },
       ]);
     } catch (e) {
       console.error(e);
