@@ -223,12 +223,23 @@ async fn version() -> &'static str {
     "1.0.0-alpha.6"
 }
 
+#[get("/health")]
+async fn health() -> &'static str {
+    "OK"
+}
+
 #[launch]
 fn rocket() -> _ {
     rocket::build()
         .mount(
             "/",
-            routes![compile_to_sierra, compile_to_casm, class_hash, version],
+            routes![
+                compile_to_sierra,
+                compile_to_casm,
+                class_hash,
+                version,
+                health
+            ],
         )
         .attach(CORS)
 }

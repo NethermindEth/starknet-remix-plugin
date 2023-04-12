@@ -3,10 +3,10 @@ FROM python:3.9
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
-    curl \
     build-essential \
-    libgmp3-dev \
-    git
+    libgmp3-dev
+
+RUN git config --global url."https://github".insteadOf ssh://git@github
 
 # Install rustup
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
@@ -31,14 +31,11 @@ WORKDIR /app
 COPY . .
 
 # Compile necessary Rust packages
-RUN ls
-RUN git clone https://github.com/starkware-libs/cairo; cd cairo; git checkout v1.0.0-alpha.6; cargo build --bin starknet-compile; cargo build --bin starknet-sierra-compile
+# RUN rm cairo -rf
+# RUN git clone https://github.com/starkware-libs/cairo.git
+RUN cd cairo; cargo build --bin starknet-compile; cargo build --bin starknet-sierra-compile
 # RUN git submodule update --init
-RUN cd cairo; git checkout v1.0.0-alpha.6; cargo build --bin starknet-compile; cargo build --bin starknet-sierra-compile
 RUN cd /app; cargo build --release
 
-# Expose the server port (replace it with the actual port your server uses)
-EXPOSE 8080
-
-# Start the server
+EXPOSE 8000:80
 CMD ["cargo", "run", "--release"]
