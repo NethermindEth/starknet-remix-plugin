@@ -36,6 +36,27 @@ interface CallDataObject {
   };
 }
 
+// TODO: felt252
+enum ParameterType {
+  FieldElement = "felt",
+  VarFelt = "felt*",
+  String = "string",
+  Complex = "complex",
+  Uint256 = "Uint256",
+}
+
+interface ParameterMetadata {
+  name: string;
+  type: `${ParameterType}`;
+  names?: string[];
+  structName?: string;
+  propertyCount?: number;
+}
+
+interface FunctionReturnType {
+  [key: string]: string | number | string[] | FunctionReturnType[];
+}
+
 export type {
   Contract,
   Input,
@@ -44,4 +65,8 @@ export type {
   Abi,
   Contracts,
   CallDataObject,
+  ParameterMetadata,
+  FunctionReturnType,
 };
+
+export { ParameterType };
