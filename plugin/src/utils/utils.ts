@@ -63,6 +63,18 @@ const getParameterType = (parameter: string) => {
   return parameter.split("::").pop();
 };
 
+const getSelectedContractIndex = (
+  contracts: Contract[],
+  selectedContract: Contract | null
+) => {
+  if (selectedContract) {
+    return contracts.findIndex(
+      (contract) => contract.classHash === selectedContract.classHash
+    );
+  }
+  return 0;
+};
+
 export {
   isValidCairo,
   getFileExtension,
@@ -77,4 +89,5 @@ export {
   getReadFunctions,
   getWriteFunctions,
   getParameterType,
+  getSelectedContractIndex,
 };

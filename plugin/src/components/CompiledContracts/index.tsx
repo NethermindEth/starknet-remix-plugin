@@ -4,13 +4,14 @@ import { useContext } from "react";
 import { CompiledContractsContext } from "../../contexts/CompiledContractsContext";
 import {
   getContractNameFromFullName,
+  getSelectedContractIndex,
   getShortenedHash,
 } from "../../utils/utils";
 
 interface CompiledContractsProps {}
 
 function CompiledContracts(props: CompiledContractsProps) {
-  const { contracts, setSelectedContract } = useContext(
+  const { contracts, selectedContract, setSelectedContract } = useContext(
     CompiledContractsContext
   );
 
@@ -23,6 +24,7 @@ function CompiledContracts(props: CompiledContractsProps) {
       className="custom-select"
       aria-label=".form-select-sm example"
       onChange={handleCompiledContractSelectionChange}
+      defaultValue={getSelectedContractIndex(contracts, selectedContract)}
     >
       {contracts.map((contract, index) => {
         return (
