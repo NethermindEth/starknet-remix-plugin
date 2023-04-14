@@ -2,6 +2,7 @@ import { useState } from "react";
 import Compilation from "../../features/Compilation";
 import Deployment from "../../features/Deployment";
 import { Card } from "../Card";
+import Verify from "../Verify";
 
 interface CompileAndDeployTabProps {}
 
@@ -10,7 +11,7 @@ function CompileAndDeploy(props: CompileAndDeployTabProps) {
   const [isLatestClassHashBeingLoaded, setIsLatestClassHashBeingLoaded] =
     useState(false);
   return (
-    <>
+    <div style={{ marginBottom: "161.5px" }}>
       <Compilation
         setIsLatestClassHashReady={setIsLatestClassHashBeingLoaded}
       />
@@ -30,7 +31,8 @@ function CompileAndDeploy(props: CompileAndDeployTabProps) {
         </Card>
       )}
       <Deployment />
-    </>
+      <Verify />
+    </div>
   );
 }
 

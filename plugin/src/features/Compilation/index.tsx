@@ -133,7 +133,7 @@ function CompilationTab({ setIsLatestClassHashReady }: CompilationTabProps) {
         currentFilename
       )}`;
 
-      storeContract(currentFilename, sierra);
+      storeContract(currentFilename, currentFilePath, sierra);
 
       await remixClient.call("fileManager", "setFile", sierraPath, sierra);
       await remixClient.call("fileManager", "setFile", casmPath, casm);
@@ -145,35 +145,26 @@ function CompilationTab({ setIsLatestClassHashReady }: CompilationTabProps) {
     setIsCompiling(false);
   }
 
-  async function storeContract(contractName: string, sierraFile: string) {
+  async function storeContract(
+    contractName: string,
+    path: string,
+    sierraFile: string
+  ) {
     setIsLatestClassHashReady(true);
     try {
       const sierra = await JSON.parse(sierraFile);
-      // TODO: Not necessary, remove.
-      // const abi = sierra.abi;
-      // const response = await fetch(`${apiUrl}/class-hash`, {
-      //   method: "POST",
-      //   body: sierraFile,
-      //   redirect: "follow",
-      //   headers: {
-      //     "Content-Type": "application/octet-stream",
-      //   },
-      // });
-      // const classHash = (await response.text()).trim();
-      // if (selectedContract == null) {
-      // TODO: Review this hash computation.
       const classHash = hash.computeSierraContractClassHash(sierra);
-      setSelectedContract({
+      const contract = {
         name: contractName,
         abi: sierra.abi,
         classHash,
         sierra,
-      });
+        path,
+        deployed: false,
+      };
+      setSelectedContract(contract);
       // }
-      setContracts([
-        ...contracts,
-        { name: contractName, abi: sierra.abi, classHash, sierra },
-      ]);
+      setContracts([...contracts, contract]);
     } catch (e) {
       console.error(e);
     }
@@ -224,6 +215,7 @@ function CompilationTab({ setIsLatestClassHashReady }: CompilationTabProps) {
               !validation || !currentFilename ? "not-allowed" : "pointer"
             }`,
           }}
+          disabled={!validation || !currentFilename}
           aria-disabled={!validation || !currentFilename}
           onClick={onClick}
         >

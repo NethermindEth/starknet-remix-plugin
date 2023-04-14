@@ -52,9 +52,15 @@ function Plugin(props: PluginProps) {
           </div>
           <Nav />
           <div
-            style={{ position: "fixed", bottom: "0", left: "0", right: "0" }}
+            style={{
+              position: "fixed",
+              bottom: "0",
+              left: "0",
+              right: "0",
+              opacity: "1",
+            }}
           >
-            <Card header={""}>
+            <Card>
               <Connection />
             </Card>
           </div>

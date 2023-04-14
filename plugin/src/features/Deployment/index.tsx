@@ -144,6 +144,7 @@ function Deployment(props: DeploymentProps) {
                 style={{
                   cursor: `${!connected ? "not-allowed" : "pointer"}`,
                 }}
+                disabled={!connected}
                 aria-disabled={!connected}
                 type="submit"
               >

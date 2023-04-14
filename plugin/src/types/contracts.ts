@@ -5,6 +5,8 @@ interface Contract {
   classHash: string;
   sierra: SierraContractClass;
   abi: Abi;
+  path: string;
+  deployed: boolean;
 }
 
 interface Input {

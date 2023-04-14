@@ -1,4 +1,5 @@
 import { Abi, Contract } from "../types/contracts";
+import { Network, networkExplorerUrls } from "./constants";
 
 function isValidCairo(filename: string) {
   return filename.endsWith(".cairo");
@@ -75,6 +76,8 @@ const getSelectedContractIndex = (
   return 0;
 };
 
+const getExplorerUrl = (network: Network) => networkExplorerUrls[network];
+
 export {
   isValidCairo,
   getFileExtension,
@@ -90,4 +93,5 @@ export {
   getWriteFunctions,
   getParameterType,
   getSelectedContractIndex,
+  getExplorerUrl,
 };
