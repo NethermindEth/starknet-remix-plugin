@@ -19,6 +19,7 @@ function Plugin(props: PluginProps) {
     connected: false,
     account: undefined,
     provider: undefined,
+    network: "goerli-alpha",
   });
 
   // Store a list of compiled contracts

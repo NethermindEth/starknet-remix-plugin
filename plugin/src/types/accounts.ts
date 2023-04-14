@@ -16,6 +16,7 @@ type Connection = {
   connected: boolean;
   account: Account;
   provider: Provider;
+  network: string;
 };
 
 export type { Account, Connection, Provider };

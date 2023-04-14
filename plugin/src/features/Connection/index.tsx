@@ -11,11 +11,10 @@ interface ConnectionProps {}
 
 function Connection(props: ConnectionProps) {
   const {
-    connection: { account, connected, provider },
+    connection: { account, connected, provider, network },
     setConnection,
   } = useContext(ConnectionContext);
 
-  const [selectedNetwork, setSelectedNetwork] = useState("goerli-alpha");
   const [isWrongNetwork, setIsWrongNetwork] = useState(false);
 
   const shortenedAddress = useMemo(() => {
@@ -23,9 +22,14 @@ function Connection(props: ConnectionProps) {
     return getShortenedHash(account.address, 6, 4);
   }, [account]);
 
-  // Currently complicated workflow due to Braavos not setting different chainId for devnet
   const handleNetworkChange = (event: any) => {
-    setSelectedNetwork(event.target.value);
+    let selectedNetwork = event.target.value;
+    setConnection({
+      account,
+      connected,
+      provider,
+      network: selectedNetwork,
+    });
     setIsWrongNetwork(false);
     if (
       connected &&
@@ -42,6 +46,7 @@ function Connection(props: ConnectionProps) {
           account: undefined,
           // TODO: Check/Disconnect.
           provider: provider,
+          network: selectedNetwork,
         });
       }
     } else {
@@ -57,6 +62,7 @@ function Connection(props: ConnectionProps) {
           connected: false,
           account: undefined,
           provider: undefined,
+          network: selectedNetwork,
         });
       }
     }
@@ -69,11 +75,7 @@ function Connection(props: ConnectionProps) {
       onChange={handleNetworkChange}
     >
       {networks.map((network, index) => (
-        <option
-          value={network.value}
-          defaultValue={selectedNetwork}
-          key={index}
-        >
+        <option value={network.value} defaultValue={network.name} key={index}>
           {network.name}
         </option>
       ))}
@@ -81,7 +83,7 @@ function Connection(props: ConnectionProps) {
   );
 
   const handleConnectWallet = async () => {
-    console.log("Connecting wallet to " + selectedNetwork);
+    console.log("Connecting wallet to " + network);
     try {
       const connectionData = await connect({
         modalMode: "alwaysAsk",
@@ -93,7 +95,7 @@ function Connection(props: ConnectionProps) {
           "http://localhost"
         )
       ) {
-        if (selectedNetwork !== devnetUrl) {
+        if (network !== devnetUrl) {
           setIsWrongNetwork(true);
         } else {
           setIsWrongNetwork(false);
@@ -104,6 +106,7 @@ function Connection(props: ConnectionProps) {
               icon: connectionData?.icon || "",
             } as Account,
             provider: connectionData?.account?.provider,
+            network,
           });
         }
       } else {
@@ -111,13 +114,12 @@ function Connection(props: ConnectionProps) {
           "ChainId",
           networkEquivalents.get(connectionData?.account?.provider?.chainId)
         );
-        console.log("Selected network", selectedNetwork);
+        console.log("Selected network", network);
         if (
-          // This is flaky.
           networkEquivalents.get(
             connectionData?.account?.provider?.chainId ||
               constants.StarknetChainId.SN_GOERLI
-          ) === selectedNetwork
+          ) === network
         ) {
           setIsWrongNetwork(false);
           setConnection({
@@ -127,6 +129,7 @@ function Connection(props: ConnectionProps) {
               icon: connectionData?.icon || "",
             } as Account,
             provider: connectionData?.account?.provider,
+            network: network,
           });
         } else {
           setIsWrongNetwork(true);
@@ -138,18 +141,18 @@ function Connection(props: ConnectionProps) {
   };
 
   const handleDisconnectWallet = async () => {
-    console.log("Disconnecting wallet from " + selectedNetwork);
+    console.log("Disconnecting wallet from " + network);
     try {
       await disconnect({ clearLastWallet: true });
       setIsWrongNetwork(false);
     } catch (error) {
       console.log("Error disconnecting wallet: ", error);
     }
-    // Erase connection data anyway.
     setConnection({
       connected: false,
       account: undefined,
       provider: undefined,
+      network,
     });
   };
 

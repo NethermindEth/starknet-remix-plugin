@@ -6,6 +6,7 @@ const ConnectionContext = createContext({
     connected: false,
     account: undefined,
     provider: undefined,
+    network: "goerli-alpha",
   } as Connection,
   setConnection: (connection: Connection) => {},
 });
