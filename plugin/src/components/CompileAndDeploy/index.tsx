@@ -15,7 +15,7 @@ function CompileAndDeploy(props: CompileAndDeployTabProps) {
         setIsLatestClassHashReady={setIsLatestClassHashBeingLoaded}
       />
       {isLatestClassHashBeingLoaded && (
-        <Card header="">
+        <Card>
           <div className="flex d-flex align-items-center justify-content-center">
             <div className="spinner-border" role="status">
               <span className="sr-only">Loading...</span>
