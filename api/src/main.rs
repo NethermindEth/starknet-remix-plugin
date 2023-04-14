@@ -70,8 +70,8 @@ async fn compile_to_sierra(file: Data<'_>) -> Option<NamedFile> {
         .arg("--")
         .arg(&file_path)
         .arg(file_hash.sierra_path())
-        // .arg("--allowed-libfuncs-list-name")
-        // .arg("experimental_v0.1.0")
+        .arg("--allowed-libfuncs-list-name")
+        .arg("experimental_v0.1.0")
         .spawn();
 
     match result {
@@ -122,8 +122,8 @@ async fn compile_to_casm(file: Data<'_>) -> Option<NamedFile> {
         .arg("--")
         .arg(&file_path)
         .arg(file_hash.casm_path())
-        // .arg("--allowed-libfuncs-list-name")
-        // .arg("experimental_v0.1.0")
+        .arg("--allowed-libfuncs-list-name")
+        .arg("experimental_v0.1.0")
         .spawn();
 
     match result {
