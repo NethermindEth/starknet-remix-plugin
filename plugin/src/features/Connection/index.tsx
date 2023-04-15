@@ -6,6 +6,7 @@ import { Account, StarknetChainId } from "../../types/accounts";
 import { devnetUrl, networkEquivalents, networks } from "../../utils/constants";
 import { getShortenedHash } from "../../utils/utils";
 import "./styles.css";
+import { Card } from "../../components/Card";
 
 interface ConnectionProps {}
 
@@ -157,57 +158,59 @@ function Connection(props: ConnectionProps) {
   };
 
   return (
-    <>
-      <div className="flex">
-        <label className="">Network</label>
-        {networkSelect}
-      </div>
-      {isWrongNetwork && (
-        <div className="mt-3">
-          <i>
-            You're trying to connect to the wrong network, kindly change it in
-            your wallet
-          </i>
+    <div className="starknet-connection-component">
+      <Card>
+        <div className="flex">
+          <label className="">Network</label>
+          {networkSelect}
         </div>
-      )}
-      <div className="">
-        <div>
-          {!connected && (
-            <button
-              className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3"
-              onClick={handleConnectWallet}
-            >
-              <div className="d-flex align-items-center justify-content-center">
-                <div className="text-truncate overflow-hidden text-nowrap">
-                  <span>Connect wallet</span>
+        {isWrongNetwork && (
+          <div className="mt-3">
+            <i>
+              You're trying to connect to the wrong network, kindly change it in
+              your wallet
+            </i>
+          </div>
+        )}
+        <div className="">
+          <div>
+            {!connected && (
+              <button
+                className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3"
+                onClick={handleConnectWallet}
+              >
+                <div className="d-flex align-items-center justify-content-center">
+                  <div className="text-truncate overflow-hidden text-nowrap">
+                    <span>Connect wallet</span>
+                  </div>
                 </div>
-              </div>
-            </button>
-          )}
-          {connected && (
-            <button
-              className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3"
-              onClick={handleDisconnectWallet}
-            >
-              <div className="d-flex align-items-center justify-content-center">
-                <div className="text-truncate overflow-hidden text-nowrap flex align-items-center">
-                  {account && account.icon && (
-                    <img
-                      src={account.icon}
-                      alt="Wallet icon"
-                      className="mr-1"
-                      width="16px"
-                      height="16px"
-                    />
-                  )}
-                  <span>Disconnect {shortenedAddress}</span>
+              </button>
+            )}
+            {connected && (
+              <button
+                className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3"
+                onClick={handleDisconnectWallet}
+              >
+                <div className="d-flex align-items-center justify-content-center">
+                  <div className="text-truncate overflow-hidden text-nowrap flex align-items-center">
+                    {account && account.icon && (
+                      <img
+                        src={account.icon}
+                        alt="Wallet icon"
+                        className="mr-1"
+                        width="16px"
+                        height="16px"
+                      />
+                    )}
+                    <span>Disconnect {shortenedAddress}</span>
+                  </div>
                 </div>
-              </div>
-            </button>
-          )}
+              </button>
+            )}
+          </div>
         </div>
-      </div>
-    </>
+      </Card>
+    </div>
   );
 }
 

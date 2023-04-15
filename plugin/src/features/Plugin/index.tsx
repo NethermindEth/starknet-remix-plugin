@@ -60,9 +60,7 @@ function Plugin(props: PluginProps) {
               opacity: "1",
             }}
           >
-            <Card>
-              <Connection />
-            </Card>
+            <Connection />
           </div>
         </CompiledContractsContext.Provider>
       </ConnectionContext.Provider>
