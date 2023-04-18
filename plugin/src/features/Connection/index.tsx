@@ -90,6 +90,8 @@ function Connection(props: ConnectionProps) {
         modalMode: "alwaysAsk",
         modalTheme: "dark",
       });
+      connectionData?.enable();
+      console.log("Connection data: ", connectionData);
       console.log("Connection data: ", connectionData);
       if (
         connectionData?.account?.provider?.baseUrl.startsWith(
@@ -126,6 +128,7 @@ function Connection(props: ConnectionProps) {
           setConnection({
             connected: true,
             account: {
+              // ...connectionData?.account,
               address: connectionData?.selectedAddress || "",
               icon: connectionData?.icon || "",
             } as Account,

@@ -133,7 +133,7 @@ function CompilationTab({ setIsLatestClassHashReady }: CompilationTabProps) {
         currentFilename
       )}`;
 
-      storeContract(currentFilename, currentFilePath, sierra);
+      storeContract(currentFilename, currentFilePath, sierra, casm);
 
       await remixClient.call("fileManager", "setFile", sierraPath, sierra);
       await remixClient.call("fileManager", "setFile", casmPath, casm);
@@ -148,17 +148,20 @@ function CompilationTab({ setIsLatestClassHashReady }: CompilationTabProps) {
   async function storeContract(
     contractName: string,
     path: string,
-    sierraFile: string
+    sierraFile: string,
+    casmFile: string
   ) {
     setIsLatestClassHashReady(true);
     try {
       const sierra = await JSON.parse(sierraFile);
+      const casm = await JSON.parse(casmFile);
       const classHash = hash.computeSierraContractClassHash(sierra);
       const contract = {
         name: contractName,
         abi: sierra.abi,
         classHash,
         sierra,
+        casm,
         path,
         deployed: false,
       };
