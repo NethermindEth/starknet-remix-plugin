@@ -25,10 +25,10 @@ function CompiledContracts(props: CompiledContractsProps) {
       aria-label=".form-select-sm example"
       onChange={handleCompiledContractSelectionChange}
       defaultValue={getSelectedContractIndex(contracts, selectedContract)}
+      value={getSelectedContractIndex(contracts, selectedContract)}
     >
       {contracts.map((contract, index) => {
         return (
-          // TODO: Set the contract name to name + index to avoid duplicates.
           <option value={index} key={index}>
             {`${getContractNameFromFullName(contract.name)} (${getShortenedHash(
               contract.classHash || "",

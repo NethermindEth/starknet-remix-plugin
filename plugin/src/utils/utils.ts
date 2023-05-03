@@ -1,3 +1,4 @@
+import { DevnetAccount } from "../types/accounts";
 import { Abi, Contract } from "../types/contracts";
 import { Network, networkExplorerUrls } from "./constants";
 
@@ -76,6 +77,25 @@ const getSelectedContractIndex = (
   return 0;
 };
 
+const getSelectedAccountIndex = (
+  accounts: DevnetAccount[],
+  selectedAccount: DevnetAccount | null
+) => {
+  if (selectedAccount) {
+    return accounts.findIndex(
+      (account) => account.address === selectedAccount.address
+    );
+  }
+};
+
+const getRoundedNumber = (number: number, decimals: number) => {
+  return Math.round(number * Math.pow(10, decimals)) / Math.pow(10, decimals);
+};
+
+const weiToEth = (wei: number) => {
+  return wei / 10 ** 18;
+};
+
 const getExplorerUrl = (network: Network) => networkExplorerUrls[network];
 
 export {
@@ -93,5 +113,8 @@ export {
   getWriteFunctions,
   getParameterType,
   getSelectedContractIndex,
+  getSelectedAccountIndex,
+  getRoundedNumber,
+  weiToEth,
   getExplorerUrl,
 };

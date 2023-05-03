@@ -155,7 +155,7 @@ function CompilationTab({ setIsLatestClassHashReady }: CompilationTabProps) {
     try {
       const sierra = await JSON.parse(sierraFile);
       const casm = await JSON.parse(casmFile);
-      const classHash = hash.computeSierraContractClassHash(sierra);
+      const classHash = hash.computeCompiledClassHash(casm);
       const contract = {
         name: contractName,
         abi: sierra.abi,
@@ -166,7 +166,6 @@ function CompilationTab({ setIsLatestClassHashReady }: CompilationTabProps) {
         deployed: false,
       };
       setSelectedContract(contract);
-      // }
       setContracts([...contracts, contract]);
     } catch (e) {
       console.error(e);

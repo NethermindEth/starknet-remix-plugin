@@ -4,9 +4,11 @@ import Deployment from "../../features/Deployment";
 import { Card } from "../Card";
 import Verify from "../Verify";
 
-interface CompileAndDeployTabProps {}
+interface CompileAndDeployTabProps {
+  setActiveTab: (tab: string) => void;
+}
 
-function CompileAndDeploy(props: CompileAndDeployTabProps) {
+function CompileAndDeploy({ setActiveTab }: CompileAndDeployTabProps) {
   // TODO: This state should be moved to a context to survibe changing tabs.
   const [isLatestClassHashBeingLoaded, setIsLatestClassHashBeingLoaded] =
     useState(false);
@@ -30,8 +32,8 @@ function CompileAndDeploy(props: CompileAndDeployTabProps) {
           </p>
         </Card>
       )}
-      <Deployment />
-      <Verify />
+      <Deployment setActiveTab={setActiveTab} />
+      {/* <Verify /> */}
     </div>
   );
 }

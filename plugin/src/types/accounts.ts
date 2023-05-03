@@ -19,6 +19,13 @@ type Connection = {
   network: string;
 };
 
-export type { Account, Connection, Provider };
+type DevnetAccount = {
+  initial_balance: number,
+  address: string,
+  private_key: string,
+  public_key: string
+}
+
+export type { Account, Connection, Provider, DevnetAccount };
 
 export { StarknetChainId };

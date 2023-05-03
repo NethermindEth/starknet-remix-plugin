@@ -3,53 +3,31 @@
 import { useContext, useEffect, useState } from "react";
 
 // import { useContractFactory, useDeploy } from "@starknet-react/core";
+import { BigNumberish } from "ethers";
+import { uint256 } from "starknet";
 import { Card } from "../../components/Card";
 import CompiledContracts from "../../components/CompiledContracts";
 import { CompiledContractsContext } from "../../contexts/CompiledContractsContext";
-import { ConnectionContext } from "../../contexts/ConnectionContext";
-import { CallDataObject, Input } from "../../types/contracts";
+import { DevnetContext } from "../../contexts/DevnetContext";
+import { CallDataObject, Contract, Input } from "../../types/contracts";
 import { getConstructor, getParameterType } from "../../utils/utils";
-import {
-  Account,
-  Provider,
-  SierraContractClass,
-  SignerInterface,
-  Signer,
-} from "starknet";
 import "./styles.css";
-import { StarknetChainId } from "../../utils/starknet";
 
-interface DeploymentProps {}
+interface DeploymentProps {
+  setActiveTab: (tab: string) => void;
+}
 
-function Deployment(props: DeploymentProps) {
+function Deployment({ setActiveTab }: DeploymentProps) {
+  const [isDeploying, setIsDeploying] = useState(false);
   const [constructorCalldata, setConstructorCalldata] =
     useState<CallDataObject>({});
   const [finalCallData, setFinalCallData] = useState<any[]>([]);
   const [constructorInputs, setConstructorInputs] = useState<Input[]>([]);
   const [notEnoughInputs, setNotEnoughInputs] = useState(false);
-  const {
-    connection: { account, connected, provider },
-  } = useContext(ConnectionContext);
-  const { contracts, selectedContract } = useContext(CompiledContractsContext);
-
-  // const { contractFactory } = useContractFactory({
-  //   account: account,
-  //   classHash: selectedContract?.classHash || "",
-  //   compiledContract: selectedContract?.sierra,
-  //   // abi: selectedContract?.abi,
-  // });
-
-  // console.log("Contract Factory", contractFactory);
-  // console.log("Sierra", selectedContract?.sierra);
-
-  // const { deploy, error } = useDeploy({
-  //   contractFactory,
-  //   constructorCalldata: finalCallData,
-  // });
-
-  // useEffect(() => {
-  //   console.log(error);
-  // }, [error]);
+  const { devnet, availableAccounts, selectedAccount, account, provider } =
+    useContext(DevnetContext);
+  const { contracts, selectedContract, setContracts, setSelectedContract } =
+    useContext(CompiledContractsContext);
 
   useEffect(() => {
     setConstructorCalldata({});
@@ -59,91 +37,35 @@ function Deployment(props: DeploymentProps) {
     }
   }, [selectedContract]);
 
-  const deploy2 = async () => {
-    const localProvider = new Provider({
-      sequencer: { baseUrl: "http://localhost:5050" },
-    });
-    const privateKey = "0xa8856dd89ffea62ce09dacf2443b6516";
-    const signer: SignerInterface = new Signer(privateKey);
-    const contractAddress =
-      "0x7cd0dd134c2144f1828cb69450992fcd9df8602ece399eec5116633a24db2f8";
-    const localAccount = new Account(localProvider, contractAddress, signer);
-    const deployResponse = await localAccount.declareAndDeploy(
-      {
-        contract: selectedContract?.sierra as SierraContractClass,
-        compiledClassHash:
-          "0x73f17e5e8c771a97cb07bf6024753d514ed9a1b5de4ec151e06d0926b015694",
-      },
-      { cairoVersion: "1" }
-    );
-  };
-  const deploy = async () => {
-    // const provider = new Provider({
-    //   sequencer: { baseUrl: "https://alpha4.starknet.io" },
-    // });
-    const localProvider = new Provider({
-      sequencer: { baseUrl: "http://localhost:5050" },
-    });
-    const keypair = account?.signer;
-    const privateKey = "0xa8856dd89ffea62ce09dacf2443b6516";
-    const signer: SignerInterface = new Signer(privateKey);
-    const publicKey =
-      "0x238d748074212c21acf17a6a1cc17afa7d4a1aa91929afbde265957e170384e";
-    const contractAddress =
-      "0x7cd0dd134c2144f1828cb69450992fcd9df8602ece399eec5116633a24db2f8";
-    const address = account?.address || "";
-    const localAccount = new Account(
-      localProvider,
-      contractAddress,
-      // address,
-      signer
-      // keypair as SignerInterface
-    );
+  const deploy = async (calldata: BigNumberish[]) => {
     console.log("Provider:", provider);
     console.log("Account:", account);
-    console.log("JS Account:", localAccount);
     console.log("ClassHash:", selectedContract?.classHash);
     console.log("Contract:", selectedContract?.sierra);
-    // const declareReponse = await localAccount.deployContract(
-    //   {
-    //     classHash:
-    //       "0x73f17e5e8c771a97cb07bf6024753d514ed9a1b5de4ec151e06d0926b015694",
-    //     constructorCalldata: [],
-    //     // contractDefinition: selectedContract?.sierra as SierraContractClass,
-    //     // senderAddress: address,
-    //     // compiledClassHash: selectedContract?.classHash,
-    //   },
-    //   { cairoVersion: "1", maxFee: 100000000000000000 }
-    // );
-    const deployResponse = await localAccount.declareAndDeploy(
-      {
-        contract: selectedContract?.sierra as SierraContractClass,
-        compiledClassHash:
-          "0x73f17e5e8c771a97cb07bf6024753d514ed9a1b5de4ec151e06d0926b015694",
-        // compiledClassHash: selectedContract?.classHash,
-        // casm: selectedContract?.casm,
-        // constructorCalldata: finalCallData,
-        // compiledClassHash: selectedContract?.classHash || "",
-        // constructorCalldata: finalCallData,
-      },
-      { cairoVersion: "1", maxFee: 10000000000000000 }
-    );
-    console.log(deployResponse);
-    // console.log(declareReponse);
+    setIsDeploying(true);
+    try {
+      const declareAndDeployResponse = await account?.declareAndDeploy(
+        {
+          contract: selectedContract?.sierra,
+          casm: selectedContract?.casm,
+          constructorCalldata: calldata,
+        },
+        { cairoVersion: "1" }
+      );
+      setContractAsDeployed(selectedContract as Contract);
+      setIsDeploying(false);
+      console.log(declareAndDeployResponse);
+    } catch (error) {
+      console.log(error);
+      setIsDeploying(false);
+    }
   };
 
-  const handleDeploy = (calldata: string[]) => {
+  const handleDeploy = (calldata: BigNumberish[]) => {
     console.log("Calldata:", calldata);
     setTimeout(() => {
-      console.log("Deploying...");
-      // deploy();
-      // console.log("Error:", error);
-      // console.log(account);
-      // account?.provider!.declareContract({
-      //   contract: selectedContract?.sierra as SierraContractClass,
-      // });
-
-      deploy();
+      console.log(`Deploying to ${devnet.name}...`);
+      deploy(calldata);
     }, 200);
   };
 
@@ -173,7 +95,6 @@ function Deployment(props: DeploymentProps) {
       value,
       dataset: { type, index },
     } = event.target;
-    console.log(name, value, type, index);
     setConstructorCalldata((prevCalldata) => ({
       ...prevCalldata,
       [index!]: {
@@ -186,17 +107,38 @@ function Deployment(props: DeploymentProps) {
 
   const getFormattedCalldata = () => {
     if (constructorCalldata) {
-      const calldata = Object.values(constructorCalldata).map((input) => {
+      let formattedCalldata: BigNumberish[] = [];
+
+      Object.values(constructorCalldata).forEach((input) => {
+        console.log("Input", input);
         // Check if Uint256 and use uint256.from() to convert to BN
-        // let value = input.value;
-        // if (input.type?.includes("Uint256")) {
-        //   let uint = uint256.bnToUint256(new BN(input.value))
-        // }
-        return input.value;
+        if (input.type?.includes("u256")) {
+          let uint = uint256.bnToUint256(input.value);
+          formattedCalldata.push(uint.low);
+          formattedCalldata.push(uint.high);
+        } else {
+          formattedCalldata.push(input.value);
+        }
       });
-      return calldata;
+
+      return formattedCalldata;
     }
     return [];
+  };
+
+  const setContractAsDeployed = (currentContract: Contract) => {
+    const deployedContract = {
+      ...currentContract,
+      deployed: true,
+    };
+    const updatedContracts = contracts.map((contract) => {
+      if (contract.classHash === currentContract.classHash) {
+        return deployedContract;
+      }
+      return contract;
+    });
+    setContracts(updatedContracts);
+    setSelectedContract(deployedContract);
   };
 
   return (
@@ -229,19 +171,58 @@ function Deployment(props: DeploymentProps) {
               <button
                 className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3"
                 style={{
-                  cursor: `${!connected ? "not-allowed" : "pointer"}`,
+                  cursor: `${
+                    !selectedAccount && !selectedContract.deployed
+                      ? "not-allowed"
+                      : "pointer"
+                  }`,
                 }}
-                disabled={!connected}
-                aria-disabled={!connected}
+                disabled={!selectedAccount && !selectedContract.deployed}
+                aria-disabled={!selectedAccount && !selectedContract.deployed}
                 type="submit"
               >
                 <div className="d-flex align-items-center justify-content-center">
                   <div className="text-truncate overflow-hidden text-nowrap">
-                    <span>Deploy</span>
+                    {isDeploying ? (
+                      <>
+                        <span
+                          className="spinner-border spinner-border-sm"
+                          role="status"
+                          aria-hidden="true"
+                        >
+                          {" "}
+                        </span>
+                        <span style={{ paddingLeft: "0.5rem" }}>
+                          Deploying...
+                        </span>
+                      </>
+                    ) : (
+                      <div className="text-truncate overflow-hidden text-nowrap">
+                        <span>Deploy {selectedContract.name}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </button>
             </form>
+            {selectedContract.deployed && (
+              <div className="mt-3">
+                <label style={{ display: "block" }}>Contract deployed!</label>
+                <label style={{ display: "block" }}>
+                  See{" "}
+                  <a
+                    href="/"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setActiveTab("interact");
+                    }}
+                  >
+                    Interact
+                  </a>{" "}
+                  for more!
+                </label>
+              </div>
+            )}
             {notEnoughInputs && (
               <label>Please fill out all constructor fields!</label>
             )}

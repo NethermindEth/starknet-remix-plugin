@@ -1,9 +1,9 @@
-import { CairoAssembly, SierraContractClass } from "starknet";
+import { CairoAssembly, CompiledSierra, SierraContractClass } from "starknet";
 
 interface Contract {
   name: string;
   classHash: string;
-  sierra: SierraContractClass;
+  sierra: any; // CompiledSierra
   casm: CairoAssembly;
   abi: Abi;
   path: string;
