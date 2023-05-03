@@ -13,7 +13,7 @@ function CompileAndDeploy({ setActiveTab }: CompileAndDeployTabProps) {
   const [isLatestClassHashBeingLoaded, setIsLatestClassHashBeingLoaded] =
     useState(false);
   return (
-    <div style={{ marginBottom: "161.5px" }}>
+    <div style={{ marginBottom: "220px" }}>
       <Compilation
         setIsLatestClassHashReady={setIsLatestClassHashBeingLoaded}
       />

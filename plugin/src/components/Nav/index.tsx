@@ -10,7 +10,7 @@ function Nav(props: NavProps) {
   const [activeTab, setActiveTab] = useState("compile");
 
   return (
-    <>
+    <div>
       <ul
         className="nav nav-tabs justify-content-center text-center m-0"
         style={{ borderBottom: "none" }}
@@ -48,7 +48,7 @@ function Nav(props: NavProps) {
           {activeTab === "interact" && <Interaction />}
         </div>
       </div>
-    </>
+    </div>
   );
 }
 

@@ -1,6 +1,7 @@
 import { Card } from "../../components/Card";
 import DevnetAccountSelector from "../../components/DevnetAccountSelector";
 import DevnetSelector from "../../components/DevnetSelector";
+import "./styles.css";
 
 interface ConnectionProps {}
 

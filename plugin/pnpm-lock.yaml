@@ -21,14 +21,14 @@ specifiers:
   react: ^18.2.0
   react-dom: ^18.2.0
   react-scripts: 5.0.1
-  starknet: 5.5.0
+  starknet: 5.9.1
   typescript: ^4.9.5
   web-vitals: ^2.1.4
 
 dependencies:
   '@remixproject/plugin': 0.3.31
   '@remixproject/plugin-webview': 0.3.31
-  '@starknet-react/core': 0.16.0_prcygmvo3gssu6uylknrne64zq
+  '@starknet-react/core': 0.16.0_zard3psn3l376a3d72i6u4zb3e
   '@testing-library/jest-dom': 5.16.5
   '@testing-library/react': 13.4.0_biqbaboplfbrettd7655fr4n2y
   '@testing-library/user-event': 13.5.0_yxlyej73nftwmh2fiao7paxmlm
@@ -36,11 +36,11 @@ dependencies:
   bn.js: 5.2.1
   ethers: 5.7.2
   form-data: 4.0.0
-  get-starknet: 2.0.0_starknet@5.5.0
+  get-starknet: 2.0.0_starknet@5.9.1
   react: 18.2.0
   react-dom: 18.2.0_react@18.2.0
   react-scripts: 5.0.1_2c5defd7ngpxz5iugy7arqqahy
-  starknet: 5.5.0
+  starknet: 5.9.1
   typescript: 4.9.5
   web-vitals: 2.1.4
 
@@ -2451,17 +2451,17 @@ packages:
       '@sinonjs/commons': 1.8.6
     dev: false
 
-  /@starknet-react/core/0.16.0_prcygmvo3gssu6uylknrne64zq:
+  /@starknet-react/core/0.16.0_zard3psn3l376a3d72i6u4zb3e:
     resolution: {integrity: sha512-VWBAilTrF3RAuD2laQJepx3Zhd2I8CHCA8p81hzAKlPyiUXIkLYLlGncckbRXX+a/wBSGZs+FNoqsUE0nOUYCg==}
     peerDependencies:
       react: ^17.0 || ^18.0
       starknet: next
     dependencies:
       '@tanstack/react-query': 4.28.0_biqbaboplfbrettd7655fr4n2y
-      get-starknet-core: 2.0.0_starknet@5.5.0
+      get-starknet-core: 2.0.0_starknet@5.9.1
       immutable: 4.3.0
       react: 18.2.0
-      starknet: 5.5.0
+      starknet: 5.9.1
     transitivePeerDependencies:
       - react-dom
       - react-native
@@ -5692,19 +5692,19 @@ packages:
     engines: {node: '>=8.0.0'}
     dev: false
 
-  /get-starknet-core/2.0.0_starknet@5.5.0:
+  /get-starknet-core/2.0.0_starknet@5.9.1:
     resolution: {integrity: sha512-cpPQrn2/uw1dxn/gpDiVtKrYxyoSkCsrz1mf7CqeyNxcSiiqsHHRNIGyFtqSm2hCduA1kl7ddVugLoTul/oBQQ==}
     peerDependencies:
       starknet: ^4.9.0
     dependencies:
-      starknet: 5.5.0
+      starknet: 5.9.1
     dev: false
 
-  /get-starknet/2.0.0_starknet@5.5.0:
+  /get-starknet/2.0.0_starknet@5.9.1:
     resolution: {integrity: sha512-MT5jMq0ARo4yE1MhPeWwDw2A0sp+X+HETJoZXqEzhkmeN6lv/eefpEyBbjFCleyEEnpTkZfxqhgFCnDK4OUPoA==}
     dependencies:
       bowser: 2.11.0
-      get-starknet-core: 2.0.0_starknet@5.5.0
+      get-starknet-core: 2.0.0_starknet@5.9.1
     transitivePeerDependencies:
       - starknet
     dev: false
@@ -9537,8 +9537,8 @@ packages:
     resolution: {integrity: sha512-oeVtt7eWQS+Na6F//S4kJ2K2VbRlS9D43mAlMyVpVWovy9o+jfgH8O9agzANzaiLjclA0oYzUXEM4PurhSUChw==}
     dev: false
 
-  /starknet/5.5.0:
-    resolution: {integrity: sha512-xXZJbCoa2Yh0yyVEUpsDJN4sxLVCDy361p8wXYYBOCPcWsVccuQu5s9n7Sy65UChD7XjuTQ0VEDFtXL0JQazTA==}
+  /starknet/5.9.1:
+    resolution: {integrity: sha512-rxO/px6jaQ5z8Czm+e7KGsFhyyGVQ4onMY+SqKR2o6FUp+ybNARhIkuTeim+UUZHO4Y6UQRdg/YSt02jU8PyZw==}
     dependencies:
       '@noble/curves': 0.8.3
       isomorphic-fetch: 3.0.0

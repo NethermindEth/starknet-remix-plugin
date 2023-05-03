@@ -52,7 +52,12 @@ function Deployment({ setActiveTab }: DeploymentProps) {
         },
         { cairoVersion: "1" }
       );
-      setContractAsDeployed(selectedContract as Contract);
+      console.log(declareAndDeployResponse?.deploy.contract_address);
+      setContractDeployment(
+        selectedContract as Contract,
+        declareAndDeployResponse?.deploy.contract_address || ""
+      );
+      // setContractAsDeployed(selectedContract as Contract);
       setIsDeploying(false);
       console.log(declareAndDeployResponse);
     } catch (error) {
@@ -63,10 +68,8 @@ function Deployment({ setActiveTab }: DeploymentProps) {
 
   const handleDeploy = (calldata: BigNumberish[]) => {
     console.log("Calldata:", calldata);
-    setTimeout(() => {
-      console.log(`Deploying to ${devnet.name}...`);
-      deploy(calldata);
-    }, 200);
+    console.log(`Deploying to ${devnet.name}...`);
+    deploy(calldata);
   };
 
   const handleDeploySubmit = (event: any) => {
@@ -126,19 +129,29 @@ function Deployment({ setActiveTab }: DeploymentProps) {
     return [];
   };
 
-  const setContractAsDeployed = (currentContract: Contract) => {
+  const setContractDeployment = (
+    currentContract: Contract,
+    address: string
+  ) => {
+    console.log("Setting contract deployment");
+    console.log("Current contract:", currentContract);
+    console.log("Address:", address);
     const deployedContract = {
       ...currentContract,
+      address: address,
       deployed: true,
     };
+    console.log("Deployed contract:", deployedContract);
     const updatedContracts = contracts.map((contract) => {
-      if (contract.classHash === currentContract.classHash) {
+      if (contract.classHash === deployedContract.classHash) {
         return deployedContract;
       }
       return contract;
     });
     setContracts(updatedContracts);
     setSelectedContract(deployedContract);
+    console.log("Contract selected:", selectedContract);
+    console.log("Contracts:", contracts);
   };
 
   return (

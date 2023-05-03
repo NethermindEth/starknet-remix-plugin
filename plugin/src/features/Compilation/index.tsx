@@ -164,6 +164,7 @@ function CompilationTab({ setIsLatestClassHashReady }: CompilationTabProps) {
         casm,
         path,
         deployed: false,
+        address: "",
       };
       setSelectedContract(contract);
       setContracts([...contracts, contract]);

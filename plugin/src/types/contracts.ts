@@ -1,4 +1,5 @@
-import { CairoAssembly, CompiledSierra, SierraContractClass } from "starknet";
+import { BigNumberish } from "ethers";
+import { Account, CairoAssembly, InvokeFunctionResponse } from "starknet";
 
 interface Contract {
   name: string;
@@ -8,6 +9,7 @@ interface Contract {
   abi: Abi;
   path: string;
   deployed: boolean;
+  address: string;
 }
 
 interface Input {
@@ -23,6 +25,10 @@ interface AbiElement {
   inputs: Input[];
   outputs?: Output[];
   state_mutability?: string;
+  calldata?: BigNumberish[];
+  calldataLength?: number;
+  calldataIndices?: number[];
+  callFunction?: (account: Account) => Promise<InvokeFunctionResponse>;
 }
 
 type Abi = AbiElement[];
@@ -61,15 +67,15 @@ interface FunctionReturnType {
 }
 
 export type {
+  Abi,
+  AbiElement,
+  CallDataObject,
   Contract,
+  Contracts,
+  FunctionReturnType,
   Input,
   Output,
-  AbiElement,
-  Abi,
-  Contracts,
-  CallDataObject,
   ParameterMetadata,
-  FunctionReturnType,
 };
 
 export { ParameterType };
