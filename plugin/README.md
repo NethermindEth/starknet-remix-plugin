@@ -7,7 +7,7 @@ pnpm install
 ## Development
 
 ```bash
-pnpm run dev
+pnpm run start
 ```
 
 ## Server

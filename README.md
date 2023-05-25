@@ -39,7 +39,7 @@ You need to be running both the server and the plugin in order to have a working
 
 ```bash
 cd plugin;
-pnpm run dev;
+pnpm run start;
 ```
 
 ```bash

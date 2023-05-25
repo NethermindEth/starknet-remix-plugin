@@ -13,11 +13,11 @@ import {
 import "./styles.css";
 import { hash } from "starknet";
 
-interface CompilationTabProps {
+interface CompilationProps {
   setIsLatestClassHashReady: (isLatestClassHashReady: boolean) => void;
 }
 
-function CompilationTab({ setIsLatestClassHashReady }: CompilationTabProps) {
+function Compilation({ setIsLatestClassHashReady }: CompilationProps) {
   const remixClient = useContext(RemixClientContext);
 
   const { contracts, setContracts, setSelectedContract } = useContext(
@@ -27,9 +27,6 @@ function CompilationTab({ setIsLatestClassHashReady }: CompilationTabProps) {
   const [currentFilename, setCurrentFilename] = useState("");
   const [isCompiling, setIsCompiling] = useState(false);
   const [isValidCairo, setIsValidCairo] = useState(false);
-  // const [isCompilingToSierra, setIsCompilingToSierraStatus] = useState(false);
-  // const [isCompilingToCasm, setIsCompilingToCasmStatus] = useState(false);
-  // const [isValidSierra, setIsValidSierra] = useState(false);
 
   useEffect(() => {
     setTimeout(() => {
@@ -40,15 +37,12 @@ function CompilationTab({ setIsLatestClassHashReady }: CompilationTabProps) {
           const filename = getFileNameFromPath(currentFileChanged);
           const currentFileExtension = getFileExtension(filename);
           setIsValidCairo(currentFileExtension === "cairo");
-          // setIsValidSierra(currentFileExtension === "json");
           setCurrentFilename(filename);
         }
       );
     }, 10);
   }, [remixClient]);
 
-  // User might want to modify sierra and compile it.
-  // TODO: Add this in advanced features.
   const compilations = [
     {
       header: "Compile",
@@ -56,21 +50,8 @@ function CompilationTab({ setIsLatestClassHashReady }: CompilationTabProps) {
       isLoading: isCompiling,
       onClick: compile,
     },
-    // {
-    //   header: "Compile to Sierra",
-    //   validation: isValidCairo,
-    //   isLoading: isCompilingToSierra,
-    //   onClick: compileToSierra,
-    // },
-    // {
-    //   header: "Compile to Casm",
-    //   validation: isValidSierra,
-    //   isLoading: isCompilingToCasm,
-    //   onClick: compileToCasm,
-    // },
   ];
 
-  // Check for errors.
   const getFile = async () => {
     const currentFilePath = await remixClient.call(
       "fileManager",
@@ -86,17 +67,6 @@ function CompilationTab({ setIsLatestClassHashReady }: CompilationTabProps) {
     return { currentFileContent, currentFilePath };
   };
 
-  // async function compileToSierra() {
-  //   setIsCompilingToSierraStatus(true);
-  //   await compileTo("sierra");
-  //   setIsCompilingToSierraStatus(false);
-  // }
-
-  // async function compileToCasm() {
-  //   setIsCompilingToCasmStatus(true);
-  //   await compileTo("casm");
-  //   setIsCompilingToCasmStatus(false);
-  // }
 
   async function compile() {
     setIsCompiling(true);
@@ -112,6 +82,8 @@ function CompilationTab({ setIsLatestClassHashReady }: CompilationTabProps) {
       });
 
       const sierra = await response.text();
+
+      console.log("bencho ye print", sierra);
 
       response = await fetch(`${apiUrl}/compile-to-casm`, {
         method: "POST",
@@ -174,36 +146,7 @@ function CompilationTab({ setIsLatestClassHashReady }: CompilationTabProps) {
     setIsLatestClassHashReady(false);
   }
 
-  // async function compileTo(lang: string) {
-  //   let { currentFileContent, currentFilePath } = await getFile();
-
-  //   // TODO: Fail gracefully, implement interaction.
-
-  //   const response = await fetch(
-  //     `${compilationEndpoint}/compile-to-${
-  //       lang === "sierra" ? "sierra" : "casm"
-  //     }`,
-  //     {
-  //       method: "POST",
-  //       body: currentFileContent,
-  //       redirect: "follow",
-  //       headers: {
-  //         "Content-Type": "application/octet-stream",
-  //       },
-  //     }
-  //   );
-
-  //   let fileContent = await response.text();
-  //   let newFilePath = `${artifactFolder(currentFilePath)}/${artifactFilename(
-  //     lang === "sierra" ? ".json" : ".casm"
-  //   )}`;
-
-  //   await remixClient.call("fileManager", "setFile", newFilePath, fileContent);
-
-  //   remixClient.call("fileManager", "switchFile", newFilePath);
-  // }
-
-  const Compilation = (
+  const compilationCard = (
     header: string,
     validation: boolean,
     isLoading: boolean,
@@ -263,7 +206,7 @@ function CompilationTab({ setIsLatestClassHashReady }: CompilationTabProps) {
   return (
     <div>
       {compilations.map((compilation) => {
-        return Compilation(
+        return compilationCard(
           compilation.header,
           compilation.validation,
           compilation.isLoading,
@@ -274,4 +217,4 @@ function CompilationTab({ setIsLatestClassHashReady }: CompilationTabProps) {
   );
 }
 
-export default CompilationTab;
+export default Compilation;

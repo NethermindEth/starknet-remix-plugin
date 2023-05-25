@@ -38,7 +38,9 @@ function Plugin(props: PluginProps) {
     null
   );
 
+  // using local devnet initially
   const [devnet, setDevnet] = useState<DevnetType>(devnets[0]);
+
   const [availableAccounts, setAvailableAccounts] = useState<DevnetAccount[]>(
     []
   );
@@ -70,7 +72,7 @@ function Plugin(props: PluginProps) {
       );
       setAccount(localAccount);
     }
-  }, [availableAccounts]);
+  }, [availableAccounts, devnet]);
 
   useEffect(() => {
     // TODO: Call the API and make the api return the version of the Cairo compiler on use effect
