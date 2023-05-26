@@ -1,29 +1,8 @@
+Finished dev [unoptimized + debuginfo] target(s) in 0.16s
+     Running `target/debug/starknet-compile /Users/rohit/nmd/starknet-remix-plugin/api/upload/OyfqQPrk375QS42h.cairo /Users/rohit/nmd/starknet-remix-plugin/api/sierra/OyfqQPrk375QS42h.json --allowed-libfuncs-list-name experimental_v0.1.0`
+error: Missing token TerminalRBrace.
+ --> OyfqQPrk375QS42h.cairo:7:4
+  }
+   ^
 
-> starknet-remix-plugin@0.1.0 start /Users/rohit/nmd/starknet-remix-plugin/plugin
-> react-scripts start
-
-Starting the development server...
-
-Compiled with warnings.
-
-[eslint] 
-src/components/CompileAndDeploy/index.tsx
-  Line 5:8:  'Verify' is defined but never used  @typescript-eslint/no-unused-vars
-
-src/features/Deployment/index.tsx
-  Line 24:10:  'finalCallData' is assigned a value but never used      @typescript-eslint/no-unused-vars
-  Line 27:19:  'availableAccounts' is assigned a value but never used  @typescript-eslint/no-unused-vars
-
-Search for the keywords to learn more about each warning.
-To ignore, add // eslint-disable-next-line to the line before.
-
-WARNING in [eslint] 
-src/components/CompileAndDeploy/index.tsx
-  Line 5:8:  'Verify' is defined but never used  @typescript-eslint/no-unused-vars
-
-src/features/Deployment/index.tsx
-  Line 24:10:  'finalCallData' is assigned a value but never used      @typescript-eslint/no-unused-vars
-  Line 27:19:  'availableAccounts' is assigned a value but never used  @typescript-eslint/no-unused-vars
-
-webpack compiled with 1 warning
-No issues found.
+Error: Compilation failed.

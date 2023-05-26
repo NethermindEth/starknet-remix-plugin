@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@remixproject/plugin": "^0.3.31",
+    "@remixproject/engine": "^0.3.31",
     "@remixproject/plugin-webview": "^0.3.31",
     "@starknet-react/core": "^0.16.0",
     "@testing-library/jest-dom": "^5.16.5",

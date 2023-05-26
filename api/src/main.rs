@@ -1,11 +1,13 @@
 #[macro_use]
 extern crate rocket;
-use std::process::Command;
+use std::process::{Command, Stdio};
+use rocket::serde::{Serialize, Deserialize, json::Json};
 
 use rocket::data::{Data, ToByteUnit};
 use rocket::fairing::{Fairing, Info, Kind};
 use rocket::fs::NamedFile;
 use rocket::http::{ContentType, Header, Method, Status};
+use rocket::tokio::fs;
 use rocket::{Request, Response};
 
 mod utils;
@@ -41,13 +43,24 @@ impl Fairing for CORS {
     }
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(crate = "rocket::serde")]
+pub struct CompileResponse {
+    pub status: String,
+    pub message: String,
+    pub file_content: String,
+}
+
 #[post("/compile-to-sierra", data = "<file>")]
-async fn compile_to_sierra(file: Data<'_>) -> Option<NamedFile> {
+async fn compile_to_sierra(file: Data<'_>) -> Json<CompileResponse> {
     let file_hash = Hash::new(16);
     let file_path = file_hash.file_path("cairo");
 
     // Modify to zip and unpack.
     let saved_file = file.open(128_i32.gibibytes()).into_file(&file_path).await;
+
+    // print contents of file
+    println!("File contents: {:?}", fs::read_to_string(&file_path).await);
 
     match saved_file {
         Ok(_) => {
@@ -72,28 +85,35 @@ async fn compile_to_sierra(file: Data<'_>) -> Option<NamedFile> {
         .arg(file_hash.sierra_path())
         .arg("--allowed-libfuncs-list-name")
         .arg("experimental_v0.1.0")
-        .spawn();
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("Failed to execute starknet-compile");
 
-    match result {
-        Ok(mut child) => match child.wait() {
-            // Return here?
-            Ok(status) => {
-                println!("status: {}", status);
-            }
-            Err(e) => {
-                println!("error: {}", e);
-            }
-        },
-        Err(e) => {
-            println!("error: {:?}", e);
+    let output = result
+        .wait_with_output()
+        .expect("Failed to wait on child");
+
+    Json(CompileResponse {
+        file_content : match NamedFile::open(file_hash.sierra_path()).await.ok() {
+            Some(file) => match file.path().to_str(){ 
+                Some(path) => match fs::read_to_string(path.to_string()).await {
+                    Ok(sierra) => sierra.to_string(),
+                    Err(e) => e.to_string(),
+                }
+                None => "".to_string(),}
+            None => "".to_string(),
+        }, 
+        message : String::from_utf8(output.stderr).unwrap(),
+        status: match output.status.code() {
+            Some(0) => "Success".to_string(),
+            Some(_) => "CompilationFailed".to_string(),
+            None => "UnknownError".to_string(),
         }
-    }
-
-    NamedFile::open(file_hash.sierra_path()).await.ok()
+    })
 }
 
 #[post("/compile-to-casm", data = "<file>")]
-async fn compile_to_casm(file: Data<'_>) -> Option<NamedFile> {
+async fn compile_to_casm(file: Data<'_>) -> Json<CompileResponse> {
     let file_hash = Hash::new(16);
     let file_path = file_hash.file_path("json");
     // Modify to zip.
@@ -124,23 +144,31 @@ async fn compile_to_casm(file: Data<'_>) -> Option<NamedFile> {
         .arg(file_hash.casm_path())
         .arg("--allowed-libfuncs-list-name")
         .arg("experimental_v0.1.0")
-        .spawn();
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("Failed to execute starknet-sierra-compile");
 
-    match result {
-        Ok(mut child) => match child.wait() {
-            Ok(status) => {
-                println!("status: {}", status);
-            }
-            Err(e) => {
-                println!("error: {}", e);
-            }
-        },
-        Err(e) => {
-            println!("error: {:?}", e);
+    let output = result
+        .wait_with_output()
+        .expect("Failed to wait on child");
+
+    Json(CompileResponse {
+        file_content : match NamedFile::open(file_hash.casm_path()).await.ok() {
+            Some(file) => match file.path().to_str(){ 
+                Some(path) => match fs::read_to_string(path.to_string()).await {
+                    Ok(casm) => casm.to_string(),
+                    Err(e) => e.to_string(),
+                }
+                None => "".to_string(),}
+            None => "".to_string(),
+        }, 
+        message : String::from_utf8(output.stderr).unwrap(),
+        status: match output.status.code() {
+            Some(0) => "Success".to_string(),
+            Some(_) => "SierraCompilationFailed".to_string(),
+            None => "UnknownError".to_string(),
         }
-    }
-
-    NamedFile::open(file_hash.casm_path()).await.ok()
+    })
 }
 
 // Should abstract writting the file.
@@ -243,3 +271,4 @@ fn rocket() -> _ {
         )
         .attach(CORS)
 }
+
