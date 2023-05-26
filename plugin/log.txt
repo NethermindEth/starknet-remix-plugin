@@ -1,8 +1,0 @@
-Finished dev [unoptimized + debuginfo] target(s) in 0.16s
-     Running `target/debug/starknet-compile /Users/rohit/nmd/starknet-remix-plugin/api/upload/OyfqQPrk375QS42h.cairo /Users/rohit/nmd/starknet-remix-plugin/api/sierra/OyfqQPrk375QS42h.json --allowed-libfuncs-list-name experimental_v0.1.0`
-error: Missing token TerminalRBrace.
- --> OyfqQPrk375QS42h.cairo:7:4
-  }
-   ^
-
-Error: Compilation failed.
