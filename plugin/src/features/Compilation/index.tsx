@@ -155,9 +155,9 @@ function Compilation({ setIsLatestClassHashReady }: CompilationProps) {
           errorLets.pop();
         }
 
-        // break the errorLets in array of arrays with first element starts with `error: Plugin diagnostic`
+        // break the errorLets in array of arrays with first element contains the string `Plugin diagnostic`
         const errorLetsArray = errorLets.reduce((acc: any, curr: any) => {
-          if (curr.startsWith("error: Plugin diagnostic")) {
+          if (curr.includes(": Plugin diagnostic")) {
             acc.push([curr]);
           } else {
             acc[acc.length - 1].push(curr);
@@ -168,18 +168,28 @@ function Compilation({ setIsLatestClassHashReady }: CompilationProps) {
         // remove the first array 
         errorLetsArray.shift();
 
+        console.log(errorLetsArray);
+
         errorLetsArray.forEach(async (errorLet: any) => {
-          const errorTitle = errorLet[0].replace("error: Plugin diagnostic: ", "");
+          const errorType = errorLet[0].split(":")[0].trim();
+          const errorTitle = errorLet[0].split(": Plugin diagnostic")[1];
           const errorLine = errorLet[1].split(":")[1].trim();
           const errorColumn = errorLet[1].split(":")[2].trim();
           // join the rest of the array
           const errorMsg = errorLet.slice(2).join("\n").trim();
 
+          console.log({
+            row: Number(errorLine), 
+            column: Number(errorColumn),
+            text: errorMsg + "\n" + errorTitle,
+            type: errorType,
+          });
+
           await remixClient.editor.addAnnotation({
             row: Number(errorLine), 
             column: Number(errorColumn),
             text: errorMsg + "\n" + errorTitle,
-            type: "error",
+            type: errorType,
           });
         });
 
