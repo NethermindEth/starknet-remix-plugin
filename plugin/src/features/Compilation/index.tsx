@@ -157,7 +157,7 @@ function Compilation({ setIsLatestClassHashReady }: CompilationProps) {
 
         // break the errorLets in array of arrays with first element contains the string `Plugin diagnostic`
         const errorLetsArray = errorLets.reduce((acc: any, curr: any) => {
-          if (curr.includes(": Plugin diagnostic")) {
+          if (curr.startsWith("error:") || curr.startsWith("warning:")) {
             acc.push([curr]);
           } else {
             acc[acc.length - 1].push(curr);
@@ -172,22 +172,22 @@ function Compilation({ setIsLatestClassHashReady }: CompilationProps) {
 
         errorLetsArray.forEach(async (errorLet: any) => {
           const errorType = errorLet[0].split(":")[0].trim();
-          const errorTitle = errorLet[0].split(": Plugin diagnostic")[1];
+          const errorTitle = errorLet[0].split(":")[1];
           const errorLine = errorLet[1].split(":")[1].trim();
           const errorColumn = errorLet[1].split(":")[2].trim();
           // join the rest of the array
-          const errorMsg = errorLet.slice(2).join("\n").trim();
+          const errorMsg = errorLet.slice(2).join("\n");
 
           console.log({
-            row: Number(errorLine), 
-            column: Number(errorColumn),
+            row: Number(errorLine) -1, 
+            column: Number(errorColumn) -1,
             text: errorMsg + "\n" + errorTitle,
             type: errorType,
           });
 
           await remixClient.editor.addAnnotation({
-            row: Number(errorLine), 
-            column: Number(errorColumn),
+            row: Number(errorLine)- 1, 
+            column: Number(errorColumn) -1,
             text: errorMsg + "\n" + errorTitle,
             type: errorType,
           });
@@ -309,6 +309,7 @@ function Compilation({ setIsLatestClassHashReady }: CompilationProps) {
       if (e instanceof Error)
         remixClient.call("notification" as any, "alert", {
           id: "starknetRemixPluginAlert",
+          title: "Expectation Failed", 
           message: e.message,
         });
       console.error(e);
