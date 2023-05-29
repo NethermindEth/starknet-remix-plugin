@@ -9,7 +9,7 @@ interface CompileAndDeployTabProps {
 }
 
 function CompileAndDeploy({ setActiveTab }: CompileAndDeployTabProps) {
-  // TODO: This state should be moved to a context to survibe changing tabs.
+  // TODO: This state should be moved to a context to survive changing tabs.
   const [isLatestClassHashBeingLoaded, setIsLatestClassHashBeingLoaded] =
     useState(false);
   return (

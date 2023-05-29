@@ -1,42 +1,37 @@
-use std::borrow::Cow;
 use std::path::{Path, PathBuf};
 
-use rand::{self, Rng};
+pub const CAIRO_ROOT: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/", "upload/temp/");
+pub const SIERRA_ROOT: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/", "sierra/temp/");
+pub const CASM_ROOT: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/", "casm/temp/");
 
-pub struct Hash<'a>(Cow<'a, str>);
+pub const CAIRO_DIR: &str  = concat!(env!("CARGO_MANIFEST_DIR"), "/", "cairo/");
 
-impl Hash<'_> {
-    pub fn new(size: usize) -> Hash<'static> {
-        // Change to hash of file.
-        const BASE62: &[u8] = b"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+pub fn get_file_ext(file_path:&String) -> String {
+    match file_path.split(".").last() {
+        Some(ext) => ext.to_string(),
+        None => {
+            println!("LOG: File extension not found");
+           "".to_string()
+        }
+    }
+}
 
-        let mut id = String::with_capacity(size);
-        let mut rng = rand::thread_rng();
-        for _ in 0..size {
-            id.push(BASE62[rng.gen::<usize>() % 62] as char);
+pub fn get_file_path(file_path:&String) -> PathBuf {
+    match get_file_ext(file_path).to_string() {
+        ext if ext == "sierra" => {
+            Path::new(SIERRA_ROOT).join(file_path)
+        }
+        ext if ext == "casm" => {
+            Path::new(CASM_ROOT).join(file_path)
+            
+        }
+        ext if ext == "cairo" => {
+            Path::new(CAIRO_ROOT).join(file_path)
         }
 
-        Hash(Cow::Owned(id))
-    }
-
-    pub fn file_path(&self, ext: &str) -> PathBuf {
-        let root = concat!(env!("CARGO_MANIFEST_DIR"), "/", "upload/temp/");
-        Path::new(root)
-            .with_file_name(self.0.as_ref())
-            .with_extension(ext)
-    }
-
-    pub fn sierra_path(&self) -> PathBuf {
-        let root = concat!(env!("CARGO_MANIFEST_DIR"), "/", "sierra/temp/");
-        Path::new(root)
-            .with_file_name(self.0.as_ref())
-            .with_extension("json")
-    }
-
-    pub fn casm_path(&self) -> PathBuf {
-        let root = concat!(env!("CARGO_MANIFEST_DIR"), "/", "casm/temp/");
-        Path::new(root)
-            .with_file_name(self.0.as_ref())
-            .with_extension("casm")
+        _ => {
+            println!("LOG: File extension not supported");
+            Path::new("").join(file_path)
+        }
     }
 }
