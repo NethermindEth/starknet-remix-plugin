@@ -1,17 +1,19 @@
 #[macro_use]
 extern crate rocket;
+use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use rocket::serde::{Serialize, Deserialize, json::Json};
 
 use rocket::data::{Data, ToByteUnit};
 use rocket::fairing::{Fairing, Info, Kind};
-use rocket::fs::NamedFile;
+use rocket::fs::{NamedFile};
 use rocket::http::{ContentType, Header, Method, Status};
 use rocket::tokio::fs;
 use rocket::{Request, Response};
 
 mod utils;
-use utils::lib::Hash;
+use utils::lib:: {get_file_path, get_file_ext,  CAIRO_DIR, SIERRA_ROOT, CASM_ROOT};
+
 
 #[derive(Default)]
 
@@ -43,6 +45,64 @@ impl Fairing for CORS {
     }
 }
 
+
+
+
+#[post("/save_code/<remix_file_path..>", data = "<file>")]
+async fn save_code(file: Data<'_>, remix_file_path : PathBuf) -> String{
+    
+    let remix_file_path = match remix_file_path.to_str() {
+        Some(path) => path.to_string(),
+        None => {
+            return "".to_string();
+        }
+    };
+
+    let file_path = get_file_path(&remix_file_path);
+
+    // create file directory from file path
+    match file_path.parent() {
+        Some(parent) => {
+            match fs::create_dir_all(parent).await {
+                Ok(_) => {
+                    println!("LOG: Created directory: {:?}", parent);
+                }
+                Err(e) => {
+                    println!("LOG: Error creating directory: {:?}", e);
+                }
+            }
+        }
+        None => {
+            println!("LOG: Error creating directory");
+        }
+    }
+    
+
+    // Modify to zip and unpack.
+    let saved_file = file.open(128_i32.gibibytes()).into_file(&file_path).await;
+
+    // print contents of file
+    println!("LOG: File contents: {:?}", fs::read_to_string(&file_path).await);
+
+    match saved_file {
+        Ok(_) => {
+            println!("LOG: File saved successfully");
+            match file_path.to_str() {
+                Some(path) => {
+                    path.to_string()
+                }
+                None => "".to_string(),
+            }
+        }
+        Err(e) => {
+            println!("LOG: Error saving file: {:?}", e);
+            "".to_string()
+            // set the response with not ok code.
+        }
+    }
+}
+
+
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(crate = "rocket::serde")]
 pub struct CompileResponse {
@@ -51,30 +111,61 @@ pub struct CompileResponse {
     pub file_content: String,
 }
 
-#[post("/compile-to-sierra", data = "<file>")]
-async fn compile_to_sierra(file: Data<'_>) -> Json<CompileResponse> {
-    let file_hash = Hash::new(16);
-    let file_path = file_hash.file_path("cairo");
+#[get("/compile-to-sierra/<remix_file_path..>")]
+async fn compile_to_sierra(remix_file_path: PathBuf) -> Json<CompileResponse> {
 
-    // Modify to zip and unpack.
-    let saved_file = file.open(128_i32.gibibytes()).into_file(&file_path).await;
-
-    // print contents of file
-    println!("File contents: {:?}", fs::read_to_string(&file_path).await);
-
-    match saved_file {
-        Ok(_) => {
-            println!("File saved successfully");
+    let remix_file_path = match remix_file_path.to_str() {
+        Some(path) => path.to_string(),
+        None => {
+            return Json(CompileResponse {
+                file_content : "".to_string(), 
+                message : "File path not found".to_string(),
+                status: "FileNotFound".to_string(),
+            });
         }
-        Err(e) => {
-            println!("Error saving file: {:?}", e);
+    };
+
+    // check if the file has .cairo extension
+    match get_file_ext(&remix_file_path) {
+        ext if ext == "cairo" => {
+            println!("LOG: File extension is cairo");
+        }
+        _ => {
+            println!("LOG: File extension not supported");
+            return Json(CompileResponse {
+                file_content : "".to_string(), 
+                message : "File extension not supported".to_string(),
+                status: "FileExtensionNotSupported".to_string(),
+            });
         }
     }
 
-    let cairo_dir = concat!(env!("CARGO_MANIFEST_DIR"), "/", "cairo/");
+    let file_path = get_file_path(&remix_file_path);
+
+    let sierra_remix_path = remix_file_path.replace(&get_file_ext(&remix_file_path), "sierra");
 
     let mut compile = Command::new("cargo");
-    compile.current_dir(cairo_dir);
+    compile.current_dir(CAIRO_DIR);
+
+    // replace .cairo with 
+    let sierra_path = Path::new(SIERRA_ROOT).join(&sierra_remix_path);
+
+    // create directory for sierra file
+    match sierra_path.parent() {
+        Some(parent) => {
+            match fs::create_dir_all(parent).await {
+                Ok(_) => {
+                    println!("LOG: Created directory: {:?}", parent);
+                }
+                Err(e) => {
+                    println!("LOG: Error creating directory: {:?}", e);
+                }
+            }
+        }
+        None => {
+            println!("LOG: Error creating directory");
+        }
+    }
 
     let result = compile
         .arg("run")
@@ -82,19 +173,23 @@ async fn compile_to_sierra(file: Data<'_>) -> Json<CompileResponse> {
         .arg("starknet-compile")
         .arg("--")
         .arg(&file_path)
-        .arg(file_hash.sierra_path())
+        .arg(&sierra_path)
         .arg("--allowed-libfuncs-list-name")
         .arg("experimental_v0.1.0")
         .stderr(Stdio::piped())
         .spawn()
         .expect("Failed to execute starknet-compile");
 
+
+
+    println!("LOG: ran command:{:?}", compile);
+
     let output = result
         .wait_with_output()
         .expect("Failed to wait on child");
 
     Json(CompileResponse {
-        file_content : match NamedFile::open(file_hash.sierra_path()).await.ok() {
+        file_content : match NamedFile::open(&sierra_path).await.ok() {
             Some(file) => match file.path().to_str(){ 
                 Some(path) => match fs::read_to_string(path.to_string()).await {
                     Ok(sierra) => sierra.to_string(),
@@ -103,57 +198,97 @@ async fn compile_to_sierra(file: Data<'_>) -> Json<CompileResponse> {
                 None => "".to_string(),}
             None => "".to_string(),
         }, 
-        message : String::from_utf8(output.stderr).unwrap(),
+        message : String::from_utf8(output.stderr)
+                    .unwrap()
+                    .replace(&file_path.to_str().unwrap().to_string(), &remix_file_path)
+                    .replace(&sierra_path.to_str().unwrap().to_string(), &sierra_remix_path)
+        ,
         status: match output.status.code() {
             Some(0) => "Success".to_string(),
             Some(_) => "CompilationFailed".to_string(),
             None => "UnknownError".to_string(),
-        }
+        }, 
     })
 }
 
-#[post("/compile-to-casm", data = "<file>")]
-async fn compile_to_casm(file: Data<'_>) -> Json<CompileResponse> {
-    let file_hash = Hash::new(16);
-    let file_path = file_hash.file_path("json");
-    // Modify to zip.
-    println!("Saving file to: {:?}", file_path);
-    let saved_file = file.open(128_i32.gibibytes()).into_file(&file_path).await;
-    println!("After file save");
+#[get("/compile-to-casm/<remix_file_path..>")]
+async fn compile_to_casm(remix_file_path: PathBuf) -> Json<CompileResponse> {
 
-    match saved_file {
-        Ok(_) => {
-            println!("File saved successfully");
+    let remix_file_path = match remix_file_path.to_str() {
+        Some(path) => path.to_string(),
+        None => {
+            return Json(CompileResponse {
+                file_content : "".to_string(), 
+                message : "File path not found".to_string(),
+                status: "FileNotFound".to_string(),
+            });
         }
-        Err(e) => {
-            println!("Error saving file: {:?}", e);
+    };
+
+    // check if the file has .sierra extension
+    match get_file_ext(&remix_file_path) {
+        ext if ext == "sierra" => {
+            println!("LOG: File extension is sierra");
+        }
+        _ => {
+            println!("LOG: File extension not supported");
+            return Json(CompileResponse {
+                file_content : "".to_string(), 
+                message : "File extension not supported".to_string(),
+                status: "FileExtensionNotSupported".to_string(),
+            });
         }
     }
 
-    let cairo_dir = concat!(env!("CARGO_MANIFEST_DIR"), "/", "cairo/");
+    let file_path = get_file_path(&remix_file_path);
+
+    let casm_remix_path = remix_file_path.replace(&get_file_ext(&remix_file_path), "casm");
 
     let mut compile = Command::new("cargo");
-    compile.current_dir(cairo_dir);
+    compile.current_dir(CAIRO_DIR);
+
+    let casm_path = Path::new(CASM_ROOT).join(&casm_remix_path);
+
+    // create directory for casm file
+    match casm_path.parent() {
+        Some(parent) => {
+            match fs::create_dir_all(parent).await {
+                Ok(_) => {
+                    println!("LOG: Created directory: {:?}", parent);
+                }
+                Err(e) => {
+                    println!("LOG: Error creating directory: {:?}", e);
+                }
+            }
+        }
+        None => {
+            println!("LOG: Error creating directory");
+        }
+    }
 
     let result = compile
-        .arg("run")
-        .arg("--bin")
-        .arg("starknet-sierra-compile")
-        .arg("--")
-        .arg(&file_path)
-        .arg(file_hash.casm_path())
-        .arg("--allowed-libfuncs-list-name")
-        .arg("experimental_v0.1.0")
-        .stderr(Stdio::piped())
-        .spawn()
-        .expect("Failed to execute starknet-sierra-compile");
+            .arg("run")
+            .arg("--bin")
+            .arg("starknet-sierra-compile")
+            .arg("--")
+            .arg(&file_path)
+            .arg(&casm_path)
+            .arg("--allowed-libfuncs-list-name")
+            .arg("experimental_v0.1.0")
+            .stderr(Stdio::piped())
+            .spawn()
+            .expect("Failed to execute starknet-sierra-compile");
+
+
+
+    println!("LOG: ran command:{:?}", compile);
 
     let output = result
         .wait_with_output()
         .expect("Failed to wait on child");
 
     Json(CompileResponse {
-        file_content : match NamedFile::open(file_hash.casm_path()).await.ok() {
+        file_content : match NamedFile::open(&casm_path).await.ok() {
             Some(file) => match file.path().to_str(){ 
                 Some(path) => match fs::read_to_string(path.to_string()).await {
                     Ok(casm) => casm.to_string(),
@@ -162,58 +297,17 @@ async fn compile_to_casm(file: Data<'_>) -> Json<CompileResponse> {
                 None => "".to_string(),}
             None => "".to_string(),
         }, 
-        message : String::from_utf8(output.stderr).unwrap(),
+        message : String::from_utf8(output.stderr)
+                    .unwrap()
+                    .replace(&file_path.to_str().unwrap().to_string(), &remix_file_path)
+                    .replace(&casm_path.to_str().unwrap().to_string(), &casm_remix_path)
+        ,
         status: match output.status.code() {
             Some(0) => "Success".to_string(),
             Some(_) => "SierraCompilationFailed".to_string(),
             None => "UnknownError".to_string(),
-        }
+        }, 
     })
-}
-
-// Should abstract writting the file.
-// TODO: Make files TempFiles.
-// UX can be improved by starting the hash calculation as soon as the file is computed in the first API call.
-#[post("/class-hash", data = "<file>")]
-async fn class_hash(file: Data<'_>) -> String {
-    let file_hash = Hash::new(16);
-    let file_path = file_hash.file_path("json");
-    println!("Saving file to: {:?}", file_path);
-    let saved_file = file.open(128_i32.gibibytes()).into_file(&file_path).await;
-    println!("After file save");
-
-    match saved_file {
-        Ok(_) => {
-            println!("File saved successfully");
-        }
-        Err(e) => {
-            println!("Error saving file: {:?}", e);
-        }
-    }
-
-    let hash = Command::new("starknet-class-hash").arg(&file_path).output();
-
-    println!("Getting the class hash");
-    match hash {
-        Ok(hash) => {
-            println!("Hash: {:?}", hash);
-            let utf8_result = String::from_utf8(hash.stdout);
-            match utf8_result {
-                Ok(hash) => {
-                    println!("UTF8: {:?}", hash);
-                    return hash;
-                }
-                Err(e) => {
-                    println!("Error: {:?}", e);
-                    return e.to_string();
-                }
-            }
-        }
-        Err(e) => {
-            println!("Error: {:?}", e);
-            return e.to_string();
-        }
-    }
 }
 
 // Read the version from the cairo Cargo.toml file.
@@ -264,7 +358,7 @@ fn rocket() -> _ {
             routes![
                 compile_to_sierra,
                 compile_to_casm,
-                class_hash,
+                save_code, 
                 version,
                 health
             ],

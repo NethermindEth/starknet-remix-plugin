@@ -29,7 +29,22 @@ function Compilation({ setIsLatestClassHashReady }: CompilationProps) {
   const [isValidCairo, setIsValidCairo] = useState(false);
 
   useEffect(() => {
-    setTimeout(() => {
+    setTimeout(async () => {
+      // get current file
+      const currentFile = await remixClient.fileManager.getCurrentFile();
+      if (currentFile) {
+        const filename = getFileNameFromPath(currentFile);
+        const currentFileExtension = getFileExtension(filename);
+        setIsValidCairo(currentFileExtension === "cairo");
+        setCurrentFilename(filename);
+
+        console.log("current File: ", currentFilename);
+      }
+    }, 10);
+  }, [remixClient, currentFilename]);
+
+  useEffect(() => {
+    setTimeout(async () => {
       remixClient.on(
         "fileManager",
         "currentFileChanged",
@@ -38,10 +53,26 @@ function Compilation({ setIsLatestClassHashReady }: CompilationProps) {
           const currentFileExtension = getFileExtension(filename);
           setIsValidCairo(currentFileExtension === "cairo");
           setCurrentFilename(filename);
+          console.log("current File here: ", currentFilename);
         }
       );
     }, 10);
-  }, [remixClient]);
+  }, [remixClient, currentFilename]);
+
+
+  useEffect( () => {
+    setTimeout(async () => {
+      let { currentFileContent, currentFilePath } = await getFile();
+      await fetch(`${apiUrl}/save_code/${currentFilePath}`, {
+        method: "POST",
+        body: currentFileContent,
+        redirect: "follow",
+        headers: {
+          "Content-Type": "application/octet-stream",
+        },
+      });
+    }, 100)
+  }, [currentFilename, remixClient]);
 
   const compilations = [
     {
@@ -69,12 +100,14 @@ function Compilation({ setIsLatestClassHashReady }: CompilationProps) {
 
   async function compile() {
     setIsCompiling(true);
+    // clear current FIle annotations
+    await remixClient.editor.clearAnnotations();
     try {
       let { currentFileContent, currentFilePath } = await getFile();
 
-      console.log(currentFileContent, currentFilePath);
+      // console.log(currentFileContent, currentFilePath);
 
-      let response = await fetch(`${apiUrl}/compile-to-sierra`, {
+      let response = await fetch(`${apiUrl}/save_code/${currentFilePath}`, {
         method: "POST",
         body: currentFileContent,
         redirect: "follow",
@@ -84,7 +117,28 @@ function Compilation({ setIsLatestClassHashReady }: CompilationProps) {
       });
 
       if (!response.ok) {
-        remixClient.call('notification' as any, 'toast', 'Could not reach cairo compilation server');
+        remixClient.call(
+          "notification" as any,
+          "toast",
+          "Could not reach cairo compilation server"
+        );
+        throw new Error("Cairo Compilation Request Failed");
+      }
+
+      response = await fetch(`${apiUrl}/compile-to-sierra/${currentFilePath}`, {
+        method: "GET",
+        redirect: "follow",
+        headers: {
+          "Content-Type": "text/plain",
+        },
+      });
+
+      if (!response.ok) {
+        remixClient.call(
+          "notification" as any,
+          "toast",
+          "Could not reach cairo compilation server"
+        );
         throw new Error("Cairo Compilation Request Failed");
       }
 
@@ -93,6 +147,41 @@ function Compilation({ setIsLatestClassHashReady }: CompilationProps) {
 
       if (sierra.status !== "Success") {
         remixClient.terminal.log(sierra.message);
+
+        const errorLets = sierra.message.trim().split("\n");
+
+        // remove last element if it's starts with `Error:`
+        if (errorLets[errorLets.length - 1].startsWith("Error:")) {
+          errorLets.pop();
+        }
+
+        // break the errorLets in array of arrays with first element starts with `error: Plugin diagnostic`
+        const errorLetsArray = errorLets.reduce((acc: any, curr: any) => {
+          if (curr.startsWith("error: Plugin diagnostic")) {
+            acc.push([curr]);
+          } else {
+            acc[acc.length - 1].push(curr);
+          }
+          return acc;
+        }, [['errors diagnostic:']]);
+
+        // remove the first array 
+        errorLetsArray.shift();
+
+        errorLetsArray.forEach(async (errorLet: any) => {
+          const errorTitle = errorLet[0].replace("error: Plugin diagnostic: ", "");
+          const errorLine = errorLet[1].split(":")[1].trim();
+          const errorColumn = errorLet[1].split(":")[2].trim();
+          // join the rest of the array
+          const errorMsg = errorLet.slice(2).join("\n").trim();
+
+          await remixClient.editor.addAnnotation({
+            row: Number(errorLine), 
+            column: Number(errorColumn),
+            text: errorMsg + "\n" + errorTitle,
+            type: "error",
+          });
+        });
 
         // trim sierra message to get last line
         const lastLine = sierra.message.trim().split("\n").pop().trim();
@@ -103,18 +192,32 @@ function Compilation({ setIsLatestClassHashReady }: CompilationProps) {
           title: lastLine.startsWith("Error") ? lastLine : "Compilation Failed",
         });
         throw new Error(
-          "Cairo Compilation Failed with message: " + sierra.message
+          "Cairo Compilation Failed, logs can be read in the terminal log"
         );
       }
 
-      response = await fetch(`${apiUrl}/compile-to-casm`, {
-        method: "POST",
-        body: sierra.file_content,
-        redirect: "follow",
-        headers: {
-          "Content-Type": "application/octet-stream",
-        },
-      });
+      response = await fetch(
+        `${apiUrl}/compile-to-casm/${currentFilePath.replace(
+          getFileExtension(currentFilePath),
+          "sierra"
+        )}`,
+        {
+          method: "GET",
+          redirect: "follow",
+          headers: {
+            "Content-Type": "text/plain",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        remixClient.call(
+          "notification" as any,
+          "toast",
+          "Could not reach cairo compilation server"
+        );
+        throw new Error("Cairo Compilation Request Failed");
+      }
 
       // get Json body from response
       const casm = JSON.parse(await response.text());
@@ -124,13 +227,13 @@ function Compilation({ setIsLatestClassHashReady }: CompilationProps) {
 
         const lastLine = casm.message.trim().split("\n").pop().trim();
 
-        remixClient.emit('statusChanged', {
-          key: 'failed',
-          type: 'error',
-          title: lastLine ?? 'Sierra Compilation Failed',
+        remixClient.emit("statusChanged", {
+          key: "failed",
+          type: "error",
+          title: lastLine ?? "Sierra Compilation Failed",
         });
         throw new Error(
-          "Sierra Cairo Compilation Failed with message: " + sierra.message
+          "Sierra Cairo Compilation Failed, logs can be read in the terminal log"
         );
       }
 
@@ -143,29 +246,61 @@ function Compilation({ setIsLatestClassHashReady }: CompilationProps) {
         currentFilename
       )}`;
 
-      storeContract(currentFilename, currentFilePath, sierra.file_content, casm.file_content);
+      storeContract(
+        currentFilename,
+        currentFilePath,
+        sierra.file_content,
+        casm.file_content
+      );
 
-      remixClient.emit('statusChanged', {
-        key: 'succeed',
-        type: 'success',
-        title: 'Cheers : last cairo compilation was succeessful',
+      remixClient.emit("statusChanged", {
+        key: "succeed",
+        type: "success",
+        title: "Cheers : last cairo compilation was succeessful",
       });
 
-      remixClient.call('notification' as any, 'toast', `Cairo compilation output written to: ${sierraPath} `);
       remixClient.terminal.log(sierra.file_content);
 
       try {
-        await remixClient.call("fileManager", "writeFile", sierraPath, sierra.file_content);
-        await remixClient.call("fileManager", "writeFile", casmPath, casm.file_content);
+        await remixClient.call(
+          "fileManager",
+          "writeFile",
+          sierraPath,
+          sierra.file_content
+        );
+        await remixClient.call(
+          "fileManager",
+          "writeFile",
+          casmPath,
+          casm.file_content
+        );
       } catch (e) {
         if (e instanceof Error)
-        remixClient.call("notification" as any, "toast", e.message + " try deleting the files: " + sierraPath + " and " + casmPath);
-        console.error(e);
+          remixClient.call(
+            "notification" as any,
+            "toast",
+            e.message +
+              " try deleting the files: " +
+              sierraPath +
+              " and " +
+              casmPath
+          );
+        throw e;
       }
 
+      remixClient.fileManager.open(sierraPath);
+
+      remixClient.call(
+        "notification" as any,
+        "toast",
+        `Cairo compilation output written to: ${sierraPath} `
+      );
     } catch (e) {
       if (e instanceof Error)
-        remixClient.call("notification" as any, "toast", e.message);
+        remixClient.call("notification" as any, "alert", {
+          id: "starknetRemixPluginAlert",
+          message: e.message,
+        });
       console.error(e);
     }
     setIsCompiling(false);
