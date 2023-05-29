@@ -365,4 +365,3 @@ fn rocket() -> _ {
         )
         .attach(CORS)
 }
-

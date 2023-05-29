@@ -1,1 +1,13 @@
 log*
+api/contracts
+api/contracts/*
+
+api/casm
+api/casm/*
+
+
+api/upload
+api/upload/*
+
+api/sierra
+api/sierra/*

@@ -18,6 +18,8 @@ import {
 import { Devnet } from "../Devnet";
 import "./styles.css";
 
+import { apiUrl } from "../../utils/network";
+
 interface PluginProps {}
 
 function Plugin(props: PluginProps) {
@@ -75,8 +77,15 @@ function Plugin(props: PluginProps) {
   }, [availableAccounts, devnet]);
 
   useEffect(() => {
-    // TODO: Call the API and make the api return the version of the Cairo compiler on use effect
-    setCairoVersion("v1.0.0-rc0");
+    setTimeout(async () => {
+      setCairoVersion(await (await fetch(`${apiUrl}/cairo_version`, {
+        method: "GET",
+        redirect: "follow",
+        headers: {
+          "Content-Type": "application/octet-stream",
+        },
+      })).text());
+    });
   }, []);
 
   return (
