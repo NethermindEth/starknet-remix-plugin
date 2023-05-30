@@ -37,7 +37,8 @@ jobs:
             export PROJECT_PATH=${{ secrets.PATH }}/api
             bash -ic ‘cd $PROJECT_PATH && \
                cargo build && \
-               git submodule update --init && \
+               rm -rf cairo && \
+               git clone https://github.com/starkware-libs/cairo && \
                cd cairo && \
                cargo build’
       - name: Deploy backend
@@ -48,7 +49,7 @@ jobs:
           port: ${{ secrets.PORT }}
           key: ${{ secrets.SSHKEY }}
           script: |
-            export PROJECT_PATH=${{ secrets.PATH }}
+            export PROJECT_PATH=${{ secrets.PATH }}/api
             bash -ic '
               cd $PROJECT_PATH &&
               cargo run’
