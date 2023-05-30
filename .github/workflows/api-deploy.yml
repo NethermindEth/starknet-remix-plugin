@@ -1,0 +1,54 @@
+name: Deploy to Server
+on:
+  push:
+    branches:
+      - main
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Remove old files
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          port: ${{ secrets.PORT }}
+          key: ${{ secrets.SSHKEY }}
+          script: |
+            rm -rf ${{ secrets.PATH }}/*
+      - name: Copy repository contents via scp
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          port: ${{ secrets.PORT }}
+          key: ${{ secrets.SSHKEY }}
+          source: “.”
+          target: ${{ secrets.PATH }}
+      - name: Build the lib
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          port: ${{ secrets.PORT }}
+          key: ${{ secrets.SSHKEY }}
+          script: |
+            export PROJECT_PATH=${{ secrets.PATH }}/api
+            bash -ic ‘cd $PROJECT_PATH && \
+               cargo build && \
+               git submodule update --init && \
+               cd cairo && \
+               cargo build’
+      - name: Deploy backend
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          port: ${{ secrets.PORT }}
+          key: ${{ secrets.SSHKEY }}
+          script: |
+            export PROJECT_PATH=${{ secrets.PATH }}
+            bash -ic '
+              cd $PROJECT_PATH &&
+              cargo run’
