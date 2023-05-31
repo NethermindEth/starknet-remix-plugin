@@ -50,7 +50,7 @@ function Deployment({ setActiveTab }: DeploymentProps) {
           casm: selectedContract?.casm,
           constructorCalldata: calldata,
         },
-        { cairoVersion: "1" }
+        { cairoVersion: '1' }
       );
       console.log(declareAndDeployResponse?.deploy.contract_address);
       setContractDeployment(
