@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 
 import { Account, Provider } from "starknet";
 import Nav from "../../components/Nav";
@@ -19,11 +19,33 @@ import { Devnet } from "../Devnet";
 import "./styles.css";
 
 import { apiUrl } from "../../utils/network";
+import { RemixClientContext } from "../../contexts/RemixClientContext";
 
 interface PluginProps {}
 
 function Plugin(props: PluginProps) {
+
+  const remixClient = useContext(RemixClientContext);
+
+
+
+  // START : Get Cairo version
   const [cairoVersion, setCairoVersion] = useState("");
+
+  useEffect(() => {
+    setTimeout(async () => {
+      const response = await fetch(`${apiUrl}/cairo_version`, {
+        method: "GET",
+        redirect: "follow",
+        headers: {
+          "Content-Type": "application/octet-stream",
+        },
+      });
+      setCairoVersion(await response.text());
+    }, 100);
+  });
+  // END : Get Cairo version
+
   // Store connected wallet and provider
 
   const [connection, setConnection] = useState<ConnectionType>({
@@ -33,8 +55,10 @@ function Plugin(props: PluginProps) {
     network: "goerli-alpha",
   });
 
+
   // Store a list of compiled contracts
   const [compiledContracts, setCompiledContracts] = useState<Contract[]>([]);
+
   // Store the current contract for UX purposes
   const [selectedContract, setSelectedContract] = useState<Contract | null>(
     null
@@ -42,6 +66,7 @@ function Plugin(props: PluginProps) {
 
   // using local devnet initially
   const [devnet, setDevnet] = useState<DevnetType>(devnets[0]);
+  const [isLocalDevnetAlive, setIsLocalDevnetAlive] = useState<boolean>(true);
 
   const [availableAccounts, setAvailableAccounts] = useState<DevnetAccount[]>(
     []
@@ -49,15 +74,44 @@ function Plugin(props: PluginProps) {
   const [selectedAccount, setSelectedAccount] = useState<DevnetAccount | null>(
     null
   );
+
+
   const [provider, setProvider] = useState<Provider | null>(null);
   const [account, setAccount] = useState<Account | null>(null);
 
+  // devnet live status check
   useEffect(() => {
-    const setAccounts = async () => {
+    const interval = setInterval(async () => {
+
+      try {
+        const response = await fetch(`${devnet.url}/is_alive`, {
+          method: "GET",
+          redirect: "follow",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        const status = await response.text();
+
+        if (status !== "Alive!!!" || response.status !== 200) {
+          setIsLocalDevnetAlive(false);
+          remixClient.call('notification' as any, 'toast', 'Devnet Server is not healthy at the moment');
+        }else{
+          setIsLocalDevnetAlive(true);
+        }
+      } catch (error) {
+        setIsLocalDevnetAlive(false);
+        remixClient.call('notification' as any, 'toast', `Could not reach to devnet server: ${devnet.url}`);
+      }
+    }, 20000);
+    return () => clearInterval(interval);
+  }, [devnet, remixClient]);
+
+  useEffect(() => {
+    setTimeout(async () => {
       const accounts = await getAccounts(devnet.url);
       setAvailableAccounts(accounts);
-    };
-    setAccounts();
+    }, 100);
   }, [devnet]);
 
   useEffect(() => {
@@ -76,20 +130,7 @@ function Plugin(props: PluginProps) {
     }
   }, [availableAccounts, devnet]);
 
-  useEffect(() => {
-    setTimeout(async () => {
-      setCairoVersion(await (await fetch(`${apiUrl}/cairo_version`, {
-        method: "GET",
-        redirect: "follow",
-        headers: {
-          "Content-Type": "application/octet-stream",
-        },
-      })).text());
-    });
-  }, []);
-
   return (
-    <>
       <DevnetContext.Provider
         value={{
           devnet,
@@ -115,7 +156,7 @@ function Plugin(props: PluginProps) {
           >
             <div className="mb-1">
               <label className="cairo-version-legend">
-                Using cairo version {cairoVersion}
+                Using {cairoVersion}
               </label>
             </div>
             <Nav />
@@ -133,7 +174,6 @@ function Plugin(props: PluginProps) {
           </CompiledContractsContext.Provider>
         </ConnectionContext.Provider>
       </DevnetContext.Provider>
-    </>
   );
 }
 

@@ -19,14 +19,13 @@ const networks = [
   { name: "Testnet", value: "goerli-alpha" },
   { name: "Testnet 2", value: "goerli-alpha-2" },
   { name: "Devnet", value: devnetUrl },
-  // { name: "Mainnet", value: "mainnet-alpha" },
+  { name: "Mainnet", value: "mainnet-alpha" },
 ];
 
 const networkExplorerUrls = {
   "goerli-alpha": "https://goerli.voyager.online",
   "goerli-alpha-2": "https://goerli-2.voyager.online",
   "mainnet-alpha": "https://voyager.online",
-  // Voyager devnet?
   "http://127.0.0.1:5050": "https://devnet.starkscan.co/",
 };
 
