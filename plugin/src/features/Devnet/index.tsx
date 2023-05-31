@@ -28,6 +28,7 @@ const makeVoyagerLink = async (starknetObj?: StarknetWindowObject | null) => {
   return "https://voyager.online";
 };
 
+
 interface ConnectionProps {}
 
 function WalletAccountInfo() {
