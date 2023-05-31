@@ -1,5 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import { Card } from "../../components/Card";
+import copy from "copy-to-clipboard";
 import DevnetAccountSelector from "../../components/DevnetAccountSelector";
 import DevnetSelector from "../../components/DevnetSelector";
 import "./styles.css";
@@ -40,6 +41,8 @@ function WalletAccountInfo() {
     );
   }
 
+  const [showCopied, setCopied] = useState(false);
+
   const [voyagerLink, setVoyagerLink] = useState("");
 
   useEffect(() => {
@@ -59,20 +62,34 @@ function WalletAccountInfo() {
       }}
     >
       <button className="btn btn-primary" onClick={refreshWalletHandler}>
-        {" "}
-        Refresh{" "}
+        Reconnect
       </button>
       <div className="wallet-wrapper">
         <img src={starknetWindowObject?.icon} alt="wallet icon" />
         <p className="text"> {starknetWindowObject?.id}</p>
       </div>
       <div className="account-wrapper">
-        <p
-          className="text account"
-          title={starknetWindowObject?.account?.address}
-        >
-          {trimAddress(starknetWindowObject?.account?.address || "")}
-        </p>
+        <span>
+          <p
+            className="text account"
+            title={starknetWindowObject?.account?.address}
+          >
+            {trimAddress(starknetWindowObject?.account?.address || "")}
+          </p>
+          <button
+            className="btn"
+            onClick={() => {
+              copy(starknetWindowObject?.account?.address || "");
+              setCopied(true);
+              setTimeout(() => {
+                setCopied(false);
+              }, 1000);
+            }}
+          >
+            📎
+          </button>
+          {showCopied && <p>Copied</p>}
+        </span>
         <a href={voyagerLink} target="_blank" rel="noopnener noreferer">
           View on Voyager
         </a>
