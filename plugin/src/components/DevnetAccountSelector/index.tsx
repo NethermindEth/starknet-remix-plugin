@@ -42,35 +42,38 @@ function DevnetAccountSelector(_: DevnetAccountSelectorProps) {
   }
 
   return (
-    <select
-      className="custom-select"
-      aria-label=".form-select-sm example"
-      onChange={handleAccountChange}
-      defaultValue={getDefaultValue()}
-    >
-      {availableDevnetAccounts.reduce(
-        (acc, account, index) => {
-          acc.push(
-            <option value={index + 1} key={index + 1}>
-              {`${getShortenedHash(
-                account.address || "",
-                6,
-                4
-              )} (${getRoundedNumber(
-                weiToEth(account.initial_balance),
-                2
-              )} ether)`}
-            </option>
-          );
-          return acc;
-        },
-        [
-          <option value={0} key={0}>
-            No accounts found
-          </option>,
-        ] as JSX.Element[]
-      )}
-    </select>
+    <>
+      <label className="">Devnet account selection</label>
+      <select
+        className="custom-select"
+        aria-label=".form-select-sm example"
+        onChange={handleAccountChange}
+        defaultValue={getDefaultValue()}
+      >
+        {availableDevnetAccounts.reduce(
+          (acc, account, index) => {
+            acc.push(
+              <option value={index + 1} key={index + 1}>
+                {`${getShortenedHash(
+                  account.address || "",
+                  6,
+                  4
+                )} (${getRoundedNumber(
+                  weiToEth(account.initial_balance),
+                  2
+                )} ether)`}
+              </option>
+            );
+            return acc;
+          },
+          [
+            <option value={0} key={0}>
+              No accounts found
+            </option>,
+          ] as JSX.Element[]
+        )}
+      </select>
+    </>
   );
 }
 

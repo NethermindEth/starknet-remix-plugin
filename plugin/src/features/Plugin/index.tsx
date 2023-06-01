@@ -17,6 +17,17 @@ import { apiUrl } from "../../utils/network";
 import { RemixClientContext } from "../../contexts/RemixClientContext";
 import { StarknetWindowObject, connect, disconnect } from "get-starknet";
 
+const makeWarning = (devnetObj: DevnetType) => (
+  <div>
+    <i className={"fas fa-exclamation-triangle text-danger mr-1"}></i>
+    {/* <span>
+      {devnetObj.name}{" "}
+      <span className="font-weight-bold text-warning">is modifying</span>{" "}
+      {devnetObj.url}
+    </span> */}
+  </div>
+);
+
 interface PluginProps {}
 
 function Plugin(_: PluginProps) {
@@ -81,11 +92,16 @@ function Plugin(_: PluginProps) {
   useEffect(() => {
     setTimeout(async () => {
       if (devnetEnv && !isDevnetAlive) {
-        await remixClient.call(
-          "notification" as any,
-          "toast",
-          `Server ${devnet.name} - ${devnet.url} is not healthy or not reachable at the moment`
-        );
+        try {
+          await remixClient.call(
+            "notification" as any,
+            "toast",
+            `Server ${devnet.name} - ${devnet.url} is not healthy or not reachable at the moment`
+          );
+        } catch (e) {
+          console.log("Failed to post message");
+          console.log(e);
+        }
       }
     }, 1000);
   }, [devnetEnv, isDevnetAlive, remixClient, devnet]);
@@ -169,7 +185,6 @@ function Plugin(_: PluginProps) {
             >
               Connect
             </button>
-
             <Devnet />
           </div>
         </CompiledContractsContext.Provider>

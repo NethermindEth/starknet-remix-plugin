@@ -1,3 +1,42 @@
 .starknet-connection-component {
   background-color: var(--body-bg);
 }
+
+.wallet-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.wallet-wrapper > p {
+  text-decoration: none;
+  text-transform: capitalize;
+}
+
+.wallet-wrapper > img {
+  width: 30px;
+  height: 30px;
+  margin-right: 0.5rem;
+}
+
+.text {
+  font-size: 1rem;
+  margin: 0;
+  padding: 0;
+}
+
+.account {
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.account-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.account-wrapper span {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
