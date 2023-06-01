@@ -62,7 +62,7 @@ function WalletAccountInfo() {
         gap: "0.5rem",
       }}
     >
-      <button className="btn btn-primary" onClick={refreshWalletHandler}>
+      <button className="btn btn-primary mt-2 mb-2" onClick={refreshWalletHandler}>
         Reconnect
       </button>
       <div className="wallet-wrapper">
@@ -109,7 +109,6 @@ function Devnet(_: ConnectionProps) {
           <DevnetSelector />
         </div>
         <div className="flex">
-          <label className="">Devnet account selection</label>
           {devnetEnv ? <DevnetAccountSelector /> : <WalletAccountInfo />}
         </div>
       </Card>
