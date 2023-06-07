@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@radix-ui/react-accordion": "^1.1.2",
+    "@radix-ui/react-dropdown-menu": "^2.0.5",
     "@radix-ui/react-tooltip": "^1.0.6",
     "@remixproject/engine": "^0.3.31",
     "@remixproject/plugin": "^0.3.31",

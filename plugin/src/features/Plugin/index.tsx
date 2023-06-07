@@ -17,6 +17,8 @@ import { apiUrl } from "../../utils/network";
 import { RemixClientContext } from "../../contexts/RemixClientContext";
 import { StarknetWindowObject, connect, disconnect } from "get-starknet";
 import Nethermind from "../../components/NM";
+import * as D from "../../ui_components/Dropdown";
+import { BsChevronDown } from "react-icons/bs";
 
 const makeWarning = (devnetObj: DevnetType) => (
   <div>
@@ -140,6 +142,13 @@ function Plugin(_: PluginProps) {
     useState<StarknetWindowObject | null>(null);
   // END: ACCOUNT, NETWORK, PROVIDER
 
+  // Dummy Cairo Verison
+  const [versions, setVersion]  = useState<string[]>([
+    "cairo-lang-compiler 1.0.0-alpha.6",
+    "cairo-lang-compiler 1.0.0-alpha.7",
+    "cairo-lang-compiler 1.0.1",
+  ]);
+
   return (
     <DevnetContext.Provider
       value={{
@@ -165,7 +174,23 @@ function Plugin(_: PluginProps) {
           }}
         >
           <div className="version-wrapper">
-            <label className="cairo-version-legend">Using {cairoVersion}</label>
+            <div>
+              <D.Root>
+                <D.Trigger>
+                  <label className="cairo-version-legend">
+                    Using {cairoVersion} <BsChevronDown />
+                  </label>
+                </D.Trigger>
+                <D.Portal>
+                  <D.Content>
+                    {versions.map((v, i) => {
+                      return <D.Item key={i} onClick={() => setCairoVersion(v)}>{v}</D.Item>;
+                    })}
+                  </D.Content>
+                </D.Portal>
+              </D.Root>
+            </div>
+
             <label className="cairo-version-legend">
               Powered by <Nethermind size="xs" />
             </label>
