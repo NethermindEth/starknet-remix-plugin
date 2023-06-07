@@ -7,6 +7,8 @@ import "./styles.css";
 import { DevnetContext } from "../../contexts/DevnetContext";
 import { ConnectionContext } from "../../contexts/ConnectionContext";
 import { StarknetWindowObject, connect, disconnect } from "get-starknet";
+import Tooltip from "../../ui_components/Tooltip";
+import { BsQuestionSquare } from "react-icons/bs";
 
 const trimAddress = (adr: string) => {
   if (adr && adr.startsWith("0x")) {
@@ -19,7 +21,7 @@ const trimAddress = (adr: string) => {
 const makeVoyagerLink = async (starknetObj?: StarknetWindowObject | null) => {
   if (starknetObj) {
     const chainId = await starknetObj?.account?.getChainId();
-    if (chainId === "0x534e5f4d41494e") {
+    if (chainId === "0x534e5f474f45524c49") {
       return `https://goerli.voyager.online/contract/${starknetObj?.account?.address}`;
     } else {
       return `https://voyager.online/contract/${starknetObj?.account?.address}`;
@@ -70,6 +72,10 @@ function WalletAccountInfo() {
       <div className="wallet-wrapper">
         <img src={starknetWindowObject?.icon} alt="wallet icon" />
         <p className="text"> {starknetWindowObject?.id}</p>
+        <Tooltip
+          icon={<BsQuestionSquare />}
+          content={`${starknetWindowObject?.id} doesn't support cairo 1 contracts`}
+        />
       </div>
       <div className="account-wrapper">
         <span>

@@ -16,6 +16,7 @@ import "./styles.css";
 import { apiUrl } from "../../utils/network";
 import { RemixClientContext } from "../../contexts/RemixClientContext";
 import { StarknetWindowObject, connect, disconnect } from "get-starknet";
+import Nethermind from "../../components/NM";
 
 const makeWarning = (devnetObj: DevnetType) => (
   <div>
@@ -163,8 +164,11 @@ function Plugin(_: PluginProps) {
             setSelectedContract: setSelectedContract,
           }}
         >
-          <div className="mb-1">
+          <div className="version-wrapper">
             <label className="cairo-version-legend">Using {cairoVersion}</label>
+            <label className="cairo-version-legend">
+              Powered by <Nethermind size="xs" />
+            </label>
           </div>
           <Nav />
           <div
