@@ -36,7 +36,8 @@ function Plugin(_: PluginProps) {
         });
         setCairoVersion(await response.text());
       } catch (e) {
-        remixClient.call(
+        remixClient.cancel('notification' as any, 'toast');
+        await remixClient.call(
           "notification" as any,
           "toast",
           "🔴 Failed to fetch cairo version from the compilation server!", 
@@ -44,8 +45,9 @@ function Plugin(_: PluginProps) {
         console.error(e);
       }
     }, 100);
-  }, []);
+  }, [remixClient]);
   // END : Get Cairo version
+
 
   // START: CAIRO CONTRACTS
   // Store a list of compiled contracts

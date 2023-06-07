@@ -18,6 +18,8 @@ interface CompilationProps {}
 function Compilation(_: CompilationProps) {
   const remixClient = useContext(RemixClientContext);
 
+  const [status, setStatus] = useState("Compiling...");
+
   const { contracts, setContracts, setSelectedContract } = useContext(
     CompiledContractsContext
   );
@@ -127,19 +129,24 @@ function Compilation(_: CompilationProps) {
 
   async function compile() {
     setIsCompiling(true);
+    setStatus("Compiling...");
     // clear current file annotations: inline syntax error reporting
     await remixClient.editor.clearAnnotations();
     try {
+      setStatus("Getting cairo file path...");
       let currentFilePath = await remixClient.call(
         "fileManager",
         "getCurrentFile"
       );
+
+      setStatus("Getting cairo file content...");
       let currentFileContent = await remixClient.call(
         "fileManager",
         "readFile",
         currentFilePath
       );
-
+      
+      setStatus("Parsing cairo code...");
       let response = await fetch(`${apiUrl}/save_code/${currentFilePath}`, {
         method: "POST",
         body: currentFileContent,
@@ -158,6 +165,7 @@ function Compilation(_: CompilationProps) {
         throw new Error("Cairo Compilation Request Failed");
       }
 
+      setStatus("Compiling to sierra...");
       response = await fetch(`${apiUrl}/compile-to-sierra/${currentFilePath}`, {
         method: "GET",
         redirect: "follow",
@@ -179,6 +187,7 @@ function Compilation(_: CompilationProps) {
       const sierra = JSON.parse(await response.text());
 
       if (sierra.status !== "Success") {
+        setStatus("Reporting Errors...");
         remixClient.terminal.log(sierra.message);
 
         const errorLets = sierra.message.trim().split("\n");
@@ -242,6 +251,8 @@ function Compilation(_: CompilationProps) {
         );
       }
 
+      setStatus("Compiling to casm...");
+
       response = await fetch(
         `${apiUrl}/compile-to-casm/${currentFilePath.replace(
           getFileExtension(currentFilePath),
@@ -282,6 +293,8 @@ function Compilation(_: CompilationProps) {
           "Sierra Cairo Compilation Failed, logs can be read in the terminal log"
         );
       }
+
+      setStatus("Saving artifacts...");
 
       let sierraPath = `${artifactFolder(currentFilePath)}/${artifactFilename(
         ".json",
@@ -334,6 +347,8 @@ function Compilation(_: CompilationProps) {
         throw e;
       }
 
+      setStatus("Opening artifacts...");
+
       remixClient.fileManager.open(sierraPath);
 
       remixClient.call(
@@ -350,6 +365,7 @@ function Compilation(_: CompilationProps) {
         });
       console.error(e);
     }
+    setStatus("done");
     setIsCompiling(false);
   }
 
@@ -416,7 +432,7 @@ function Compilation(_: CompilationProps) {
                           {" "}
                         </span>
                         <span style={{ paddingLeft: "0.5rem" }}>
-                          Compiling...
+                          {status}
                         </span>
                       </>
                     ) : (

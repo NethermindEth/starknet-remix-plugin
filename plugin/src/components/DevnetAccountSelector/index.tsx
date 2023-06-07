@@ -41,12 +41,12 @@ function DevnetAccountSelector(props: DevnetAccountSelectorProps) {
         const status = await response.text();
 
         if (status !== "Alive!!!" || response.status !== 200) {
-          setIsDevnetAlive(false);
+          if(isDevnetAlive)setIsDevnetAlive(false);
         } else {
-          setIsDevnetAlive(true);
+          if(!isDevnetAlive)setIsDevnetAlive(true);
         }
       } catch (error) {
-        setIsDevnetAlive(false);
+        if(isDevnetAlive)setIsDevnetAlive(false);
       }
     }, 10000);
     return () => clearInterval(interval);
@@ -56,6 +56,7 @@ function DevnetAccountSelector(props: DevnetAccountSelectorProps) {
     setTimeout(async () => {
       if (!isDevnetAlive) {
         try {
+          remixClient.cancel("notification" as any, "toast");
           await remixClient.call(
             "notification" as any,
             "toast",
@@ -66,7 +67,7 @@ function DevnetAccountSelector(props: DevnetAccountSelectorProps) {
           console.log(e);
         }
       }
-    }, 1000);
+    }, 11000);
   }, [props.devnet, isDevnetAlive, remixClient]);
 
   useEffect(() => {
