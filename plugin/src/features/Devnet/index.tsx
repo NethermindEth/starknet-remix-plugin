@@ -9,6 +9,9 @@ import { ConnectionContext } from "../../contexts/ConnectionContext";
 import { StarknetWindowObject, connect, disconnect } from "get-starknet";
 import Tooltip from "../../ui_components/Tooltip";
 import { BsQuestionSquare } from "react-icons/bs";
+import * as T from "../../ui_components/Tabs";
+import * as D from "../../ui_components/Dialog";
+import Container from "../../components/Container";
 
 const trimAddress = (adr: string) => {
   if (adr && adr.startsWith("0x")) {
@@ -124,15 +127,33 @@ function Devnet(_: ConnectionProps) {
   const { devnetEnv } = useContext(DevnetContext);
   return (
     <div className="starknet-connection-component mb-8">
-      <Card header="Environment">
-        <div className="flex">
-          <label className="">Environment selection</label>
-          <DevnetSelector />
-        </div>
-        <div className="flex">
-          {devnetEnv ? <DevnetAccountSelector /> : <WalletAccountInfo />}
-        </div>
-      </Card>
+      <T.Root defaultValue="environment">
+        <T.List>
+          <T.Trigger value="environment">Environment</T.Trigger>
+          <T.Trigger value="cairo1">Cairo 1 Acc.</T.Trigger>
+        </T.List>
+        <T.Content value="environment">
+          <div className="flex">
+            <label className="">Environment selection</label>
+            <DevnetSelector />
+          </div>
+          <div className="flex">
+            {devnetEnv ? <DevnetAccountSelector /> : <WalletAccountInfo />}
+          </div>
+        </T.Content>
+        <T.Content value="cairo1">
+          <h6>Create a New Cairo 1 Account</h6>
+          <D.Root>
+            <D.Trigger>
+              <button className="btn btn-primary">Create New</button>
+            </D.Trigger>
+            <D.Content asChild>
+              <D.Close asChild />
+              Steps to make + Fund account goes here
+            </D.Content>
+          </D.Root>
+        </T.Content>
+      </T.Root>
     </div>
   );
 }
