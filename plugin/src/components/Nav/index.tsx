@@ -3,6 +3,7 @@ import { useState } from "react";
 import Interaction from "../../features/Interaction";
 import CompileAndDeploy from "../CompileAndDeploy";
 import "./styles.css";
+import TransactionHistory from "../../features/TransactionHistory";
 
 interface NavProps {}
 
@@ -45,7 +46,7 @@ function Nav(props: NavProps) {
           className={`tab-pane ${activeTab === "txnHistory" ? "active" : ""}`}
           id="txnHistory"
         >
-          {activeTab === "txnHistory" && <Interaction />}
+          {activeTab === "txnHistory" && <TransactionHistory />}
         </div>
       </div>
     </div>

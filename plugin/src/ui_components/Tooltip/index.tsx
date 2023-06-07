@@ -11,7 +11,7 @@ const Tooltip: React.FC<ITooltip> = ({ icon, content }) => {
     <TooltipPrimitive.Provider delayDuration={100}>
       <TooltipPrimitive.Root>
         <TooltipPrimitive.Trigger asChild>
-          <button className="IconButton">{icon}</button>
+          <button className="TooltipIconButton">{icon}</button>
         </TooltipPrimitive.Trigger>
         <TooltipPrimitive.Portal>
           <TooltipPrimitive.Content className="TooltipContent" sideOffset={5}>

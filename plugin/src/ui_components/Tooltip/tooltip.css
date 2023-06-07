@@ -35,7 +35,7 @@ button {
   fill: white;
 }
 
-.IconButton {
+.TooltipIconButton {
   font-family: inherit;
   border-radius: 100%;
   height: 35px;
@@ -46,10 +46,10 @@ button {
   color: var(--textPrimary);
   background-color: transparent;
 }
-.IconButton:hover {
+.TooltipIconButton:hover {
   background-color: rgba(0, 0, 0, 0.5);
 }
-.IconButton:focus {
+.TooltipIconButton:focus {
   box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.2);
 }
 
