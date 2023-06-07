@@ -6,22 +6,24 @@ import {
   uint256,
   CallContractResponse,
   GetTransactionReceiptResponse,
+  AccountInterface,
 } from "starknet";
 import { Card } from "../../components/Card";
 import CompiledContracts from "../../components/CompiledContracts";
 import { CompiledContractsContext } from "../../contexts/CompiledContractsContext";
-import { DevnetContext } from "../../contexts/DevnetContext";
 import { AbiElement } from "../../types/contracts";
 import { getReadFunctions, getWriteFunctions } from "../../utils/utils";
+import { ConnectionContext } from "../../contexts/ConnectionContext";
 
 interface InteractionProps {}
 
-function Interaction(props: InteractionProps) {
+function Interaction(_: InteractionProps) {
   const [readFunctions, setReadFunctions] = useState<AbiElement[]>([]);
   const [writeFunctions, setWriteFunctions] = useState<AbiElement[]>([]);
   const [responses, setResponses] = useState<Response[]>([]);
   const { contracts, selectedContract } = useContext(CompiledContractsContext);
-  const { account, provider } = useContext(DevnetContext);
+
+  const {account, provider} = useContext(ConnectionContext);
 
   type Response = {
     contractName: string;
@@ -91,7 +93,7 @@ function Interaction(props: InteractionProps) {
     entrypoint: string,
     calldata: BigNumberish[] = []
   ) => {
-    const invocation = async (account: Account) => {
+    const invocation = async (account: Account| AccountInterface) => {
       const response = await account.execute({
         contractAddress,
         entrypoint,
@@ -107,7 +109,7 @@ function Interaction(props: InteractionProps) {
     entrypoint: string,
     calldata: BigNumberish[] = []
   ) => {
-    const call = async (account: Account) => {
+    const call = async (account: Account | AccountInterface) => {
       const response = await account.callContract({
         contractAddress,
         entrypoint,

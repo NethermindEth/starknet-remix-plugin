@@ -1,22 +1,28 @@
 import { PluginClient } from "@remixproject/plugin";
 import { createClient } from "@remixproject/plugin-webview";
-import { StarknetConfig } from "@starknet-react/core";
 
 import "./App.css";
 import Plugin from "./features/Plugin";
-import { connectors } from "./utils/constants";
 import { RemixClientContext } from "./contexts/RemixClientContext";
+import { useEffect, useState } from "react";
 
 const remixClient = createClient(new PluginClient());
 function App() {
+
+  const[pluginLoaded, setPluginLoaded] = useState<boolean>(false);
+
+  useEffect(() => {
+    remixClient.onload(() => {
+      setPluginLoaded(true);
+    });
+  });
+
   return (
-    <StarknetConfig connectors={connectors}>
-      <RemixClientContext.Provider value={remixClient}>
-        <div className="shell">
-          <Plugin />
-        </div>
-      </RemixClientContext.Provider>
-    </StarknetConfig>
+    <RemixClientContext.Provider value={remixClient}>
+      <div className="shell">
+        {pluginLoaded ?  <Plugin /> : <p> Plugin is loading...</p>}
+      </div>
+    </RemixClientContext.Provider>
   );
 }
 

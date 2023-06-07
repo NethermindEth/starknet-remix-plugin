@@ -1,132 +1,55 @@
 import { useContext, useEffect, useState } from "react";
-import Nav from "../../components/Nav";
 import { CompiledContractsContext } from "../../contexts/CompiledContractsContext";
 import { ConnectionContext } from "../../contexts/ConnectionContext";
-import { DevnetContext } from "../../contexts/DevnetContext";
-import { DevnetAccount } from "../../types/accounts";
 import { Contract } from "../../types/contracts";
-import {
-  Devnet as DevnetType,
-  devnets,
-  getAccounts,
-} from "../../utils/network";
-import { Devnet } from "../Devnet";
+import { Environment } from "../Environment";
 import "./styles.css";
 
 import { apiUrl } from "../../utils/network";
+import {
+  Account,
+  AccountInterface,
+  Provider,
+  ProviderInterface,
+} from "starknet";
+import Compilation from "../Compilation";
+import Deployment from "../Deployment";
+import Interaction from "../Interaction";
 import { RemixClientContext } from "../../contexts/RemixClientContext";
-import { StarknetWindowObject, connect, disconnect } from "get-starknet";
-
-const makeWarning = (devnetObj: DevnetType) => (
-  <div>
-    <i className={"fas fa-exclamation-triangle text-danger mr-1"}></i>
-    {/* <span>
-      {devnetObj.name}{" "}
-      <span className="font-weight-bold text-warning">is modifying</span>{" "}
-      {devnetObj.url}
-    </span> */}
-  </div>
-);
 
 interface PluginProps {}
 
 function Plugin(_: PluginProps) {
-  const remixClient = useContext(RemixClientContext);
-
   // START : Get Cairo version
   const [cairoVersion, setCairoVersion] = useState("");
+  const remixClient = useContext(RemixClientContext);
 
   useEffect(() => {
     setTimeout(async () => {
-      const response = await fetch(`${apiUrl}/cairo_version`, {
-        method: "GET",
-        redirect: "follow",
-        headers: {
-          "Content-Type": "application/octet-stream",
-        },
-      });
-      setCairoVersion(await response.text());
+      try {
+        const response = await fetch(`${apiUrl}/cairo_version`, {
+          method: "GET",
+          redirect: "follow",
+          headers: {
+            "Content-Type": "application/octet-stream",
+          },
+        });
+        setCairoVersion(await response.text());
+      } catch (e) {
+        remixClient.call(
+          "notification" as any,
+          "toast",
+          "🔴 Failed to fetch cairo version from the compilation server!", 
+        );
+        console.error(e);
+      }
     }, 100);
   }, []);
   // END : Get Cairo version
 
-  // START: DEVNET
-  // using local devnet initially
-  const [devnet, setDevnet] = useState<DevnetType>(devnets[0]);
-  const [isDevnetAlive, setIsDevnetAlive] = useState<boolean>(true);
-
-  const [devnetEnv, setDevnetEnv] = useState<boolean>(true);
-
-  const [availableDevnetAccounts, setAvailableDevnetAccounts] = useState<
-    DevnetAccount[]
-  >([]);
-  const [selectedDevnetAccount, setSelectedDevnetAccount] =
-    useState<DevnetAccount | null>(null);
-
-  // devnet live status
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      if (!devnetEnv) return;
-      try {
-        const response = await fetch(`${devnet.url}/is_alive`, {
-          method: "GET",
-          redirect: "follow",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-        const status = await response.text();
-
-        if (status !== "Alive!!!" || response.status !== 200) {
-          setIsDevnetAlive(false);
-        } else {
-          setIsDevnetAlive(true);
-        }
-      } catch (error) {
-        setIsDevnetAlive(false);
-      }
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [devnetEnv, devnet, remixClient]);
-
-  useEffect(() => {
-    setTimeout(async () => {
-      if (devnetEnv && !isDevnetAlive) {
-        try {
-          await remixClient.call(
-            "notification" as any,
-            "toast",
-            `Server ${devnet.name} - ${devnet.url} is not healthy or not reachable at the moment`
-          );
-        } catch (e) {
-          console.log("Failed to post message");
-          console.log(e);
-        }
-      }
-    }, 1000);
-  }, [devnetEnv, isDevnetAlive, remixClient, devnet]);
-
-  useEffect(() => {
-    setTimeout(async () => {
-      if (!isDevnetAlive) {
-        return;
-      }
-      const accounts = await getAccounts(devnet.url);
-      setAvailableDevnetAccounts(accounts);
-    }, 1000);
-  }, [devnet, isDevnetAlive]);
-
-  useEffect(() => {
-    if (availableDevnetAccounts.length > 0) {
-      setSelectedDevnetAccount(availableDevnetAccounts[0]);
-    }
-  }, [availableDevnetAccounts, devnet]);
-  // END: DEVNET
-
   // START: CAIRO CONTRACTS
   // Store a list of compiled contracts
   const [compiledContracts, setCompiledContracts] = useState<Contract[]>([]);
-
   // Store the current contract for UX purposes
   const [selectedContract, setSelectedContract] = useState<Contract | null>(
     null
@@ -135,25 +58,27 @@ function Plugin(_: PluginProps) {
 
   // START: ACCOUNT, NETWORK, PROVIDER
   // Store connected wallet, account and provider
-  const [starknetWindowObject, setStarknetWindowObject] =
-    useState<StarknetWindowObject | null>(null);
+  const [provider, setProvider] = useState<Provider | ProviderInterface | null>(
+    null
+  );
+  const [account, setAccount] = useState<Account | AccountInterface | null>(
+    null
+  );
   // END: ACCOUNT, NETWORK, PROVIDER
 
   return (
-    <DevnetContext.Provider
-      value={{
-        devnet,
-        setDevnet,
-        availableDevnetAccounts,
-        setAvailableDevnetAccounts,
-        selectedDevnetAccount,
-        setSelectedDevnetAccount,
-        devnetEnv,
-        setDevnetEnv,
-      }}
-    >
+    // add a button for selecting the cairo version
+    <>
+      <div className="mb-1">
+        <label className="cairo-version-legend">Using {cairoVersion}</label>
+      </div>
       <ConnectionContext.Provider
-        value={{ starknetWindowObject, setStarknetWindowObject }}
+        value={{
+          provider,
+          setProvider,
+          account,
+          setAccount,
+        }}
       >
         <CompiledContractsContext.Provider
           value={{
@@ -163,33 +88,13 @@ function Plugin(_: PluginProps) {
             setSelectedContract: setSelectedContract,
           }}
         >
-          <div className="mb-1">
-            <label className="cairo-version-legend">Using {cairoVersion}</label>
-          </div>
-          <Nav />
-          <div
-            style={{
-              position: "fixed",
-              bottom: "0",
-              left: "0",
-              right: "0",
-              opacity: "1",
-            }}
-          >
-            <button
-              onClick={async () => {
-                const starknet = await connect({ modalMode: "alwaysAsk" });
-                console.log("starknet", starknet);
-                await disconnect({ clearLastWallet: true });
-              }}
-            >
-              Connect
-            </button>
-            <Devnet />
-          </div>
+          <Compilation />
+          <Deployment />
+          <Interaction />
         </CompiledContractsContext.Provider>
+        <Environment />
       </ConnectionContext.Provider>
-    </DevnetContext.Provider>
+    </>
   );
 }
 

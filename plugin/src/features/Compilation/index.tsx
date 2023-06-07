@@ -13,11 +13,9 @@ import {
 import "./styles.css";
 import { hash } from "starknet";
 
-interface CompilationProps {
-  setIsLatestClassHashReady: (isLatestClassHashReady: boolean) => void;
-}
+interface CompilationProps {}
 
-function Compilation({ setIsLatestClassHashReady }: CompilationProps) {
+function Compilation(_: CompilationProps) {
   const remixClient = useContext(RemixClientContext);
 
   const { contracts, setContracts, setSelectedContract } = useContext(
@@ -28,20 +26,44 @@ function Compilation({ setIsLatestClassHashReady }: CompilationProps) {
   const [isCompiling, setIsCompiling] = useState(false);
   const [isValidCairo, setIsValidCairo] = useState(false);
 
+  const [noFileSelected, setNoFileSelected] = useState(false);
+
+  useEffect(() => {
+    remixClient.on("fileManager", "noFileSelected", () => {
+      setNoFileSelected(true);
+    });
+  }, [remixClient]);
+
   useEffect(() => {
     setTimeout(async () => {
-      // get current file
-      const currentFile = await remixClient.fileManager.getCurrentFile();
-      if (currentFile) {
-        const filename = getFileNameFromPath(currentFile);
-        const currentFileExtension = getFileExtension(filename);
-        setIsValidCairo(currentFileExtension === "cairo");
-        setCurrentFilename(filename);
+      try {
+        if (noFileSelected) {
+          throw new Error("No file selected");
+        }
 
-        console.log("current File: ", currentFilename);
+        // get current file
+        const currentFile = await remixClient.call(
+          "fileManager",
+          "getCurrentFile"
+        );
+        if (currentFile) {
+          const filename = getFileNameFromPath(currentFile);
+          const currentFileExtension = getFileExtension(filename);
+          setIsValidCairo(currentFileExtension === "cairo");
+          setCurrentFilename(filename);
+
+          console.log("current File: ", currentFilename);
+        }
+      } catch (e) {
+        remixClient.emit("statusChanged", {
+          key: "failed",
+          type: "info",
+          title: "Please open a cairo file to compile",
+        });
+        console.log("error: ", e);
       }
-    }, 10);
-  }, [remixClient, currentFilename]);
+    }, 500);
+  }, [remixClient, currentFilename, noFileSelected]);
 
   useEffect(() => {
     setTimeout(async () => {
@@ -54,24 +76,44 @@ function Compilation({ setIsLatestClassHashReady }: CompilationProps) {
           setIsValidCairo(currentFileExtension === "cairo");
           setCurrentFilename(filename);
           console.log("current File here: ", currentFilename);
+          setNoFileSelected(false);
         }
       );
-    }, 10);
+    }, 500);
   }, [remixClient, currentFilename]);
 
-
-  useEffect( () => {
+  useEffect(() => {
     setTimeout(async () => {
-      let { currentFileContent, currentFilePath } = await getFile();
-      await fetch(`${apiUrl}/save_code/${currentFilePath}`, {
-        method: "POST",
-        body: currentFileContent,
-        redirect: "follow",
-        headers: {
-          "Content-Type": "application/octet-stream",
-        },
-      });
-    }, 100)
+      try {
+        if (noFileSelected) {
+          throw new Error("No file selected");
+        }
+        let currentFilePath = await remixClient.call(
+          "fileManager",
+          "getCurrentFile"
+        );
+        let currentFileContent = await remixClient.call(
+          "fileManager",
+          "readFile",
+          currentFilePath
+        );
+        await fetch(`${apiUrl}/save_code/${currentFilePath}`, {
+          method: "POST",
+          body: currentFileContent,
+          redirect: "follow",
+          headers: {
+            "Content-Type": "application/octet-stream",
+          },
+        });
+      } catch (e) {
+        remixClient.emit("statusChanged", {
+          key: "failed",
+          type: "info",
+          title: "Please open a cairo file to compile",
+        });
+        console.log("error: ", e);
+      }
+    }, 100);
   }, [currentFilename, remixClient]);
 
   const compilations = [
@@ -83,29 +125,20 @@ function Compilation({ setIsLatestClassHashReady }: CompilationProps) {
     },
   ];
 
-  const getFile = async () => {
-    const currentFilePath = await remixClient.call(
-      "fileManager",
-      "getCurrentFile"
-    );
-
-    const currentFileContent = await remixClient.call(
-      "fileManager",
-      "readFile",
-      currentFilePath
-    );
-
-    return { currentFileContent, currentFilePath };
-  };
-
   async function compile() {
     setIsCompiling(true);
-    // clear current FIle annotations
+    // clear current file annotations: inline syntax error reporting
     await remixClient.editor.clearAnnotations();
     try {
-      let { currentFileContent, currentFilePath } = await getFile();
-
-      // console.log(currentFileContent, currentFilePath);
+      let currentFilePath = await remixClient.call(
+        "fileManager",
+        "getCurrentFile"
+      );
+      let currentFileContent = await remixClient.call(
+        "fileManager",
+        "readFile",
+        currentFilePath
+      );
 
       let response = await fetch(`${apiUrl}/save_code/${currentFilePath}`, {
         method: "POST",
@@ -156,16 +189,19 @@ function Compilation({ setIsLatestClassHashReady }: CompilationProps) {
         }
 
         // break the errorLets in array of arrays with first element contains the string `Plugin diagnostic`
-        const errorLetsArray = errorLets.reduce((acc: any, curr: any) => {
-          if (curr.startsWith("error:") || curr.startsWith("warning:")) {
-            acc.push([curr]);
-          } else {
-            acc[acc.length - 1].push(curr);
-          }
-          return acc;
-        }, [['errors diagnostic:']]);
+        const errorLetsArray = errorLets.reduce(
+          (acc: any, curr: any) => {
+            if (curr.startsWith("error:") || curr.startsWith("warning:")) {
+              acc.push([curr]);
+            } else {
+              acc[acc.length - 1].push(curr);
+            }
+            return acc;
+          },
+          [["errors diagnostic:"]]
+        );
 
-        // remove the first array 
+        // remove the first array
         errorLetsArray.shift();
 
         console.log(errorLetsArray);
@@ -179,15 +215,15 @@ function Compilation({ setIsLatestClassHashReady }: CompilationProps) {
           const errorMsg = errorLet.slice(2).join("\n");
 
           console.log({
-            row: Number(errorLine) -1, 
-            column: Number(errorColumn) -1,
+            row: Number(errorLine) - 1,
+            column: Number(errorColumn) - 1,
             text: errorMsg + "\n" + errorTitle,
             type: errorType,
           });
 
           await remixClient.editor.addAnnotation({
-            row: Number(errorLine)- 1, 
-            column: Number(errorColumn) -1,
+            row: Number(errorLine) - 1,
+            column: Number(errorColumn) - 1,
             text: errorMsg + "\n" + errorTitle,
             type: errorType,
           });
@@ -309,7 +345,7 @@ function Compilation({ setIsLatestClassHashReady }: CompilationProps) {
       if (e instanceof Error)
         remixClient.call("notification" as any, "alert", {
           id: "starknetRemixPluginAlert",
-          title: "Expectation Failed", 
+          title: "Expectation Failed",
           message: e.message,
         });
       console.error(e);
@@ -323,7 +359,6 @@ function Compilation({ setIsLatestClassHashReady }: CompilationProps) {
     sierraFile: string,
     casmFile: string
   ) {
-    setIsLatestClassHashReady(true);
     try {
       const sierra = await JSON.parse(sierraFile);
       const casm = await JSON.parse(casmFile);
@@ -343,7 +378,6 @@ function Compilation({ setIsLatestClassHashReady }: CompilationProps) {
     } catch (e) {
       console.error(e);
     }
-    setIsLatestClassHashReady(false);
   }
 
   const compilationCard = (

@@ -1,5 +1,3 @@
-// TODO: Divide in two components: Connection and Deploy.
-
 import { useContext, useEffect, useState } from "react";
 
 // import { useContractFactory, useDeploy } from "@starknet-react/core";
@@ -8,24 +6,24 @@ import { uint256 } from "starknet";
 import { Card } from "../../components/Card";
 import CompiledContracts from "../../components/CompiledContracts";
 import { CompiledContractsContext } from "../../contexts/CompiledContractsContext";
-import { DevnetContext } from "../../contexts/DevnetContext";
 import { CallDataObject, Contract, Input } from "../../types/contracts";
 import { getConstructor, getParameterType } from "../../utils/utils";
 import "./styles.css";
+import { ConnectionContext } from "../../contexts/ConnectionContext";
+import { RemixClientContext } from "../../contexts/RemixClientContext";
 
-interface DeploymentProps {
-  setActiveTab: (tab: string) => void;
-}
+interface DeploymentProps {}
 
-function Deployment({ setActiveTab }: DeploymentProps) {
+function Deployment(_: DeploymentProps) {
+  const remixClient = useContext(RemixClientContext);
+  const {account, provider} = useContext(ConnectionContext);
+
   const [isDeploying, setIsDeploying] = useState(false);
   const [constructorCalldata, setConstructorCalldata] =
     useState<CallDataObject>({});
   const [finalCallData, setFinalCallData] = useState<any[]>([]);
   const [constructorInputs, setConstructorInputs] = useState<Input[]>([]);
   const [notEnoughInputs, setNotEnoughInputs] = useState(false);
-  const { devnet, availableAccounts, selectedAccount, account, provider } =
-    useContext(DevnetContext);
   const { contracts, selectedContract, setContracts, setSelectedContract } =
     useContext(CompiledContractsContext);
 
@@ -38,13 +36,13 @@ function Deployment({ setActiveTab }: DeploymentProps) {
   }, [selectedContract]);
 
   const deploy = async (calldata: BigNumberish[]) => {
-    console.log("Provider:", provider);
-    console.log("Account:", account);
-    console.log("ClassHash:", selectedContract?.classHash);
-    console.log("Contract:", selectedContract?.sierra);
     setIsDeploying(true);
     try {
-      const declareAndDeployResponse = await account?.declareAndDeploy(
+      if(account === null) {
+        throw new Error("No account selected!");
+      }
+
+      const declareAndDeployResponse = await account.declareAndDeploy(
         {
           contract: selectedContract?.sierra,
           casm: selectedContract?.casm,
@@ -52,23 +50,24 @@ function Deployment({ setActiveTab }: DeploymentProps) {
         },
         { cairoVersion: '1' }
       );
+      console.log("deploy response", declareAndDeployResponse);
       console.log(declareAndDeployResponse?.deploy.contract_address);
       setContractDeployment(
         selectedContract as Contract,
         declareAndDeployResponse?.deploy.contract_address || ""
       );
       // setContractAsDeployed(selectedContract as Contract);
-      setIsDeploying(false);
       console.log(declareAndDeployResponse);
     } catch (error) {
-      console.log(error);
-      setIsDeploying(false);
+      console.log("got this error during deployment", error, typeof error);
+      if(error instanceof Error)remixClient.call('terminal', 'log', {value: error.message, type: 'error'});
     }
+    setIsDeploying(false);
   };
 
   const handleDeploy = (calldata: BigNumberish[]) => {
     console.log("Calldata:", calldata);
-    console.log(`Deploying to ${devnet.name}...`);
+    console.log(`Deploying to ${provider}...`);
     deploy(calldata);
   };
 
@@ -185,13 +184,13 @@ function Deployment({ setActiveTab }: DeploymentProps) {
                 className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3"
                 style={{
                   cursor: `${
-                    !selectedAccount && !selectedContract.deployed
+                    !account && !selectedContract.deployed
                       ? "not-allowed"
                       : "pointer"
                   }`,
                 }}
-                disabled={!selectedAccount && !selectedContract.deployed}
-                aria-disabled={!selectedAccount && !selectedContract.deployed}
+                disabled={!account && !selectedContract.deployed}
+                aria-disabled={!account && !selectedContract.deployed}
                 type="submit"
               >
                 <div className="d-flex align-items-center justify-content-center">
@@ -227,7 +226,6 @@ function Deployment({ setActiveTab }: DeploymentProps) {
                     href="/"
                     onClick={(e) => {
                       e.preventDefault();
-                      setActiveTab("interact");
                     }}
                   >
                     Interact
