@@ -6,7 +6,7 @@ h3 {
 
 .AccordionRoot {
   border-radius: 6px;
-  width: 300px;
+  width: 100%;
   background-color: var(--bgPrimary);
   box-shadow: 0 2px 10px var(--shadowPrimary);
 }
@@ -46,22 +46,26 @@ h3 {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 15px;
+  font-size: 1rem;
+  font-weight: bold;
   line-height: 1;
   color: var(--violet11);
-  box-shadow: 0 1px 0 var(--accentColor);
-  background-color: white;
+  transition: all 0.1s ease;
+  border-bottom: 1px solid var(--borderPrimary);
+  box-shadow: 0 1px 0 var(--bgPrimary);
+  background-color: var(--bgPrimary);
 }
 
 .AccordionTrigger:hover {
   background-color: var(--accentColor);
+  color: var(--textPrimary);
 }
 
 .AccordionContent {
   overflow: hidden;
-  font-size: 15px;
+  font-size: 1rem;
   color: var(--textPrimary);
-  background-color: var(--accentColor);
+  background-color: var(--bgPrimary);
 }
 .AccordionContent[data-state="open"] {
   animation: slideDown 300ms cubic-bezier(0.87, 0, 0.13, 1);

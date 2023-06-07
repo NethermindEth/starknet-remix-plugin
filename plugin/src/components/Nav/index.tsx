@@ -25,11 +25,11 @@ function Nav(props: NavProps) {
         </li>
         <li
           className={`nav-link nav-item flex-fill ${
-            activeTab === "interact" ? "active" : ""
+            activeTab === "txnHistory" ? "active" : ""
           }`}
-          onClick={() => setActiveTab("interact")}
+          onClick={() => setActiveTab("txnHistory")}
         >
-          Interact
+          Transaction History
         </li>
       </ul>
       <div className="tab-content">
@@ -42,10 +42,10 @@ function Nav(props: NavProps) {
           )}
         </div>
         <div
-          className={`tab-pane ${activeTab === "interact" ? "active" : ""}`}
-          id="interact"
+          className={`tab-pane ${activeTab === "txnHistory" ? "active" : ""}`}
+          id="txnHistory"
         >
-          {activeTab === "interact" && <Interaction />}
+          {activeTab === "txnHistory" && <Interaction />}
         </div>
       </div>
     </div>

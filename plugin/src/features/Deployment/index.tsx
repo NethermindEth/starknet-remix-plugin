@@ -12,9 +12,11 @@ import { DevnetContext } from "../../contexts/DevnetContext";
 import { CallDataObject, Contract, Input } from "../../types/contracts";
 import { getConstructor, getParameterType } from "../../utils/utils";
 import "./styles.css";
+import Container from "../../components/Container";
+import { AccordianTabs } from "../../components/CompileAndDeploy";
 
 interface DeploymentProps {
-  setActiveTab: (tab: string) => void;
+  setActiveTab: (tab: AccordianTabs) => void;
 }
 
 function Deployment({ setActiveTab }: DeploymentProps) {
@@ -50,7 +52,7 @@ function Deployment({ setActiveTab }: DeploymentProps) {
           casm: selectedContract?.casm,
           constructorCalldata: calldata,
         },
-        { cairoVersion: '1' }
+        { cairoVersion: "1" }
       );
       console.log(declareAndDeployResponse?.deploy.contract_address);
       setContractDeployment(
@@ -156,7 +158,7 @@ function Deployment({ setActiveTab }: DeploymentProps) {
 
   return (
     <>
-      <Card header="Deploy">
+      <Container>
         {contracts.length > 0 && selectedContract ? (
           <div className="">
             <CompiledContracts />
@@ -182,7 +184,7 @@ function Deployment({ setActiveTab }: DeploymentProps) {
                 );
               })}
               <button
-                className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3"
+                className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3 px-0"
                 style={{
                   cursor: `${
                     !selectedAccount && !selectedContract.deployed
@@ -227,7 +229,7 @@ function Deployment({ setActiveTab }: DeploymentProps) {
                     href="/"
                     onClick={(e) => {
                       e.preventDefault();
-                      setActiveTab("interact");
+                      setActiveTab("interaction");
                     }}
                   >
                     Interact
@@ -243,7 +245,7 @@ function Deployment({ setActiveTab }: DeploymentProps) {
         ) : (
           <p>No contracts ready for deployment yet</p>
         )}
-      </Card>
+      </Container>
     </>
   );
 }

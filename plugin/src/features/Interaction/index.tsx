@@ -13,6 +13,7 @@ import { CompiledContractsContext } from "../../contexts/CompiledContractsContex
 import { DevnetContext } from "../../contexts/DevnetContext";
 import { AbiElement } from "../../types/contracts";
 import { getReadFunctions, getWriteFunctions } from "../../utils/utils";
+import Container from "../../components/Container";
 
 interface InteractionProps {}
 
@@ -236,126 +237,122 @@ function Interaction(props: InteractionProps) {
   };
 
   return (
-    <div style={{ marginBottom: "220px" }}>
-      <Card header="Interaction">
-        {contracts.length > 0 && selectedContract ? (
-          <CompiledContracts />
-        ) : (
-          <div>
-            <p>No compiled contracts to interact with... Yet.</p>
-          </div>
-        )}
-        {readFunctions.map((func, index) => {
-          return (
-            <div
-              className="udapp_contractActionsContainerSingle pt-2 function-label-wrapper"
-              style={{ display: "flex" }}
-              key={index}
+    <Container>
+      {contracts.length > 0 && selectedContract ? (
+        <CompiledContracts />
+      ) : (
+        <div>
+          <p>No compiled contracts to interact with... Yet.</p>
+        </div>
+      )}
+      {readFunctions.map((func, index) => {
+        return (
+          <div
+            className="udapp_contractActionsContainerSingle pt-2 function-label-wrapper"
+            style={{ display: "flex" }}
+            key={index}
+          >
+            <button
+              className="udapp_instanceButton undefined btn btn-sm btn-warning w-50"
+              data-name={func.name}
+              data-type={func.state_mutability}
+              onClick={handleCall}
             >
-              <button
-                className="udapp_instanceButton undefined btn btn-sm btn-warning w-50"
-                data-name={func.name}
-                data-type={func.state_mutability}
-                onClick={handleCall}
-              >
-                {func.name}
-              </button>
-              <div className="function-inputs w-50">
-                {func.inputs.length > 0 &&
-                  func.inputs.map((input, index) => {
-                    return (
-                      <input
-                        className="form-control function-input"
-                        name={func.name}
-                        data-type={func.state_mutability}
-                        data-index={index}
-                        data-datatype={input.type}
-                        placeholder={`${input.name} (${input.type
-                          .split("::")
-                          .pop()})`}
-                        onChange={handleCalldataChange}
-                        key={index}
-                      />
-                    );
-                  })}
-              </div>
+              {func.name}
+            </button>
+            <div className="function-inputs w-50">
+              {func.inputs.length > 0 &&
+                func.inputs.map((input, index) => {
+                  return (
+                    <input
+                      className="form-control function-input"
+                      name={func.name}
+                      data-type={func.state_mutability}
+                      data-index={index}
+                      data-datatype={input.type}
+                      placeholder={`${input.name} (${input.type
+                        .split("::")
+                        .pop()})`}
+                      onChange={handleCalldataChange}
+                      key={index}
+                    />
+                  );
+                })}
             </div>
-          );
-        })}
-        {writeFunctions.map((func, index) => {
-          return (
-            <div
-              className="udapp_contractActionsContainerSingle pt-2 function-label-wrapper"
-              style={{ display: "flex" }}
-              key={index}
-            >
-              <button
-                className="udapp_instanceButton undefined btn btn-sm btn-info w-50"
-                onClick={handleCall}
-                data-name={func.name}
-                data-type={func.state_mutability}
-              >
-                {func.name}
-              </button>
-              <div className="function-inputs w-50">
-                {func.inputs.length > 0 &&
-                  func.inputs.map((input, index) => {
-                    return (
-                      <input
-                        className="form-control function-input"
-                        name={func.name}
-                        data-type={func.state_mutability}
-                        data-index={index}
-                        data-datatype={input.type}
-                        placeholder={`${input.name} (${input.type
-                          .split("::")
-                          .pop()})`}
-                        // value={constructorCalldata[index]?.value || ""}
-                        onChange={handleCalldataChange}
-                        key={index}
-                      />
-                    );
-                  })}
-              </div>
-            </div>
-          );
-        })}
-        {responses.length > 0 && (
-          <div className="my-5">
-            <p>Responses:</p>
-            {responses.reverse().map((response, index) => {
-              return (
-                <div key={index} className="mb-4">
-                  <p className="mb-0">
-                    Function: <i>{response.functionName}</i>
-                  </p>
-                  <p className="mb-0">
-                    Contract: <i>{response.contractName}</i> at{" "}
-                    <i>{response.contractAddress}</i>
-                  </p>
-                  {response.callResponse && (
-                    <p className="mb-0">
-                      Result:{" "}
-                      <pre>
-                        {JSON.stringify(response.callResponse, null, 2)}
-                      </pre>
-                    </p>
-                  )}
-                  {response.invocationResponse && (
-                    <p className="mb-0">
-                      Response:{" "}
-                      <pre>
-                        {JSON.stringify(response.invocationResponse, null, 2)}
-                      </pre>
-                    </p>
-                  )}
-                </div>
-              );
-            })}
           </div>
-        )}
-      </Card>
-    </div>
+        );
+      })}
+      {writeFunctions.map((func, index) => {
+        return (
+          <div
+            className="udapp_contractActionsContainerSingle pt-2 function-label-wrapper"
+            style={{ display: "flex" }}
+            key={index}
+          >
+            <button
+              className="udapp_instanceButton undefined btn btn-sm btn-info w-50"
+              onClick={handleCall}
+              data-name={func.name}
+              data-type={func.state_mutability}
+            >
+              {func.name}
+            </button>
+            <div className="function-inputs w-50">
+              {func.inputs.length > 0 &&
+                func.inputs.map((input, index) => {
+                  return (
+                    <input
+                      className="form-control function-input"
+                      name={func.name}
+                      data-type={func.state_mutability}
+                      data-index={index}
+                      data-datatype={input.type}
+                      placeholder={`${input.name} (${input.type
+                        .split("::")
+                        .pop()})`}
+                      // value={constructorCalldata[index]?.value || ""}
+                      onChange={handleCalldataChange}
+                      key={index}
+                    />
+                  );
+                })}
+            </div>
+          </div>
+        );
+      })}
+      {responses.length > 0 && (
+        <div className="my-5">
+          <p>Responses:</p>
+          {responses.reverse().map((response, index) => {
+            return (
+              <div key={index} className="mb-4">
+                <p className="mb-0">
+                  Function: <i>{response.functionName}</i>
+                </p>
+                <p className="mb-0">
+                  Contract: <i>{response.contractName}</i> at{" "}
+                  <i>{response.contractAddress}</i>
+                </p>
+                {response.callResponse && (
+                  <p className="mb-0">
+                    Result:{" "}
+                    <pre>{JSON.stringify(response.callResponse, null, 2)}</pre>
+                  </p>
+                )}
+                {response.invocationResponse && (
+                  <p className="mb-0">
+                    Response:{" "}
+                    <pre>
+                      {JSON.stringify(response.invocationResponse, null, 2)}
+                    </pre>
+                  </p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </Container>
   );
 }
 

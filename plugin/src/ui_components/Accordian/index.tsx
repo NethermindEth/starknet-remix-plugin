@@ -1,18 +1,17 @@
 import React from "react";
 import * as AccordionPrimitive from "@radix-ui/react-accordion";
 import { BsChevronDown } from "react-icons/bs";
-import "./styles.css";
+import "./accordian.css";
 
 export type IFCProps = {
   children: React.ReactNode | null;
-  className: string[];
 };
 
-export const AccordionTrigger = React.forwardRef<any, IFCProps>(
+export const AccordionTrigger = React.forwardRef<any, any>(
   ({ children, className, ...props }, forwardedRef) => (
     <AccordionPrimitive.Header className="AccordionHeader">
       <AccordionPrimitive.Trigger
-        className={["AccordionTrigger", ...className].join(" ")}
+        className={"AccordionTrigger"}
         {...props}
         ref={forwardedRef}
       >
@@ -23,10 +22,10 @@ export const AccordionTrigger = React.forwardRef<any, IFCProps>(
   )
 );
 
-export const AccordionContent = React.forwardRef<any, IFCProps>(
+export const AccordionContent = React.forwardRef<any, any>(
   ({ children, className, ...props }, forwardedRef) => (
     <AccordionPrimitive.Content
-      className={["AccordionContent", ...className].join(" ")}
+      className={"AccordionContent"}
       {...props}
       ref={forwardedRef}
     >
@@ -40,7 +39,7 @@ export const AccordianItem = AccordionPrimitive.Item;
 type IAccordian = {
   type: "single" | "multiple";
   defaultValue: any;
-  value: any;
+  value?: any;
   children: React.ReactNode;
 };
 const Accordian: React.FC<IAccordian> = ({

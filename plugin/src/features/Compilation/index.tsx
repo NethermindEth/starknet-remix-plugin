@@ -12,6 +12,7 @@ import {
 } from "../../utils/utils";
 import "./styles.css";
 import { hash } from "starknet";
+import Container from "../../components/Container";
 
 interface CompilationProps {
   setIsLatestClassHashReady: (isLatestClassHashReady: boolean) => void;
@@ -59,8 +60,7 @@ function Compilation({ setIsLatestClassHashReady }: CompilationProps) {
     }, 10);
   }, [remixClient, currentFilename]);
 
-
-  useEffect( () => {
+  useEffect(() => {
     setTimeout(async () => {
       let { currentFileContent, currentFilePath } = await getFile();
       await fetch(`${apiUrl}/save_code/${currentFilePath}`, {
@@ -71,7 +71,7 @@ function Compilation({ setIsLatestClassHashReady }: CompilationProps) {
           "Content-Type": "application/octet-stream",
         },
       });
-    }, 100)
+    }, 100);
   }, [currentFilename, remixClient]);
 
   const compilations = [
@@ -156,16 +156,19 @@ function Compilation({ setIsLatestClassHashReady }: CompilationProps) {
         }
 
         // break the errorLets in array of arrays with first element contains the string `Plugin diagnostic`
-        const errorLetsArray = errorLets.reduce((acc: any, curr: any) => {
-          if (curr.startsWith("error:") || curr.startsWith("warning:")) {
-            acc.push([curr]);
-          } else {
-            acc[acc.length - 1].push(curr);
-          }
-          return acc;
-        }, [['errors diagnostic:']]);
+        const errorLetsArray = errorLets.reduce(
+          (acc: any, curr: any) => {
+            if (curr.startsWith("error:") || curr.startsWith("warning:")) {
+              acc.push([curr]);
+            } else {
+              acc[acc.length - 1].push(curr);
+            }
+            return acc;
+          },
+          [["errors diagnostic:"]]
+        );
 
-        // remove the first array 
+        // remove the first array
         errorLetsArray.shift();
 
         console.log(errorLetsArray);
@@ -179,15 +182,15 @@ function Compilation({ setIsLatestClassHashReady }: CompilationProps) {
           const errorMsg = errorLet.slice(2).join("\n");
 
           console.log({
-            row: Number(errorLine) -1, 
-            column: Number(errorColumn) -1,
+            row: Number(errorLine) - 1,
+            column: Number(errorColumn) - 1,
             text: errorMsg + "\n" + errorTitle,
             type: errorType,
           });
 
           await remixClient.editor.addAnnotation({
-            row: Number(errorLine)- 1, 
-            column: Number(errorColumn) -1,
+            row: Number(errorLine) - 1,
+            column: Number(errorColumn) - 1,
             text: errorMsg + "\n" + errorTitle,
             type: errorType,
           });
@@ -309,7 +312,7 @@ function Compilation({ setIsLatestClassHashReady }: CompilationProps) {
       if (e instanceof Error)
         remixClient.call("notification" as any, "alert", {
           id: "starknetRemixPluginAlert",
-          title: "Expectation Failed", 
+          title: "Expectation Failed",
           message: e.message,
         });
       console.error(e);
@@ -352,10 +355,11 @@ function Compilation({ setIsLatestClassHashReady }: CompilationProps) {
     isLoading: boolean,
     onClick: () => {}
   ) => {
+
     return (
-      <Card header={header} key={header}>
+      <Container>
         <button
-          className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-1"
+          className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-1 px-0"
           style={{
             cursor: `${
               !validation || !currentFilename ? "not-allowed" : "pointer"
@@ -399,7 +403,7 @@ function Compilation({ setIsLatestClassHashReady }: CompilationProps) {
             </div>
           </div>
         </button>
-      </Card>
+      </Container>
     );
   };
 

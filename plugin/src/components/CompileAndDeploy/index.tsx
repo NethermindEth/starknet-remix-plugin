@@ -4,19 +4,73 @@ import Deployment from "../../features/Deployment";
 import { Card } from "../Card";
 import Verify from "../Verify";
 
+import Accordian, {
+  AccordianItem,
+  AccordionTrigger,
+  AccordionContent,
+} from "../../ui_components/Accordian";
+import Interaction from "../../features/Interaction";
+
 interface CompileAndDeployTabProps {
-  setActiveTab: (tab: string) => void;
+  setActiveTab: (tab: AccordianTabs) => void;
 }
+
+export type AccordianTabs = "compile" | "deploy" | "interaction";
 
 function CompileAndDeploy({ setActiveTab }: CompileAndDeployTabProps) {
   // TODO: This state should be moved to a context to survive changing tabs.
   const [isLatestClassHashBeingLoaded, setIsLatestClassHashBeingLoaded] =
     useState(false);
+
+  const [currentAccordian, setCurrentAccordian] =
+    useState<AccordianTabs>("compile");
   return (
     <div style={{ marginBottom: "220px" }}>
-      <Compilation
-        setIsLatestClassHashReady={setIsLatestClassHashBeingLoaded}
-      />
+      <Accordian
+        type="single"
+        value={currentAccordian}
+        defaultValue={"compile"}
+      >
+        <AccordianItem value="compile">
+          <AccordionTrigger
+            onClick={() => {
+              setCurrentAccordian("compile");
+            }}
+          >
+            Compile
+          </AccordionTrigger>
+          <AccordionContent>
+            <Compilation
+              setIsLatestClassHashReady={setIsLatestClassHashBeingLoaded}
+            />
+          </AccordionContent>
+        </AccordianItem>
+        <AccordianItem value="deploy">
+          <AccordionTrigger
+            onClick={() => {
+              setCurrentAccordian("deploy");
+            }}
+          >
+            Deploy
+          </AccordionTrigger>
+          <AccordionContent>
+            <Deployment setActiveTab={setCurrentAccordian} />
+          </AccordionContent>
+        </AccordianItem>
+        <AccordianItem value="interaction">
+          <AccordionTrigger
+            onClick={() => {
+              setCurrentAccordian("interaction");
+            }}
+          >
+            Interact
+          </AccordionTrigger>
+          <AccordionContent>
+            <Interaction />
+          </AccordionContent>
+        </AccordianItem>
+      </Accordian>
+
       {isLatestClassHashBeingLoaded && (
         <Card>
           <div className="flex d-flex align-items-center justify-content-center">
@@ -32,7 +86,7 @@ function CompileAndDeploy({ setActiveTab }: CompileAndDeployTabProps) {
           </p>
         </Card>
       )}
-      <Deployment setActiveTab={setActiveTab} />
+
       {/* <Verify /> */}
     </div>
   );
