@@ -12,6 +12,8 @@ import {
 } from "../../utils/utils";
 import "./styles.css";
 import { hash } from "starknet";
+import storage from "../../utils/storage";
+import { ethers } from "ethers";
 
 interface CompilationProps {}
 
@@ -29,6 +31,21 @@ function Compilation(_: CompilationProps) {
   const [isValidCairo, setIsValidCairo] = useState(false);
 
   const [noFileSelected, setNoFileSelected] = useState(false);
+
+  const [hashDir, setHashDir] = useState("");
+
+  useEffect(() => {
+    // read hashDir from localStorage
+    const hashDir = storage.get("hashDir");
+    if (hashDir) {
+      setHashDir(hashDir);
+    }else{
+      // create a random hash of length 32
+      const hashDir = ethers.utils.hashMessage(ethers.utils.randomBytes(32)).replace("0x", "");
+      setHashDir(hashDir);
+      storage.set("hashDir", hashDir);
+    }
+  }, [hashDir]);
 
   useEffect(() => {
     remixClient.on("fileManager", "noFileSelected", () => {
@@ -99,7 +116,7 @@ function Compilation(_: CompilationProps) {
           "readFile",
           currentFilePath
         );
-        await fetch(`${apiUrl}/save_code/${currentFilePath}`, {
+        await fetch(`${apiUrl}/save_code/${hashDir}/${currentFilePath}`, {
           method: "POST",
           body: currentFileContent,
           redirect: "follow",
@@ -147,7 +164,7 @@ function Compilation(_: CompilationProps) {
       );
       
       setStatus("Parsing cairo code...");
-      let response = await fetch(`${apiUrl}/save_code/${currentFilePath}`, {
+      let response = await fetch(`${apiUrl}/save_code/${hashDir}/${currentFilePath}`, {
         method: "POST",
         body: currentFileContent,
         redirect: "follow",
@@ -166,7 +183,7 @@ function Compilation(_: CompilationProps) {
       }
 
       setStatus("Compiling to sierra...");
-      response = await fetch(`${apiUrl}/compile-to-sierra/${currentFilePath}`, {
+      response = await fetch(`${apiUrl}/compile-to-sierra/${hashDir}/${currentFilePath}`, {
         method: "GET",
         redirect: "follow",
         headers: {
@@ -254,7 +271,7 @@ function Compilation(_: CompilationProps) {
       setStatus("Compiling to casm...");
 
       response = await fetch(
-        `${apiUrl}/compile-to-casm/${currentFilePath.replace(
+        `${apiUrl}/compile-to-casm/${hashDir}/${currentFilePath.replace(
           getFileExtension(currentFilePath),
           "sierra"
         )}`,

@@ -41,6 +41,7 @@ function Environment(_: ConnectionProps) {
       if (!connectedStarknetWindowObject) {
         throw new Error("Failed to connect to wallet");
       }
+      await connectedStarknetWindowObject.enable({ starknetVersion: "v4" });
       connectedStarknetWindowObject.on(
         "accountsChanged",
         (accounts: string[]) => {
@@ -67,7 +68,6 @@ function Environment(_: ConnectionProps) {
           (_network?: string) => {}
         );
       });
-      connectedStarknetWindowObject.enable({ starknetVersion: "v4" });
       setStarknetWindowObject(connectedStarknetWindowObject);
       if (connectedStarknetWindowObject.account)
         setAccount(connectedStarknetWindowObject.account);
@@ -75,7 +75,7 @@ function Environment(_: ConnectionProps) {
         setProvider(connectedStarknetWindowObject.provider);
     } catch (e) {
       if (e instanceof Error) {
-        remixClient.call("notification" as any, "error", e.message);
+        await remixClient.call("notification" as any, "error", e.message);
       }
       console.log(e);
     }

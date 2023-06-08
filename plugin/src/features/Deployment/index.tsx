@@ -184,13 +184,13 @@ function Deployment(_: DeploymentProps) {
                 className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3"
                 style={{
                   cursor: `${
-                    !account && !selectedContract.deployed
+                    !account
                       ? "not-allowed"
                       : "pointer"
                   }`,
                 }}
-                disabled={!account && !selectedContract.deployed}
-                aria-disabled={!account && !selectedContract.deployed}
+                disabled={!account}
+                aria-disabled={!account}
                 type="submit"
               >
                 <div className="d-flex align-items-center justify-content-center">

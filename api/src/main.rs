@@ -326,8 +326,6 @@ fn rocket() -> _ {
                 compile_to_casm,
                 save_code,
                 cairo_version,
-                health,
-                save_code,
                 health, 
                 all_options
             ],
