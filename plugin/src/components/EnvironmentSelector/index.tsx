@@ -2,6 +2,7 @@ import React, { useContext } from 'react'
 import { type Devnet, devnets, getDevnetIndex } from '../../utils/network'
 import { type ConnectOptions, type DisconnectOptions } from 'get-starknet'
 import { ConnectionContext } from '../../contexts/ConnectionContext'
+import { RxDotFilled } from 'react-icons/rx'
 import { Provider } from 'starknet'
 
 interface EnvironmentSelectorProps {
@@ -16,7 +17,7 @@ interface EnvironmentSelectorProps {
 const EnvironmentSelector: React.FC<EnvironmentSelectorProps> = (props) => {
   const { setProvider } = useContext(ConnectionContext)
 
-  async function handleEnvironmentChange (event: any) {
+  async function handleEnvironmentChange(event: any) {
     if (event.target.value > 0) {
       props.setDevnet(devnets[event.target.value - 1])
       props.setDevnetEnv(true)
@@ -35,28 +36,31 @@ const EnvironmentSelector: React.FC<EnvironmentSelectorProps> = (props) => {
   }
 
   return (
-    <select
-      className="custom-select"
-      aria-label=".form-select-sm example"
-      onChange={handleEnvironmentChange}
-      defaultValue={getDevnetIndex(devnets, props.devnet) + 1}
-    >
-      {devnets.reduce<JSX.Element[]>(
-        (acc, devnet, index) => {
-          acc.push(
-            <option value={index + 1} key={index + 1}>
-              {devnet.name}
+    <div className="devnet-account-selector-wrapper">
+      <select
+        className="custom-select"
+        aria-label=".form-select-sm example"
+        onChange={handleEnvironmentChange}
+        defaultValue={getDevnetIndex(devnets, props.devnet) + 1}
+      >
+        {devnets.reduce<JSX.Element[]>(
+          (acc, devnet, index) => {
+            acc.push(
+              <option value={index + 1} key={index + 1}>
+                {devnet.name}
+              </option>
+            )
+            return acc
+          },
+          [
+            <option value={0} key={0}>
+              Injected Wallet Provider
             </option>
-          )
-          return acc
-        },
-        [
-          <option value={0} key={0}>
-            Injected Wallet Provider
-          </option>
-        ]
-      )}
-    </select>
+          ]
+        )}
+      </select>
+      {devnets.length > 0 && <RxDotFilled size={"30px"}  color='lime'/>}
+    </div>
   )
 }
 
