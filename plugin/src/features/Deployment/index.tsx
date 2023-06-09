@@ -10,13 +10,14 @@ import { CallDataObject, Contract, Input } from "../../types/contracts";
 import { getConstructor, getParameterType } from "../../utils/utils";
 import "./styles.css";
 import Container from "../../components/Container";
-import { AccordianTabs } from "../../components/CompileAndDeploy";
+
+import { ConnectionContext } from "../../contexts/ConnectionContext";
+import { RemixClientContext } from "../../contexts/RemixClientContext";
+import { AccordianTabs } from "../Plugin";
 
 interface DeploymentProps {
   setActiveTab: (tab: AccordianTabs) => void;
 }
-import { ConnectionContext } from "../../contexts/ConnectionContext";
-import { RemixClientContext } from "../../contexts/RemixClientContext";
 
 const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   const remixClient = useContext(RemixClientContext);

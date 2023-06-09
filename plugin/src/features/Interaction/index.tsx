@@ -13,11 +13,8 @@ import CompiledContracts from "../../components/CompiledContracts";
 import { CompiledContractsContext } from "../../contexts/CompiledContractsContext";
 import { AbiElement } from "../../types/contracts";
 import { getReadFunctions, getWriteFunctions } from "../../utils/utils";
-<<<<<<< HEAD
 import Container from "../../components/Container";
-=======
 import { ConnectionContext } from "../../contexts/ConnectionContext";
->>>>>>> deploy
 
 interface InteractionProps {}
 

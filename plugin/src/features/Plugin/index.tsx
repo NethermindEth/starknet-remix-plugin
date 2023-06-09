@@ -20,8 +20,15 @@ import { StarknetWindowObject, connect, disconnect } from "get-starknet";
 import Nethermind from "../../components/NM";
 import * as D from "../../ui_components/Dropdown";
 import { BsChevronDown } from "react-icons/bs";
+import Accordian, {
+  AccordianItem,
+  AccordionContent,
+  AccordionTrigger,
+} from "../../ui_components/Accordian";
 
 interface PluginProps {}
+
+export type AccordianTabs = "compile" | "deploy" | "interaction";
 
 function Plugin(_: PluginProps) {
   // START : Get Cairo version
@@ -40,18 +47,17 @@ function Plugin(_: PluginProps) {
         });
         setCairoVersion(await response.text());
       } catch (e) {
-        remixClient.cancel('notification' as any, 'toast');
+        remixClient.cancel("notification" as any, "toast");
         await remixClient.call(
           "notification" as any,
           "toast",
-          "🔴 Failed to fetch cairo version from the compilation server!", 
+          "🔴 Failed to fetch cairo version from the compilation server!"
         );
         console.error(e);
       }
     }, 100);
   }, [remixClient]);
   // END : Get Cairo version
-
 
   // START: CAIRO CONTRACTS
   // Store a list of compiled contracts
@@ -73,11 +79,14 @@ function Plugin(_: PluginProps) {
   // END: ACCOUNT, NETWORK, PROVIDER
 
   // Dummy Cairo Verison
-  const [versions, setVersion]  = useState<string[]>([
+  const [versions, setVersion] = useState<string[]>([
     "cairo-lang-compiler 1.0.0-alpha.6",
     "cairo-lang-compiler 1.0.0-alpha.7",
     "cairo-lang-compiler 1.0.1",
   ]);
+
+  const [currentAccordian, setCurrentAccordian] =
+    useState<AccordianTabs>("compile");
 
   return (
     // add a button for selecting the cairo version
@@ -112,7 +121,11 @@ function Plugin(_: PluginProps) {
                 <D.Portal>
                   <D.Content>
                     {versions.map((v, i) => {
-                      return <D.Item key={i} onClick={() => setCairoVersion(v)}>{v}</D.Item>;
+                      return (
+                        <D.Item key={i} onClick={() => setCairoVersion(v)}>
+                          {v}
+                        </D.Item>
+                      );
                     })}
                   </D.Content>
                 </D.Portal>
@@ -123,30 +136,48 @@ function Plugin(_: PluginProps) {
               Powered by <Nethermind size="xs" />
             </label>
           </div>
-          <Nav />
-          <div
-            style={{
-              position: "fixed",
-              bottom: "0",
-              left: "0",
-              right: "0",
-              opacity: "1",
-            }}
+          <Accordian
+            type="single"
+            value={currentAccordian}
+            defaultValue={"compile"}
           >
-            <button
-              onClick={async () => {
-                const starknet = await connect({ modalMode: "alwaysAsk" });
-                console.log("starknet", starknet);
-                await disconnect({ clearLastWallet: true });
-              }}
-            >
-              Connect
-            </button>
-            <Devnet />
-          </div>
-          <Compilation />
-          <Deployment />
-          <Interaction />
+            <AccordianItem value="compile">
+              <AccordionTrigger
+                onClick={() => {
+                  setCurrentAccordian("compile");
+                }}
+              >
+                Compile
+              </AccordionTrigger>
+              <AccordionContent>
+                <Compilation />
+              </AccordionContent>
+            </AccordianItem>
+            <AccordianItem value="deploy">
+              <AccordionTrigger
+                onClick={() => {
+                  setCurrentAccordian("deploy");
+                }}
+              >
+                Deploy
+              </AccordionTrigger>
+              <AccordionContent>
+                <Deployment setActiveTab={setCurrentAccordian} />
+              </AccordionContent>
+            </AccordianItem>
+            <AccordianItem value="interaction">
+              <AccordionTrigger
+                onClick={() => {
+                  setCurrentAccordian("interaction");
+                }}
+              >
+                Interact
+              </AccordionTrigger>
+              <AccordionContent>
+                <Interaction />
+              </AccordionContent>
+            </AccordianItem>
+          </Accordian>
         </CompiledContractsContext.Provider>
         <Environment />
       </ConnectionContext.Provider>
