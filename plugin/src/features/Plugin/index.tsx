@@ -25,26 +25,26 @@ import Accordian, {
   AccordionTrigger
 } from '../../ui_components/Accordian'
 
-interface PluginProps {}
-
 export type AccordianTabs = 'compile' | 'deploy' | 'interaction'
 
-const Plugin: React.FC<PluginProps> = () => {
+const Plugin: React.FC = () => {
   // START : Get Cairo version
   const [cairoVersion, setCairoVersion] = useState('no version')
   const remixClient = useContext(RemixClientContext)
 
   useEffect(() => {
-    const id = setTimeout(async () => {
+    const id = setTimeout(async (): Promise<void> => {
       try {
-        const response = await fetch(`${apiUrl}/cairo_version`, {
-          method: 'GET',
-          redirect: 'follow',
-          headers: {
-            'Content-Type': 'application/octet-stream'
-          }
-        })
-        setCairoVersion(await response.text())
+        if (apiUrl !== undefined) {
+          const response = await fetch(`${apiUrl}/cairo_version`, {
+            method: 'GET',
+            redirect: 'follow',
+            headers: {
+              'Content-Type': 'application/octet-stream'
+            }
+          })
+          setCairoVersion(await response.text())
+        }
       } catch (e) {
         remixClient.cancel('notification' as any, 'toast')
         await remixClient.call(
@@ -81,7 +81,7 @@ const Plugin: React.FC<PluginProps> = () => {
   // END: ACCOUNT, NETWORK, PROVIDER
 
   // Dummy Cairo Verison
-  const [versions, setVersion] = useState<string[]>([
+  const [versions] = useState<string[]>([
     'cairo-lang-compiler 1.0.0-alpha.6',
     'cairo-lang-compiler 1.0.0-alpha.7',
     'cairo-lang-compiler 1.0.1'

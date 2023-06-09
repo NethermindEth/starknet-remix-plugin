@@ -39,7 +39,7 @@ interface IItem {
 const Item: React.FC<IItem & DropdownMenuPrimitive.DropdownMenuItemProps> = ({
   children,
   ...props
-}) => ( 
+}) => (
   <DropdownMenuPrimitive.Item className="DropdownMenuItem" {...props}>
     {children}
   </DropdownMenuPrimitive.Item>
@@ -71,7 +71,7 @@ const SubTrigger: React.FC<ISubTrigger> = ({ children, ...props }) => (
   </DropdownMenuPrimitive.SubTrigger>
 )
 
-const SubDivider = () => (
+const SubDivider: React.FC = () => (
   <DropdownMenuPrimitive.Separator className="DropdownMenuSeparator" />
 )
 
