@@ -6,6 +6,7 @@ import './App.css'
 import Plugin from './features/Plugin'
 import { RemixClientContext } from './contexts/RemixClientContext'
 import Loader from './ui_components/CircularLoader'
+import FullScreenOverlay from './ui_components/FullScreenOverlay'
 
 const remixClient = createClient(new PluginClient())
 const App: React.FC = () => {
@@ -24,7 +25,15 @@ const App: React.FC = () => {
 
   return (
     <RemixClientContext.Provider value={remixClient}>
-      <div className="shell">{pluginLoaded ? <Plugin /> : <Loader />}</div>
+      <div className="shell">
+        {pluginLoaded ? (
+          <Plugin />
+        ) : (
+          <FullScreenOverlay>
+            <Loader />
+          </FullScreenOverlay>
+        )}
+      </div>
     </RemixClientContext.Provider>
   )
 }
