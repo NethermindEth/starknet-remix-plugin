@@ -1,11 +1,11 @@
-import React from "react";
-import * as TooltipPrimitive from "@radix-ui/react-tooltip";
-import "./tooltip.css";
+import React from 'react'
+import * as TooltipPrimitive from '@radix-ui/react-tooltip'
+import './tooltip.css'
 
-type ITooltip = {
-  icon: React.ReactNode;
+interface ITooltip {
+  icon: React.ReactNode
   content: string | React.ReactNode
-};
+}
 const Tooltip: React.FC<ITooltip> = ({ icon, content }) => {
   return (
     <TooltipPrimitive.Provider delayDuration={100}>
@@ -21,7 +21,7 @@ const Tooltip: React.FC<ITooltip> = ({ icon, content }) => {
         </TooltipPrimitive.Portal>
       </TooltipPrimitive.Root>
     </TooltipPrimitive.Provider>
-  );
-};
+  )
+}
 
-export default Tooltip;
+export default Tooltip

@@ -1,13 +1,13 @@
 import React from 'react'
 
-import "./container.css";
+import './container.css'
 
-type IContainer = {
-    children?: React.ReactNode
+interface IContainer {
+  children?: React.ReactNode
 }
 
-const Container:React.FC<IContainer> = ({
-    children
+const Container: React.FC<IContainer> = ({
+  children
 }) => {
   return (
     <div className='Container'>{children}</div>

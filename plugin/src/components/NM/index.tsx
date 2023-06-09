@@ -1,33 +1,35 @@
-import React from "react";
+import React from 'react'
 
-import "./styles.css";
+import './styles.css'
 
-const sizeToDimenstions = (size: "lg" | "sm" | "xs" | "md" | "xl") => {
-  const baseW = 131;
-  const baseH = 73;
+const sizeToDimenstions = (size: 'lg' | 'sm' | 'xs' | 'md' | 'xl') => {
+  const baseW = 131
+  const baseH = 73
   switch (size) {
-    case "lg":
-      return { h: baseH * 1, w: baseW * 1 };
-    case "xs":
-      return { h: baseH * 0.2, w: baseW * 0.2 };
-    case "sm":
-      return { h: baseH * 0.5, w: baseW * 0.5 };
-    case "md":
-      return { h: baseH * 0.7, w: baseW * 0.7 };
-    case "xl":
-      return { h: baseH * 1.5, w: baseW * 1.5 };
+    case 'lg':
+      return { h: baseH * 1, w: baseW * 1 }
+    case 'xs':
+      return { h: baseH * 0.2, w: baseW * 0.2 }
+    case 'sm':
+      return { h: baseH * 0.5, w: baseW * 0.5 }
+    case 'md':
+      return { h: baseH * 0.7, w: baseW * 0.7 }
+    case 'xl':
+      return { h: baseH * 1.5, w: baseW * 1.5 }
   }
-  return { h: baseH, w: baseW };
-};
+  return { h: baseH, w: baseW }
+}
 
-type INethermind = {
-  size?: "lg" | "sm" | "xl" | "xs" | "md";
-};
+interface INethermind {
+  size?: 'lg' | 'sm' | 'xl' | 'xs' | 'md'
+}
 
-const Nethermind: React.FC<INethermind> = ({ size = "xs" }) => {
-  const sz = sizeToDimenstions(size);
+const Nethermind: React.FC<INethermind> = ({
+  size = 'xs'
+}): React.ReactElement => {
+  const sz = sizeToDimenstions(size)
   return (
-    <a href={"https://nethermind.io"} target={"_blank"}>
+    <a href={'https://nethermind.io'} target={'_blank'} rel="noreferrer">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width={sz.w}
@@ -69,7 +71,7 @@ const Nethermind: React.FC<INethermind> = ({ size = "xs" }) => {
         />
       </svg>
     </a>
-  );
-};
+  )
+}
 
-export default Nethermind;
+export default Nethermind

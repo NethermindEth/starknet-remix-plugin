@@ -1,92 +1,91 @@
-import { useContext, useEffect, useState } from "react";
-import { CompiledContractsContext } from "../../contexts/CompiledContractsContext";
-import { ConnectionContext } from "../../contexts/ConnectionContext";
-import { Contract } from "../../types/contracts";
-import { Environment } from "../Environment";
-import "./styles.css";
+import React, { useContext, useEffect, useState } from 'react'
+import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
+import { ConnectionContext } from '../../contexts/ConnectionContext'
+import { type Contract } from '../../types/contracts'
+import { Environment } from '../Environment'
+import './styles.css'
 
-import { apiUrl } from "../../utils/network";
+import { apiUrl } from '../../utils/network'
 import {
-  Account,
-  AccountInterface,
-  Provider,
-  ProviderInterface,
-} from "starknet";
-import Compilation from "../Compilation";
-import Deployment from "../Deployment";
-import Interaction from "../Interaction";
-import { RemixClientContext } from "../../contexts/RemixClientContext";
-import { StarknetWindowObject, connect, disconnect } from "get-starknet";
-import Nethermind from "../../components/NM";
-import * as D from "../../ui_components/Dropdown";
-import { BsChevronDown } from "react-icons/bs";
+  type Account,
+  type AccountInterface,
+  type Provider,
+  type ProviderInterface
+} from 'starknet'
+import Compilation from '../Compilation'
+import Deployment from '../Deployment'
+import Interaction from '../Interaction'
+import { RemixClientContext } from '../../contexts/RemixClientContext'
+import Nethermind from '../../components/NM'
+import * as D from '../../ui_components/Dropdown'
+import { BsChevronDown } from 'react-icons/bs'
 import Accordian, {
   AccordianItem,
   AccordionContent,
-  AccordionTrigger,
-} from "../../ui_components/Accordian";
+  AccordionTrigger
+} from '../../ui_components/Accordian'
 
 interface PluginProps {}
 
-export type AccordianTabs = "compile" | "deploy" | "interaction";
+export type AccordianTabs = 'compile' | 'deploy' | 'interaction'
 
-function Plugin(_: PluginProps) {
+function Plugin (_: PluginProps) {
   // START : Get Cairo version
-  const [cairoVersion, setCairoVersion] = useState("no version");
-  const remixClient = useContext(RemixClientContext);
+  const [cairoVersion, setCairoVersion] = useState('no version')
+  const remixClient = useContext(RemixClientContext)
 
   useEffect(() => {
     setTimeout(async () => {
       try {
         const response = await fetch(`${apiUrl}/cairo_version`, {
-          method: "GET",
-          redirect: "follow",
+          method: 'GET',
+          redirect: 'follow',
           headers: {
-            "Content-Type": "application/octet-stream",
-          },
-        });
-        setCairoVersion(await response.text());
+            'Content-Type': 'application/octet-stream'
+          }
+        })
+        setCairoVersion(await response.text())
       } catch (e) {
-        remixClient.cancel("notification" as any, "toast");
+        remixClient.cancel('notification' as any, 'toast')
         await remixClient.call(
-          "notification" as any,
-          "toast",
-          "🔴 Failed to fetch cairo version from the compilation server!"
-        );
-        console.error(e);
+          'notification' as any,
+          'toast',
+          '🔴 Failed to fetch cairo version from the compilation server!'
+        )
+        console.error(e)
       }
-    }, 100);
-  }, [remixClient]);
+    }, 100)
+  }, [remixClient])
   // END : Get Cairo version
 
   // START: CAIRO CONTRACTS
   // Store a list of compiled contracts
-  const [compiledContracts, setCompiledContracts] = useState<Contract[]>([]);
+  const [compiledContracts, setCompiledContracts] = useState<Contract[]>([])
   // Store the current contract for UX purposes
   const [selectedContract, setSelectedContract] = useState<Contract | null>(
     null
-  );
+  )
   // END: CAIRO CONTRACTS
 
   // START: ACCOUNT, NETWORK, PROVIDER
   // Store connected wallet, account and provider
   const [provider, setProvider] = useState<Provider | ProviderInterface | null>(
     null
-  );
+  )
   const [account, setAccount] = useState<Account | AccountInterface | null>(
     null
-  );
+  )
   // END: ACCOUNT, NETWORK, PROVIDER
 
   // Dummy Cairo Verison
   const [versions, setVersion] = useState<string[]>([
-    "cairo-lang-compiler 1.0.0-alpha.6",
-    "cairo-lang-compiler 1.0.0-alpha.7",
-    "cairo-lang-compiler 1.0.1",
-  ]);
+    'cairo-lang-compiler 1.0.0-alpha.6',
+    'cairo-lang-compiler 1.0.0-alpha.7',
+    'cairo-lang-compiler 1.0.1'
+  ])
 
   const [currentAccordian, setCurrentAccordian] =
-    useState<AccordianTabs>("compile");
+    useState<AccordianTabs>('compile')
 
   return (
     // add a button for selecting the cairo version
@@ -99,15 +98,15 @@ function Plugin(_: PluginProps) {
           provider,
           setProvider,
           account,
-          setAccount,
+          setAccount
         }}
       >
         <CompiledContractsContext.Provider
           value={{
             contracts: compiledContracts,
             setContracts: setCompiledContracts,
-            selectedContract: selectedContract,
-            setSelectedContract: setSelectedContract,
+            selectedContract,
+            setSelectedContract
           }}
         >
           <div className="version-wrapper">
@@ -122,10 +121,10 @@ function Plugin(_: PluginProps) {
                   <D.Content>
                     {versions.map((v, i) => {
                       return (
-                        <D.Item key={i} onClick={() => setCairoVersion(v)}>
+                        <D.Item key={i} onClick={() => { setCairoVersion(v) }}>
                           {v}
                         </D.Item>
-                      );
+                      )
                     })}
                   </D.Content>
                 </D.Portal>
@@ -139,12 +138,12 @@ function Plugin(_: PluginProps) {
           <Accordian
             type="single"
             value={currentAccordian}
-            defaultValue={"compile"}
+            defaultValue={'compile'}
           >
             <AccordianItem value="compile">
               <AccordionTrigger
                 onClick={() => {
-                  setCurrentAccordian("compile");
+                  setCurrentAccordian('compile')
                 }}
               >
                 Compile
@@ -156,7 +155,7 @@ function Plugin(_: PluginProps) {
             <AccordianItem value="deploy">
               <AccordionTrigger
                 onClick={() => {
-                  setCurrentAccordian("deploy");
+                  setCurrentAccordian('deploy')
                 }}
               >
                 Deploy
@@ -168,7 +167,7 @@ function Plugin(_: PluginProps) {
             <AccordianItem value="interaction">
               <AccordionTrigger
                 onClick={() => {
-                  setCurrentAccordian("interaction");
+                  setCurrentAccordian('interaction')
                 }}
               >
                 Interact
@@ -182,7 +181,7 @@ function Plugin(_: PluginProps) {
         <Environment />
       </ConnectionContext.Provider>
     </>
-  );
+  )
 }
 
-export default Plugin;
+export default Plugin

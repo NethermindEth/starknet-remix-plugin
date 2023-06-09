@@ -1,16 +1,17 @@
 const storage = {
-  get: (key: string): any | null => {
-    const item = localStorage.getItem(key);
-    return item ? JSON.parse(item) : null;
+  get: (key: string): string | undefined => {
+    const item = localStorage.getItem(key) ?? null
+    if (item != null) return JSON.parse(item)
+    return undefined
   },
 
   set: (key: string, value: any): void => {
-    return localStorage.setItem(key, JSON.stringify(value));
+    localStorage.setItem(key, JSON.stringify(value))
   },
 
   remove: (key: string): void => {
-    return localStorage.removeItem(key);
-  },
-};
+    localStorage.removeItem(key)
+  }
+}
 
-export default storage;
+export default storage

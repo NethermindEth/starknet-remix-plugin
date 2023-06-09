@@ -1,41 +1,41 @@
-import React from "react";
-import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
+import React from 'react'
+import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu'
 
-import "./dropdown.css";
+import './dropdown.css'
 
-const Root = DropdownMenuPrimitive.Root;
+const Root = DropdownMenuPrimitive.Root
 
-type ITrigger = {
-  icon?: React.ReactNode;
-  children?: React.ReactNode;
-};
+interface ITrigger {
+  icon?: React.ReactNode
+  children?: React.ReactNode
+}
 const IconTrigger: React.FC<ITrigger> = ({ icon, ...props }) => (
   <DropdownMenuPrimitive.Trigger asChild>
     <button className="IconButton" aria-label="Customise options" {...props}>
       {icon}
     </button>
   </DropdownMenuPrimitive.Trigger>
-);
+)
 const Trigger: React.FC<ITrigger> = ({ children, ...props }) => (
   <DropdownMenuPrimitive.Trigger asChild {...props}>
     {children}
   </DropdownMenuPrimitive.Trigger>
-);
+)
 
-const Portal = DropdownMenuPrimitive.Portal;
+const Portal = DropdownMenuPrimitive.Portal
 
-type IContent = {
-  children?: React.ReactNode;
-};
+interface IContent {
+  children?: React.ReactNode
+}
 const Content: React.FC<IContent> = ({ children, ...props }) => (
   <DropdownMenuPrimitive.Content className="DropdownMenuContent" {...props}>
     {children}
   </DropdownMenuPrimitive.Content>
-);
+)
 
-type IItem = {
-  children: React.ReactNode;
-};
+interface IItem {
+  children: React.ReactNode
+}
 const Item: React.FC<IItem & DropdownMenuPrimitive.DropdownMenuItemProps> = ({
   children,
   ...props
@@ -43,13 +43,13 @@ const Item: React.FC<IItem & DropdownMenuPrimitive.DropdownMenuItemProps> = ({
   <DropdownMenuPrimitive.Item className="DropdownMenuItem" {...props}>
     {children}
   </DropdownMenuPrimitive.Item>
-);
+)
 
-const Sub = DropdownMenuPrimitive.Sub;
+const Sub = DropdownMenuPrimitive.Sub
 
-type ISubContent = {
-  children: React.ReactNode;
-};
+interface ISubContent {
+  children: React.ReactNode
+}
 const SubContent: React.FC<ISubContent> = ({ children, ...props }) => (
   <DropdownMenuPrimitive.SubContent
     className="DropdownMenuSubContent"
@@ -57,11 +57,11 @@ const SubContent: React.FC<ISubContent> = ({ children, ...props }) => (
   >
     {children}
   </DropdownMenuPrimitive.SubContent>
-);
+)
 
-type ISubTrigger = {
-  children: React.ReactNode;
-};
+interface ISubTrigger {
+  children: React.ReactNode
+}
 const SubTrigger: React.FC<ISubTrigger> = ({ children, ...props }) => (
   <DropdownMenuPrimitive.SubTrigger
     className="DropdownMenuSubTrigger"
@@ -69,11 +69,11 @@ const SubTrigger: React.FC<ISubTrigger> = ({ children, ...props }) => (
   >
     {children}
   </DropdownMenuPrimitive.SubTrigger>
-);
+)
 
 const SubDivider = () => (
   <DropdownMenuPrimitive.Separator className="DropdownMenuSeparator" />
-);
+)
 
 export {
   Root,
@@ -85,5 +85,5 @@ export {
   SubDivider,
   Trigger,
   IconTrigger,
-  SubTrigger,
-};
+  SubTrigger
+}

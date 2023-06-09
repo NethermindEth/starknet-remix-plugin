@@ -1,22 +1,25 @@
-import { PluginClient } from "@remixproject/plugin";
-import { createClient } from "@remixproject/plugin-webview";
+import React, { useEffect, useState } from 'react'
+import { PluginClient } from '@remixproject/plugin'
+import { createClient } from '@remixproject/plugin-webview'
 
-import "./App.css";
-import Plugin from "./features/Plugin";
-import { RemixClientContext } from "./contexts/RemixClientContext";
-import { useEffect, useState } from "react";
+import './App.css'
+import Plugin from './features/Plugin'
+import { RemixClientContext } from './contexts/RemixClientContext'
 
-const remixClient = createClient(new PluginClient());
-function App() {
-  const [pluginLoaded, setPluginLoaded] = useState<boolean>(false);
+const remixClient = createClient(new PluginClient())
+const App: React.FC = () => {
+  const [pluginLoaded, setPluginLoaded] = useState<boolean>(false)
 
   useEffect(() => {
-    setTimeout(async () => {
+    const id = setTimeout(async (): Promise<void> => {
       await remixClient.onload(() => {
-        setPluginLoaded(true);
-      });
-    }, 10);
-  });
+        setPluginLoaded(true)
+      })
+    }, 10)
+    return () => {
+      clearInterval(id)
+    }
+  })
 
   return (
     <RemixClientContext.Provider value={remixClient}>
@@ -24,7 +27,7 @@ function App() {
         {pluginLoaded ? <Plugin /> : <p> Plugin is loading...</p>}
       </div>
     </RemixClientContext.Provider>
-  );
+  )
 }
 
-export default App;
+export default App

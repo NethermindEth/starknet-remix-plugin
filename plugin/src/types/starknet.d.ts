@@ -1,16 +1,16 @@
 import {
-  Provider as TempProvider,
-  AccountInterface as TempAccountInterface,
-  StarknetChainId,
-} from "starknet";
+  type Provider as TempProvider,
+  type AccountInterface as TempAccountInterface,
+  type StarknetChainId
+} from 'starknet'
 
-declare module "starknet" {
+declare module 'starknet' {
   export interface AccountInterface extends TempAccountInterface {
-    provider?: Provider;
+    provider?: Provider
   }
 
   export interface Provider extends TempProvider {
-    baseUrl: string;
-    chainId: StarknetChainId;
+    baseUrl: string
+    chainId: StarknetChainId
   }
 }
