@@ -39,7 +39,7 @@ const Wallet: React.FC<WalletProps> = (props) => {
   const [voyagerLink, setVoyagerLink] = useState('')
 
   useEffect(() => {
-    (async () => {
+    ;(async () => {
       const link = await makeVoyagerLink(props.starknetWindowObject)
       setVoyagerLink(link)
     })()

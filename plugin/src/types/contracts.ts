@@ -1,5 +1,9 @@
 import { type BigNumberish } from 'ethers'
-import { type Account, type CairoAssembly, type InvokeFunctionResponse } from 'starknet'
+import {
+  type Account,
+  type CairoAssembly,
+  type InvokeFunctionResponse
+} from 'starknet'
 
 interface Contract {
   name: string
@@ -35,11 +39,14 @@ type Abi = AbiElement[]
 
 type Contracts = Record<string, Contract>
 
-type CallDataObject = Record<string, {
+type CallDataObject = Record<
+string,
+{
   name: string
   value: string
   type: string | undefined
-}>
+}
+>
 
 // TODO: felt252
 enum ParameterType {

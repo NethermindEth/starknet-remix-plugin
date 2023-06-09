@@ -5,6 +5,7 @@ import { createClient } from '@remixproject/plugin-webview'
 import './App.css'
 import Plugin from './features/Plugin'
 import { RemixClientContext } from './contexts/RemixClientContext'
+import Loader from './ui_components/CircularLoader'
 
 const remixClient = createClient(new PluginClient())
 const App: React.FC = () => {
@@ -23,9 +24,7 @@ const App: React.FC = () => {
 
   return (
     <RemixClientContext.Provider value={remixClient}>
-      <div className="shell">
-        {pluginLoaded ? <Plugin /> : <p> Plugin is loading...</p>}
-      </div>
+      <div className="shell">{pluginLoaded ? <Plugin /> : <Loader />}</div>
     </RemixClientContext.Provider>
   )
 }

@@ -39,7 +39,7 @@ interface IItem {
 const Item: React.FC<IItem & DropdownMenuPrimitive.DropdownMenuItemProps> = ({
   children,
   ...props
-}) => (
+}) => ( 
   <DropdownMenuPrimitive.Item className="DropdownMenuItem" {...props}>
     {children}
   </DropdownMenuPrimitive.Item>

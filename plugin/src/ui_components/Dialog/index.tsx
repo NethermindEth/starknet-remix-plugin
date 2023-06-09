@@ -19,7 +19,7 @@ const Content: React.FC<Dialog.DialogContentProps> = ({
 }) => <Dialog.Content className="DialogContent">{children}</Dialog.Content>
 
 const Close: React.FC<Dialog.DialogCloseProps> = ({ ...props }) => (
-  <Dialog.Close className="DialogClose" {...props} >
+  <Dialog.Close className="DialogClose" {...props}>
     <RxCross2 />
   </Dialog.Close>
 )

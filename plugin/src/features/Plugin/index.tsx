@@ -29,13 +29,13 @@ interface PluginProps {}
 
 export type AccordianTabs = 'compile' | 'deploy' | 'interaction'
 
-function Plugin (_: PluginProps) {
+const Plugin: React.FC<PluginProps> = () => {
   // START : Get Cairo version
   const [cairoVersion, setCairoVersion] = useState('no version')
   const remixClient = useContext(RemixClientContext)
 
   useEffect(() => {
-    setTimeout(async () => {
+    const id = setTimeout(async () => {
       try {
         const response = await fetch(`${apiUrl}/cairo_version`, {
           method: 'GET',
@@ -55,6 +55,9 @@ function Plugin (_: PluginProps) {
         console.error(e)
       }
     }, 100)
+    return () => {
+      clearInterval(id)
+    }
   }, [remixClient])
   // END : Get Cairo version
 
@@ -90,96 +93,104 @@ function Plugin (_: PluginProps) {
   return (
     // add a button for selecting the cairo version
     <>
-      <div className="mb-1">
-        <label className="cairo-version-legend">Using {cairoVersion}</label>
-      </div>
-      <ConnectionContext.Provider
-        value={{
-          provider,
-          setProvider,
-          account,
-          setAccount
-        }}
-      >
-        <CompiledContractsContext.Provider
+      <div className="plugin-wrapper">
+        <ConnectionContext.Provider
           value={{
-            contracts: compiledContracts,
-            setContracts: setCompiledContracts,
-            selectedContract,
-            setSelectedContract
+            provider,
+            setProvider,
+            account,
+            setAccount
           }}
         >
-          <div className="version-wrapper">
-            <div>
-              <D.Root>
-                <D.Trigger>
-                  <label className="cairo-version-legend">
-                    Using {cairoVersion} <BsChevronDown />
-                  </label>
-                </D.Trigger>
-                <D.Portal>
-                  <D.Content>
-                    {versions.map((v, i) => {
-                      return (
-                        <D.Item key={i} onClick={() => { setCairoVersion(v) }}>
-                          {v}
-                        </D.Item>
-                      )
-                    })}
-                  </D.Content>
-                </D.Portal>
-              </D.Root>
-            </div>
+          <div>
+            <CompiledContractsContext.Provider
+              value={{
+                contracts: compiledContracts,
+                setContracts: setCompiledContracts,
+                selectedContract,
+                setSelectedContract
+              }}
+            >
+              <div className="version-wrapper">
+                <div>
+                  <D.Root>
+                    <D.Trigger>
+                      <label className="cairo-version-legend">
+                        Using {cairoVersion} <BsChevronDown />
+                      </label>
+                    </D.Trigger>
+                    <D.Portal>
+                      <D.Content>
+                        {versions.map((v, i) => {
+                          return (
+                            <D.Item
+                              key={i}
+                              onClick={() => {
+                                setCairoVersion(v)
+                              }}
+                            >
+                              {v}
+                            </D.Item>
+                          )
+                        })}
+                      </D.Content>
+                    </D.Portal>
+                  </D.Root>
+                </div>
 
-            <label className="cairo-version-legend">
-              Powered by <Nethermind size="xs" />
-            </label>
+                <label className="cairo-version-legend">
+                  Powered by <Nethermind size="xs" />
+                </label>
+              </div>
+              <Accordian
+                type="single"
+                value={currentAccordian}
+                defaultValue={'compile'}
+              >
+                <AccordianItem value="compile">
+                  <AccordionTrigger
+                    onClick={() => {
+                      setCurrentAccordian('compile')
+                    }}
+                  >
+                    Compile
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <Compilation />
+                  </AccordionContent>
+                </AccordianItem>
+                <AccordianItem value="deploy">
+                  <AccordionTrigger
+                    onClick={() => {
+                      setCurrentAccordian('deploy')
+                    }}
+                  >
+                    Deploy
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <Deployment setActiveTab={setCurrentAccordian} />
+                  </AccordionContent>
+                </AccordianItem>
+                <AccordianItem value="interaction">
+                  <AccordionTrigger
+                    onClick={() => {
+                      setCurrentAccordian('interaction')
+                    }}
+                  >
+                    Interact
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <Interaction />
+                  </AccordionContent>
+                </AccordianItem>
+              </Accordian>
+            </CompiledContractsContext.Provider>
           </div>
-          <Accordian
-            type="single"
-            value={currentAccordian}
-            defaultValue={'compile'}
-          >
-            <AccordianItem value="compile">
-              <AccordionTrigger
-                onClick={() => {
-                  setCurrentAccordian('compile')
-                }}
-              >
-                Compile
-              </AccordionTrigger>
-              <AccordionContent>
-                <Compilation />
-              </AccordionContent>
-            </AccordianItem>
-            <AccordianItem value="deploy">
-              <AccordionTrigger
-                onClick={() => {
-                  setCurrentAccordian('deploy')
-                }}
-              >
-                Deploy
-              </AccordionTrigger>
-              <AccordionContent>
-                <Deployment setActiveTab={setCurrentAccordian} />
-              </AccordionContent>
-            </AccordianItem>
-            <AccordianItem value="interaction">
-              <AccordionTrigger
-                onClick={() => {
-                  setCurrentAccordian('interaction')
-                }}
-              >
-                Interact
-              </AccordionTrigger>
-              <AccordionContent>
-                <Interaction />
-              </AccordionContent>
-            </AccordianItem>
-          </Accordian>
-        </CompiledContractsContext.Provider>
-        <Environment />
-      </ConnectionContext.Provider>
+          <div>
+            <Environment />
+          </div>
+        </ConnectionContext.Provider>
+      </div>
     </>
   )
 }
