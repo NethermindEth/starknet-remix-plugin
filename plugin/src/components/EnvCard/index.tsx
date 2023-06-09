@@ -1,5 +1,6 @@
 import { DisconnectOptions } from 'get-starknet'
 import { ReactNode } from 'react'
+import './envCard.css'
 
 interface EnvCardProps {
   header: string
@@ -21,7 +22,7 @@ export const EnvCard: React.FC<EnvCardProps> = ({
           {/* <h5 className="mb-0">{header}</h5> */}
           <button
             type="button"
-            className="mb-0 btn btn-sm btn-outline-secondary float-left"
+            className="mb-0 btn btn-sm float-left env-btn"
             onClick={async () => {
               await disconnectWalletHandler()
               setEnv('devnet')
@@ -31,7 +32,7 @@ export const EnvCard: React.FC<EnvCardProps> = ({
           </button>
           <button
             type="button"
-            className="mb-0 btn btn-sm btn-outline-secondary float-right"
+            className="mb-0 btn btn-sm btn-outline-secondary float-right rounded-pill env-testnet-btn"
             onClick={() => setEnv('manual')}
           >
             Create testnet account
