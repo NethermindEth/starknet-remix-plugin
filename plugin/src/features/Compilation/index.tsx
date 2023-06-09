@@ -13,13 +13,15 @@ import {
 import "./styles.css";
 import { hash } from "starknet";
 import Container from "../../components/Container";
+import storage from "../../utils/storage";
+import { ethers } from "ethers";
 
-interface CompilationProps {
-  setIsLatestClassHashReady: (isLatestClassHashReady: boolean) => void;
-}
+interface CompilationProps {}
 
-function Compilation({ setIsLatestClassHashReady }: CompilationProps) {
+function Compilation(_: CompilationProps) {
   const remixClient = useContext(RemixClientContext);
+
+  const [status, setStatus] = useState("Compiling...");
 
   const { contracts, setContracts, setSelectedContract } = useContext(
     CompiledContractsContext
@@ -29,20 +31,59 @@ function Compilation({ setIsLatestClassHashReady }: CompilationProps) {
   const [isCompiling, setIsCompiling] = useState(false);
   const [isValidCairo, setIsValidCairo] = useState(false);
 
+  const [noFileSelected, setNoFileSelected] = useState(false);
+
+  const [hashDir, setHashDir] = useState("");
+
+  useEffect(() => {
+    // read hashDir from localStorage
+    const hashDir = storage.get("hashDir");
+    if (hashDir) {
+      setHashDir(hashDir);
+    }else{
+      // create a random hash of length 32
+      const hashDir = ethers.utils.hashMessage(ethers.utils.randomBytes(32)).replace("0x", "");
+      setHashDir(hashDir);
+      storage.set("hashDir", hashDir);
+    }
+  }, [hashDir]);
+
+  useEffect(() => {
+    remixClient.on("fileManager", "noFileSelected", () => {
+      setNoFileSelected(true);
+    });
+  }, [remixClient]);
+
   useEffect(() => {
     setTimeout(async () => {
-      // get current file
-      const currentFile = await remixClient.fileManager.getCurrentFile();
-      if (currentFile) {
-        const filename = getFileNameFromPath(currentFile);
-        const currentFileExtension = getFileExtension(filename);
-        setIsValidCairo(currentFileExtension === "cairo");
-        setCurrentFilename(filename);
+      try {
+        if (noFileSelected) {
+          throw new Error("No file selected");
+        }
 
-        console.log("current File: ", currentFilename);
+        // get current file
+        const currentFile = await remixClient.call(
+          "fileManager",
+          "getCurrentFile"
+        );
+        if (currentFile) {
+          const filename = getFileNameFromPath(currentFile);
+          const currentFileExtension = getFileExtension(filename);
+          setIsValidCairo(currentFileExtension === "cairo");
+          setCurrentFilename(filename);
+
+          console.log("current File: ", currentFilename);
+        }
+      } catch (e) {
+        remixClient.emit("statusChanged", {
+          key: "failed",
+          type: "info",
+          title: "Please open a cairo file to compile",
+        });
+        console.log("error: ", e);
       }
-    }, 10);
-  }, [remixClient, currentFilename]);
+    }, 500);
+  }, [remixClient, currentFilename, noFileSelected]);
 
   useEffect(() => {
     setTimeout(async () => {
@@ -55,22 +96,43 @@ function Compilation({ setIsLatestClassHashReady }: CompilationProps) {
           setIsValidCairo(currentFileExtension === "cairo");
           setCurrentFilename(filename);
           console.log("current File here: ", currentFilename);
+          setNoFileSelected(false);
         }
       );
-    }, 10);
+    }, 500);
   }, [remixClient, currentFilename]);
 
   useEffect(() => {
     setTimeout(async () => {
-      let { currentFileContent, currentFilePath } = await getFile();
-      await fetch(`${apiUrl}/save_code/${currentFilePath}`, {
-        method: "POST",
-        body: currentFileContent,
-        redirect: "follow",
-        headers: {
-          "Content-Type": "application/octet-stream",
-        },
-      });
+      try {
+        if (noFileSelected) {
+          throw new Error("No file selected");
+        }
+        let currentFilePath = await remixClient.call(
+          "fileManager",
+          "getCurrentFile"
+        );
+        let currentFileContent = await remixClient.call(
+          "fileManager",
+          "readFile",
+          currentFilePath
+        );
+        await fetch(`${apiUrl}/save_code/${hashDir}/${currentFilePath}`, {
+          method: "POST",
+          body: currentFileContent,
+          redirect: "follow",
+          headers: {
+            "Content-Type": "application/octet-stream",
+          },
+        });
+      } catch (e) {
+        remixClient.emit("statusChanged", {
+          key: "failed",
+          type: "info",
+          title: "Please open a cairo file to compile",
+        });
+        console.log("error: ", e);
+      }
     }, 100);
   }, [currentFilename, remixClient]);
 
@@ -83,31 +145,27 @@ function Compilation({ setIsLatestClassHashReady }: CompilationProps) {
     },
   ];
 
-  const getFile = async () => {
-    const currentFilePath = await remixClient.call(
-      "fileManager",
-      "getCurrentFile"
-    );
-
-    const currentFileContent = await remixClient.call(
-      "fileManager",
-      "readFile",
-      currentFilePath
-    );
-
-    return { currentFileContent, currentFilePath };
-  };
-
   async function compile() {
     setIsCompiling(true);
-    // clear current FIle annotations
+    setStatus("Compiling...");
+    // clear current file annotations: inline syntax error reporting
     await remixClient.editor.clearAnnotations();
     try {
-      let { currentFileContent, currentFilePath } = await getFile();
+      setStatus("Getting cairo file path...");
+      let currentFilePath = await remixClient.call(
+        "fileManager",
+        "getCurrentFile"
+      );
 
-      // console.log(currentFileContent, currentFilePath);
-
-      let response = await fetch(`${apiUrl}/save_code/${currentFilePath}`, {
+      setStatus("Getting cairo file content...");
+      let currentFileContent = await remixClient.call(
+        "fileManager",
+        "readFile",
+        currentFilePath
+      );
+      
+      setStatus("Parsing cairo code...");
+      let response = await fetch(`${apiUrl}/save_code/${hashDir}/${currentFilePath}`, {
         method: "POST",
         body: currentFileContent,
         redirect: "follow",
@@ -125,7 +183,8 @@ function Compilation({ setIsLatestClassHashReady }: CompilationProps) {
         throw new Error("Cairo Compilation Request Failed");
       }
 
-      response = await fetch(`${apiUrl}/compile-to-sierra/${currentFilePath}`, {
+      setStatus("Compiling to sierra...");
+      response = await fetch(`${apiUrl}/compile-to-sierra/${hashDir}/${currentFilePath}`, {
         method: "GET",
         redirect: "follow",
         headers: {
@@ -146,6 +205,7 @@ function Compilation({ setIsLatestClassHashReady }: CompilationProps) {
       const sierra = JSON.parse(await response.text());
 
       if (sierra.status !== "Success") {
+        setStatus("Reporting Errors...");
         remixClient.terminal.log(sierra.message);
 
         const errorLets = sierra.message.trim().split("\n");
@@ -209,8 +269,10 @@ function Compilation({ setIsLatestClassHashReady }: CompilationProps) {
         );
       }
 
+      setStatus("Compiling to casm...");
+
       response = await fetch(
-        `${apiUrl}/compile-to-casm/${currentFilePath.replace(
+        `${apiUrl}/compile-to-casm/${hashDir}/${currentFilePath.replace(
           getFileExtension(currentFilePath),
           "sierra"
         )}`,
@@ -249,6 +311,8 @@ function Compilation({ setIsLatestClassHashReady }: CompilationProps) {
           "Sierra Cairo Compilation Failed, logs can be read in the terminal log"
         );
       }
+
+      setStatus("Saving artifacts...");
 
       let sierraPath = `${artifactFolder(currentFilePath)}/${artifactFilename(
         ".json",
@@ -301,6 +365,8 @@ function Compilation({ setIsLatestClassHashReady }: CompilationProps) {
         throw e;
       }
 
+      setStatus("Opening artifacts...");
+
       remixClient.fileManager.open(sierraPath);
 
       remixClient.call(
@@ -317,6 +383,7 @@ function Compilation({ setIsLatestClassHashReady }: CompilationProps) {
         });
       console.error(e);
     }
+    setStatus("done");
     setIsCompiling(false);
   }
 
@@ -326,7 +393,6 @@ function Compilation({ setIsLatestClassHashReady }: CompilationProps) {
     sierraFile: string,
     casmFile: string
   ) {
-    setIsLatestClassHashReady(true);
     try {
       const sierra = await JSON.parse(sierraFile);
       const casm = await JSON.parse(casmFile);
@@ -346,7 +412,6 @@ function Compilation({ setIsLatestClassHashReady }: CompilationProps) {
     } catch (e) {
       console.error(e);
     }
-    setIsLatestClassHashReady(false);
   }
 
   const compilationCard = (
@@ -386,7 +451,7 @@ function Compilation({ setIsLatestClassHashReady }: CompilationProps) {
                           {" "}
                         </span>
                         <span style={{ paddingLeft: "0.5rem" }}>
-                          Compiling...
+                          {status}
                         </span>
                       </>
                     ) : (

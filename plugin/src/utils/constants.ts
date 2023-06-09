@@ -1,11 +1,4 @@
-import { InjectedConnector } from "@starknet-react/core";
 import { constants } from "starknet";
-
-const connectorIds = ["argentX", "braavos"];
-
-const connectors = connectorIds.map(
-  (id) => new InjectedConnector({ options: { id } })
-);
 
 const devnetUrl = "http://127.0.0.1:5050";
 
@@ -53,7 +46,6 @@ const licenses = [
 ];
 
 export {
-  connectors,
   devnetUrl,
   networks,
   networkExplorerUrls,
