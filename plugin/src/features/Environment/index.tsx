@@ -1,19 +1,13 @@
-<<<<<<< HEAD
 import React, { useContext, useState } from 'react'
 import { Card } from '../../components/Card'
 import DevnetAccountSelector from '../../components/DevnetAccountSelector'
 import './styles.css'
-=======
-import { useContext, useState } from "react";
-import DevnetAccountSelector from "../../components/DevnetAccountSelector";
-import "./styles.css";
->>>>>>> deploy
+import './styles.css'
 import {
   type ConnectOptions,
   type DisconnectOptions,
   type StarknetWindowObject,
   connect,
-<<<<<<< HEAD
   disconnect
 } from 'get-starknet'
 import { RemixClientContext } from '../../contexts/RemixClientContext'
@@ -22,17 +16,8 @@ import EnvironmentSelector from '../../components/EnvironmentSelector'
 import { ConnectionContext } from '../../contexts/ConnectionContext'
 import Wallet from '../../components/Wallet'
 import NewTestNetAccount from '../../components/NewTestnetAccount'
-=======
-  disconnect,
-} from "get-starknet";
-import { RemixClientContext } from "../../contexts/RemixClientContext";
-import { Devnet, devnets } from "../../utils/network";
-import EnvironmentSelector from "../../components/EnvironmentSelector";
-import { ConnectionContext } from "../../contexts/ConnectionContext";
-import Wallet from "../../components/Wallet";
-import { EnvCard } from "../../components/EnvCard";
-import ManualAccount from "../../components/ManualAccount";
->>>>>>> deploy
+import { EnvCard } from '../../components/EnvCard'
+import ManualAccount from '../../components/ManualAccount'
 
 interface ConnectionProps {}
 
@@ -41,13 +26,8 @@ const Environment: React.FC<ConnectionProps> = () => {
   const { setAccount, setProvider } = useContext(ConnectionContext)
 
   // START: DEVNET
-<<<<<<< HEAD
   const [devnet, setDevnet] = useState<Devnet>(devnets[0])
-  const [devnetEnv, setDevnetEnv] = useState<boolean>(true)
-=======
-  const [devnet, setDevnet] = useState<Devnet>(devnets[0]);
-  const [env, setEnv] = useState<string>("devnet");
->>>>>>> deploy
+  const [env, setEnv] = useState<string>('devnet')
   // END: DEVNET
 
   // START: WALLET
@@ -56,13 +36,8 @@ const Environment: React.FC<ConnectionProps> = () => {
 
   const connectWalletHandler = async (
     options: ConnectOptions = {
-<<<<<<< HEAD
       modalMode: 'alwaysAsk',
       modalTheme: 'dark'
-=======
-      modalMode: "alwaysAsk",
-      modalTheme: "dark",
->>>>>>> deploy
     }
   ) => {
     try {
@@ -132,53 +107,14 @@ const Environment: React.FC<ConnectionProps> = () => {
 
   return (
     <div className="starknet-connection-component mb-8">
-<<<<<<< HEAD
       <NewTestNetAccount state={[dialogState, setDialogState]} />
-      <Card
-        header="Environment"
-        rightItem={
-          !devnetEnv && (
-            <button
-              className="btn btn-primary rounded-pill"
-              onClick={() => {
-                setDialogState(true)
-              }}
-            >
-              Create Testnet Account
-            </button>
-          )
-        }
-      >
-        <div className="flex">
-          <label className="">Environment selection</label>
-          <EnvironmentSelector
-            devnetEnv={devnetEnv}
-            setDevnetEnv={setDevnetEnv}
-            devnet={devnet}
-            setDevnet={setDevnet}
-            connectWalletHandler={connectWalletHandler}
-            disconnectWalletHandler={disconnectWalletHandler}
-          />
-        </div>
-        <div className="flex">
-          {devnetEnv ? (
-            <DevnetAccountSelector devnet={devnet} />
-          ) : (
-            <Wallet
-              starknetWindowObject={starknetWindowObject}
-              connectWalletHandler={connectWalletHandler}
-              disconnectWalletHandler={disconnectWalletHandler}
-            />
-          )}
-        </div>
-      </Card>
-=======
+
       <EnvCard
         header="Environment"
         setEnv={setEnv}
         disconnectWalletHandler={disconnectWalletHandler}
       >
-        {env === "manual" ? (
+        {env === 'manual' ? (
           <ManualAccount />
         ) : (
           <>
@@ -194,7 +130,7 @@ const Environment: React.FC<ConnectionProps> = () => {
               />
             </div>
             <div className="flex">
-              {env === "devnet" ? (
+              {env === 'devnet' ? (
                 <DevnetAccountSelector devnet={devnet} />
               ) : (
                 <Wallet
@@ -207,7 +143,6 @@ const Environment: React.FC<ConnectionProps> = () => {
           </>
         )}
       </EnvCard>
->>>>>>> deploy
     </div>
   )
 }
