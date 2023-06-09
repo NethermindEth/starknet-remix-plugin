@@ -103,12 +103,9 @@ const Environment: React.FC<ConnectionProps> = () => {
   }
 
   // END: WALLET
-  const [dialogState, setDialogState] = useState(false)
 
   return (
     <div className="starknet-connection-component mb-8">
-      <NewTestNetAccount state={[dialogState, setDialogState]} />
-
       <EnvCard
         header="Environment"
         setEnv={setEnv}

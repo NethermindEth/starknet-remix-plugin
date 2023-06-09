@@ -1,18 +1,18 @@
-import { DisconnectOptions } from "get-starknet";
-import { ReactNode } from "react";
+import { DisconnectOptions } from 'get-starknet'
+import { ReactNode } from 'react'
 
 interface EnvCardProps {
-  header: string;
-  setEnv: (env: string) => void;
-  disconnectWalletHandler: (options?: DisconnectOptions) => Promise<void>;
-  children: ReactNode;
+  header: string
+  setEnv: (env: string) => void
+  disconnectWalletHandler: (options?: DisconnectOptions) => Promise<void>
+  children: ReactNode
 }
 
 export const EnvCard: React.FC<EnvCardProps> = ({
   header,
   setEnv,
   disconnectWalletHandler,
-  children,
+  children
 }) => {
   return (
     <div className="border-top border-bottom">
@@ -23,8 +23,8 @@ export const EnvCard: React.FC<EnvCardProps> = ({
             type="button"
             className="mb-0 btn btn-sm btn-outline-secondary float-left"
             onClick={async () => {
-              await disconnectWalletHandler();
-              setEnv("devnet");
+              await disconnectWalletHandler()
+              setEnv('devnet')
             }}
           >
             {header}
@@ -32,7 +32,7 @@ export const EnvCard: React.FC<EnvCardProps> = ({
           <button
             type="button"
             className="mb-0 btn btn-sm btn-outline-secondary float-right"
-            onClick={() => setEnv("manual")}
+            onClick={() => setEnv('manual')}
           >
             Create testnet account
           </button>
@@ -40,5 +40,5 @@ export const EnvCard: React.FC<EnvCardProps> = ({
       )}
       <div className="card-body">{children}</div>
     </div>
-  );
-};
+  )
+}
