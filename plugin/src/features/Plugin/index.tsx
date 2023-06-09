@@ -1,103 +1,215 @@
-import { useContext, useEffect, useState } from "react";
-import { CompiledContractsContext } from "../../contexts/CompiledContractsContext";
-import { ConnectionContext } from "../../contexts/ConnectionContext";
-import { Contract } from "../../types/contracts";
-import { Environment } from "../Environment";
-import "./styles.css";
+import React, { useContext, useEffect, useState } from 'react'
+import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
+import { ConnectionContext } from '../../contexts/ConnectionContext'
+import { type Contract } from '../../types/contracts'
+import { Environment } from '../Environment'
+import './styles.css'
 
-import { apiUrl } from "../../utils/network";
+import { apiUrl } from '../../utils/network'
 import {
-  Account,
-  AccountInterface,
-  Provider,
-  ProviderInterface,
-} from "starknet";
-import Compilation from "../Compilation";
-import Deployment from "../Deployment";
-import Interaction from "../Interaction";
-import { RemixClientContext } from "../../contexts/RemixClientContext";
+  type Account,
+  type AccountInterface,
+  type Provider,
+  type ProviderInterface
+} from 'starknet'
+import Compilation from '../Compilation'
+import Deployment from '../Deployment'
+import Interaction from '../Interaction'
+import { RemixClientContext } from '../../contexts/RemixClientContext'
+import Nethermind from '../../components/NM'
+import * as D from '../../ui_components/Dropdown'
+import { BsChevronDown } from 'react-icons/bs'
+import Accordian, {
+  AccordianItem,
+  AccordionContent,
+  AccordionTrigger
+} from '../../ui_components/Accordian'
+import TransactionHistory from '../TransactionHistory'
 
-interface PluginProps {}
+export type AccordianTabs =
+  | 'compile'
+  | 'deploy'
+  | 'interaction'
+  | 'transactions'
 
-function Plugin(_: PluginProps) {
+const Plugin: React.FC = () => {
   // START : Get Cairo version
-  const [cairoVersion, setCairoVersion] = useState("");
-  const remixClient = useContext(RemixClientContext);
+  const [cairoVersion, setCairoVersion] = useState('no version')
+  const remixClient = useContext(RemixClientContext)
 
   useEffect(() => {
-    setTimeout(async () => {
+    const id = setTimeout(async (): Promise<void> => {
       try {
-        const response = await fetch(`${apiUrl}/cairo_version`, {
-          method: "GET",
-          redirect: "follow",
-          headers: {
-            "Content-Type": "application/octet-stream",
-          },
-        });
-        setCairoVersion(await response.text());
+        if (apiUrl !== undefined) {
+          const response = await fetch(`${apiUrl}/cairo_version`, {
+            method: 'GET',
+            redirect: 'follow',
+            headers: {
+              'Content-Type': 'application/octet-stream'
+            }
+          })
+          setCairoVersion(await response.text())
+        }
       } catch (e) {
-        remixClient.cancel('notification' as any, 'toast');
+        remixClient.cancel('notification' as any, 'toast')
         await remixClient.call(
-          "notification" as any,
-          "toast",
-          "🔴 Failed to fetch cairo version from the compilation server!", 
-        );
-        console.error(e);
+          'notification' as any,
+          'toast',
+          '🔴 Failed to fetch cairo version from the compilation server!'
+        )
+        console.error(e)
       }
-    }, 100);
-  }, [remixClient]);
+    }, 100)
+    return () => {
+      clearInterval(id)
+    }
+  }, [remixClient])
   // END : Get Cairo version
-
 
   // START: CAIRO CONTRACTS
   // Store a list of compiled contracts
-  const [compiledContracts, setCompiledContracts] = useState<Contract[]>([]);
+  const [compiledContracts, setCompiledContracts] = useState<Contract[]>([])
   // Store the current contract for UX purposes
   const [selectedContract, setSelectedContract] = useState<Contract | null>(
     null
-  );
+  )
   // END: CAIRO CONTRACTS
 
   // START: ACCOUNT, NETWORK, PROVIDER
   // Store connected wallet, account and provider
   const [provider, setProvider] = useState<Provider | ProviderInterface | null>(
     null
-  );
+  )
   const [account, setAccount] = useState<Account | AccountInterface | null>(
     null
-  );
+  )
   // END: ACCOUNT, NETWORK, PROVIDER
+
+  // Dummy Cairo Verison
+  const [versions] = useState<string[]>([
+    'cairo-lang-compiler 1.0.0-alpha.6',
+    'cairo-lang-compiler 1.0.0-alpha.7',
+    'cairo-lang-compiler 1.0.1'
+  ])
+
+  const [currentAccordian, setCurrentAccordian] =
+    useState<AccordianTabs>('compile')
 
   return (
     // add a button for selecting the cairo version
     <>
-      <div className="mb-1">
-        <label className="cairo-version-legend">Using {cairoVersion}</label>
-      </div>
-      <ConnectionContext.Provider
-        value={{
-          provider,
-          setProvider,
-          account,
-          setAccount,
-        }}
-      >
-        <CompiledContractsContext.Provider
+      <div className="plugin-wrapper">
+        <ConnectionContext.Provider
           value={{
-            contracts: compiledContracts,
-            setContracts: setCompiledContracts,
-            selectedContract: selectedContract,
-            setSelectedContract: setSelectedContract,
+            provider,
+            setProvider,
+            account,
+            setAccount
           }}
         >
-          <Compilation />
-          <Deployment />
-          <Interaction />
-        </CompiledContractsContext.Provider>
-        <Environment />
-      </ConnectionContext.Provider>
+          <div>
+            <CompiledContractsContext.Provider
+              value={{
+                contracts: compiledContracts,
+                setContracts: setCompiledContracts,
+                selectedContract,
+                setSelectedContract
+              }}
+            >
+              <div className="version-wrapper">
+                <div>
+                  <D.Root>
+                    <D.Trigger>
+                      <label className="cairo-version-legend">
+                        Using {cairoVersion} <BsChevronDown />
+                      </label>
+                    </D.Trigger>
+                    <D.Portal>
+                      <D.Content>
+                        {versions.map((v, i) => {
+                          return (
+                            <D.Item
+                              key={i}
+                              onClick={() => {
+                                setCairoVersion(v)
+                              }}
+                            >
+                              {v}
+                            </D.Item>
+                          )
+                        })}
+                      </D.Content>
+                    </D.Portal>
+                  </D.Root>
+                </div>
+
+                <label className="cairo-version-legend">
+                  Powered by <Nethermind size="xs" />
+                </label>
+              </div>
+              <Accordian
+                type="single"
+                value={currentAccordian}
+                defaultValue={'compile'}
+              >
+                <AccordianItem value="compile">
+                  <AccordionTrigger
+                    onClick={() => {
+                      setCurrentAccordian('compile')
+                    }}
+                  >
+                    Compile
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <Compilation />
+                  </AccordionContent>
+                </AccordianItem>
+                <AccordianItem value="deploy">
+                  <AccordionTrigger
+                    onClick={() => {
+                      setCurrentAccordian('deploy')
+                    }}
+                  >
+                    Deploy
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <Deployment setActiveTab={setCurrentAccordian} />
+                  </AccordionContent>
+                </AccordianItem>
+                <AccordianItem value="interaction">
+                  <AccordionTrigger
+                    onClick={() => {
+                      setCurrentAccordian('interaction')
+                    }}
+                  >
+                    Interact
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <Interaction />
+                  </AccordionContent>
+                </AccordianItem>
+                <AccordianItem value="transactions">
+                  <AccordionTrigger
+                    onClick={() => {
+                      setCurrentAccordian('transactions')
+                    }}
+                  >
+                    Transactions
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <TransactionHistory />
+                  </AccordionContent>
+                </AccordianItem>
+              </Accordian>
+            </CompiledContractsContext.Provider>
+          </div>
+          <div>
+            <Environment />
+          </div>
+        </ConnectionContext.Provider>
+      </div>
     </>
-  );
+  )
 }
 
-export default Plugin;
+export default Plugin

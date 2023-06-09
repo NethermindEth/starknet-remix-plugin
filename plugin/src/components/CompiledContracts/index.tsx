@@ -1,22 +1,22 @@
 // A component that reads the compiled contracts from the context and displays them in a select
 
-import { useContext } from "react";
-import { CompiledContractsContext } from "../../contexts/CompiledContractsContext";
+import React, { useContext } from 'react'
+import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
 import {
   getContractNameFromFullName,
   getSelectedContractIndex,
-  getShortenedHash,
-} from "../../utils/utils";
+  getShortenedHash
+} from '../../utils/utils'
 
 interface CompiledContractsProps {}
 
-function CompiledContracts(props: CompiledContractsProps) {
+const CompiledContracts: React.FC<CompiledContractsProps> = (props) => {
   const { contracts, selectedContract, setSelectedContract } = useContext(
     CompiledContractsContext
-  );
+  )
 
-  function handleCompiledContractSelectionChange(event: any) {
-    setSelectedContract(contracts[event.target.value]);
+  function handleCompiledContractSelectionChange (event: any) {
+    setSelectedContract(contracts[event.target.value])
   }
 
   return (
@@ -31,15 +31,15 @@ function CompiledContracts(props: CompiledContractsProps) {
         return (
           <option value={index} key={index}>
             {`${getContractNameFromFullName(contract.name)} (${getShortenedHash(
-              contract.classHash || "",
+              contract.classHash || '',
               6,
               4
             )})`}
           </option>
-        );
+        )
       })}
     </select>
-  );
+  )
 }
 
-export default CompiledContracts;
+export default CompiledContracts

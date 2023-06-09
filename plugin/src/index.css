@@ -11,3 +11,15 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* Colors and Global CSS Variables are defined here */
+:root {
+  --white: white;
+  --black: black;
+  --violet: violet;
+  --textPrimary: white;
+  --bgPrimary: #222336;
+  --borderPrimary: #3f4455;
+  --shadowPrimary: rgba(0, 0, 0, 0.5);
+  --accentColor: #3e4595;
+}

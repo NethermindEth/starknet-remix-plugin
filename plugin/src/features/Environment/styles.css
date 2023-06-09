@@ -5,6 +5,7 @@
 .wallet-wrapper {
   display: flex;
   align-items: center;
+  gap: 0.5rem;
 }
 
 .wallet-wrapper > p {
@@ -12,10 +13,9 @@
   text-transform: capitalize;
 }
 
-.wallet-wrapper > img {
+.wallet-wrapper img {
   width: 30px;
   height: 30px;
-  margin-right: 0.5rem;
 }
 
 .text {
