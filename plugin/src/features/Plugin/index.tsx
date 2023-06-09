@@ -24,8 +24,13 @@ import Accordian, {
   AccordionContent,
   AccordionTrigger
 } from '../../ui_components/Accordian'
+import TransactionHistory from '../TransactionHistory'
 
-export type AccordianTabs = 'compile' | 'deploy' | 'interaction'
+export type AccordianTabs =
+  | 'compile'
+  | 'deploy'
+  | 'interaction'
+  | 'transactions'
 
 const Plugin: React.FC = () => {
   // START : Get Cairo version
@@ -181,6 +186,18 @@ const Plugin: React.FC = () => {
                   </AccordionTrigger>
                   <AccordionContent>
                     <Interaction />
+                  </AccordionContent>
+                </AccordianItem>
+                <AccordianItem value="transactions">
+                  <AccordionTrigger
+                    onClick={() => {
+                      setCurrentAccordian('transactions')
+                    }}
+                  >
+                    Transactions
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <TransactionHistory />
                   </AccordionContent>
                 </AccordianItem>
               </Accordian>
