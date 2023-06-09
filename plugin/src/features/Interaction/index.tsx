@@ -13,7 +13,7 @@ import CompiledContracts from '../../components/CompiledContracts'
 import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
 import { type AbiElement } from '../../types/contracts'
 import { getReadFunctions, getWriteFunctions } from '../../utils/utils'
-import Container from '../../components/Container'
+import Container from '../../ui_components/Container'
 import { ConnectionContext } from '../../contexts/ConnectionContext'
 
 interface InteractionProps {}

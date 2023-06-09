@@ -10,7 +10,7 @@ import {
 } from '../../utils/utils'
 import './styles.css'
 import { hash } from 'starknet'
-import Container from '../../components/Container'
+import Container from '../../ui_components/Container'
 import storage from '../../utils/storage'
 import { ethers } from 'ethers'
 

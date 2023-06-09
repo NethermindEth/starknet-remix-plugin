@@ -1,5 +1,5 @@
 import React from 'react'
-import Container from '../../components/Container'
+import Container from '../../ui_components/Container'
 
 const TransactionHistory: React.FC = () => {
   return (

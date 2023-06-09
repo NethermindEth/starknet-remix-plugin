@@ -13,6 +13,8 @@ import React, { useContext, useEffect, useState } from 'react'
 import { ConnectionContext } from '../../contexts/ConnectionContext'
 import { Account, Provider } from 'starknet'
 import { RemixClientContext } from '../../contexts/RemixClientContext'
+import { MdRefresh } from 'react-icons/md'
+import './devnetAccountSelector.css'
 
 interface DevnetAccountSelectorProps {
   devnet: Devnet
@@ -23,7 +25,7 @@ const DevnetAccountSelector: React.FC<DevnetAccountSelectorProps> = (props) => {
   const remixClient = useContext(RemixClientContext)
 
   const [availableDevnetAccounts, setAvailableDevnetAccounts] = useState<
-  DevnetAccount[]
+    DevnetAccount[]
   >([])
 
   const [selectedDevnetAccount, setSelectedDevnetAccount] =
@@ -111,7 +113,7 @@ const DevnetAccountSelector: React.FC<DevnetAccountSelectorProps> = (props) => {
     }
   }, [props.devnet, selectedDevnetAccount])
 
-  function handleAccountChange (event: any) {
+  function handleAccountChange(event: any) {
     if (event.target.value === -1) {
       return
     }
@@ -131,7 +133,7 @@ const DevnetAccountSelector: React.FC<DevnetAccountSelectorProps> = (props) => {
     )
   }
 
-  function getDefaultValue () {
+  function getDefaultValue() {
     const index = getSelectedAccountIndex(
       availableDevnetAccounts,
       selectedDevnetAccount
@@ -147,36 +149,53 @@ const DevnetAccountSelector: React.FC<DevnetAccountSelectorProps> = (props) => {
     return index + 1
   }
 
+  const [accountRefreshing, setAccountRefreshing] = useState(true)
+
   return (
     <>
       <label className="">Devnet account selection</label>
-      <select
-        className="custom-select"
-        aria-label=".form-select-sm example"
-        onChange={handleAccountChange}
-        defaultValue={getDefaultValue()}
-      >
-        {isDevnetAlive && availableDevnetAccounts.length > 0
-          ? availableDevnetAccounts.map((account, index) => {
-            return (
-                <option value={index} key={index}>
-                  {`${getShortenedHash(
-                    account.address || '',
-                    6,
-                    4
-                  )} (${getRoundedNumber(
-                    weiToEth(account.initial_balance),
-                    2
-                  )} ether)`}
+      <div className="devnet-account-selector-wrapper">
+        <select
+          className="custom-select"
+          aria-label=".form-select-sm example"
+          onChange={handleAccountChange}
+          defaultValue={getDefaultValue()}
+        >
+          {isDevnetAlive && availableDevnetAccounts.length > 0
+            ? availableDevnetAccounts.map((account, index) => {
+                return (
+                  <option value={index} key={index}>
+                    {`${getShortenedHash(
+                      account.address || '',
+                      6,
+                      4
+                    )} (${getRoundedNumber(
+                      weiToEth(account.initial_balance),
+                      2
+                    )} ether)`}
+                  </option>
+                )
+              })
+            : ([
+                <option value={-1} key={-1}>
+                  No accounts found
                 </option>
-            )
-          })
-          : ([
-              <option value={-1} key={-1}>
-                No accounts found
-              </option>
-            ] as JSX.Element[])}
-      </select>
+              ] as JSX.Element[])}
+        </select>
+        <button
+          className="devnet-account-refresh"
+          onClick={() => {
+            setAccountRefreshing(true)
+            // ONLY DEBUG CODE REMOVE WHILE USING
+            setTimeout(() => {
+              setAccountRefreshing(false)
+            }, 3000)
+          }}
+          data-loading={accountRefreshing ? 'loading' : 'loaded'}
+        >
+          <MdRefresh />
+        </button>
+      </div>
     </>
   )
 }

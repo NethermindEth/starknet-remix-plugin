@@ -12,7 +12,7 @@ import {
 } from '../../types/contracts'
 import { getConstructor, getParameterType } from '../../utils/utils'
 import './styles.css'
-import Container from '../../components/Container'
+import Container from '../../ui_components/Container'
 
 import { ConnectionContext } from '../../contexts/ConnectionContext'
 import { RemixClientContext } from '../../contexts/RemixClientContext'
