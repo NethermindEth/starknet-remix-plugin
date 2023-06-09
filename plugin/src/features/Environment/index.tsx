@@ -1,5 +1,4 @@
 import { useContext, useState } from "react";
-import { Card } from "../../components/Card";
 import DevnetAccountSelector from "../../components/DevnetAccountSelector";
 import "./styles.css";
 import {
@@ -14,6 +13,8 @@ import { Devnet, devnets } from "../../utils/network";
 import EnvironmentSelector from "../../components/EnvironmentSelector";
 import { ConnectionContext } from "../../contexts/ConnectionContext";
 import Wallet from "../../components/Wallet";
+import { EnvCard } from "../../components/EnvCard";
+import ManualAccount from "../../components/ManualAccount";
 
 interface ConnectionProps {}
 
@@ -23,7 +24,7 @@ function Environment(_: ConnectionProps) {
 
   // START: DEVNET
   const [devnet, setDevnet] = useState<Devnet>(devnets[0]);
-  const [devnetEnv, setDevnetEnv] = useState<boolean>(true);
+  const [env, setEnv] = useState<string>("devnet");
   // END: DEVNET
 
   // START: WALLET
@@ -34,7 +35,7 @@ function Environment(_: ConnectionProps) {
     options: ConnectOptions = {
       modalMode: "alwaysAsk",
       modalTheme: "dark",
-    },
+    }
   ) => {
     try {
       const connectedStarknetWindowObject = await connect(options);
@@ -100,30 +101,40 @@ function Environment(_: ConnectionProps) {
 
   return (
     <div className="starknet-connection-component mb-8">
-      <Card header="Environment">
-        <div className="flex">
-          <label className="">Environment selection</label>
-          <EnvironmentSelector
-            devnetEnv={devnetEnv}
-            setDevnetEnv={setDevnetEnv}
-            devnet={devnet}
-            setDevnet={setDevnet}
-            connectWalletHandler={connectWalletHandler}
-            disconnectWalletHandler={disconnectWalletHandler}
-          />
-        </div>
-        <div className="flex">
-          {devnetEnv ? (
-            <DevnetAccountSelector devnet={devnet} />
-          ) : (
-            <Wallet
-              starknetWindowObject={starknetWindowObject}
-              connectWalletHandler={connectWalletHandler}
-              disconnectWalletHandler={disconnectWalletHandler}
-            />
-          )}
-        </div>
-      </Card>
+      <EnvCard
+        header="Environment"
+        setEnv={setEnv}
+        disconnectWalletHandler={disconnectWalletHandler}
+      >
+        {env === "manual" ? (
+          <ManualAccount />
+        ) : (
+          <>
+            <div className="flex">
+              <label className="">Environment selection</label>
+              <EnvironmentSelector
+                env={env}
+                setEnv={setEnv}
+                devnet={devnet}
+                setDevnet={setDevnet}
+                connectWalletHandler={connectWalletHandler}
+                disconnectWalletHandler={disconnectWalletHandler}
+              />
+            </div>
+            <div className="flex">
+              {env === "devnet" ? (
+                <DevnetAccountSelector devnet={devnet} />
+              ) : (
+                <Wallet
+                  starknetWindowObject={starknetWindowObject}
+                  connectWalletHandler={connectWalletHandler}
+                  disconnectWalletHandler={disconnectWalletHandler}
+                />
+              )}
+            </div>
+          </>
+        )}
+      </EnvCard>
     </div>
   );
 }

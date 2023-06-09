@@ -19,6 +19,7 @@ function Deployment(_: DeploymentProps) {
   const {account, provider} = useContext(ConnectionContext);
 
   const [isDeploying, setIsDeploying] = useState(false);
+  const [deployStatus, setDeployStatus] = useState("");
   const [constructorCalldata, setConstructorCalldata] =
     useState<CallDataObject>({});
   const [finalCallData, setFinalCallData] = useState<any[]>([]);
@@ -38,14 +39,24 @@ function Deployment(_: DeploymentProps) {
   const deploy = async (calldata: BigNumberish[]) => {
     setIsDeploying(true);
     try {
-      if(account === null) {
-        throw new Error("No account selected!");
+      if(account === null || provider === null) {
+        throw new Error("No account or provider selected!");
       }
+
+      if(selectedContract === null) {
+        throw new Error("No contract selected for deployment!");
+      }
+
+      setDeployStatus("Declaring...");
+
+      // const contractClass = await provider.getClassByHash(selectedContract.classHash);
+
+      // console.log("declare response", contractClass);
 
       const declareAndDeployResponse = await account.declareAndDeploy(
         {
-          contract: selectedContract?.sierra,
-          casm: selectedContract?.casm,
+          contract: selectedContract.sierra,
+          casm: selectedContract.casm,
           constructorCalldata: calldata,
         },
         { cairoVersion: '1' }

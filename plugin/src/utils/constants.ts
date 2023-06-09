@@ -6,12 +6,12 @@ type Network =
   | "goerli-alpha"
   | "goerli-alpha-2"
   | "mainnet-alpha"
-  | "http://127.0.0.1:5050";
+
+
 
 const networks = [
   { name: "Testnet", value: "goerli-alpha" },
   { name: "Testnet 2", value: "goerli-alpha-2" },
-  { name: "Devnet", value: devnetUrl },
   { name: "Mainnet", value: "mainnet-alpha" },
 ];
 
@@ -19,13 +19,18 @@ const networkExplorerUrls = {
   "goerli-alpha": "https://goerli.voyager.online",
   "goerli-alpha-2": "https://goerli-2.voyager.online",
   "mainnet-alpha": "https://voyager.online",
-  "http://127.0.0.1:5050": "https://devnet.starkscan.co/",
 };
 
 const networkEquivalents = new Map([
-  [constants.StarknetChainId.SN_GOERLI, "goerli-alpha"],
-  [constants.StarknetChainId.SN_GOERLI2, "goerli-alpha-2"],
-  [constants.StarknetChainId.SN_MAIN, "mainnet-alpha"],
+  ["goerli-alpha", constants.StarknetChainId.SN_GOERLI],
+  ["goerli-alpha-2", constants.StarknetChainId.SN_GOERLI2],
+  ["mainnet-alpha", constants.StarknetChainId.SN_MAIN],
+]);
+
+const networkNameEquivalents = new Map([
+  ["goerli-alpha", constants.NetworkName.SN_GOERLI],
+  ["goerli-alpha-2", constants.NetworkName.SN_GOERLI2],
+  ["mainnet-alpha", constants.NetworkName.SN_MAIN],
 ]);
 
 const licenses = [
@@ -46,11 +51,12 @@ const licenses = [
 ];
 
 export {
-  devnetUrl,
-  networks,
-  networkExplorerUrls,
-  networkEquivalents,
-  licenses,
+    devnetUrl,
+    networks,
+    networkExplorerUrls,
+    networkEquivalents,
+    networkNameEquivalents,
+    licenses, constants,
 };
 
 export type { Network };
