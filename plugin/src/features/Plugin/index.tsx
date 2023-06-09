@@ -37,7 +37,7 @@ function Plugin(_: PluginProps) {
   const remixClient = useContext(RemixClientContext);
 
   // START : Get Cairo version
-  const [cairoVersion, setCairoVersion] = useState("");
+  const [cairoVersion, setCairoVersion] = useState("no version");
 
   useEffect(() => {
     setTimeout(async () => {
