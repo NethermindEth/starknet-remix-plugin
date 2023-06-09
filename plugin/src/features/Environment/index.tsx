@@ -102,7 +102,10 @@ const Environment: React.FC<ConnectionProps> = () => {
 
   return (
     <div className="starknet-connection-component mb-8">
-      <Card header="Environment">
+      <Card
+        header="Environment"
+        rightItem={<button className='btn btn-primary rounded-pill'>Create Testnet Account</button>}
+      >
         <div className="flex">
           <label className="">Environment selection</label>
           <EnvironmentSelector
@@ -115,17 +118,15 @@ const Environment: React.FC<ConnectionProps> = () => {
           />
         </div>
         <div className="flex">
-          {devnetEnv
-            ? (
+          {devnetEnv ? (
             <DevnetAccountSelector devnet={devnet} />
-              )
-            : (
+          ) : (
             <Wallet
               starknetWindowObject={starknetWindowObject}
               connectWalletHandler={connectWalletHandler}
               disconnectWalletHandler={disconnectWalletHandler}
             />
-              )}
+          )}
         </div>
       </Card>
     </div>
