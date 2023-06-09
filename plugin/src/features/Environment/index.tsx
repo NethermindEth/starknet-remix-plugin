@@ -104,7 +104,7 @@ const Environment: React.FC<ConnectionProps> = () => {
     <div className="starknet-connection-component mb-8">
       <Card
         header="Environment"
-        rightItem={<button className='btn btn-primary rounded-pill'>Create Testnet Account</button>}
+        rightItem={!devnetEnv && <button className='btn btn-primary rounded-pill'>Create Testnet Account</button>}
       >
         <div className="flex">
           <label className="">Environment selection</label>
