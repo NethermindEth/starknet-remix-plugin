@@ -27,6 +27,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   const { account, provider } = useContext(ConnectionContext)
 
   const [isDeploying, setIsDeploying] = useState(false)
+  const [deployStatus, setDeployStatus] = useState('')
   const [constructorCalldata, setConstructorCalldata] =
     useState<CallDataObject>({})
   const [finalCallData, setFinalCallData] = useState<any[]>([])
@@ -46,14 +47,24 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   const deploy = async (calldata: BigNumberish[]) => {
     setIsDeploying(true)
     try {
-      if (account === null) {
-        throw new Error('No account selected!')
+      if (account === null || provider === null) {
+        throw new Error('No account or provider selected!')
       }
+
+      if (selectedContract === null) {
+        throw new Error('No contract selected for deployment!')
+      }
+
+      setDeployStatus('Declaring...')
+
+      // const contractClass = await provider.getClassByHash(selectedContract.classHash);
+
+      // console.log("declare response", contractClass);
 
       const declareAndDeployResponse = await account.declareAndDeploy(
         {
-          contract: selectedContract?.sierra,
-          casm: selectedContract?.casm,
+          contract: selectedContract.sierra,
+          casm: selectedContract.casm,
           constructorCalldata: calldata
         },
         { cairoVersion: '1' }
@@ -169,8 +180,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   return (
     <>
       <Container>
-        {contracts.length > 0 && selectedContract != null
-          ? (
+        {contracts.length > 0 && selectedContract != null ? (
           <div className="">
             <CompiledContracts />
             <form onSubmit={handleDeploySubmit}>
@@ -205,8 +215,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
               >
                 <div className="d-flex align-items-center justify-content-center">
                   <div className="text-truncate overflow-hidden text-nowrap">
-                    {isDeploying
-                      ? (
+                    {isDeploying ? (
                       <>
                         <span
                           className="spinner-border spinner-border-sm"
@@ -219,12 +228,11 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
                           Deploying...
                         </span>
                       </>
-                        )
-                      : (
+                    ) : (
                       <div className="text-truncate overflow-hidden text-nowrap">
                         <span>Deploy {selectedContract.name}</span>
                       </div>
-                        )}
+                    )}
                   </div>
                 </div>
               </button>
@@ -251,10 +259,9 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
               <label>Please fill out all constructor fields!</label>
             )}
           </div>
-            )
-          : (
+        ) : (
           <p>No contracts ready for deployment yet</p>
-            )}
+        )}
       </Container>
     </>
   )

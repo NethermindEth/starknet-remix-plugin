@@ -6,8 +6,8 @@ import { RxDotFilled } from 'react-icons/rx'
 import { Provider } from 'starknet'
 
 interface EnvironmentSelectorProps {
-  devnetEnv: boolean
-  setDevnetEnv: (devnetEnv: boolean) => void
+  env: string
+  setEnv: (devnetEnv: string) => void
   devnet: Devnet
   setDevnet: (devnet: Devnet) => void
   connectWalletHandler: (options?: ConnectOptions) => Promise<void>
@@ -20,7 +20,7 @@ const EnvironmentSelector: React.FC<EnvironmentSelectorProps> = (props) => {
   async function handleEnvironmentChange(event: any) {
     if (event.target.value > 0) {
       props.setDevnet(devnets[event.target.value - 1])
-      props.setDevnetEnv(true)
+      props.setEnv('devnet')
       props.disconnectWalletHandler()
       setProvider(
         new Provider({
@@ -31,7 +31,7 @@ const EnvironmentSelector: React.FC<EnvironmentSelectorProps> = (props) => {
       )
       return
     }
-    props.setDevnetEnv(false)
+    props.setEnv('wallet')
     props.connectWalletHandler()
   }
 
@@ -59,7 +59,7 @@ const EnvironmentSelector: React.FC<EnvironmentSelectorProps> = (props) => {
           ]
         )}
       </select>
-      {devnets.length > 0 && <RxDotFilled size={"30px"}  color='lime'/>}
+      {devnets.length > 0 && <RxDotFilled size={'30px'} color="lime" />}
     </div>
   )
 }
