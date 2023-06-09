@@ -14,6 +14,7 @@ import { type Devnet, devnets } from '../../utils/network'
 import EnvironmentSelector from '../../components/EnvironmentSelector'
 import { ConnectionContext } from '../../contexts/ConnectionContext'
 import Wallet from '../../components/Wallet'
+import NewTestNetAccount from '../../components/NewTestnetAccount'
 
 interface ConnectionProps {}
 
@@ -99,12 +100,25 @@ const Environment: React.FC<ConnectionProps> = () => {
   }
 
   // END: WALLET
+  const [dialogState, setDialogState] = useState(false)
 
   return (
     <div className="starknet-connection-component mb-8">
+      <NewTestNetAccount state={[dialogState, setDialogState]} />
       <Card
         header="Environment"
-        rightItem={!devnetEnv && <button className='btn btn-primary rounded-pill'>Create Testnet Account</button>}
+        rightItem={
+          !devnetEnv && (
+            <button
+              className="btn btn-primary rounded-pill"
+              onClick={() => {
+                setDialogState(true)
+              }}
+            >
+              Create Testnet Account
+            </button>
+          )
+        }
       >
         <div className="flex">
           <label className="">Environment selection</label>
