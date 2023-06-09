@@ -4,7 +4,7 @@
   justify-content: space-between;
 }
 
-.devnet-account-refresh {
+.refresh {
   all: unset;
   width: 2rem;
   height: 2rem;
@@ -13,7 +13,7 @@
   align-items: center;
 }
 
-.devnet-account-refresh[data-loading='loading'] svg {
+.refresh[data-loading='loading'] svg {
   -webkit-animation: rotating 1s linear infinite;
   -moz-animation: rotating 1s linear infinite;
   -ms-animation: rotating 1s linear infinite;

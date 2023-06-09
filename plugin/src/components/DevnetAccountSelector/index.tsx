@@ -183,7 +183,7 @@ const DevnetAccountSelector: React.FC<DevnetAccountSelectorProps> = (props) => {
               ] as JSX.Element[])}
         </select>
         <button
-          className="devnet-account-refresh"
+          className="refresh"
           onClick={() => {
             setAccountRefreshing(true)
             // ONLY DEBUG CODE REMOVE WHILE USING

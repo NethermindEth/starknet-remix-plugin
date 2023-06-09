@@ -107,7 +107,7 @@ const AccountCreated: React.FC<IAccountCreated> = ({
         <p>Balance: </p>
         <p>{balance} ETH</p>
         <button
-          className="devnet-account-refresh"
+          className="refresh"
           onClick={() => {
             setBalanceRefreshing(true)
             // ONLY DEBUG CODE REMOVE WHILE USING
