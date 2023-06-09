@@ -6,6 +6,12 @@ import {
 } from 'get-starknet'
 
 import copy from 'copy-to-clipboard'
+import Tooltip from '../../ui_components/Tooltip'
+import { CiWarning } from 'react-icons/ci'
+import { BsChevronDown } from 'react-icons/bs'
+import * as D from '../../ui_components/Dropdown'
+
+import './wallet.css'
 
 const trimAddress = (adr: string) => {
   if (adr && adr.startsWith('0x')) {
@@ -50,6 +56,13 @@ const Wallet: React.FC<WalletProps> = (props) => {
     props.connectWalletHandler()
   }
 
+  const [currentNetwork, setCurrentNetwork] = useState('goerli')
+  const [availableNetworks] = useState<string[]>([
+    'goerli',
+    'dev-goerli',
+    'mainnet'
+  ])
+
   return (
     <div
       className="flex"
@@ -65,9 +78,40 @@ const Wallet: React.FC<WalletProps> = (props) => {
       >
         Reconnect
       </button>
-      <div className="wallet-wrapper">
-        <img src={props.starknetWindowObject?.icon} alt="wallet icon" />
-        <p className="text"> {props.starknetWindowObject?.id}</p>
+      <div className="wallet-row-wrapper">
+        <div className="wallet-wrapper">
+          <img src={props.starknetWindowObject?.icon} alt="wallet icon" />
+          <p className="text"> {props.starknetWindowObject?.id}</p>
+          <Tooltip
+            icon={<CiWarning color="yellow" />}
+            content={`${props.starknetWindowObject?.name} doesn't support cairo 1 contracts`}
+          />
+        </div>
+        <div className="account-network-wrapper">
+          <D.Root>
+            <D.Trigger>
+              <label className="account-network-selector">
+                Connected to {currentNetwork} <BsChevronDown />
+              </label>
+            </D.Trigger>
+            <D.Portal>
+              <D.Content>
+                {availableNetworks.map((v, i) => {
+                  return (
+                    <D.Item
+                      key={i}
+                      onClick={() => {
+                        setCurrentNetwork(v)
+                      }}
+                    >
+                      {v}
+                    </D.Item>
+                  )
+                })}
+              </D.Content>
+            </D.Portal>
+          </D.Root>
+        </div>
       </div>
       <div className="account-wrapper">
         <span>

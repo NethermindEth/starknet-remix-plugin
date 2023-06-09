@@ -1,0 +1,18 @@
+.wallet-row-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.account-network-wrapper {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.account-network-selector {
+  font-size: 0.8rem;
+  color: var(--white);
+  margin: 0px;
+}
