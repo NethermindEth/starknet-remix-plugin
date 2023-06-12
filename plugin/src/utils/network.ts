@@ -2,6 +2,7 @@ import { type DevnetAccount } from '../types/accounts'
 
 const apiUrl = process.env.REACT_APP_API_URL
 const devnetUrl = process.env.REACT_APP_DEVNET_URL ?? 'http://localhost:5050'
+const remoteDevnetUrl = process.env.REACT_APP_REMOTE_DEVNET_URL ?? 'https://starknet-devnet-dev.nethermind.io'
 
 interface Devnet {
   name: string
@@ -11,11 +12,11 @@ interface Devnet {
 const devnets: Devnet[] = [
   {
     name: 'Local Devnet',
-    url: 'http://localhost:5050'
+    url: devnetUrl,
   },
   {
     name: 'Remote Devnet',
-    url: 'https://cairo-api.starkfees.xyz:5050'
+    url: remoteDevnetUrl, 
   }
 ]
 

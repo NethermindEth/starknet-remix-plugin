@@ -7,9 +7,9 @@ use std::process::{Command, Stdio};
 use rocket::data::{Data, ToByteUnit};
 use rocket::fairing::{Fairing, Info, Kind};
 use rocket::fs::NamedFile;
-use rocket::http::Header;
 use rocket::tokio::fs;
 use rocket::{Request, Response};
+use rocket::http::{Header, Method, Status};
 
 mod utils;
 use utils::lib::{get_file_ext, get_file_path, CAIRO_DIR, CASM_ROOT, SIERRA_ROOT};
@@ -18,22 +18,30 @@ use utils::lib::{get_file_ext, get_file_path, CAIRO_DIR, CASM_ROOT, SIERRA_ROOT}
 
 pub struct CORS;
 
+
 #[rocket::async_trait]
 impl Fairing for CORS {
     fn info(&self) -> Info {
         Info {
-            name: "Cross-Origin-Resource-Sharing Fairing",
+            name: "Add CORS headers to responses",
             kind: Kind::Response,
         }
     }
 
-    async fn on_response<'r>(&self, _request: &'r Request<'_>, response: &mut Response<'r>) {
-        response.set_header(Header::new("Access-Control-Allow-Origin", "*"));
+    async fn on_response<'r>(&self, request: &'r Request<'_>, response: &mut Response<'r>) {
+        if request.method() == Method::Options {
+            response.set_status(Status::NoContent);
+            response.set_header(Header::new(
+                "Access-Control-Allow-Methods",
+                "POST, PATCH, GET, DELETE",
+            ));
+            response.set_header(Header::new("Access-Control-Allow-Headers", "*"));
+        }
+
         response.set_header(Header::new(
-            "Access-Control-Allow-Methods",
-            "POST, PATCH, PUT, DELETE, HEAD, OPTIONS, GET",
+            "Access-Control-Allow-Origin",
+            "https://cairo-remix-test.nethermind.io"
         ));
-        response.set_header(Header::new("Access-Control-Allow-Headers", "*"));
         response.set_header(Header::new("Access-Control-Allow-Credentials", "true"));
     }
 }
@@ -66,12 +74,6 @@ async fn save_code(file: Data<'_>, remix_file_path: PathBuf) -> String {
 
     // Modify to zip and unpack.
     let saved_file = file.open(128_i32.gibibytes()).into_file(&file_path).await;
-
-    // print contents of file
-    println!(
-        "LOG: File contents: {:?}",
-        fs::read_to_string(&file_path).await
-    );
 
     match saved_file {
         Ok(_) => {
@@ -315,6 +317,11 @@ async fn health() -> &'static str {
     "OK"
 }
 
+#[get("/")]
+async fn who_is_this() -> &'static str {
+    "Who are you?"
+}
+
 #[launch]
 fn rocket() -> _ {
     rocket::build()
@@ -327,14 +334,7 @@ fn rocket() -> _ {
                 save_code,
                 cairo_version,
                 health, 
-                all_options
+                who_is_this, 
             ],
         )
-}
-
-
-/// Catches all OPTION requests in order to get the CORS related Fairing triggered.
-#[options("/<_..>")]
-fn all_options() {
-    /* Intentionally left empty */
 }

@@ -1,5 +1,4 @@
 import React, { useContext, useState } from 'react'
-import { Card } from '../../components/Card'
 import DevnetAccountSelector from '../../components/DevnetAccountSelector'
 import './styles.css'
 import './styles.css'
@@ -15,7 +14,6 @@ import { type Devnet, devnets } from '../../utils/network'
 import EnvironmentSelector from '../../components/EnvironmentSelector'
 import { ConnectionContext } from '../../contexts/ConnectionContext'
 import Wallet from '../../components/Wallet'
-import NewTestNetAccount from '../../components/NewTestnetAccount'
 import { EnvCard } from '../../components/EnvCard'
 import ManualAccount from '../../components/ManualAccount'
 
