@@ -1,8 +1,0 @@
-.deploy {
-  margin: 0 24px;
-}
-
-[aria-disabled="true"] {
-  opacity: 0.5;
-  cursor: not-allowed;
-}

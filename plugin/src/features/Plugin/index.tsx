@@ -1,131 +1,215 @@
-import { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from 'react'
+import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
+import { ConnectionContext } from '../../contexts/ConnectionContext'
+import { type Contract } from '../../types/contracts'
+import { Environment } from '../Environment'
+import './styles.css'
 
-import { Account, Provider } from "starknet";
-import Nav from "../../components/Nav";
-import { CompiledContractsContext } from "../../contexts/CompiledContractsContext";
-import { ConnectionContext } from "../../contexts/ConnectionContext";
-import { DevnetContext } from "../../contexts/DevnetContext";
+import { apiUrl } from '../../utils/network'
 import {
-  Connection as ConnectionType,
-  DevnetAccount,
-} from "../../types/accounts";
-import { Contract } from "../../types/contracts";
-import {
-  Devnet as DevnetType,
-  devnets,
-  getAccounts,
-} from "../../utils/network";
-import { Devnet } from "../Devnet";
-import "./styles.css";
+  type Account,
+  type AccountInterface,
+  type Provider,
+  type ProviderInterface
+} from 'starknet'
+import Compilation from '../Compilation'
+import Deployment from '../Deployment'
+import Interaction from '../Interaction'
+import { RemixClientContext } from '../../contexts/RemixClientContext'
+import Nethermind from '../../components/NM'
+import * as D from '../../ui_components/Dropdown'
+import { BsChevronDown } from 'react-icons/bs'
+import Accordian, {
+  AccordianItem,
+  AccordionContent,
+  AccordionTrigger
+} from '../../ui_components/Accordian'
+import TransactionHistory from '../TransactionHistory'
 
-interface PluginProps {}
+export type AccordianTabs =
+  | 'compile'
+  | 'deploy'
+  | 'interaction'
+  | 'transactions'
 
-function Plugin(props: PluginProps) {
-  const [cairoVersion, setCairoVersion] = useState("");
-  // Store connected wallet and provider
+const Plugin: React.FC = () => {
+  // START : Get Cairo version
+  const [cairoVersion, setCairoVersion] = useState('no version')
+  const remixClient = useContext(RemixClientContext)
 
-  const [connection, setConnection] = useState<ConnectionType>({
-    connected: false,
-    account: undefined,
-    provider: undefined,
-    network: "goerli-alpha",
-  });
+  useEffect(() => {
+    const id = setTimeout(async (): Promise<void> => {
+      try {
+        if (apiUrl !== undefined) {
+          const response = await fetch(`${apiUrl}/cairo_version`, {
+            method: 'GET',
+            redirect: 'follow',
+            headers: {
+              'Content-Type': 'application/octet-stream'
+            }
+          })
+          setCairoVersion(await response.text())
+        }
+      } catch (e) {
+        remixClient.cancel('notification' as any, 'toast')
+        await remixClient.call(
+          'notification' as any,
+          'toast',
+          '🔴 Failed to fetch cairo version from the compilation server!'
+        )
+        console.error(e)
+      }
+    }, 100)
+    return () => {
+      clearInterval(id)
+    }
+  }, [remixClient])
+  // END : Get Cairo version
 
+  // START: CAIRO CONTRACTS
   // Store a list of compiled contracts
-  const [compiledContracts, setCompiledContracts] = useState<Contract[]>([]);
+  const [compiledContracts, setCompiledContracts] = useState<Contract[]>([])
   // Store the current contract for UX purposes
   const [selectedContract, setSelectedContract] = useState<Contract | null>(
     null
-  );
+  )
+  // END: CAIRO CONTRACTS
 
-  // using local devnet initially
-  const [devnet, setDevnet] = useState<DevnetType>(devnets[0]);
-
-  const [availableAccounts, setAvailableAccounts] = useState<DevnetAccount[]>(
-    []
-  );
-  const [selectedAccount, setSelectedAccount] = useState<DevnetAccount | null>(
+  // START: ACCOUNT, NETWORK, PROVIDER
+  // Store connected wallet, account and provider
+  const [provider, setProvider] = useState<Provider | ProviderInterface | null>(
     null
-  );
-  const [provider, setProvider] = useState<Provider | null>(null);
-  const [account, setAccount] = useState<Account | null>(null);
+  )
+  const [account, setAccount] = useState<Account | AccountInterface | null>(
+    null
+  )
+  // END: ACCOUNT, NETWORK, PROVIDER
 
-  useEffect(() => {
-    const setAccounts = async () => {
-      const accounts = await getAccounts(devnet.url);
-      setAvailableAccounts(accounts);
-    };
-    setAccounts();
-  }, [devnet]);
+  // Dummy Cairo Verison
+  const [versions] = useState<string[]>([
+    'cairo-lang-compiler 1.0.0-alpha.6',
+    'cairo-lang-compiler 1.0.0-alpha.7',
+    'cairo-lang-compiler 1.0.1'
+  ])
 
-  useEffect(() => {
-    if (availableAccounts.length > 0) {
-      setSelectedAccount(availableAccounts[0]);
-      const localProvider = new Provider({
-        sequencer: { baseUrl: devnet.url },
-      });
-      setProvider(localProvider);
-      const localAccount = new Account(
-        localProvider,
-        availableAccounts[0].address,
-        availableAccounts[0].private_key
-      );
-      setAccount(localAccount);
-    }
-  }, [availableAccounts, devnet]);
-
-  useEffect(() => {
-    // TODO: Call the API and make the api return the version of the Cairo compiler on use effect
-    setCairoVersion("v1.0.0-rc0");
-  }, []);
+  const [currentAccordian, setCurrentAccordian] =
+    useState<AccordianTabs>('compile')
 
   return (
+    // add a button for selecting the cairo version
     <>
-      <DevnetContext.Provider
-        value={{
-          devnet,
-          setDevnet,
-          availableAccounts,
-          setAvailableAccounts,
-          selectedAccount,
-          setSelectedAccount,
-          provider,
-          setProvider,
-          account,
-          setAccount,
-        }}
-      >
-        <ConnectionContext.Provider value={{ connection, setConnection }}>
-          <CompiledContractsContext.Provider
-            value={{
-              contracts: compiledContracts,
-              setContracts: setCompiledContracts,
-              selectedContract: selectedContract,
-              setSelectedContract: setSelectedContract,
-            }}
-          >
-            <div className="mb-1">
-              <label className="cairo-version-legend">
-                Using cairo version {cairoVersion}
-              </label>
-            </div>
-            <Nav />
-            <div
-              style={{
-                position: "fixed",
-                bottom: "0",
-                left: "0",
-                right: "0",
-                opacity: "1",
+      <div className="plugin-wrapper">
+        <ConnectionContext.Provider
+          value={{
+            provider,
+            setProvider,
+            account,
+            setAccount
+          }}
+        >
+          <div>
+            <CompiledContractsContext.Provider
+              value={{
+                contracts: compiledContracts,
+                setContracts: setCompiledContracts,
+                selectedContract,
+                setSelectedContract
               }}
             >
-              <Devnet />
-            </div>
-          </CompiledContractsContext.Provider>
+              <div className="version-wrapper">
+                <div>
+                  <D.Root>
+                    <D.Trigger>
+                      <label className="cairo-version-legend">
+                        Using {cairoVersion} <BsChevronDown />
+                      </label>
+                    </D.Trigger>
+                    <D.Portal>
+                      <D.Content>
+                        {versions.map((v, i) => {
+                          return (
+                            <D.Item
+                              key={i}
+                              onClick={() => {
+                                setCairoVersion(v)
+                              }}
+                            >
+                              {v}
+                            </D.Item>
+                          )
+                        })}
+                      </D.Content>
+                    </D.Portal>
+                  </D.Root>
+                </div>
+
+                <label className="cairo-version-legend">
+                  Powered by <Nethermind size="xs" />
+                </label>
+              </div>
+              <Accordian
+                type="single"
+                value={currentAccordian}
+                defaultValue={'compile'}
+              >
+                <AccordianItem value="compile">
+                  <AccordionTrigger
+                    onClick={() => {
+                      setCurrentAccordian('compile')
+                    }}
+                  >
+                    Compile
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <Compilation />
+                  </AccordionContent>
+                </AccordianItem>
+                <AccordianItem value="deploy">
+                  <AccordionTrigger
+                    onClick={() => {
+                      setCurrentAccordian('deploy')
+                    }}
+                  >
+                    Deploy
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <Deployment setActiveTab={setCurrentAccordian} />
+                  </AccordionContent>
+                </AccordianItem>
+                <AccordianItem value="interaction">
+                  <AccordionTrigger
+                    onClick={() => {
+                      setCurrentAccordian('interaction')
+                    }}
+                  >
+                    Interact
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <Interaction />
+                  </AccordionContent>
+                </AccordianItem>
+                <AccordianItem value="transactions">
+                  <AccordionTrigger
+                    onClick={() => {
+                      setCurrentAccordian('transactions')
+                    }}
+                  >
+                    Transactions
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <TransactionHistory />
+                  </AccordionContent>
+                </AccordianItem>
+              </Accordian>
+            </CompiledContractsContext.Provider>
+          </div>
+          <div>
+            <Environment />
+          </div>
         </ConnectionContext.Provider>
-      </DevnetContext.Provider>
+      </div>
     </>
-  );
+  )
 }
 
-export default Plugin;
+export default Plugin

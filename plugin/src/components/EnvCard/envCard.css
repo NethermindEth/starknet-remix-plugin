@@ -1,0 +1,19 @@
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.env-btn {
+    font-size: 1.2rem;
+    padding: 0;
+}
+
+.env-testnet-btn {
+    border: 1px solid orange;
+    color: var(--white);
+}
+
+.env-testnet-btn:hover {
+    border: 1px solid orange;
+}

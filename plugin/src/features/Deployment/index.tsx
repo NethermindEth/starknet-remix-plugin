@@ -1,163 +1,186 @@
-// TODO: Divide in two components: Connection and Deploy.
-
-import { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from 'react'
 
 // import { useContractFactory, useDeploy } from "@starknet-react/core";
-import { BigNumberish } from "ethers";
-import { uint256 } from "starknet";
-import { Card } from "../../components/Card";
-import CompiledContracts from "../../components/CompiledContracts";
-import { CompiledContractsContext } from "../../contexts/CompiledContractsContext";
-import { DevnetContext } from "../../contexts/DevnetContext";
-import { CallDataObject, Contract, Input } from "../../types/contracts";
-import { getConstructor, getParameterType } from "../../utils/utils";
-import "./styles.css";
+import { type BigNumberish } from 'ethers'
+import { uint256 } from 'starknet'
+import CompiledContracts from '../../components/CompiledContracts'
+import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
+import {
+  type CallDataObject,
+  type Contract,
+  type Input
+} from '../../types/contracts'
+import { getConstructor, getParameterType } from '../../utils/utils'
+import './styles.css'
+import Container from '../../ui_components/Container'
+
+import { ConnectionContext } from '../../contexts/ConnectionContext'
+import { RemixClientContext } from '../../contexts/RemixClientContext'
+import { type AccordianTabs } from '../Plugin'
 
 interface DeploymentProps {
-  setActiveTab: (tab: string) => void;
+  setActiveTab: (tab: AccordianTabs) => void
 }
 
-function Deployment({ setActiveTab }: DeploymentProps) {
-  const [isDeploying, setIsDeploying] = useState(false);
+const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
+  const remixClient = useContext(RemixClientContext)
+  const { account, provider } = useContext(ConnectionContext)
+
+  const [isDeploying, setIsDeploying] = useState(false)
+  const [deployStatus, setDeployStatus] = useState('')
   const [constructorCalldata, setConstructorCalldata] =
-    useState<CallDataObject>({});
-  const [finalCallData, setFinalCallData] = useState<any[]>([]);
-  const [constructorInputs, setConstructorInputs] = useState<Input[]>([]);
-  const [notEnoughInputs, setNotEnoughInputs] = useState(false);
-  const { devnet, availableAccounts, selectedAccount, account, provider } =
-    useContext(DevnetContext);
+    useState<CallDataObject>({})
+  const [finalCallData, setFinalCallData] = useState<any[]>([])
+  const [constructorInputs, setConstructorInputs] = useState<Input[]>([])
+  const [notEnoughInputs, setNotEnoughInputs] = useState(false)
   const { contracts, selectedContract, setContracts, setSelectedContract } =
-    useContext(CompiledContractsContext);
+    useContext(CompiledContractsContext)
 
   useEffect(() => {
-    setConstructorCalldata({});
-    if (selectedContract) {
-      console.log("Constructor", getConstructor(selectedContract?.abi));
-      setConstructorInputs(getConstructor(selectedContract?.abi)?.inputs || []);
+    setConstructorCalldata({})
+    if (selectedContract != null) {
+      console.log('Constructor', getConstructor(selectedContract?.abi))
+      setConstructorInputs(getConstructor(selectedContract?.abi)?.inputs ?? [])
     }
-  }, [selectedContract]);
+  }, [selectedContract])
 
   const deploy = async (calldata: BigNumberish[]) => {
-    console.log("Provider:", provider);
-    console.log("Account:", account);
-    console.log("ClassHash:", selectedContract?.classHash);
-    console.log("Contract:", selectedContract?.sierra);
-    setIsDeploying(true);
+    setIsDeploying(true)
     try {
-      const declareAndDeployResponse = await account?.declareAndDeploy(
+      if (account === null || provider === null) {
+        throw new Error('No account or provider selected!')
+      }
+
+      if (selectedContract === null) {
+        throw new Error('No contract selected for deployment!')
+      }
+
+      setDeployStatus('Declaring...')
+
+      // const contractClass = await provider.getClassByHash(selectedContract.classHash);
+
+      // console.log("declare response", contractClass);
+
+      const declareAndDeployResponse = await account.declareAndDeploy(
         {
-          contract: selectedContract?.sierra,
-          casm: selectedContract?.casm,
-          constructorCalldata: calldata,
+          contract: selectedContract.sierra,
+          casm: selectedContract.casm,
+          constructorCalldata: calldata
         },
-        { cairoVersion: "1" }
-      );
-      console.log(declareAndDeployResponse?.deploy.contract_address);
+        { cairoVersion: '1' }
+      )
+      console.log('deploy response', declareAndDeployResponse)
+      console.log(declareAndDeployResponse?.deploy.contract_address)
       setContractDeployment(
         selectedContract as Contract,
-        declareAndDeployResponse?.deploy.contract_address || ""
-      );
+        declareAndDeployResponse?.deploy.contract_address || ''
+      )
       // setContractAsDeployed(selectedContract as Contract);
-      setIsDeploying(false);
-      console.log(declareAndDeployResponse);
+      console.log(declareAndDeployResponse)
     } catch (error) {
-      console.log(error);
-      setIsDeploying(false);
+      console.log('got this error during deployment', error, typeof error)
+      if (error instanceof Error) {
+        remixClient.call('terminal', 'log', {
+          value: error.message,
+          type: 'error'
+        })
+      }
     }
-  };
+    setIsDeploying(false)
+  }
 
   const handleDeploy = (calldata: BigNumberish[]) => {
-    console.log("Calldata:", calldata);
-    console.log(`Deploying to ${devnet.name}...`);
-    deploy(calldata);
-  };
+    console.log('Calldata:', calldata)
+    console.log(`Deploying to ${provider}...`)
+    deploy(calldata)
+  }
 
   const handleDeploySubmit = (event: any) => {
-    event.preventDefault();
-    console.log("Submit deployment");
-    const formDataValues = Object.values(constructorCalldata);
+    event.preventDefault()
+    console.log('Submit deployment')
+    const formDataValues = Object.values(constructorCalldata)
     if (
       formDataValues.length < constructorInputs.length ||
       formDataValues.some((input) => !input.value)
     ) {
-      setNotEnoughInputs(true);
+      setNotEnoughInputs(true)
     } else {
-      setNotEnoughInputs(false);
-      const calldata = getFormattedCalldata();
-      setFinalCallData(calldata);
-      handleDeploy(calldata);
+      setNotEnoughInputs(false)
+      const calldata = getFormattedCalldata()
+      setFinalCallData(calldata)
+      handleDeploy(calldata)
     }
-  };
+  }
 
   const handleConstructorCalldataChange = (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    event.preventDefault();
+    event.preventDefault()
     const {
       name,
       value,
-      dataset: { type, index },
-    } = event.target;
+      dataset: { type, index }
+    } = event.target
     setConstructorCalldata((prevCalldata) => ({
       ...prevCalldata,
       [index!]: {
         name,
         value,
-        type,
-      },
-    }));
-  };
+        type
+      }
+    }))
+  }
 
   const getFormattedCalldata = () => {
     if (constructorCalldata) {
-      let formattedCalldata: BigNumberish[] = [];
+      const formattedCalldata: BigNumberish[] = []
 
       Object.values(constructorCalldata).forEach((input) => {
-        console.log("Input", input);
+        console.log('Input', input)
         // Check if Uint256 and use uint256.from() to convert to BN
-        if (input.type?.includes("u256")) {
-          let uint = uint256.bnToUint256(input.value);
-          formattedCalldata.push(uint.low);
-          formattedCalldata.push(uint.high);
+        if (input.type?.includes('u256')) {
+          const uint = uint256.bnToUint256(input.value)
+          formattedCalldata.push(uint.low)
+          formattedCalldata.push(uint.high)
         } else {
-          formattedCalldata.push(input.value);
+          formattedCalldata.push(input.value)
         }
-      });
+      })
 
-      return formattedCalldata;
+      return formattedCalldata
     }
-    return [];
-  };
+    return []
+  }
 
   const setContractDeployment = (
     currentContract: Contract,
     address: string
   ) => {
-    console.log("Setting contract deployment");
-    console.log("Current contract:", currentContract);
-    console.log("Address:", address);
+    console.log('Setting contract deployment')
+    console.log('Current contract:', currentContract)
+    console.log('Address:', address)
     const deployedContract = {
       ...currentContract,
-      address: address,
-      deployed: true,
-    };
-    console.log("Deployed contract:", deployedContract);
+      address,
+      deployed: true
+    }
+    console.log('Deployed contract:', deployedContract)
     const updatedContracts = contracts.map((contract) => {
       if (contract.classHash === deployedContract.classHash) {
-        return deployedContract;
+        return deployedContract
       }
-      return contract;
-    });
-    setContracts(updatedContracts);
-    setSelectedContract(deployedContract);
-    console.log("Contract selected:", selectedContract);
-    console.log("Contracts:", contracts);
-  };
+      return contract
+    })
+    setContracts(updatedContracts)
+    setSelectedContract(deployedContract)
+    console.log('Contract selected:', selectedContract)
+    console.log('Contracts:', contracts)
+  }
 
   return (
     <>
-      <Card header="Deploy">
-        {contracts.length > 0 && selectedContract ? (
+      <Container>
+        {contracts.length > 0 && selectedContract != null ? (
           <div className="">
             <CompiledContracts />
             <form onSubmit={handleDeploySubmit}>
@@ -175,23 +198,19 @@ function Deployment({ setActiveTab }: DeploymentProps) {
                       name={input.name}
                       data-type={input.type}
                       data-index={index}
-                      value={constructorCalldata[index]?.value || ""}
+                      value={constructorCalldata[index]?.value || ''}
                       onChange={handleConstructorCalldataChange}
                     />
                   </div>
-                );
+                )
               })}
               <button
-                className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3"
+                className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3 px-0"
                 style={{
-                  cursor: `${
-                    !selectedAccount && !selectedContract.deployed
-                      ? "not-allowed"
-                      : "pointer"
-                  }`,
+                  cursor: `${account == null ? 'not-allowed' : 'pointer'}`
                 }}
-                disabled={!selectedAccount && !selectedContract.deployed}
-                aria-disabled={!selectedAccount && !selectedContract.deployed}
+                disabled={account == null}
+                aria-disabled={account == null}
                 type="submit"
               >
                 <div className="d-flex align-items-center justify-content-center">
@@ -203,9 +222,9 @@ function Deployment({ setActiveTab }: DeploymentProps) {
                           role="status"
                           aria-hidden="true"
                         >
-                          {" "}
+                          {' '}
                         </span>
-                        <span style={{ paddingLeft: "0.5rem" }}>
+                        <span style={{ paddingLeft: '0.5rem' }}>
                           Deploying...
                         </span>
                       </>
@@ -220,18 +239,18 @@ function Deployment({ setActiveTab }: DeploymentProps) {
             </form>
             {selectedContract.deployed && (
               <div className="mt-3">
-                <label style={{ display: "block" }}>Contract deployed!</label>
-                <label style={{ display: "block" }}>
-                  See{" "}
+                <label style={{ display: 'block' }}>Contract deployed!</label>
+                <label style={{ display: 'block' }}>
+                  See{' '}
                   <a
                     href="/"
                     onClick={(e) => {
-                      e.preventDefault();
-                      setActiveTab("interact");
+                      e.preventDefault()
+                      setActiveTab('interaction')
                     }}
                   >
                     Interact
-                  </a>{" "}
+                  </a>{' '}
                   for more!
                 </label>
               </div>
@@ -243,9 +262,9 @@ function Deployment({ setActiveTab }: DeploymentProps) {
         ) : (
           <p>No contracts ready for deployment yet</p>
         )}
-      </Card>
+      </Container>
     </>
-  );
+  )
 }
 
-export default Deployment;
+export default Deployment

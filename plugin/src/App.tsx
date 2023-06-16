@@ -1,23 +1,41 @@
-import { PluginClient } from "@remixproject/plugin";
-import { createClient } from "@remixproject/plugin-webview";
-import { StarknetConfig } from "@starknet-react/core";
+import React, { useEffect, useState } from 'react'
+import { PluginClient } from '@remixproject/plugin'
+import { createClient } from '@remixproject/plugin-webview'
 
-import "./App.css";
-import Plugin from "./features/Plugin";
-import { connectors } from "./utils/constants";
-import { RemixClientContext } from "./contexts/RemixClientContext";
+import './App.css'
+import Plugin from './features/Plugin'
+import { RemixClientContext } from './contexts/RemixClientContext'
+import Loader from './ui_components/CircularLoader'
+import FullScreenOverlay from './ui_components/FullScreenOverlay'
 
-const remixClient = createClient(new PluginClient());
-function App() {
+const remixClient = createClient(new PluginClient())
+const App: React.FC = () => {
+  const [pluginLoaded, setPluginLoaded] = useState<boolean>(false)
+
+  useEffect(() => {
+    const id = setTimeout(async (): Promise<void> => {
+      await remixClient.onload(() => {
+        setPluginLoaded(true)
+      })
+    }, 10)
+    return () => {
+      clearInterval(id)
+    }
+  })
+
   return (
-    <StarknetConfig connectors={connectors}>
-      <RemixClientContext.Provider value={remixClient}>
-        <div className="shell">
+    <RemixClientContext.Provider value={remixClient}>
+      <div className="shell">
+        {pluginLoaded ? (
           <Plugin />
-        </div>
-      </RemixClientContext.Provider>
-    </StarknetConfig>
-  );
+        ) : (
+          <FullScreenOverlay>
+            <Loader />
+          </FullScreenOverlay>
+        )}
+      </div>
+    </RemixClientContext.Provider>
+  )
 }
 
-export default App;
+export default App
