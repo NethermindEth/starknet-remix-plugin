@@ -1,5 +1,7 @@
-import { DisconnectOptions } from 'get-starknet'
-import { ReactNode } from 'react'
+/* eslint-disable react/prop-types */
+import { type DisconnectOptions } from 'get-starknet'
+import { type ReactNode } from 'react'
+import React from 'react'
 import './envCard.css'
 
 interface EnvCardProps {
@@ -17,10 +19,10 @@ export const EnvCard: React.FC<EnvCardProps> = ({
 }) => {
   return (
     <div className="border-top border-bottom">
-      {header && (
+      {header !== '' && (
         <div className="card-header">
-          {/* <h5 className="mb-0">{header}</h5> */}
-          <button
+          <h5 className="mb-0">{header}</h5>
+          {/* <button
             type="button"
             className="mb-0 btn btn-sm float-left env-btn"
             onClick={async () => {
@@ -29,14 +31,14 @@ export const EnvCard: React.FC<EnvCardProps> = ({
             }}
           >
             {header}
-          </button>
-          <button
+          </button> */}
+          {/* <button
             type="button"
             className="mb-0 btn btn-sm btn-outline-secondary float-right rounded-pill env-testnet-btn"
-            onClick={() => setEnv('manual')}
+            onClick={() => { setEnv('manual') }}
           >
             Create testnet account
-          </button>
+          </button> */}
         </div>
       )}
       <div className="card-body">{children}</div>

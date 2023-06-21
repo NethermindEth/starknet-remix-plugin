@@ -7,6 +7,7 @@ import {
 
 interface Contract {
   name: string
+  compiledClassHash: string
   classHash: string
   sierra: any // CompiledSierra
   casm: CairoAssembly
@@ -23,13 +24,15 @@ interface Input {
 
 type Output = Input
 
+type CallData = BigNumberish[] | CallData[]
+
 interface AbiElement {
   type: string
   name: string
   inputs: Input[]
   outputs?: Output[]
   state_mutability?: string
-  calldata?: BigNumberish[]
+  calldata?: CallData
   calldataLength?: number
   calldataIndices?: number[]
   callFunction?: (account: Account) => Promise<InvokeFunctionResponse>

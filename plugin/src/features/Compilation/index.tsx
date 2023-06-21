@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/restrict-plus-operands */
+/* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import React, { useContext, useEffect, useState } from 'react'
 import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
 import { RemixClientContext } from '../../contexts/RemixClientContext'
@@ -14,6 +16,7 @@ import Container from '../../ui_components/Container'
 import storage from '../../utils/storage'
 import { ethers } from 'ethers'
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface CompilationProps {}
 
 const Compilation: React.FC<CompilationProps> = () => {
@@ -36,7 +39,7 @@ const Compilation: React.FC<CompilationProps> = () => {
   useEffect(() => {
     // read hashDir from localStorage
     const hashDir = storage.get('hashDir')
-    if (hashDir) {
+    if (hashDir != null) {
       setHashDir(hashDir)
     } else {
       // create a random hash of length 32
@@ -55,6 +58,7 @@ const Compilation: React.FC<CompilationProps> = () => {
   }, [remixClient])
 
   useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     setTimeout(async () => {
       try {
         if (noFileSelected) {
@@ -66,11 +70,17 @@ const Compilation: React.FC<CompilationProps> = () => {
           'fileManager',
           'getCurrentFile'
         )
-        if (currentFile) {
+        if (currentFile.length > 0) {
           const filename = getFileNameFromPath(currentFile)
           const currentFileExtension = getFileExtension(filename)
           setIsValidCairo(currentFileExtension === 'cairo')
           setCurrentFilename(filename)
+
+          remixClient.emit('statusChanged', {
+            key: 'succeed',
+            type: 'info',
+            title: 'Current file: ' + currentFilename
+          })
 
           console.log('current File: ', currentFilename)
         }
@@ -86,6 +96,7 @@ const Compilation: React.FC<CompilationProps> = () => {
   }, [remixClient, currentFilename, noFileSelected])
 
   useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     setTimeout(async () => {
       remixClient.on(
         'fileManager',
@@ -95,6 +106,11 @@ const Compilation: React.FC<CompilationProps> = () => {
           const currentFileExtension = getFileExtension(filename)
           setIsValidCairo(currentFileExtension === 'cairo')
           setCurrentFilename(filename)
+          remixClient.emit('statusChanged', {
+            key: 'succeed',
+            type: 'info',
+            title: 'Current file: ' + currentFilename
+          })
           console.log('current File here: ', currentFilename)
           setNoFileSelected(false)
         }
@@ -103,6 +119,7 @@ const Compilation: React.FC<CompilationProps> = () => {
   }, [remixClient, currentFilename])
 
   useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     setTimeout(async () => {
       try {
         if (noFileSelected) {
@@ -145,7 +162,7 @@ const Compilation: React.FC<CompilationProps> = () => {
     }
   ]
 
-  async function compile () {
+  async function compile (): Promise<void> {
     setIsCompiling(true)
     setStatus('Compiling...')
     // clear current file annotations: inline syntax error reporting
@@ -178,7 +195,7 @@ const Compilation: React.FC<CompilationProps> = () => {
       )
 
       if (!response.ok) {
-        remixClient.call(
+        await remixClient.call(
           'notification' as any,
           'toast',
           'Could not reach cairo compilation server'
@@ -199,7 +216,7 @@ const Compilation: React.FC<CompilationProps> = () => {
       )
 
       if (!response.ok) {
-        remixClient.call(
+        await remixClient.call(
           'notification' as any,
           'toast',
           'Could not reach cairo compilation server'
@@ -212,7 +229,7 @@ const Compilation: React.FC<CompilationProps> = () => {
 
       if (sierra.status !== 'Success') {
         setStatus('Reporting Errors...')
-        remixClient.terminal.log(sierra.message)
+        await remixClient.terminal.log(sierra.message)
 
         const errorLets = sierra.message.trim().split('\n')
 
@@ -237,9 +254,13 @@ const Compilation: React.FC<CompilationProps> = () => {
         // remove the first array
         errorLetsArray.shift()
 
-        console.log(errorLetsArray)
+        // remove duplicate errors
+        const errorLetsArraySet = new Set(errorLetsArray.map(JSON.stringify))
 
-        errorLetsArray.forEach(async (errorLet: any) => {
+        console.log(errorLetsArraySet)
+
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        errorLetsArraySet.forEach(async (errorLet: any) => {
           const errorType = errorLet[0].split(':')[0].trim()
           const errorTitle = errorLet[0].split(':').slice(1).join(':').trim()
           const errorLine = errorLet[1].split(':')[1].trim()
@@ -292,7 +313,7 @@ const Compilation: React.FC<CompilationProps> = () => {
       )
 
       if (!response.ok) {
-        remixClient.call(
+        await remixClient.call(
           'notification' as any,
           'toast',
           'Could not reach cairo compilation server'
@@ -304,7 +325,7 @@ const Compilation: React.FC<CompilationProps> = () => {
       const casm = JSON.parse(await response.text())
 
       if (casm.status !== 'Success') {
-        remixClient.terminal.log(casm.message)
+        await remixClient.terminal.log(casm.message)
 
         const lastLine = casm.message.trim().split('\n').pop().trim()
 
@@ -329,7 +350,7 @@ const Compilation: React.FC<CompilationProps> = () => {
         currentFilename
       )}`
 
-      storeContract(
+      await storeContract(
         currentFilename,
         currentFilePath,
         sierra.file_content,
@@ -341,8 +362,6 @@ const Compilation: React.FC<CompilationProps> = () => {
         type: 'success',
         title: 'Cheers : last cairo compilation was succeessful'
       })
-
-      remixClient.terminal.log(sierra.file_content)
 
       try {
         await remixClient.call(
@@ -359,7 +378,7 @@ const Compilation: React.FC<CompilationProps> = () => {
         )
       } catch (e) {
         if (e instanceof Error) {
-          remixClient.call(
+          await remixClient.call(
             'notification' as any,
             'toast',
             e.message +
@@ -374,16 +393,16 @@ const Compilation: React.FC<CompilationProps> = () => {
 
       setStatus('Opening artifacts...')
 
-      remixClient.fileManager.open(sierraPath)
+      await remixClient.fileManager.open(sierraPath)
 
-      remixClient.call(
+      await remixClient.call(
         'notification' as any,
         'toast',
         `Cairo compilation output written to: ${sierraPath} `
       )
     } catch (e) {
       if (e instanceof Error) {
-        remixClient.call('notification' as any, 'alert', {
+        await remixClient.call('notification' as any, 'alert', {
           id: 'starknetRemixPluginAlert',
           title: 'Expectation Failed',
           message: e.message
@@ -400,14 +419,16 @@ const Compilation: React.FC<CompilationProps> = () => {
     path: string,
     sierraFile: string,
     casmFile: string
-  ) {
+  ): Promise<void> {
     try {
       const sierra = await JSON.parse(sierraFile)
       const casm = await JSON.parse(casmFile)
-      const classHash = hash.computeCompiledClassHash(casm)
+      const compiledClassHash = hash.computeCompiledClassHash(casm)
+      const classHash = hash.computeContractClassHash(sierra)
       const contract = {
         name: contractName,
         abi: sierra.abi,
+        compiledClassHash,
         classHash,
         sierra,
         casm,
@@ -416,7 +437,13 @@ const Compilation: React.FC<CompilationProps> = () => {
         address: ''
       }
       setSelectedContract(contract)
-      setContracts([...contracts, contract])
+      const contractsList = [...contracts, contract]
+      // remove duplicates using JSON stringify comparison
+      const uniqueContracts = contractsList.filter(
+        (v, i, a) =>
+          a.findIndex((t) => JSON.stringify(t) === JSON.stringify(v)) === i
+      )
+      setContracts(uniqueContracts)
     } catch (e) {
       console.error(e)
     }
@@ -426,8 +453,8 @@ const Compilation: React.FC<CompilationProps> = () => {
     header: string,
     validation: boolean,
     isLoading: boolean,
-    onClick: () => {}
-  ) => {
+    onClick: () => unknown
+  ): React.ReactElement => {
     return (
       <Container>
         <button

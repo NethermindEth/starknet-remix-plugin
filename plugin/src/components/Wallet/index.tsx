@@ -13,21 +13,22 @@ import * as D from '../../ui_components/Dropdown'
 
 import './wallet.css'
 
-const trimAddress = (adr: string) => {
-  if (adr && adr.startsWith('0x')) {
+const trimAddress = (adr: string): string => {
+  if ((adr.length > 0) && adr.startsWith('0x')) {
     const len = adr.length
     return `${adr.slice(0, 6)}...${adr.slice(len - 6, len)}`
   }
   return adr
 }
 
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const makeVoyagerLink = async (starknetObj?: StarknetWindowObject | null) => {
   if (starknetObj != null) {
     const chainId = await starknetObj?.account?.getChainId()
     if (chainId === '0x534e5f4d41494e') {
-      return `https://goerli.voyager.online/contract/${starknetObj?.account?.address}`
+      return `https://goerli.voyager.online/contract/${starknetObj?.account?.address ?? ''}`
     } else {
-      return `https://voyager.online/contract/${starknetObj?.account?.address}`
+      return `https://voyager.online/contract/${starknetObj?.account?.address ?? ''}`
     }
   }
   return 'https://voyager.online'
@@ -45,7 +46,7 @@ const Wallet: React.FC<WalletProps> = (props) => {
   const [voyagerLink, setVoyagerLink] = useState('')
 
   useEffect(() => {
-    ;(async () => {
+    ;void (async () => {
       const link = await makeVoyagerLink(props.starknetWindowObject)
       setVoyagerLink(link)
     })()
@@ -74,17 +75,19 @@ const Wallet: React.FC<WalletProps> = (props) => {
     >
       <button
         className="btn btn-primary mt-2 mb-2"
-        onClick={refreshWalletConnection}
+        onClick={() => refreshWalletConnection}
       >
         Reconnect
       </button>
+      {(props.starknetWindowObject != null)
+        ? <>
       <div className="wallet-row-wrapper">
         <div className="wallet-wrapper">
           <img src={props.starknetWindowObject?.icon} alt="wallet icon" />
           <p className="text"> {props.starknetWindowObject?.id}</p>
           <Tooltip
             icon={<CiWarning color="yellow" />}
-            content={`${props.starknetWindowObject?.name} doesn't support cairo 1 contracts`}
+            content={`${props.starknetWindowObject?.name ?? 'It'} doesn't support cairo 1 contracts`}
           />
         </div>
         <div className="account-network-wrapper">
@@ -119,12 +122,12 @@ const Wallet: React.FC<WalletProps> = (props) => {
             className="text account"
             title={props.starknetWindowObject?.account?.address}
           >
-            {trimAddress(props.starknetWindowObject?.account?.address || '')}
+            {trimAddress(props.starknetWindowObject?.account?.address ?? '')}
           </p>
           <button
             className="btn"
             onClick={() => {
-              copy(props.starknetWindowObject?.account?.address || '')
+              copy(props.starknetWindowObject?.account?.address ?? '')
               setCopied(true)
               setTimeout(() => {
                 setCopied(false)
@@ -152,6 +155,8 @@ const Wallet: React.FC<WalletProps> = (props) => {
           View on Voyager
         </a>
       </div>
+      </>
+        : <p> Wallet not connected</p> }
     </div>
   )
 }

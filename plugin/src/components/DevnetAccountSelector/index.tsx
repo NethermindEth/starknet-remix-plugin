@@ -18,23 +18,22 @@ import './devnetAccountSelector.css'
 
 interface DevnetAccountSelectorProps {
   devnet: Devnet
+  isDevnetAlive: boolean
+  setIsDevnetAlive: React.Dispatch<React.SetStateAction<boolean>>
 }
 
 const DevnetAccountSelector: React.FC<DevnetAccountSelectorProps> = (props) => {
   const { setAccount, provider, setProvider } = useContext(ConnectionContext)
   const remixClient = useContext(RemixClientContext)
 
-  const [availableDevnetAccounts, setAvailableDevnetAccounts] = useState<
-    DevnetAccount[]
-  >([])
+  const [availableDevnetAccounts, setAvailableDevnetAccounts] = useState<DevnetAccount[]>([])
 
   const [selectedDevnetAccount, setSelectedDevnetAccount] =
     useState<DevnetAccount | null>(null)
 
-  const [isDevnetAlive, setIsDevnetAlive] = useState<boolean>(false)
-
   // devnet live status
   useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     const interval = setInterval(async () => {
       try {
         const response = await fetch(`${props.devnet.url}/is_alive`, {
@@ -47,46 +46,59 @@ const DevnetAccountSelector: React.FC<DevnetAccountSelectorProps> = (props) => {
         const status = await response.text()
 
         if (status !== 'Alive!!!' || response.status !== 200) {
-          if (isDevnetAlive) setIsDevnetAlive(false)
+          props.setIsDevnetAlive(() => false)
         } else {
-          if (!isDevnetAlive) setIsDevnetAlive(true)
+          props.setIsDevnetAlive(() => true)
         }
       } catch (error) {
-        if (isDevnetAlive) setIsDevnetAlive(false)
+        props.setIsDevnetAlive(() => false)
       }
-    }, 10000)
+    }, 1000)
     return () => {
       clearInterval(interval)
     }
-  })
+  }, [props.devnet])
+
+  const notifyDevnetStatus = async (): Promise<void> => {
+    try {
+      await remixClient.call(
+        'notification' as any,
+        'toast',
+      `❗️ Server ${props.devnet.name} - ${props.devnet.url} is not healthy or not reachable at the moment`
+      )
+    } catch (e) {
+      console.log(e)
+    }
+  }
 
   useEffect(() => {
-    setTimeout(async () => {
-      if (!isDevnetAlive) {
-        try {
-          remixClient.cancel('notification' as any, 'toast')
-          await remixClient.call(
-            'notification' as any,
-            'toast',
-            `❗️ Server ${props.devnet.name} - ${props.devnet.url} is not healthy or not reachable at the moment`
-          )
-        } catch (e) {
-          console.log('Failed to post message')
-          console.log(e)
-        }
-      }
-    }, 11000)
-  }, [props.devnet, isDevnetAlive, remixClient])
+    console.log(props.isDevnetAlive, 'notif')
+    if (!props.isDevnetAlive) notifyDevnetStatus().catch((e) => { console.log(e) })
+  }, [props.isDevnetAlive])
 
-  useEffect(() => {
-    setTimeout(async () => {
-      if (!isDevnetAlive) {
-        return
-      }
+  const refreshDevnetAccounts = async (): Promise<void> => {
+    setAccountRefreshing(true)
+    try {
       const accounts = await getAccounts(props.devnet.url)
       setAvailableDevnetAccounts(accounts)
+    } catch (e) {
+      await remixClient.terminal.log({
+        type: 'error',
+        value: `Failed to get accounts information from ${props.devnet.url}`
+      })
+    }
+    setAccountRefreshing(false)
+  }
+
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    setTimeout(async () => {
+      if (!props.isDevnetAlive) {
+        return
+      }
+      await refreshDevnetAccounts()
     }, 500)
-  }, [props.devnet, isDevnetAlive])
+  }, [props.devnet, props.isDevnetAlive])
 
   useEffect(() => {
     if (availableDevnetAccounts.length > 0) {
@@ -113,7 +125,7 @@ const DevnetAccountSelector: React.FC<DevnetAccountSelectorProps> = (props) => {
     }
   }, [props.devnet, selectedDevnetAccount])
 
-  function handleAccountChange(event: any) {
+  function handleAccountChange (event: any): void {
     if (event.target.value === -1) {
       return
     }
@@ -133,7 +145,7 @@ const DevnetAccountSelector: React.FC<DevnetAccountSelectorProps> = (props) => {
     )
   }
 
-  function getDefaultValue() {
+  function getDefaultValue (): number | undefined {
     const index = getSelectedAccountIndex(
       availableDevnetAccounts,
       selectedDevnetAccount
@@ -149,7 +161,7 @@ const DevnetAccountSelector: React.FC<DevnetAccountSelectorProps> = (props) => {
     return index + 1
   }
 
-  const [accountRefreshing, setAccountRefreshing] = useState(true)
+  const [accountRefreshing, setAccountRefreshing] = useState(false)
 
   return (
     <>
@@ -161,12 +173,12 @@ const DevnetAccountSelector: React.FC<DevnetAccountSelectorProps> = (props) => {
           onChange={handleAccountChange}
           defaultValue={getDefaultValue()}
         >
-          {isDevnetAlive && availableDevnetAccounts.length > 0
+          {props.isDevnetAlive && availableDevnetAccounts.length > 0
             ? availableDevnetAccounts.map((account, index) => {
-                return (
+              return (
                   <option value={index} key={index}>
                     {`${getShortenedHash(
-                      account.address || '',
+                      account.address ?? '',
                       6,
                       4
                     )} (${getRoundedNumber(
@@ -174,8 +186,8 @@ const DevnetAccountSelector: React.FC<DevnetAccountSelectorProps> = (props) => {
                       2
                     )} ether)`}
                   </option>
-                )
-              })
+              )
+            })
             : ([
                 <option value={-1} key={-1}>
                   No accounts found
@@ -184,13 +196,9 @@ const DevnetAccountSelector: React.FC<DevnetAccountSelectorProps> = (props) => {
         </select>
         <button
           className="refresh"
-          onClick={() => {
-            setAccountRefreshing(true)
-            // ONLY DEBUG CODE REMOVE WHILE USING
-            setTimeout(() => {
-              setAccountRefreshing(false)
-            }, 3000)
-          }}
+          // eslint-disable-next-line @typescript-eslint/no-misused-promises
+          onClick={async () => { await refreshDevnetAccounts() } }
+          title="Refresh devnet accounts"
           data-loading={accountRefreshing ? 'loading' : 'loaded'}
         >
           <MdRefresh />

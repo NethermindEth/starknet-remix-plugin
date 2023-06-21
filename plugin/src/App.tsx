@@ -13,11 +13,12 @@ const App: React.FC = () => {
   const [pluginLoaded, setPluginLoaded] = useState<boolean>(false)
 
   useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     const id = setTimeout(async (): Promise<void> => {
       await remixClient.onload(() => {
         setPluginLoaded(true)
       })
-    }, 10)
+    }, 1)
     return () => {
       clearInterval(id)
     }
@@ -26,13 +27,15 @@ const App: React.FC = () => {
   return (
     <RemixClientContext.Provider value={remixClient}>
       <div className="shell">
-        {pluginLoaded ? (
+        {pluginLoaded
+          ? (
           <Plugin />
-        ) : (
+            )
+          : (
           <FullScreenOverlay>
             <Loader />
           </FullScreenOverlay>
-        )}
+            )}
       </div>
     </RemixClientContext.Provider>
   )

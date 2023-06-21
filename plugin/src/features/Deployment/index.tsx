@@ -30,7 +30,6 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   const [deployStatus, setDeployStatus] = useState('')
   const [constructorCalldata, setConstructorCalldata] =
     useState<CallDataObject>({})
-  const [finalCallData, setFinalCallData] = useState<any[]>([])
   const [constructorInputs, setConstructorInputs] = useState<Input[]>([])
   const [notEnoughInputs, setNotEnoughInputs] = useState(false)
   const { contracts, selectedContract, setContracts, setSelectedContract } =
@@ -44,7 +43,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     }
   }, [selectedContract])
 
-  const deploy = async (calldata: BigNumberish[]) => {
+  const deploy = async (calldata: BigNumberish[]): Promise<void> => {
     setIsDeploying(true)
     try {
       if (account === null || provider === null) {
@@ -57,30 +56,41 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 
       setDeployStatus('Declaring...')
 
-      // const contractClass = await provider.getClassByHash(selectedContract.classHash);
-
-      // console.log("declare response", contractClass);
-
-      const declareAndDeployResponse = await account.declareAndDeploy(
-        {
+      try {
+        const declareResponse = await account.declare({
           contract: selectedContract.sierra,
-          casm: selectedContract.casm,
+          compiledClassHash: selectedContract.compiledClassHash
+        })
+        console.log('declare response', declareResponse)
+      } catch (error) {
+        if (error instanceof Error) {
+          await remixClient.call('terminal', 'log', {
+            value: error as any,
+            type: 'error'
+          })
+          await remixClient.call('notification' as any, 'toast', `ℹ️ Contract with classHash: ${selectedContract.classHash} already has been declared, proceeding to deployment...`)
+        }
+      }
+
+      const deployResponse = await account.deployContract(
+        {
+          classHash: selectedContract.classHash,
           constructorCalldata: calldata
         },
         { cairoVersion: '1' }
       )
-      console.log('deploy response', declareAndDeployResponse)
-      console.log(declareAndDeployResponse?.deploy.contract_address)
+      console.log('deploy response', deployResponse)
+      console.log(deployResponse.contract_address)
       setContractDeployment(
-        selectedContract as Contract,
-        declareAndDeployResponse?.deploy.contract_address || ''
+        selectedContract,
+        deployResponse.contract_address
       )
       // setContractAsDeployed(selectedContract as Contract);
-      console.log(declareAndDeployResponse)
+      console.log(deployResponse)
     } catch (error) {
       console.log('got this error during deployment', error, typeof error)
       if (error instanceof Error) {
-        remixClient.call('terminal', 'log', {
+        await remixClient.call('terminal', 'log', {
           value: error.message,
           type: 'error'
         })
@@ -89,32 +99,33 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     setIsDeploying(false)
   }
 
-  const handleDeploy = (calldata: BigNumberish[]) => {
+  const handleDeploy = (calldata: BigNumberish[]): void => {
     console.log('Calldata:', calldata)
-    console.log(`Deploying to ${provider}...`)
-    deploy(calldata)
+    deploy(calldata).catch((error) => {
+      console.log('Error during deployment:', error)
+    })
   }
 
-  const handleDeploySubmit = (event: any) => {
+  const handleDeploySubmit = (event: any): void => {
     event.preventDefault()
-    console.log('Submit deployment')
     const formDataValues = Object.values(constructorCalldata)
     if (
       formDataValues.length < constructorInputs.length ||
+      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       formDataValues.some((input) => !input.value)
     ) {
       setNotEnoughInputs(true)
     } else {
       setNotEnoughInputs(false)
       const calldata = getFormattedCalldata()
-      setFinalCallData(calldata)
+      // setFinalCallData(calldata)
       handleDeploy(calldata)
     }
   }
 
   const handleConstructorCalldataChange = (
     event: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  ): void => {
     event.preventDefault()
     const {
       name,
@@ -123,6 +134,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     } = event.target
     setConstructorCalldata((prevCalldata) => ({
       ...prevCalldata,
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       [index!]: {
         name,
         value,
@@ -131,14 +143,15 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     }))
   }
 
-  const getFormattedCalldata = () => {
+  const getFormattedCalldata = (): BigNumberish[] => {
+    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (constructorCalldata) {
       const formattedCalldata: BigNumberish[] = []
 
       Object.values(constructorCalldata).forEach((input) => {
         console.log('Input', input)
         // Check if Uint256 and use uint256.from() to convert to BN
-        if (input.type?.includes('u256')) {
+        if ((input.type?.includes('u256')) ?? false) {
           const uint = uint256.bnToUint256(input.value)
           formattedCalldata.push(uint.low)
           formattedCalldata.push(uint.high)
@@ -155,7 +168,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   const setContractDeployment = (
     currentContract: Contract,
     address: string
-  ) => {
+  ): void => {
     console.log('Setting contract deployment')
     console.log('Current contract:', currentContract)
     console.log('Address:', address)
@@ -180,7 +193,8 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   return (
     <>
       <Container>
-        {contracts.length > 0 && selectedContract != null ? (
+        {contracts.length > 0 && selectedContract != null
+          ? (
           <div className="">
             <CompiledContracts />
             <form onSubmit={handleDeploySubmit}>
@@ -191,14 +205,14 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
                     key={index}
                   >
                     <label key={index} className="constructor-label">
-                      {`${input.name} (${getParameterType(input.type)}): `}
+                      {`${input.name} (${getParameterType(input.type) ?? ''}): `}
                     </label>
                     <input
                       className="form-control constructor-input"
                       name={input.name}
                       data-type={input.type}
                       data-index={index}
-                      value={constructorCalldata[index]?.value || ''}
+                      value={constructorCalldata[index]?.value ?? ''}
                       onChange={handleConstructorCalldataChange}
                     />
                   </div>
@@ -207,15 +221,16 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
               <button
                 className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3 px-0"
                 style={{
-                  cursor: `${account == null ? 'not-allowed' : 'pointer'}`
+                  cursor: `${(account == null || selectedContract.deployed) ? 'not-allowed' : 'pointer'}`
                 }}
-                disabled={account == null}
-                aria-disabled={account == null}
+                disabled={account == null || selectedContract.deployed}
+                aria-disabled={account == null || selectedContract.deployed}
                 type="submit"
               >
                 <div className="d-flex align-items-center justify-content-center">
                   <div className="text-truncate overflow-hidden text-nowrap">
-                    {isDeploying ? (
+                    {isDeploying
+                      ? (
                       <>
                         <span
                           className="spinner-border spinner-border-sm"
@@ -225,14 +240,15 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
                           {' '}
                         </span>
                         <span style={{ paddingLeft: '0.5rem' }}>
-                          Deploying...
+                          {deployStatus}
                         </span>
                       </>
-                    ) : (
+                        )
+                      : (
                       <div className="text-truncate overflow-hidden text-nowrap">
-                        <span>Deploy {selectedContract.name}</span>
+                        {selectedContract.deployed ? <span> Deployed  <i className="bi bi-check"></i> {selectedContract.name}</span> : <span> Deploy {selectedContract.name}</span> }
                       </div>
-                    )}
+                        )}
                   </div>
                 </div>
               </button>
@@ -259,9 +275,10 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
               <label>Please fill out all constructor fields!</label>
             )}
           </div>
-        ) : (
-          <p>No contracts ready for deployment yet</p>
-        )}
+            )
+          : (
+          <p>No contracts ready for deployment yet, compile a cairo contract</p>
+            )}
       </Container>
     </>
   )

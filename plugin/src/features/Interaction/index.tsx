@@ -7,7 +7,8 @@ import {
   uint256,
   type CallContractResponse,
   type GetTransactionReceiptResponse,
-  type AccountInterface
+  type AccountInterface,
+  type InvokeFunctionResponse
 } from 'starknet'
 import CompiledContracts from '../../components/CompiledContracts'
 import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
@@ -16,6 +17,7 @@ import { getReadFunctions, getWriteFunctions } from '../../utils/utils'
 import Container from '../../ui_components/Container'
 import { ConnectionContext } from '../../contexts/ConnectionContext'
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface InteractionProps {}
 
 const Interaction: React.FC<InteractionProps> = () => {
@@ -38,12 +40,7 @@ const Interaction: React.FC<InteractionProps> = () => {
     if (selectedContract != null) {
       let readFunctions = getReadFunctions(selectedContract?.abi)
       let writeFunctions = getWriteFunctions(selectedContract?.abi)
-      console.log('Read Functions', readFunctions)
-      console.log('Write Functions', writeFunctions)
 
-      // Extract to utils
-      // Creates indices to handle cases when uint256 are there.
-      // TODO: expand to handle other types.
       readFunctions = readFunctions.map((func) => {
         const calldataIndices: number[] = func.inputs.reduce<number[]>(
           (calldataIndices: number[], input, index: number) => {
@@ -93,8 +90,8 @@ const Interaction: React.FC<InteractionProps> = () => {
     contractAddress: string,
     entrypoint: string,
     calldata: BigNumberish[] = []
-  ) => {
-    const invocation = async (account: Account | AccountInterface) => {
+  ): (account: Account | AccountInterface) => Promise<InvokeFunctionResponse> => {
+    const invocation = async (account: Account | AccountInterface): Promise<InvokeFunctionResponse> => {
       const response = await account.execute({
         contractAddress,
         entrypoint,
@@ -109,8 +106,8 @@ const Interaction: React.FC<InteractionProps> = () => {
     contractAddress: string,
     entrypoint: string,
     calldata: BigNumberish[] = []
-  ) => {
-    const call = async (account: Account | AccountInterface) => {
+  ): (account: Account | AccountInterface) => Promise<CallContractResponse> => {
+    const call = async (account: Account | AccountInterface): Promise<CallContractResponse> => {
       const response = await account.callContract({
         contractAddress,
         entrypoint,
@@ -122,29 +119,35 @@ const Interaction: React.FC<InteractionProps> = () => {
   }
 
   // Handle calldata change
-  const handleCalldataChange = (e: any) => {
+  const handleCalldataChange = (e: any): void => {
     const { name, value, dataset } = e.target
     const { type, index, datatype } = dataset
     if (type === 'view') {
       const functionIndex = getFunctionIndex(name, readFunctions)
       const newReadFunctions = [...readFunctions]
+      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (datatype && (datatype as string).endsWith('u256')) {
         const calldataElementIndex =
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           newReadFunctions[functionIndex].calldataIndices![parseInt(index)]
         const uint = uint256.bnToUint256(value)
         if (newReadFunctions[functionIndex].calldata == null) {
           newReadFunctions[functionIndex].calldata = []
         }
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         newReadFunctions[functionIndex].calldata![calldataElementIndex] =
           uint.low
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         newReadFunctions[functionIndex].calldata![calldataElementIndex + 1] =
           uint.high
       } else {
         const calldataElementIndex =
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           newReadFunctions[functionIndex].calldataIndices![parseInt(index)]
         if (newReadFunctions[functionIndex].calldata == null) {
           newReadFunctions[functionIndex].calldata = []
         }
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         newReadFunctions[functionIndex].calldata![calldataElementIndex] = value
       }
       setReadFunctions(newReadFunctions)
@@ -153,57 +156,69 @@ const Interaction: React.FC<InteractionProps> = () => {
       const functionIndex = getFunctionIndex(name, writeFunctions)
       const newWriteFunctions = [...writeFunctions]
       console.log('Datatype', datatype)
+
+      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
       if (datatype && (datatype as string).endsWith('u256')) {
         const calldataElementIndex =
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           newWriteFunctions[functionIndex].calldataIndices![parseInt(index)]
         const uint = uint256.bnToUint256(value)
         if (newWriteFunctions[functionIndex].calldata == null) {
           newWriteFunctions[functionIndex].calldata = []
         }
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         newWriteFunctions[functionIndex].calldata![calldataElementIndex] =
           uint.low
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         newWriteFunctions[functionIndex].calldata![calldataElementIndex + 1] =
           uint.high
       } else {
         console.log('THIS', functionIndex, newWriteFunctions[functionIndex])
         const calldataElementIndex =
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           newWriteFunctions[functionIndex].calldataIndices![parseInt(index)]
         if (newWriteFunctions[functionIndex].calldata == null) {
           newWriteFunctions[functionIndex].calldata = []
         }
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         newWriteFunctions[functionIndex].calldata![calldataElementIndex] = value
       }
       setWriteFunctions(newWriteFunctions)
     }
   }
 
-  const getFunctionIndex = (name: string, functions: AbiElement[]) => {
+  const getFunctionIndex = (name: string, functions: AbiElement[]): number => {
     return functions.findIndex((func) => func.name === name)
   }
 
-  const getFunctionFromName = (name: string, functions: AbiElement[]) => {
+  const getFunctionFromName = (name: string, functions: AbiElement[]): AbiElement | undefined => {
     return functions.find((func) => func.name === name)
   }
 
-  const handleCall = async (e: any) => {
+  const handleCall = async (e: any): Promise<void> => {
     e.preventDefault()
     const { name, type } = e.target.dataset
-    console.log(name, type)
     if (type === 'view') {
       const func = getFunctionFromName(name, readFunctions)
       console.log(func)
       const callFunction = getCall(
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
         selectedContract?.address!,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
         func?.name!,
-        func?.calldata ?? []
+        func?.calldata?.flat() as BigNumberish[] ?? []
       )
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
       const response = await callFunction(account!)
       console.log(response)
       setResponses((responses) => [
         ...responses,
         {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
           functionName: func?.name!,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
           contractName: selectedContract?.name!,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
           contractAddress: selectedContract?.address!,
           callResponse: response
         }
@@ -212,10 +227,13 @@ const Interaction: React.FC<InteractionProps> = () => {
       const func = getFunctionFromName(name, writeFunctions)
       console.log(func?.calldata)
       const invocation = getInvocation(
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
         selectedContract?.address!,
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
         func?.name!,
-        func?.calldata ?? []
+        func?.calldata?.flat() as BigNumberish[] ?? []
       )
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
       const response = await invocation(account!)
       console.log(response)
       console.log(
@@ -228,8 +246,11 @@ const Interaction: React.FC<InteractionProps> = () => {
       setResponses((responses) => [
         ...responses,
         {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
           functionName: func?.name!,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
           contractName: selectedContract?.name!,
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
           contractAddress: selectedContract?.address!,
           invocationResponse: resultOfTx
         }
@@ -259,6 +280,7 @@ const Interaction: React.FC<InteractionProps> = () => {
               className="udapp_instanceButton undefined btn btn-sm btn-warning w-50"
               data-name={func.name}
               data-type={func.state_mutability}
+              // eslint-disable-next-line @typescript-eslint/no-misused-promises
               onClick={handleCall}
             >
               {func.name}
@@ -273,6 +295,7 @@ const Interaction: React.FC<InteractionProps> = () => {
                       data-type={func.state_mutability}
                       data-index={index}
                       data-datatype={input.type}
+                      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                       placeholder={`${input.name} (${input.type
                         .split('::')
                         .pop()})`}
@@ -294,6 +317,7 @@ const Interaction: React.FC<InteractionProps> = () => {
           >
             <button
               className="udapp_instanceButton undefined btn btn-sm btn-info w-50"
+              // eslint-disable-next-line @typescript-eslint/no-misused-promises
               onClick={handleCall}
               data-name={func.name}
               data-type={func.state_mutability}
@@ -310,6 +334,7 @@ const Interaction: React.FC<InteractionProps> = () => {
                       data-type={func.state_mutability}
                       data-index={index}
                       data-datatype={input.type}
+                      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                       placeholder={`${input.name} (${input.type
                         .split('::')
                         .pop()})`}

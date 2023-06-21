@@ -1,7 +1,6 @@
 import React, { useContext, useState } from 'react'
 import DevnetAccountSelector from '../../components/DevnetAccountSelector'
 import './styles.css'
-import './styles.css'
 import {
   type ConnectOptions,
   type DisconnectOptions,
@@ -15,23 +14,26 @@ import EnvironmentSelector from '../../components/EnvironmentSelector'
 import { ConnectionContext } from '../../contexts/ConnectionContext'
 import Wallet from '../../components/Wallet'
 import { EnvCard } from '../../components/EnvCard'
-import ManualAccount from '../../components/ManualAccount'
+import { RxDotFilled } from 'react-icons/rx'
 
-interface ConnectionProps {}
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+interface EnvironmentProps {}
 
-const Environment: React.FC<ConnectionProps> = () => {
+const Environment: React.FC<EnvironmentProps> = () => {
   const remixClient = useContext(RemixClientContext)
   const { setAccount, setProvider } = useContext(ConnectionContext)
 
   // START: DEVNET
   const [devnet, setDevnet] = useState<Devnet>(devnets[0])
   const [env, setEnv] = useState<string>('devnet')
+  const [isDevnetAlive, setIsDevnetAlive] = useState<boolean>(true)
   // END: DEVNET
 
   // START: WALLET
   const [starknetWindowObject, setStarknetWindowObject] =
     useState<StarknetWindowObject | null>(null)
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const connectWalletHandler = async (
     options: ConnectOptions = {
       modalMode: 'alwaysAsk',
@@ -48,7 +50,7 @@ const Environment: React.FC<ConnectionProps> = () => {
         'accountsChanged',
         (accounts: string[]) => {
           console.log('accountsChanged', accounts)
-          connectWalletHandler({
+          void connectWalletHandler({
             modalMode: 'neverAsk',
             modalTheme: 'dark'
           })
@@ -61,7 +63,7 @@ const Environment: React.FC<ConnectionProps> = () => {
 
       connectedStarknetWindowObject.on('networkChanged', (network?: string) => {
         console.log('networkChanged', network)
-        connectWalletHandler({
+        void connectWalletHandler({
           modalMode: 'neverAsk',
           modalTheme: 'dark'
         })
@@ -79,8 +81,9 @@ const Environment: React.FC<ConnectionProps> = () => {
       }
     } catch (e) {
       if (e instanceof Error) {
-        await remixClient.call('notification' as any, 'error', e.message)
+        await remixClient.call('notification' as any, 'alert', e)
       }
+      setStarknetWindowObject(null)
       console.log(e)
     }
   }
@@ -89,7 +92,7 @@ const Environment: React.FC<ConnectionProps> = () => {
     options: DisconnectOptions = {
       clearLastWallet: true
     }
-  ) => {
+  ): Promise<void> => {
     if (starknetWindowObject != null) {
       starknetWindowObject.off('accountsChanged', (_accounts: string[]) => {})
       starknetWindowObject.off('networkChanged', (_network?: string) => {})
@@ -109,12 +112,10 @@ const Environment: React.FC<ConnectionProps> = () => {
         setEnv={setEnv}
         disconnectWalletHandler={disconnectWalletHandler}
       >
-        {env === 'manual' ? (
-          <ManualAccount />
-        ) : (
           <>
             <div className="flex">
               <label className="">Environment selection</label>
+              <div className='flex_dot'>
               <EnvironmentSelector
                 env={env}
                 setEnv={setEnv}
@@ -123,20 +124,23 @@ const Environment: React.FC<ConnectionProps> = () => {
                 connectWalletHandler={connectWalletHandler}
                 disconnectWalletHandler={disconnectWalletHandler}
               />
+              {isDevnetAlive ? <RxDotFilled size={'30px'} color="lime" title='Devnet is live'/> : <RxDotFilled size={'30px'} color="red" title='Devnet server down'/>}
+              </div>
             </div>
             <div className="flex">
-              {env === 'devnet' ? (
-                <DevnetAccountSelector devnet={devnet} />
-              ) : (
+              {env === 'devnet'
+                ? (
+                <DevnetAccountSelector devnet={devnet} isDevnetAlive={isDevnetAlive} setIsDevnetAlive={setIsDevnetAlive} />
+                  )
+                : (
                 <Wallet
                   starknetWindowObject={starknetWindowObject}
-                  connectWalletHandler={connectWalletHandler}
-                  disconnectWalletHandler={disconnectWalletHandler}
+                  connectWalletHandler={() => connectWalletHandler}
+                  disconnectWalletHandler={() => disconnectWalletHandler}
                 />
-              )}
+                  )}
             </div>
           </>
-        )}
       </EnvCard>
     </div>
   )

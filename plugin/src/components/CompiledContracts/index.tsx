@@ -8,6 +8,7 @@ import {
   getShortenedHash
 } from '../../utils/utils'
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface CompiledContractsProps {}
 
 const CompiledContracts: React.FC<CompiledContractsProps> = (props) => {
@@ -15,7 +16,8 @@ const CompiledContracts: React.FC<CompiledContractsProps> = (props) => {
     CompiledContractsContext
   )
 
-  function handleCompiledContractSelectionChange (event: any) {
+  function handleCompiledContractSelectionChange (event: any): void {
+    event.preventDefault()
     setSelectedContract(contracts[event.target.value])
   }
 
@@ -23,15 +25,14 @@ const CompiledContracts: React.FC<CompiledContractsProps> = (props) => {
     <select
       className="custom-select"
       aria-label=".form-select-sm example"
-      onChange={handleCompiledContractSelectionChange}
+      onChange={(e) => { handleCompiledContractSelectionChange(e) } }
       defaultValue={getSelectedContractIndex(contracts, selectedContract)}
-      value={getSelectedContractIndex(contracts, selectedContract)}
     >
       {contracts.map((contract, index) => {
         return (
           <option value={index} key={index}>
             {`${getContractNameFromFullName(contract.name)} (${getShortenedHash(
-              contract.classHash || '',
+              contract.classHash ?? '',
               6,
               4
             )})`}

@@ -2,8 +2,9 @@ import React, { useContext } from 'react'
 import { type Devnet, devnets, getDevnetIndex } from '../../utils/network'
 import { type ConnectOptions, type DisconnectOptions } from 'get-starknet'
 import { ConnectionContext } from '../../contexts/ConnectionContext'
-import { RxDotFilled } from 'react-icons/rx'
 import { Provider } from 'starknet'
+
+import './styles.css'
 
 interface EnvironmentSelectorProps {
   env: string
@@ -17,11 +18,11 @@ interface EnvironmentSelectorProps {
 const EnvironmentSelector: React.FC<EnvironmentSelectorProps> = (props) => {
   const { setProvider } = useContext(ConnectionContext)
 
-  async function handleEnvironmentChange(event: any) {
+  async function handleEnvironmentChange (event: any): Promise<void> {
     if (event.target.value > 0) {
       props.setDevnet(devnets[event.target.value - 1])
       props.setEnv('devnet')
-      props.disconnectWalletHandler()
+      await props.disconnectWalletHandler()
       setProvider(
         new Provider({
           sequencer: {
@@ -32,14 +33,15 @@ const EnvironmentSelector: React.FC<EnvironmentSelectorProps> = (props) => {
       return
     }
     props.setEnv('wallet')
-    props.connectWalletHandler()
+    await props.connectWalletHandler()
   }
 
   return (
-    <div className="devnet-account-selector-wrapper">
+    <div className="environment-selector-wrapper">
       <select
         className="custom-select"
         aria-label=".form-select-sm example"
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         onChange={handleEnvironmentChange}
         defaultValue={getDevnetIndex(devnets, props.devnet) + 1}
       >
@@ -59,7 +61,6 @@ const EnvironmentSelector: React.FC<EnvironmentSelectorProps> = (props) => {
           ]
         )}
       </select>
-      {devnets.length > 0 && <RxDotFilled size={'30px'} color="lime" />}
     </div>
   )
 }
