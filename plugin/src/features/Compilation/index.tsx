@@ -426,10 +426,15 @@ const Compilation: React.FC<CompilationProps> = () => {
       }
       setSelectedContract(contract)
       const contractsList = [...contracts, contract]
-      // remove duplicates using contract.classHash
+      // remove duplicates using contract.classHash and contract.compiledClassHash
       const uniqueContracts = contractsList.filter(
         (contract, index, self) =>
-          index === self.findIndex((c) => c.classHash === contract.classHash)
+          index ===
+          self.findIndex(
+            (t) =>
+              t.classHash === contract.classHash &&
+              t.compiledClassHash === contract.compiledClassHash
+          )
       )
       setContracts(uniqueContracts)
     } catch (e) {
