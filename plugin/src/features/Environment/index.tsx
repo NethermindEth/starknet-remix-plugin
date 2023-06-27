@@ -1,37 +1,52 @@
-import React, { useContext, useState } from 'react'
+import React, { useContext, useEffect } from 'react'
 import DevnetAccountSelector from '../../components/DevnetAccountSelector'
 import './styles.css'
 import {
   type ConnectOptions,
   type DisconnectOptions,
-  type StarknetWindowObject,
   connect,
   disconnect
 } from 'get-starknet'
 import { RemixClientContext } from '../../contexts/RemixClientContext'
-import { type Devnet, devnets } from '../../utils/network'
 import EnvironmentSelector from '../../components/EnvironmentSelector'
 import { ConnectionContext } from '../../contexts/ConnectionContext'
 import Wallet from '../../components/Wallet'
 import { EnvCard } from '../../components/EnvCard'
 import { RxDotFilled } from 'react-icons/rx'
+import EnvironmentContext from '../../contexts/EnvironmentContext'
+import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface EnvironmentProps {}
 
 const Environment: React.FC<EnvironmentProps> = () => {
   const remixClient = useContext(RemixClientContext)
-  const { setAccount, setProvider } = useContext(ConnectionContext)
+  const { account, provider, setAccount, setProvider } = useContext(ConnectionContext)
 
-  // START: DEVNET
-  const [devnet, setDevnet] = useState<Devnet>(devnets[0])
-  const [env, setEnv] = useState<string>('devnet')
-  const [isDevnetAlive, setIsDevnetAlive] = useState<boolean>(true)
-  // END: DEVNET
+  const { devnet, setDevnet, env, setEnv, isDevnetAlive, setIsDevnetAlive, starknetWindowObject, setStarknetWindowObject } = useContext(EnvironmentContext)
 
-  // START: WALLET
-  const [starknetWindowObject, setStarknetWindowObject] =
-    useState<StarknetWindowObject | null>(null)
+  const { selectedContract, setSelectedContract, contracts, setContracts } = useContext(CompiledContractsContext)
+
+  // set selected contract to not deployed on the environment change
+  useEffect(() => {
+    console.log(selectedContract)
+    if (selectedContract != null) {
+      // selectedContract.deployed = false
+      const newSelectedContract = { ...selectedContract }
+      newSelectedContract.deployed = false
+      console.log('setting new selected contract to not deployed')
+      setSelectedContract(newSelectedContract)
+      // replace the selected contract in the contracts array
+      const newContracts = contracts.map((contract) => {
+        if (contract.classHash === selectedContract.classHash) {
+          return newSelectedContract
+        }
+        return contract
+      }
+      )
+      setContracts(newContracts)
+    }
+  }, [account, provider])
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const connectWalletHandler = async (

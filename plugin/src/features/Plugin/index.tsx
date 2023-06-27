@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
 import { ConnectionContext } from '../../contexts/ConnectionContext'
-import { type Contract } from '../../types/contracts'
+import { type CallDataObject, type Input, type Contract } from '../../types/contracts'
 import { Environment } from '../Environment'
 import './styles.css'
 import {
@@ -20,6 +20,13 @@ import Accordian, {
 } from '../../ui_components/Accordian'
 import TransactionHistory from '../TransactionHistory'
 import CairoVersion from '../CairoVersion'
+import CompilationContext from '../../contexts/CompilationContext'
+import DeploymentContext from '../../contexts/DeploymentContext'
+import { type Devnet, devnets, type DevnetAccount } from '../../utils/network'
+import { type StarknetWindowObject } from 'get-starknet'
+import EnvironmentContext from '../../contexts/EnvironmentContext'
+import { type Transaction } from '../../types/transaction'
+import TransactionContext from '../../contexts/TransactionContext'
 
 export type AccordianTabs =
   | 'compile'
@@ -28,24 +35,45 @@ export type AccordianTabs =
   | 'transactions'
 
 const Plugin: React.FC = () => {
-  // START: CAIRO CONTRACTS
-  // Store a list of compiled contracts
+  // Compilation Context state variables
+  const [status, setStatus] = useState('Compiling...')
+  const [currentFilename, setCurrentFilename] = useState('')
+  const [isCompiling, setIsCompiling] = useState(false)
+  const [isValidCairo, setIsValidCairo] = useState(false)
+  const [noFileSelected, setNoFileSelected] = useState(false)
+  const [hashDir, setHashDir] = useState('')
+
+  // Deployment Context state variables
+  const [isDeploying, setIsDeploying] = useState(false)
+  const [deployStatus, setDeployStatus] = useState('')
+  const [constructorCalldata, setConstructorCalldata] =
+    useState<CallDataObject>({})
+  const [constructorInputs, setConstructorInputs] = useState<Input[]>([])
+  const [notEnoughInputs, setNotEnoughInputs] = useState(false)
+
+  // Environment Context state variables
+  const [devnet, setDevnet] = useState<Devnet>(devnets[0])
+  const [env, setEnv] = useState<string>('devnet')
+  const [isDevnetAlive, setIsDevnetAlive] = useState<boolean>(true)
+  const [starknetWindowObject, setStarknetWindowObject] = useState<StarknetWindowObject | null>(null)
+  const [selectedDevnetAccount, setSelectedDevnetAccount] = useState<DevnetAccount | null>(null)
+
+  // Transaction History Context state variables
+  const [transactions, setTransactions] = useState<Transaction[]>([])
+
+  // Compilation Context state variables
   const [compiledContracts, setCompiledContracts] = useState<Contract[]>([])
-  // Store the current contract for UX purposes
   const [selectedContract, setSelectedContract] = useState<Contract | null>(
     null
   )
-  // END: CAIRO CONTRACTS
 
-  // START: ACCOUNT, NETWORK, PROVIDER
-  // Store connected wallet, account and provider
+  // Connection Context state variables
   const [provider, setProvider] = useState<Provider | ProviderInterface | null>(
     null
   )
   const [account, setAccount] = useState<Account | AccountInterface | null>(
     null
   )
-  // END: ACCOUNT, NETWORK, PROVIDER
 
   const [currentAccordian, setCurrentAccordian] =
     useState<AccordianTabs>('compile')
@@ -54,6 +82,14 @@ const Plugin: React.FC = () => {
     // add a button for selecting the cairo version
     <>
       <div className="plugin-wrapper">
+      <CompiledContractsContext.Provider
+              value={{
+                contracts: compiledContracts,
+                setContracts: setCompiledContracts,
+                selectedContract,
+                setSelectedContract
+              }}
+      >
         <ConnectionContext.Provider
           value={{
             provider,
@@ -62,15 +98,11 @@ const Plugin: React.FC = () => {
             setAccount
           }}
         >
+          <TransactionContext.Provider value={{
+            transactions,
+            setTransactions
+          }}>
           <div>
-            <CompiledContractsContext.Provider
-              value={{
-                contracts: compiledContracts,
-                setContracts: setCompiledContracts,
-                selectedContract,
-                setSelectedContract
-              }}
-            >
               <CairoVersion />
               <Accordian
                 type="single"
@@ -86,7 +118,22 @@ const Plugin: React.FC = () => {
                     Compile
                   </AccordionTrigger>
                   <AccordionContent>
+                  <CompilationContext.Provider value={{
+                    status,
+                    setStatus,
+                    currentFilename,
+                    setCurrentFilename,
+                    isCompiling,
+                    setIsCompiling,
+                    isValidCairo,
+                    setIsValidCairo,
+                    noFileSelected,
+                    setNoFileSelected,
+                    hashDir,
+                    setHashDir
+                  }}>
                     <Compilation />
+                  </CompilationContext.Provider>
                   </AccordionContent>
                 </AccordianItem>
                 <AccordianItem value="deploy">
@@ -98,7 +145,20 @@ const Plugin: React.FC = () => {
                     Deploy
                   </AccordionTrigger>
                   <AccordionContent>
-                    <Deployment setActiveTab={setCurrentAccordian} />
+                    <DeploymentContext.Provider value={{
+                      isDeploying,
+                      setIsDeploying,
+                      deployStatus,
+                      setDeployStatus,
+                      constructorCalldata,
+                      setConstructorCalldata,
+                      constructorInputs,
+                      setConstructorInputs,
+                      notEnoughInputs,
+                      setNotEnoughInputs
+                    }}>
+                      <Deployment setActiveTab={setCurrentAccordian} />
+                    </DeploymentContext.Provider>
                   </AccordionContent>
                 </AccordianItem>
                 <AccordianItem value="interaction">
@@ -126,12 +186,28 @@ const Plugin: React.FC = () => {
                   </AccordionContent>
                 </AccordianItem>
               </Accordian>
-            </CompiledContractsContext.Provider>
           </div>
           <div>
+            <EnvironmentContext.Provider value={
+              {
+                devnet,
+                setDevnet,
+                env,
+                setEnv,
+                isDevnetAlive,
+                setIsDevnetAlive,
+                starknetWindowObject,
+                setStarknetWindowObject,
+                selectedDevnetAccount,
+                setSelectedDevnetAccount
+              }
+            } >
             <Environment />
+            </EnvironmentContext.Provider>
           </div>
+        </TransactionContext.Provider>
         </ConnectionContext.Provider>
+        </CompiledContractsContext.Provider>
       </div>
     </>
   )

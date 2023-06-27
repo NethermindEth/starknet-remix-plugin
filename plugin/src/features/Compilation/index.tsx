@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/restrict-plus-operands */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useContext, useEffect } from 'react'
 import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
 import { RemixClientContext } from '../../contexts/RemixClientContext'
 import { apiUrl } from '../../utils/network'
@@ -15,6 +15,7 @@ import { hash } from 'starknet'
 import Container from '../../ui_components/Container'
 import storage from '../../utils/storage'
 import { ethers } from 'ethers'
+import CompilationContext from '../../contexts/CompilationContext'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface CompilationProps {}
@@ -22,19 +23,11 @@ interface CompilationProps {}
 const Compilation: React.FC<CompilationProps> = () => {
   const remixClient = useContext(RemixClientContext)
 
-  const [status, setStatus] = useState('Compiling...')
-
-  const { contracts, setContracts, setSelectedContract } = useContext(
+  const { contracts, setContracts, selectedContract, setSelectedContract } = useContext(
     CompiledContractsContext
   )
 
-  const [currentFilename, setCurrentFilename] = useState('')
-  const [isCompiling, setIsCompiling] = useState(false)
-  const [isValidCairo, setIsValidCairo] = useState(false)
-
-  const [noFileSelected, setNoFileSelected] = useState(false)
-
-  const [hashDir, setHashDir] = useState('')
+  const { status, setStatus, currentFilename, setCurrentFilename, isCompiling, setIsCompiling, isValidCairo, setIsValidCairo, noFileSelected, setNoFileSelected, hashDir, setHashDir } = useContext(CompilationContext)
 
   useEffect(() => {
     // read hashDir from localStorage
@@ -254,13 +247,8 @@ const Compilation: React.FC<CompilationProps> = () => {
         // remove the first array
         errorLetsArray.shift()
 
-        // remove duplicate errors
-        const errorLetsArraySet = new Set(errorLetsArray.map(JSON.stringify))
-
-        console.log(errorLetsArraySet)
-
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        errorLetsArraySet.forEach(async (errorLet: any) => {
+        errorLetsArray.forEach(async (errorLet: any) => {
           const errorType = errorLet[0].split(':')[0].trim()
           const errorTitle = errorLet[0].split(':').slice(1).join(':').trim()
           const errorLine = errorLet[1].split(':')[1].trim()
@@ -339,6 +327,13 @@ const Compilation: React.FC<CompilationProps> = () => {
         )
       }
 
+      await storeContract(
+        currentFilename,
+        currentFilePath,
+        sierra.file_content,
+        casm.file_content
+      )
+
       setStatus('Saving artifacts...')
 
       const sierraPath = `${artifactFolder(currentFilePath)}/${artifactFilename(
@@ -350,17 +345,10 @@ const Compilation: React.FC<CompilationProps> = () => {
         currentFilename
       )}`
 
-      await storeContract(
-        currentFilename,
-        currentFilePath,
-        sierra.file_content,
-        casm.file_content
-      )
-
       remixClient.emit('statusChanged', {
         key: 'succeed',
         type: 'success',
-        title: 'Cheers : last cairo compilation was succeessful'
+        title: `Cheers : last cairo compilation was successful, classHash: ${selectedContract?.classHash ?? ''}`
       })
 
       try {
@@ -393,7 +381,7 @@ const Compilation: React.FC<CompilationProps> = () => {
 
       setStatus('Opening artifacts...')
 
-      await remixClient.fileManager.open(sierraPath)
+      // await remixClient.fileManager.open(sierraPath)
 
       await remixClient.call(
         'notification' as any,
@@ -438,10 +426,10 @@ const Compilation: React.FC<CompilationProps> = () => {
       }
       setSelectedContract(contract)
       const contractsList = [...contracts, contract]
-      // remove duplicates using JSON stringify comparison
+      // remove duplicates using contract.classHash
       const uniqueContracts = contractsList.filter(
-        (v, i, a) =>
-          a.findIndex((t) => JSON.stringify(t) === JSON.stringify(v)) === i
+        (contract, index, self) =>
+          index === self.findIndex((c) => c.classHash === contract.classHash)
       )
       setContracts(uniqueContracts)
     } catch (e) {

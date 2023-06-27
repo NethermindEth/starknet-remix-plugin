@@ -2,14 +2,9 @@ import React, { useContext, useEffect, useState } from 'react'
 
 // import { useContractFactory, useDeploy } from "@starknet-react/core";
 import { type BigNumberish } from 'ethers'
-import { uint256 } from 'starknet'
 import CompiledContracts from '../../components/CompiledContracts'
 import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
-import {
-  type CallDataObject,
-  type Contract,
-  type Input
-} from '../../types/contracts'
+import { type CallDataObj, type CallDataObject, type Contract } from '../../types/contracts'
 import { getConstructor, getParameterType } from '../../utils/utils'
 import './styles.css'
 import Container from '../../ui_components/Container'
@@ -17,6 +12,8 @@ import Container from '../../ui_components/Container'
 import { ConnectionContext } from '../../contexts/ConnectionContext'
 import { RemixClientContext } from '../../contexts/RemixClientContext'
 import { type AccordianTabs } from '../Plugin'
+import DeploymentContext from '../../contexts/DeploymentContext'
+import TransactionContext from '../../contexts/TransactionContext'
 
 interface DeploymentProps {
   setActiveTab: (tab: AccordianTabs) => void
@@ -25,20 +22,19 @@ interface DeploymentProps {
 const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   const remixClient = useContext(RemixClientContext)
   const { account, provider } = useContext(ConnectionContext)
-
-  const [isDeploying, setIsDeploying] = useState(false)
-  const [deployStatus, setDeployStatus] = useState('')
-  const [constructorCalldata, setConstructorCalldata] =
-    useState<CallDataObject>({})
-  const [constructorInputs, setConstructorInputs] = useState<Input[]>([])
-  const [notEnoughInputs, setNotEnoughInputs] = useState(false)
   const { contracts, selectedContract, setContracts, setSelectedContract } =
     useContext(CompiledContractsContext)
+
+  const [constructorCalldata, setConstructorCalldata] =
+    useState<CallDataObject>({})
+
+  const { isDeploying, setIsDeploying, deployStatus, setDeployStatus, constructorInputs, setConstructorInputs, notEnoughInputs, setNotEnoughInputs } = useContext(DeploymentContext)
+
+  const { transactions, setTransactions } = useContext(TransactionContext)
 
   useEffect(() => {
     setConstructorCalldata({})
     if (selectedContract != null) {
-      console.log('Constructor', getConstructor(selectedContract?.abi))
       setConstructorInputs(getConstructor(selectedContract?.abi)?.inputs ?? [])
     }
   }, [selectedContract])
@@ -61,14 +57,26 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
           contract: selectedContract.sierra,
           compiledClassHash: selectedContract.compiledClassHash
         })
-        console.log('declare response', declareResponse)
+        setTransactions([
+          ...transactions,
+          {
+            type: 'declare',
+            account,
+            provider,
+            txId: declareResponse.transaction_hash
+          }
+        ])
+        await remixClient.call('terminal', 'log', {
+          value: declareResponse,
+          type: 'info'
+        })
       } catch (error) {
         if (error instanceof Error) {
           await remixClient.call('terminal', 'log', {
-            value: error as any,
+            value: error.message,
             type: 'error'
           })
-          await remixClient.call('notification' as any, 'toast', `ℹ️ Contract with classHash: ${selectedContract.classHash} already has been declared, proceeding to deployment...`)
+          if (error.message.includes('is already declared')) await remixClient.call('notification' as any, 'toast', `ℹ️ Contract with classHash: ${selectedContract.classHash} already has been declared, proceeding to deployment...`)
         }
       }
 
@@ -79,16 +87,28 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         },
         { cairoVersion: '1' }
       )
-      console.log('deploy response', deployResponse)
-      console.log(deployResponse.contract_address)
+
+      setTransactions([
+        ...transactions,
+        {
+          type: 'deploy',
+          account,
+          provider,
+          txId: deployResponse.transaction_hash
+        }
+      ])
+
+      await remixClient.call('terminal', 'log', {
+        value: deployResponse,
+        type: 'info'
+      })
+
       setContractDeployment(
         selectedContract,
         deployResponse.contract_address
       )
       // setContractAsDeployed(selectedContract as Contract);
-      console.log(deployResponse)
     } catch (error) {
-      console.log('got this error during deployment', error, typeof error)
       if (error instanceof Error) {
         await remixClient.call('terminal', 'log', {
           value: error.message,
@@ -100,7 +120,6 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   }
 
   const handleDeploy = (calldata: BigNumberish[]): void => {
-    console.log('Calldata:', calldata)
     deploy(calldata).catch((error) => {
       console.log('Error during deployment:', error)
     })
@@ -146,21 +165,13 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   const getFormattedCalldata = (): BigNumberish[] => {
     // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (constructorCalldata) {
-      const formattedCalldata: BigNumberish[] = []
+      const formattedCalldata: CallDataObj[] = []
 
       Object.values(constructorCalldata).forEach((input) => {
-        console.log('Input', input)
-        // Check if Uint256 and use uint256.from() to convert to BN
-        if ((input.type?.includes('u256')) ?? false) {
-          const uint = uint256.bnToUint256(input.value)
-          formattedCalldata.push(uint.low)
-          formattedCalldata.push(uint.high)
-        } else {
-          formattedCalldata.push(input.value)
-        }
+        formattedCalldata.push(input.value.trim().split(',').map((val) => val.trim()) as CallDataObj)
       })
 
-      return formattedCalldata
+      return formattedCalldata.flat() as BigNumberish[]
     }
     return []
   }
@@ -169,15 +180,11 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     currentContract: Contract,
     address: string
   ): void => {
-    console.log('Setting contract deployment')
-    console.log('Current contract:', currentContract)
-    console.log('Address:', address)
     const deployedContract = {
       ...currentContract,
       address,
       deployed: true
     }
-    console.log('Deployed contract:', deployedContract)
     const updatedContracts = contracts.map((contract) => {
       if (contract.classHash === deployedContract.classHash) {
         return deployedContract
@@ -186,8 +193,6 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     })
     setContracts(updatedContracts)
     setSelectedContract(deployedContract)
-    console.log('Contract selected:', selectedContract)
-    console.log('Contracts:', contracts)
   }
 
   return (

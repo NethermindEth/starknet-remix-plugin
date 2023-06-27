@@ -24,7 +24,7 @@ interface Input {
 
 type Output = Input
 
-type CallData = BigNumberish[] | CallData[]
+export type CallDataObj = BigNumberish[] | CallDataObj[]
 
 interface AbiElement {
   type: string
@@ -32,9 +32,7 @@ interface AbiElement {
   inputs: Input[]
   outputs?: Output[]
   state_mutability?: string
-  calldata?: CallData
-  calldataLength?: number
-  calldataIndices?: number[]
+  calldata?: CallDataObj[]
   callFunction?: (account: Account) => Promise<InvokeFunctionResponse>
 }
 

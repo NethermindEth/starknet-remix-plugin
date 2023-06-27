@@ -15,6 +15,7 @@ import { Account, Provider } from 'starknet'
 import { RemixClientContext } from '../../contexts/RemixClientContext'
 import { MdRefresh } from 'react-icons/md'
 import './devnetAccountSelector.css'
+import EnvironmentContext from '../../contexts/EnvironmentContext'
 
 interface DevnetAccountSelectorProps {
   devnet: Devnet
@@ -28,8 +29,7 @@ const DevnetAccountSelector: React.FC<DevnetAccountSelectorProps> = (props) => {
 
   const [availableDevnetAccounts, setAvailableDevnetAccounts] = useState<DevnetAccount[]>([])
 
-  const [selectedDevnetAccount, setSelectedDevnetAccount] =
-    useState<DevnetAccount | null>(null)
+  const { selectedDevnetAccount, setSelectedDevnetAccount } = useContext(EnvironmentContext)
 
   // devnet live status
   useEffect(() => {
@@ -72,7 +72,6 @@ const DevnetAccountSelector: React.FC<DevnetAccountSelectorProps> = (props) => {
   }
 
   useEffect(() => {
-    console.log(props.isDevnetAlive, 'notif')
     if (!props.isDevnetAlive) notifyDevnetStatus().catch((e) => { console.log(e) })
   }, [props.isDevnetAlive])
 
@@ -129,7 +128,7 @@ const DevnetAccountSelector: React.FC<DevnetAccountSelectorProps> = (props) => {
     if (event.target.value === -1) {
       return
     }
-    setSelectedDevnetAccount(availableDevnetAccounts[event.target.value - 1])
+    setSelectedDevnetAccount(availableDevnetAccounts[event.target.value])
     const newProvider = new Provider({
       sequencer: {
         baseUrl: props.devnet.url
@@ -139,8 +138,8 @@ const DevnetAccountSelector: React.FC<DevnetAccountSelectorProps> = (props) => {
     setAccount(
       new Account(
         provider ?? newProvider,
-        availableDevnetAccounts[event.target.value - 1].address,
-        availableDevnetAccounts[event.target.value - 1].private_key
+        availableDevnetAccounts[event.target.value].address,
+        availableDevnetAccounts[event.target.value].private_key
       )
     )
   }

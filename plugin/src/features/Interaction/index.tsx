@@ -4,7 +4,6 @@ import { type BigNumberish } from 'ethers'
 import {
   type Account,
   type RawCalldata,
-  uint256,
   type CallContractResponse,
   type GetTransactionReceiptResponse,
   type AccountInterface,
@@ -12,10 +11,12 @@ import {
 } from 'starknet'
 import CompiledContracts from '../../components/CompiledContracts'
 import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
-import { type AbiElement } from '../../types/contracts'
+import { type CallDataObj, type AbiElement } from '../../types/contracts'
 import { getReadFunctions, getWriteFunctions } from '../../utils/utils'
 import Container from '../../ui_components/Container'
 import { ConnectionContext } from '../../contexts/ConnectionContext'
+import TransactionContext from '../../contexts/TransactionContext'
+import { RemixClientContext } from '../../contexts/RemixClientContext'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface InteractionProps {}
@@ -24,9 +25,13 @@ const Interaction: React.FC<InteractionProps> = () => {
   const [readFunctions, setReadFunctions] = useState<AbiElement[]>([])
   const [writeFunctions, setWriteFunctions] = useState<AbiElement[]>([])
   const [responses, setResponses] = useState<Response[]>([])
-  const { contracts, selectedContract } = useContext(CompiledContractsContext)
+  const [notEnoughInputsMap, setNotEnoughInputsMap] = useState<Map<string, boolean>>(new Map())
 
+  const { contracts, selectedContract } = useContext(CompiledContractsContext)
   const { account, provider } = useContext(ConnectionContext)
+
+  const { transactions, setTransactions } = useContext(TransactionContext)
+  const remixClient = useContext(RemixClientContext)
 
   interface Response {
     contractName: string
@@ -42,43 +47,29 @@ const Interaction: React.FC<InteractionProps> = () => {
       let writeFunctions = getWriteFunctions(selectedContract?.abi)
 
       readFunctions = readFunctions.map((func) => {
-        const calldataIndices: number[] = func.inputs.reduce<number[]>(
-          (calldataIndices: number[], input, index: number) => {
-            if (index === 0) {
-              calldataIndices[0] = 0
-              return calldataIndices
-            }
-            if (func.inputs[index - 1].type.endsWith('u256')) {
-              calldataIndices.push(calldataIndices[index - 1] + 2)
-              return calldataIndices
-            } else {
-              calldataIndices.push(calldataIndices[index - 1] + 1)
-              return calldataIndices
-            }
-          },
-          []
-        )
-        return { ...func, calldataIndices }
+        func.calldata = new Array<CallDataObj>(func.inputs.length).fill([])
+        return { ...func }
       })
 
       writeFunctions = writeFunctions.map((func) => {
-        const calldataIndices: number[] = func.inputs.reduce<number[]>(
-          (calldataIndices: number[], input, index: number) => {
-            if (index === 0) {
-              calldataIndices[0] = 0
-              return calldataIndices
-            }
-            if (func.inputs[index - 1].type.endsWith('u256')) {
-              calldataIndices.push(calldataIndices[index - 1] + 2)
-              return calldataIndices
-            } else {
-              calldataIndices.push(calldataIndices[index - 1] + 1)
-              return calldataIndices
-            }
-          },
-          []
-        )
-        return { ...func, calldataIndices }
+        func.calldata = new Array<CallDataObj>(func.inputs.length).fill([])
+        return { ...func }
+      })
+
+      readFunctions.forEach((func) => {
+        setNotEnoughInputsMap((prev) => {
+          const newMap = new Map(prev)
+          newMap.set(func.name, false)
+          return newMap
+        })
+      })
+
+      writeFunctions.forEach((func) => {
+        setNotEnoughInputsMap((prev) => {
+          const newMap = new Map(prev)
+          newMap.set(func.name, false)
+          return newMap
+        })
       })
 
       setReadFunctions(readFunctions)
@@ -97,6 +88,19 @@ const Interaction: React.FC<InteractionProps> = () => {
         entrypoint,
         calldata: calldata as RawCalldata
       })
+      setTransactions([
+        ...transactions,
+        {
+          type: 'invoke',
+          account,
+          provider,
+          txId: response.transaction_hash
+        }
+      ])
+      await remixClient.call('terminal', 'log', {
+        value: response,
+        type: 'info'
+      })
       return response
     }
     return invocation
@@ -113,6 +117,10 @@ const Interaction: React.FC<InteractionProps> = () => {
         entrypoint,
         calldata: calldata as RawCalldata
       })
+      await remixClient.call('terminal', 'log', {
+        value: response,
+        type: 'info'
+      })
       return response
     }
     return call
@@ -121,68 +129,40 @@ const Interaction: React.FC<InteractionProps> = () => {
   // Handle calldata change
   const handleCalldataChange = (e: any): void => {
     const { name, value, dataset } = e.target
-    const { type, index, datatype } = dataset
+    const { type, index } = dataset
+    // set not enough inputs to false
+    setNotEnoughInputsMap((prev) => {
+      const newMap = new Map(prev)
+      newMap.set(name, false)
+      return newMap
+    })
     if (type === 'view') {
       const functionIndex = getFunctionIndex(name, readFunctions)
       const newReadFunctions = [...readFunctions]
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-      if (datatype && (datatype as string).endsWith('u256')) {
-        const calldataElementIndex =
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          newReadFunctions[functionIndex].calldataIndices![parseInt(index)]
-        const uint = uint256.bnToUint256(value)
-        if (newReadFunctions[functionIndex].calldata == null) {
-          newReadFunctions[functionIndex].calldata = []
+      const calldata = newReadFunctions[functionIndex].calldata
+      if (calldata !== undefined) {
+        if (value.trim().length !== 0) {
+          calldata[index] = value.trim().split(',').map((val: string) => val.trim())
+        } else {
+          calldata[index] = []
         }
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        newReadFunctions[functionIndex].calldata![calldataElementIndex] =
-          uint.low
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        newReadFunctions[functionIndex].calldata![calldataElementIndex + 1] =
-          uint.high
-      } else {
-        const calldataElementIndex =
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          newReadFunctions[functionIndex].calldataIndices![parseInt(index)]
-        if (newReadFunctions[functionIndex].calldata == null) {
-          newReadFunctions[functionIndex].calldata = []
-        }
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        newReadFunctions[functionIndex].calldata![calldataElementIndex] = value
       }
+      // add valdiation on datatype
+      newReadFunctions[functionIndex].calldata = calldata
       setReadFunctions(newReadFunctions)
     }
     if (type === 'external') {
       const functionIndex = getFunctionIndex(name, writeFunctions)
       const newWriteFunctions = [...writeFunctions]
-      console.log('Datatype', datatype)
-
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-      if (datatype && (datatype as string).endsWith('u256')) {
-        const calldataElementIndex =
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          newWriteFunctions[functionIndex].calldataIndices![parseInt(index)]
-        const uint = uint256.bnToUint256(value)
-        if (newWriteFunctions[functionIndex].calldata == null) {
-          newWriteFunctions[functionIndex].calldata = []
+      const calldata = newWriteFunctions[functionIndex].calldata
+      if (calldata !== undefined) {
+        if (value.trim().length !== 0) {
+          calldata[index] = value.trim().split(',').map((val: string) => val.trim())
+        } else {
+          calldata[index] = []
         }
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        newWriteFunctions[functionIndex].calldata![calldataElementIndex] =
-          uint.low
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        newWriteFunctions[functionIndex].calldata![calldataElementIndex + 1] =
-          uint.high
-      } else {
-        console.log('THIS', functionIndex, newWriteFunctions[functionIndex])
-        const calldataElementIndex =
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          newWriteFunctions[functionIndex].calldataIndices![parseInt(index)]
-        if (newWriteFunctions[functionIndex].calldata == null) {
-          newWriteFunctions[functionIndex].calldata = []
-        }
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        newWriteFunctions[functionIndex].calldata![calldataElementIndex] = value
       }
+      newWriteFunctions[functionIndex].calldata = calldata
       setWriteFunctions(newWriteFunctions)
     }
   }
@@ -200,7 +180,17 @@ const Interaction: React.FC<InteractionProps> = () => {
     const { name, type } = e.target.dataset
     if (type === 'view') {
       const func = getFunctionFromName(name, readFunctions)
-      console.log(func)
+      const newMap = new Map(notEnoughInputsMap)
+      func?.calldata?.forEach((calldata) => {
+        if (calldata.length === 0) {
+          newMap.set(func.name, true)
+        }
+      })
+      setNotEnoughInputsMap(newMap)
+      // if any value is true then return
+      if (Array.from(newMap.values()).includes(true)) {
+        return
+      }
       const callFunction = getCall(
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
         selectedContract?.address!,
@@ -210,7 +200,6 @@ const Interaction: React.FC<InteractionProps> = () => {
       )
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
       const response = await callFunction(account!)
-      console.log(response)
       setResponses((responses) => [
         ...responses,
         {
@@ -225,7 +214,18 @@ const Interaction: React.FC<InteractionProps> = () => {
       ])
     } else {
       const func = getFunctionFromName(name, writeFunctions)
-      console.log(func?.calldata)
+      func?.calldata?.forEach((calldata) => {
+        if (calldata.length === 0) {
+          setNotEnoughInputsMap((prev) => {
+            const newMap = new Map(prev)
+            newMap.set(func.name, true)
+            return newMap
+          })
+        }
+      })
+      if (((func !== undefined) && notEnoughInputsMap.get(func.name)) ?? false) {
+        return
+      }
       const invocation = getInvocation(
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
         selectedContract?.address!,
@@ -269,6 +269,9 @@ const Interaction: React.FC<InteractionProps> = () => {
           <p>No compiled contracts to interact with... Yet.</p>
         </div>
           )}
+      { ((selectedContract?.deployed) ?? false)
+        // eslint-disable-next-line multiline-ternary
+        ? <>
       {readFunctions.map((func, index) => {
         return (
           <div
@@ -305,6 +308,7 @@ const Interaction: React.FC<InteractionProps> = () => {
                   )
                 })}
             </div>
+            <label>{(notEnoughInputsMap.get(func.name) ?? false) && 'Not enough inputs provided'}</label>
           </div>
         )
       })}
@@ -348,6 +352,7 @@ const Interaction: React.FC<InteractionProps> = () => {
           </div>
         )
       })}
+      </> : <p> Selected contract is not deployed yet... </p>}
       {responses.length > 0 && (
         <div className="my-5">
           <p>Responses:</p>
