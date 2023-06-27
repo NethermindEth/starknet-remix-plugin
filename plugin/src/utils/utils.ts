@@ -70,7 +70,9 @@ const getWriteFunctions = (abi: Abi): AbiElement[] => {
 }
 
 const getParameterType = (parameter: string): string | undefined => {
-  return parameter.split('::').pop()
+  const type = parameter.split('::').pop()
+  if (type === 'u256') return 'u256 (low, high)'
+  return type
 }
 
 const getSelectedContractIndex = (

@@ -1,6 +1,5 @@
 import React, { useContext, useEffect, useState } from 'react'
 
-// import { useContractFactory, useDeploy } from "@starknet-react/core";
 import { type BigNumberish } from 'ethers'
 import CompiledContracts from '../../components/CompiledContracts'
 import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
@@ -42,6 +41,14 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   const deploy = async (calldata: BigNumberish[]): Promise<void> => {
     setIsDeploying(true)
     try {
+      if (account?.constructor.name === 'WrappedAccount') {
+        await remixClient.call('notification' as any, 'alert', {
+          id: 'wallet not supported',
+          title: 'wallet does not support cairo1 deployment',
+          message: 'Wallet accounts do not support cairo1 deployment!'
+        })
+        throw new Error('Wallet accounts do not support cairo1 deployment!')
+      }
       if (account === null || provider === null) {
         throw new Error('No account or provider selected!')
       }

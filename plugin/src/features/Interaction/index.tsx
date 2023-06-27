@@ -12,7 +12,7 @@ import {
 import CompiledContracts from '../../components/CompiledContracts'
 import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
 import { type CallDataObj, type AbiElement } from '../../types/contracts'
-import { getReadFunctions, getWriteFunctions } from '../../utils/utils'
+import { getParameterType, getReadFunctions, getWriteFunctions } from '../../utils/utils'
 import Container from '../../ui_components/Container'
 import { ConnectionContext } from '../../contexts/ConnectionContext'
 import TransactionContext from '../../contexts/TransactionContext'
@@ -299,9 +299,7 @@ const Interaction: React.FC<InteractionProps> = () => {
                       data-index={index}
                       data-datatype={input.type}
                       // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                      placeholder={`${input.name} (${input.type
-                        .split('::')
-                        .pop()})`}
+                      placeholder={`${input.name} (${getParameterType(input.type)})`}
                       onChange={handleCalldataChange}
                       key={index}
                     />
@@ -339,9 +337,7 @@ const Interaction: React.FC<InteractionProps> = () => {
                       data-index={index}
                       data-datatype={input.type}
                       // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                      placeholder={`${input.name} (${input.type
-                        .split('::')
-                        .pop()})`}
+                      placeholder={`${input.name} (${getParameterType(input.type)})`}
                       // value={constructorCalldata[index]?.value || ""}
                       onChange={handleCalldataChange}
                       key={index}
