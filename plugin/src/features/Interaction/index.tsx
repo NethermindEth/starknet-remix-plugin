@@ -17,6 +17,7 @@ import Container from '../../ui_components/Container'
 import { ConnectionContext } from '../../contexts/ConnectionContext'
 import TransactionContext from '../../contexts/TransactionContext'
 import { RemixClientContext } from '../../contexts/RemixClientContext'
+import storage from '../../utils/storage'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface InteractionProps {}
@@ -24,6 +25,7 @@ interface InteractionProps {}
 const Interaction: React.FC<InteractionProps> = () => {
   const [readFunctions, setReadFunctions] = useState<AbiElement[]>([])
   const [writeFunctions, setWriteFunctions] = useState<AbiElement[]>([])
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [responses, setResponses] = useState<Response[]>([])
   const [notEnoughInputsMap, setNotEnoughInputsMap] = useState<Map<string, boolean>>(new Map())
 
@@ -40,6 +42,13 @@ const Interaction: React.FC<InteractionProps> = () => {
     callResponse?: CallContractResponse
     invocationResponse?: GetTransactionReceiptResponse
   }
+
+  useEffect(() => {
+    const currNotifCount = storage.get('notifCount')
+    if (currNotifCount === null || currNotifCount === undefined) {
+      storage.set('notifCount', 0 as number)
+    }
+  })
 
   useEffect(() => {
     if (selectedContract != null) {
@@ -98,9 +107,19 @@ const Interaction: React.FC<InteractionProps> = () => {
         }
       ])
       await remixClient.call('terminal', 'log', {
-        value: response,
+        value: {
+          response,
+          contract: selectedContract?.name,
+          function: entrypoint
+        },
         type: 'info'
       })
+      const currNotifCount = storage.get('notifCount')
+      if (currNotifCount !== undefined) {
+        const notifCount = parseInt(currNotifCount)
+        if (notifCount === 0) await remixClient.call('notification' as any, 'toast', 'ℹ️ Responses are written to the terminal log')
+        storage.set('notifCount', (notifCount + 1) % 7)
+      }
       return response
     }
     return invocation
@@ -118,9 +137,19 @@ const Interaction: React.FC<InteractionProps> = () => {
         calldata: calldata as RawCalldata
       })
       await remixClient.call('terminal', 'log', {
-        value: response,
+        value: {
+          response,
+          contract: selectedContract?.name,
+          function: entrypoint
+        },
         type: 'info'
       })
+      const currNotifCount = storage.get('notifCount')
+      if (currNotifCount !== undefined) {
+        const notifCount = parseInt(currNotifCount)
+        if (notifCount === 0) await remixClient.call('notification' as any, 'toast', 'ℹ️ Responses are written to the terminal log')
+        storage.set('notifCount', (notifCount + 1) % 7)
+      }
       return response
     }
     return call
@@ -349,38 +378,6 @@ const Interaction: React.FC<InteractionProps> = () => {
         )
       })}
       </> : <p> Selected contract is not deployed yet... </p>}
-      {responses.length > 0 && (
-        <div className="my-5">
-          <p>Responses:</p>
-          {responses.reverse().map((response, index) => {
-            return (
-              <div key={index} className="mb-4">
-                <p className="mb-0">
-                  Function: <i>{response.functionName}</i>
-                </p>
-                <p className="mb-0">
-                  Contract: <i>{response.contractName}</i> at{' '}
-                  <i>{response.contractAddress}</i>
-                </p>
-                {response.callResponse != null && (
-                  <p className="mb-0">
-                    Result:{' '}
-                    <pre>{JSON.stringify(response.callResponse, null, 2)}</pre>
-                  </p>
-                )}
-                {response.invocationResponse != null && (
-                  <p className="mb-0">
-                    Response:{' '}
-                    <pre>
-                      {JSON.stringify(response.invocationResponse, null, 2)}
-                    </pre>
-                  </p>
-                )}
-              </div>
-            )
-          })}
-        </div>
-      )}
     </Container>
   )
 }
