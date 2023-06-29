@@ -31,6 +31,7 @@ import { type StarknetWindowObject } from 'get-starknet'
 import EnvironmentContext from '../../contexts/EnvironmentContext'
 import { type Transaction } from '../../types/transaction'
 import TransactionContext from '../../contexts/TransactionContext'
+import StateAction from '../../components/StateAction'
 
 export type AccordianTabs =
   | 'compile'
@@ -126,74 +127,104 @@ const Plugin: React.FC = () => {
                   value={currentAccordian}
                   defaultValue={'compile'}
                 >
-                  <AccordianItem value="compile">
-                    <AccordionTrigger
-                      onClick={() => {
-                        handleTabView('compile')
-                      }}
-                    >
-                      Compile
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <CompilationContext.Provider
-                        value={{
-                          status,
-                          setStatus,
-                          currentFilename,
-                          setCurrentFilename,
-                          isCompiling,
-                          setIsCompiling,
-                          isValidCairo,
-                          setIsValidCairo,
-                          noFileSelected,
-                          setNoFileSelected,
-                          hashDir,
-                          setHashDir
+                  <CompilationContext.Provider
+                    value={{
+                      status,
+                      setStatus,
+                      currentFilename,
+                      setCurrentFilename,
+                      isCompiling,
+                      setIsCompiling,
+                      isValidCairo,
+                      setIsValidCairo,
+                      noFileSelected,
+                      setNoFileSelected,
+                      hashDir,
+                      setHashDir
+                    }}
+                  >
+                    <AccordianItem value="compile">
+                      <AccordionTrigger
+                        onClick={() => {
+                          handleTabView('compile')
                         }}
                       >
+                        <span
+                          className="d-flex align-items-center"
+                          style={{ gap: '0.5rem' }}
+                        >
+                          <p style={{ all: 'unset' }}>Compile</p>
+                          <StateAction
+                            value={
+                              isCompiling
+                                ? 'loading'
+                                : status === 'done'
+                                ? 'success'
+                                : ''
+                            }
+                          />
+                        </span>
+                      </AccordionTrigger>
+                      <AccordionContent>
                         <Compilation />
-                      </CompilationContext.Provider>
-                    </AccordionContent>
-                  </AccordianItem>
-                  <AccordianItem value="deploy">
-                    <AccordionTrigger
-                      onClick={() => {
-                        handleTabView('deploy')
-                      }}
-                    >
-                      Deploy
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <DeploymentContext.Provider
-                        value={{
-                          isDeploying,
-                          setIsDeploying,
-                          deployStatus,
-                          setDeployStatus,
-                          constructorCalldata,
-                          setConstructorCalldata,
-                          constructorInputs,
-                          setConstructorInputs,
-                          notEnoughInputs,
-                          setNotEnoughInputs
+                      </AccordionContent>
+                    </AccordianItem>
+                  </CompilationContext.Provider>
+                  <DeploymentContext.Provider
+                    value={{
+                      isDeploying,
+                      setIsDeploying,
+                      deployStatus,
+                      setDeployStatus,
+                      constructorCalldata,
+                      setConstructorCalldata,
+                      constructorInputs,
+                      setConstructorInputs,
+                      notEnoughInputs,
+                      setNotEnoughInputs
+                    }}
+                  >
+                    <AccordianItem value="deploy">
+                      <AccordionTrigger
+                        onClick={() => {
+                          handleTabView('deploy')
                         }}
                       >
+                        <span
+                          className="d-flex align-items-center"
+                          style={{ gap: '0.5rem' }}
+                        >
+                          <p style={{ all: 'unset' }}>Deploy</p>
+                          <StateAction
+                            value={
+                              isDeploying
+                                ? 'loading'
+                                : deployStatus === 'error'
+                                ? 'error'
+                                : deployStatus === 'done'
+                                ? 'success'
+                                : ''
+                            }
+                          />
+                        </span>
+                      </AccordionTrigger>
+                      <AccordionContent>
                         <Deployment setActiveTab={setCurrentAccordian} />
-                      </DeploymentContext.Provider>
-                    </AccordionContent>
-                  </AccordianItem>
-                  <AccordianItem value="interaction">
-                    <AccordionTrigger
-                      onClick={() => {
-                        handleTabView('interaction')
-                      }}
-                    >
-                      Interact
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <Interaction />
-                    </AccordionContent>
-                  </AccordianItem>
+                      </AccordionContent>
+                    </AccordianItem>
+                    <AccordianItem value="interaction">
+                      <AccordionTrigger
+                        onClick={() => {
+                          handleTabView('interaction')
+                        }}
+                      >
+                        Interact
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        <Interaction />
+                      </AccordionContent>
+                    </AccordianItem>
+                  </DeploymentContext.Provider>
                   <AccordianItem value="transactions">
                     <AccordionTrigger
                       onClick={() => {
