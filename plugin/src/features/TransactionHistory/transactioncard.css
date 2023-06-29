@@ -1,0 +1,75 @@
+/* Card Css */
+
+.maincard {
+  background: var(--accentColor30);
+  display: grid;
+  padding: 1rem;
+  gap: 0.5rem;
+  border-radius: 0.5rem;
+  grid-template-areas:
+    'a a b b'
+    'c c c c';
+}
+
+.tag-wrapper {
+  grid-area: a;
+}
+
+.account-wrapper {
+  grid-area: b;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+}
+
+.account-wrapper p {
+  text-overflow: ellipsis;
+  font-weight: 600;
+}
+.account-wrapper p > a {
+  all: unset;
+}
+.account-wrapper p > a:hover {
+  cursor: pointer;
+}
+
+.txn-wrapper {
+  grid-area: c;
+  display: flex;
+  flex-direction: column;
+}
+
+.txn-wrapper p {
+  margin: 0;
+}
+
+.txn-wrapper a {
+  text-overflow: ellipsis;
+  font-weight: 600;
+}
+
+/* Tag Css */
+
+.tag {
+  border: 1px solid;
+  border-color: white;
+  border-radius: 0.5rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+
+.tag-declare {
+  border-color: green;
+  color: green;
+}
+
+.tag-invoke {
+  border-color: blueviolet;
+  color: blueviolet;
+}
+
+.tag-deploy {
+  border-color: palegreen;
+  color: palegreen;
+}
