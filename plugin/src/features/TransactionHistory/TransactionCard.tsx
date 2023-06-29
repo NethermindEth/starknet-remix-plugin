@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useMemo, useRef } from 'react'
 import { Transaction } from '../../types/transaction'
 import './transactioncard.css'
 
@@ -15,8 +15,12 @@ const trimAddress = (str?: string, strip?: number) => {
 }
 
 const TransactionCard: React.FC<Transaction> = ({ account, txId, type }) => {
+  const cardRef = useRef<HTMLDivElement>(null)
+  const width = useMemo(() => {
+    return cardRef.current ? cardRef.current.offsetWidth : 0
+  }, [cardRef.current])
   return (
-    <div className="maincard">
+    <div className="maincard" ref={cardRef}>
       <div className="tag-wrapper">
         <Tag type={type} />
       </div>
@@ -24,14 +28,14 @@ const TransactionCard: React.FC<Transaction> = ({ account, txId, type }) => {
         <p title={account?.address}>
           From:{' '}
           <a href="https://voyager.online" target="_blank">
-            {trimAddress(account?.address, 10)}
+            {trimAddress(account?.address, width < 250 ? 3 : 10)}
           </a>
         </p>
       </div>
       <div className="txn-wrapper">
         <p>Transaction ID</p>
         <a href="https://voyager.online" target="_blank">
-          {trimAddress(txId, 18)}
+          {trimAddress(txId, width < 250 ? 6 : 14)}
         </a>
       </div>
     </div>
