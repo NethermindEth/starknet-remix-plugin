@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import DevnetAccountSelector from '../../components/DevnetAccountSelector'
 import './styles.css'
 import {
@@ -15,17 +15,34 @@ import { EnvCard } from '../../components/EnvCard'
 import { RxDotFilled } from 'react-icons/rx'
 import EnvironmentContext from '../../contexts/EnvironmentContext'
 import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
+import Accordian, {
+  AccordianItem,
+  AccordionContent,
+  AccordionTrigger
+} from '../../ui_components/Accordian'
+import { AccordionHeader } from '@radix-ui/react-accordion'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface EnvironmentProps {}
 
 const Environment: React.FC<EnvironmentProps> = () => {
   const remixClient = useContext(RemixClientContext)
-  const { account, provider, setAccount, setProvider } = useContext(ConnectionContext)
+  const { account, provider, setAccount, setProvider } =
+    useContext(ConnectionContext)
 
-  const { devnet, setDevnet, env, setEnv, isDevnetAlive, setIsDevnetAlive, starknetWindowObject, setStarknetWindowObject } = useContext(EnvironmentContext)
+  const {
+    devnet,
+    setDevnet,
+    env,
+    setEnv,
+    isDevnetAlive,
+    setIsDevnetAlive,
+    starknetWindowObject,
+    setStarknetWindowObject
+  } = useContext(EnvironmentContext)
 
-  const { selectedContract, setSelectedContract, contracts, setContracts } = useContext(CompiledContractsContext)
+  const { selectedContract, setSelectedContract, contracts, setContracts } =
+    useContext(CompiledContractsContext)
 
   // set selected contract to not deployed on the environment change
   useEffect(() => {
@@ -42,8 +59,7 @@ const Environment: React.FC<EnvironmentProps> = () => {
           return newSelectedContract
         }
         return contract
-      }
-      )
+      })
       setContracts(newContracts)
     }
   }, [account, provider])
@@ -120,43 +136,75 @@ const Environment: React.FC<EnvironmentProps> = () => {
 
   // END: WALLET
 
+  const [currentPane, setCurrentPane] = useState('environment')
+
   return (
     <div className="starknet-connection-component mb-8">
-      <EnvCard
+      <Accordian
+        type="single"
+        value={currentPane}
+        defaultValue={'environment'}
+      >
+        <AccordianItem value="environment">
+          <AccordionTrigger
+            onClick={() =>
+              setCurrentPane(currentPane === 'environment' ? '' : 'environment')
+            }
+          >
+            Environment
+          </AccordionTrigger>
+          <AccordionContent>
+            <>
+              <div className="flex">
+                <label className="">Environment selection</label>
+                <div className="flex_dot">
+                  <EnvironmentSelector
+                    env={env}
+                    setEnv={setEnv}
+                    devnet={devnet}
+                    setDevnet={setDevnet}
+                    connectWalletHandler={connectWalletHandler}
+                    disconnectWalletHandler={disconnectWalletHandler}
+                  />
+                  {isDevnetAlive ? (
+                    <RxDotFilled
+                      size={'30px'}
+                      color="lime"
+                      title="Devnet is live"
+                    />
+                  ) : (
+                    <RxDotFilled
+                      size={'30px'}
+                      color="red"
+                      title="Devnet server down"
+                    />
+                  )}
+                </div>
+              </div>
+              <div className="flex">
+                {env === 'devnet' ? (
+                  <DevnetAccountSelector
+                    devnet={devnet}
+                    isDevnetAlive={isDevnetAlive}
+                    setIsDevnetAlive={setIsDevnetAlive}
+                  />
+                ) : (
+                  <Wallet
+                    starknetWindowObject={starknetWindowObject}
+                    connectWalletHandler={() => connectWalletHandler}
+                    disconnectWalletHandler={() => disconnectWalletHandler}
+                  />
+                )}
+              </div>
+            </>
+          </AccordionContent>
+        </AccordianItem>
+      </Accordian>
+      {/* <EnvCard
         header="Environment"
         setEnv={setEnv}
         disconnectWalletHandler={disconnectWalletHandler}
-      >
-          <>
-            <div className="flex">
-              <label className="">Environment selection</label>
-              <div className='flex_dot'>
-              <EnvironmentSelector
-                env={env}
-                setEnv={setEnv}
-                devnet={devnet}
-                setDevnet={setDevnet}
-                connectWalletHandler={connectWalletHandler}
-                disconnectWalletHandler={disconnectWalletHandler}
-              />
-              {isDevnetAlive ? <RxDotFilled size={'30px'} color="lime" title='Devnet is live'/> : <RxDotFilled size={'30px'} color="red" title='Devnet server down'/>}
-              </div>
-            </div>
-            <div className="flex">
-              {env === 'devnet'
-                ? (
-                <DevnetAccountSelector devnet={devnet} isDevnetAlive={isDevnetAlive} setIsDevnetAlive={setIsDevnetAlive} />
-                  )
-                : (
-                <Wallet
-                  starknetWindowObject={starknetWindowObject}
-                  connectWalletHandler={() => connectWalletHandler}
-                  disconnectWalletHandler={() => disconnectWalletHandler}
-                />
-                  )}
-            </div>
-          </>
-      </EnvCard>
+      ></EnvCard> */}
     </div>
   )
 }
