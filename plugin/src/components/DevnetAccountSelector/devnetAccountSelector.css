@@ -4,6 +4,13 @@
   justify-content: space-between;
 }
 
+.text-copied {
+  top: 0px;
+  left: 0px;
+  background: slateblue;
+  padding: 0.2rem;
+}
+
 .refresh {
   all: unset;
   width: 2rem;

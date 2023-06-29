@@ -13,9 +13,10 @@ import React, { useContext, useEffect, useState } from 'react'
 import { ConnectionContext } from '../../contexts/ConnectionContext'
 import { Account, Provider } from 'starknet'
 import { RemixClientContext } from '../../contexts/RemixClientContext'
-import { MdRefresh } from 'react-icons/md'
+import { MdCopyAll, MdRefresh } from 'react-icons/md'
 import './devnetAccountSelector.css'
 import EnvironmentContext from '../../contexts/EnvironmentContext'
+import copy from 'copy-to-clipboard'
 
 interface DevnetAccountSelectorProps {
   devnet: Devnet
@@ -24,12 +25,16 @@ interface DevnetAccountSelectorProps {
 }
 
 const DevnetAccountSelector: React.FC<DevnetAccountSelectorProps> = (props) => {
-  const { setAccount, provider, setProvider } = useContext(ConnectionContext)
+  const { account, setAccount, provider, setProvider } =
+    useContext(ConnectionContext)
   const remixClient = useContext(RemixClientContext)
 
-  const [availableDevnetAccounts, setAvailableDevnetAccounts] = useState<DevnetAccount[]>([])
+  const [availableDevnetAccounts, setAvailableDevnetAccounts] = useState<
+    DevnetAccount[]
+  >([])
 
-  const { selectedDevnetAccount, setSelectedDevnetAccount } = useContext(EnvironmentContext)
+  const { selectedDevnetAccount, setSelectedDevnetAccount } =
+    useContext(EnvironmentContext)
 
   // devnet live status
   useEffect(() => {
@@ -64,7 +69,7 @@ const DevnetAccountSelector: React.FC<DevnetAccountSelectorProps> = (props) => {
       await remixClient.call(
         'notification' as any,
         'toast',
-      `❗️ Server ${props.devnet.name} - ${props.devnet.url} is not healthy or not reachable at the moment`
+        `❗️ Server ${props.devnet.name} - ${props.devnet.url} is not healthy or not reachable at the moment`
       )
     } catch (e) {
       console.log(e)
@@ -72,7 +77,10 @@ const DevnetAccountSelector: React.FC<DevnetAccountSelectorProps> = (props) => {
   }
 
   useEffect(() => {
-    if (!props.isDevnetAlive) notifyDevnetStatus().catch((e) => { console.log(e) })
+    if (!props.isDevnetAlive)
+      notifyDevnetStatus().catch((e) => {
+        console.log(e)
+      })
   }, [props.isDevnetAlive])
 
   const refreshDevnetAccounts = async (): Promise<void> => {
@@ -124,7 +132,7 @@ const DevnetAccountSelector: React.FC<DevnetAccountSelectorProps> = (props) => {
     }
   }, [props.devnet, selectedDevnetAccount])
 
-  function handleAccountChange (event: any): void {
+  function handleAccountChange(event: any): void {
     if (event.target.value === -1) {
       return
     }
@@ -144,7 +152,7 @@ const DevnetAccountSelector: React.FC<DevnetAccountSelectorProps> = (props) => {
     )
   }
 
-  function getDefaultValue (): number | undefined {
+  function getDefaultValue(): number | undefined {
     const index = getSelectedAccountIndex(
       availableDevnetAccounts,
       selectedDevnetAccount
@@ -161,7 +169,7 @@ const DevnetAccountSelector: React.FC<DevnetAccountSelectorProps> = (props) => {
   }
 
   const [accountRefreshing, setAccountRefreshing] = useState(false)
-
+  const [showCopied, setCopied] = useState(false)
   return (
     <>
       <label className="">Devnet account selection</label>
@@ -174,7 +182,7 @@ const DevnetAccountSelector: React.FC<DevnetAccountSelectorProps> = (props) => {
         >
           {props.isDevnetAlive && availableDevnetAccounts.length > 0
             ? availableDevnetAccounts.map((account, index) => {
-              return (
+                return (
                   <option value={index} key={index}>
                     {`${getShortenedHash(
                       account.address ?? '',
@@ -185,18 +193,37 @@ const DevnetAccountSelector: React.FC<DevnetAccountSelectorProps> = (props) => {
                       2
                     )} ether)`}
                   </option>
-              )
-            })
+                )
+              })
             : ([
                 <option value={-1} key={-1}>
                   No accounts found
                 </option>
               ] as JSX.Element[])}
         </select>
+        <div className="position-relative">
+          <button
+            className="btn"
+            onClick={() => {
+              copy(account?.address || '')
+              setCopied(true)
+              setTimeout(() => {
+                setCopied(false)
+              }, 1000)
+            }}
+          >
+            <MdCopyAll />
+          </button>
+          {showCopied && (
+            <p className="position-absolute text-copied">Copied</p>
+          )}
+        </div>
         <button
           className="refresh"
           // eslint-disable-next-line @typescript-eslint/no-misused-promises
-          onClick={async () => { await refreshDevnetAccounts() } }
+          onClick={async () => {
+            await refreshDevnetAccounts()
+          }}
           title="Refresh devnet accounts"
           data-loading={accountRefreshing ? 'loading' : 'loaded'}
         >

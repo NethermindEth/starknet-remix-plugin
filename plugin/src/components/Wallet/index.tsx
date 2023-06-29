@@ -12,9 +12,10 @@ import { BsChevronDown } from 'react-icons/bs'
 import * as D from '../../ui_components/Dropdown'
 
 import './wallet.css'
+import { MdCopyAll } from 'react-icons/md'
 
 const trimAddress = (adr: string): string => {
-  if ((adr.length > 0) && adr.startsWith('0x')) {
+  if (adr.length > 0 && adr.startsWith('0x')) {
     const len = adr.length
     return `${adr.slice(0, 6)}...${adr.slice(len - 6, len)}`
   }
@@ -26,9 +27,13 @@ const makeVoyagerLink = async (starknetObj?: StarknetWindowObject | null) => {
   if (starknetObj != null) {
     const chainId = await starknetObj?.account?.getChainId()
     if (chainId === '0x534e5f4d41494e') {
-      return `https://goerli.voyager.online/contract/${starknetObj?.account?.address ?? ''}`
+      return `https://goerli.voyager.online/contract/${
+        starknetObj?.account?.address ?? ''
+      }`
     } else {
-      return `https://voyager.online/contract/${starknetObj?.account?.address ?? ''}`
+      return `https://voyager.online/contract/${
+        starknetObj?.account?.address ?? ''
+      }`
     }
   }
   return 'https://voyager.online'
@@ -46,7 +51,7 @@ const Wallet: React.FC<WalletProps> = (props) => {
   const [voyagerLink, setVoyagerLink] = useState('')
 
   useEffect(() => {
-    ;void (async () => {
+    void (async () => {
       const link = await makeVoyagerLink(props.starknetWindowObject)
       setVoyagerLink(link)
     })()
@@ -79,84 +84,77 @@ const Wallet: React.FC<WalletProps> = (props) => {
       >
         Reconnect
       </button>
-      {(props.starknetWindowObject != null)
-        ? <>
-      <div className="wallet-row-wrapper">
-        <div className="wallet-wrapper">
-          <img src={props.starknetWindowObject?.icon} alt="wallet icon" />
-          <p className="text"> {props.starknetWindowObject?.id}</p>
-          <Tooltip
-            icon={<CiWarning color="yellow" />}
-            content={`${props.starknetWindowObject?.name ?? 'It'} doesn't support cairo 1 contracts`}
-          />
-        </div>
-        <div className="account-network-wrapper">
-          <D.Root>
-            <D.Trigger>
-              <label className="account-network-selector">
-                Connected to {currentNetwork} <BsChevronDown />
-              </label>
-            </D.Trigger>
-            <D.Portal>
-              <D.Content>
-                {availableNetworks.map((v, i) => {
-                  return (
-                    <D.Item
-                      key={i}
-                      onClick={() => {
-                        setCurrentNetwork(v)
-                      }}
-                    >
-                      {v}
-                    </D.Item>
-                  )
-                })}
-              </D.Content>
-            </D.Portal>
-          </D.Root>
-        </div>
-      </div>
-      <div className="account-wrapper">
-        <span>
-          <p
-            className="text account"
-            title={props.starknetWindowObject?.account?.address}
-          >
-            {trimAddress(props.starknetWindowObject?.account?.address ?? '')}
-          </p>
-          <button
-            className="btn"
-            onClick={() => {
-              copy(props.starknetWindowObject?.account?.address ?? '')
-              setCopied(true)
-              setTimeout(() => {
-                setCopied(false)
-              }, 1000)
-            }}
-          >
-            <svg
-              stroke="currentColor"
-              fill="none"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              height="1em"
-              width="1em"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-            </svg>
-          </button>
-          {showCopied && <p>Copied</p>}
-        </span>
-        <a href={voyagerLink} target="_blank" rel="noopnener noreferrer">
-          View on Voyager
-        </a>
-      </div>
-      </>
-        : <p> Wallet not connected</p> }
+      {props.starknetWindowObject != null ? (
+        <>
+          <div className="wallet-row-wrapper">
+            <div className="wallet-wrapper">
+              <img src={props.starknetWindowObject?.icon} alt="wallet icon" />
+              <p className="text"> {props.starknetWindowObject?.id}</p>
+              <Tooltip
+                icon={<CiWarning color="yellow" />}
+                content={`${
+                  props.starknetWindowObject?.name ?? 'It'
+                } doesn't support cairo 1 contracts`}
+              />
+            </div>
+            <div className="account-network-wrapper">
+              <D.Root>
+                <D.Trigger>
+                  <label className="account-network-selector">
+                    Connected to {currentNetwork} <BsChevronDown />
+                  </label>
+                </D.Trigger>
+                <D.Portal>
+                  <D.Content>
+                    {availableNetworks.map((v, i) => {
+                      return (
+                        <D.Item
+                          key={i}
+                          onClick={() => {
+                            setCurrentNetwork(v)
+                          }}
+                        >
+                          {v}
+                        </D.Item>
+                      )
+                    })}
+                  </D.Content>
+                </D.Portal>
+              </D.Root>
+            </div>
+          </div>
+          <div className="account-wrapper">
+            <span>
+              <p
+                className="text account"
+                title={props.starknetWindowObject?.account?.address}
+              >
+                {trimAddress(
+                  props.starknetWindowObject?.account?.address ?? ''
+                )}
+              </p>
+              <button
+                className="btn"
+                onClick={() => {
+                  copy(props.starknetWindowObject?.account?.address ?? '')
+                  setCopied(true)
+                  setTimeout(() => {
+                    setCopied(false)
+                  }, 1000)
+                }}
+              >
+                <MdCopyAll />
+              </button>
+              {showCopied && <p>Copied</p>}
+            </span>
+            <a href={voyagerLink} target="_blank" rel="noopnener noreferrer">
+              View on Voyager
+            </a>
+          </div>
+        </>
+      ) : (
+        <p> Wallet not connected</p>
+      )}
     </div>
   )
 }
