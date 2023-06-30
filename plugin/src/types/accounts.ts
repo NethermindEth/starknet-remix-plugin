@@ -1,3 +1,4 @@
+import { type BigNumberish } from 'ethers'
 import { type ProviderInterface, type AccountInterface } from 'starknet'
 
 // type StarknetChainId = constants.StarknetChainId;
@@ -26,6 +27,14 @@ interface DevnetAccount {
   public_key: string
 }
 
-export type { Account, Connection, Provider, DevnetAccount }
+interface ManualAccount {
+  address: string
+  private_key: string
+  public_key: string
+  balance: BigNumberish
+  deployed: boolean
+}
+
+export type { Account, Connection, Provider, DevnetAccount, ManualAccount }
 
 export { StarknetChainId }

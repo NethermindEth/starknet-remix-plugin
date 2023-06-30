@@ -8,6 +8,13 @@ import {
 } from '../../utils/constants'
 import { ConnectionContext } from '../../contexts/ConnectionContext'
 import { type BigNumberish, ethers } from 'ethers'
+import { ManualAccount } from '../../types/accounts'
+
+import ManualAccountContext from '../../contexts/ManualAccountContext'
+
+// TODOS: move state parts to contexts
+// Account address selection
+// network selection drop down
 
 const ManualAccount: React.FC = () => {
   const OZaccountClassHash =
@@ -19,25 +26,15 @@ const ManualAccount: React.FC = () => {
   const { account, provider, setAccount, setProvider } =
     useContext(ConnectionContext)
 
-  const [accountAddressGenerated, setAccountAddressGenerated] =
-    useState<boolean>(false)
-  const [accountDeployed, setAccountDeployed] = useState<boolean>(false)
-  const [accountDeploying, setAccountDeploying] = useState<boolean>(false)
-  const [accountBalance, setAccountBalance] = useState<BigNumberish>(0x0)
-
-  const [networkName, setNetworkName] = useState<string>(
-    networkConstants[0].value
-  )
+  const { accounts, setAccounts, selectedAccount, setSelectedAccount, networkName, setNetworkName } = useContext(ManualAccountContext)
 
   useEffect(() => {
-    console.log('networkConstants=', networkConstants[0].value)
     setNetworkName(networkConstants[0].value)
   }, [setNetworkName])
 
   useEffect(() => {
     const netName = networkNameEquivalents.get(networkName)
     const chainId = networkEquivalents.get(networkName)
-    console.log('chain=', chainId, 'net=', netName, networkName)
     if (chainId && netName) {
       setProvider(
         new Provider({
@@ -48,16 +45,14 @@ const ManualAccount: React.FC = () => {
   }, [setProvider, networkName])
 
   useEffect(() => {
+    if (selectedAccount === null) return
     const interval = setInterval(async () => {
-    //   console.log("fecthing balanceOf...");
       if ((account != null) && (provider != null)) {
         const resp = await provider.callContract({
           contractAddress: balanceContractAddress,
           entrypoint: 'balanceOf',
           calldata: [account.address]
         })
-        // console.log("balanceOf=", resp);
-        // convert resp[0] as hex string to decimal number
         setAccountBalance(resp.result[0])
       }
     }, 1000)
@@ -170,7 +165,7 @@ const ManualAccount: React.FC = () => {
           </button>
         </form>
           )}
-      <button
+      {accountAddressGenerated && <button
         className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3"
         style={{
           cursor: `${
@@ -200,7 +195,7 @@ const ManualAccount: React.FC = () => {
           : (
           <p> DeployAccount </p>
             )}
-      </button>
+      </button>}
     </>
   )
 }

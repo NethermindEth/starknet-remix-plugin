@@ -5,6 +5,7 @@ import { ConnectionContext } from '../../contexts/ConnectionContext'
 import { Provider } from 'starknet'
 
 import './styles.css'
+import EnvironmentContext from '../../contexts/EnvironmentContext'
 
 interface EnvironmentSelectorProps {
   env: string
@@ -17,12 +18,13 @@ interface EnvironmentSelectorProps {
 
 const EnvironmentSelector: React.FC<EnvironmentSelectorProps> = (props) => {
   const { setProvider } = useContext(ConnectionContext)
+  const { starknetWindowObject } = useContext(EnvironmentContext)
 
   async function handleEnvironmentChange (event: any): Promise<void> {
     if (event.target.value > 0) {
       props.setDevnet(devnets[event.target.value - 1])
       props.setEnv('devnet')
-      await props.disconnectWalletHandler()
+      // await props.disconnectWalletHandler()
       setProvider(
         new Provider({
           sequencer: {
@@ -33,7 +35,7 @@ const EnvironmentSelector: React.FC<EnvironmentSelectorProps> = (props) => {
       return
     }
     props.setEnv('wallet')
-    await props.connectWalletHandler()
+    if (starknetWindowObject === null) await props.connectWalletHandler()
   }
 
   return (

@@ -15,6 +15,7 @@ import { EnvCard } from '../../components/EnvCard'
 import { RxDotFilled } from 'react-icons/rx'
 import EnvironmentContext from '../../contexts/EnvironmentContext'
 import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
+import ManualAccount from '../../components/ManualAccount'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface EnvironmentProps {}
@@ -23,7 +24,7 @@ const Environment: React.FC<EnvironmentProps> = () => {
   const remixClient = useContext(RemixClientContext)
   const { account, provider, setAccount, setProvider } = useContext(ConnectionContext)
 
-  const { devnet, setDevnet, env, setEnv, isDevnetAlive, setIsDevnetAlive, starknetWindowObject, setStarknetWindowObject } = useContext(EnvironmentContext)
+  const { devnet, setDevnet, env, setEnv, isDevnetAlive, starknetWindowObject, setStarknetWindowObject } = useContext(EnvironmentContext)
 
   const { selectedContract, setSelectedContract, contracts, setContracts } = useContext(CompiledContractsContext)
 
@@ -127,35 +128,36 @@ const Environment: React.FC<EnvironmentProps> = () => {
         setEnv={setEnv}
         disconnectWalletHandler={disconnectWalletHandler}
       >
-          <>
-            <div className="flex">
-              <label className="">Environment selection</label>
-              <div className='flex_dot'>
-              <EnvironmentSelector
-                env={env}
-                setEnv={setEnv}
-                devnet={devnet}
-                setDevnet={setDevnet}
-                connectWalletHandler={connectWalletHandler}
-                disconnectWalletHandler={disconnectWalletHandler}
-              />
-              {isDevnetAlive ? <RxDotFilled size={'30px'} color="lime" title='Devnet is live'/> : <RxDotFilled size={'30px'} color="red" title='Devnet server down'/>}
-              </div>
-            </div>
-            <div className="flex">
-              {env === 'devnet'
-                ? (
-                <DevnetAccountSelector devnet={devnet} isDevnetAlive={isDevnetAlive} setIsDevnetAlive={setIsDevnetAlive} />
-                  )
-                : (
-                <Wallet
-                  starknetWindowObject={starknetWindowObject}
-                  connectWalletHandler={() => connectWalletHandler}
-                  disconnectWalletHandler={() => disconnectWalletHandler}
+          {env !== 'manual'
+            ? <>
+              <div className="flex">
+                <label className="">Environment selection</label>
+                <div className='flex_dot'>
+                <EnvironmentSelector
+                  env={env}
+                  setEnv={setEnv}
+                  devnet={devnet}
+                  setDevnet={setDevnet}
+                  connectWalletHandler={connectWalletHandler}
+                  disconnectWalletHandler={disconnectWalletHandler}
                 />
-                  )}
-            </div>
-          </>
+                {isDevnetAlive ? <RxDotFilled size={'30px'} color="lime" title='Devnet is live'/> : <RxDotFilled size={'30px'} color="red" title='Devnet server down'/>}
+                </div>
+              </div>
+              <div className="flex">
+                {env === 'devnet'
+                  ? (
+                  <DevnetAccountSelector/>
+                    )
+                  : <Wallet
+                    starknetWindowObject={starknetWindowObject}
+                    connectWalletHandler={() => connectWalletHandler}
+                    disconnectWalletHandler={() => disconnectWalletHandler}
+                  />
+                }
+              </div>
+            </>
+            : <ManualAccount/>}
       </EnvCard>
     </div>
   )

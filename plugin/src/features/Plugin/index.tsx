@@ -25,8 +25,11 @@ import DeploymentContext from '../../contexts/DeploymentContext'
 import { type Devnet, devnets, type DevnetAccount } from '../../utils/network'
 import { type StarknetWindowObject } from 'get-starknet'
 import EnvironmentContext from '../../contexts/EnvironmentContext'
+import ManualAccountContext from '../../contexts/ManualAccountContext'
 import { type Transaction } from '../../types/transaction'
 import TransactionContext from '../../contexts/TransactionContext'
+import type ManualAccount from '../../components/ManualAccount'
+import { networks } from '../../utils/constants'
 
 export type AccordianTabs =
   | 'compile'
@@ -57,6 +60,14 @@ const Plugin: React.FC = () => {
   const [isDevnetAlive, setIsDevnetAlive] = useState<boolean>(true)
   const [starknetWindowObject, setStarknetWindowObject] = useState<StarknetWindowObject | null>(null)
   const [selectedDevnetAccount, setSelectedDevnetAccount] = useState<DevnetAccount | null>(null)
+  const [availableDevnetAccounts, setAvailableDevnetAccounts] = useState<DevnetAccount[]>([])
+
+  // Manual Account Context state variables
+  const [accounts, setAccounts] = useState<ManualAccount[]>([])
+  const [selectedAccount, setSelectedAccount] = useState<ManualAccount | null>(null)
+  const [networkName, setNetworkName] = useState<string>(
+    networks[0].value
+  )
 
   // Transaction History Context state variables
   const [transactions, setTransactions] = useState<Transaction[]>([])
@@ -199,10 +210,21 @@ const Plugin: React.FC = () => {
                 starknetWindowObject,
                 setStarknetWindowObject,
                 selectedDevnetAccount,
-                setSelectedDevnetAccount
+                setSelectedDevnetAccount,
+                availableDevnetAccounts,
+                setAvailableDevnetAccounts
               }
             } >
+            <ManualAccountContext.Provider value={{
+              accounts,
+              setAccounts,
+              selectedAccount,
+              setSelectedAccount,
+              networkName,
+              setNetworkName
+            }}>
             <Environment />
+            </ManualAccountContext.Provider>
             </EnvironmentContext.Provider>
           </div>
         </TransactionContext.Provider>

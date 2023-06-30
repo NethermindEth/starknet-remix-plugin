@@ -1,8 +1,9 @@
 /* eslint-disable react/prop-types */
 import { type DisconnectOptions } from 'get-starknet'
-import { type ReactNode } from 'react'
+import { useContext, type ReactNode, useState } from 'react'
 import React from 'react'
 import './envCard.css'
+import EnvironmentContext from '../../contexts/EnvironmentContext'
 
 interface EnvCardProps {
   header: string
@@ -17,28 +18,34 @@ export const EnvCard: React.FC<EnvCardProps> = ({
   disconnectWalletHandler,
   children
 }) => {
+  const { env } = useContext(EnvironmentContext)
+  const [prevEnv, setPrevEnv] = useState<string>(env)
+
   return (
     <div className="border-top border-bottom">
       {header !== '' && (
         <div className="card-header">
-          <h5 className="mb-0">{header}</h5>
-          {/* <button
+          {/* <h5 className="mb-0">{header}</h5> */}
+          <button
             type="button"
             className="mb-0 btn btn-sm float-left env-btn"
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             onClick={async () => {
-              await disconnectWalletHandler()
-              setEnv('devnet')
+              setEnv(prevEnv)
             }}
           >
             {header}
-          </button> */}
-          {/* <button
+          </button>
+          <button
             type="button"
             className="mb-0 btn btn-sm btn-outline-secondary float-right rounded-pill env-testnet-btn"
-            onClick={() => { setEnv('manual') }}
+            onClick={() => {
+              setPrevEnv(env)
+              setEnv('manual')
+            }}
           >
             Create testnet account
-          </button> */}
+          </button>
         </div>
       )}
       <div className="card-body">{children}</div>
