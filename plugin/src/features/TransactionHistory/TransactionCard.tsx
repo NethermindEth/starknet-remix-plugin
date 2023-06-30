@@ -35,7 +35,7 @@ const TransactionCard: React.FC<Transaction> = ({ account, txId, type }) => {
       <div className="txn-wrapper">
         <p>Transaction ID</p>
         <a href="https://voyager.online" target="_blank">
-          {trimAddress(txId, width < 250 ? 6 : 14)}
+          {trimAddress(txId, width < 250 ? 10 : 16)}
         </a>
       </div>
     </div>

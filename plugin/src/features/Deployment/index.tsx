@@ -128,7 +128,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         value: deployResponse,
         type: 'info'
       })
-
+      setDeployStatus('done')
       setContractDeployment(selectedContract, deployResponse.contract_address)
       // setContractAsDeployed(selectedContract as Contract);
     } catch (error) {
@@ -300,11 +300,11 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
             </form>
             {selectedContract.deployed && (
               <div className="mt-3">
-                <label style={{ display: 'block' }}>Contract deployed!</label>
                 <label style={{ display: 'block' }}>
-                  See{' '}
+                  Contract deployed! See{' '}
                   <a
                     href="/"
+                    className='text-info'
                     onClick={(e) => {
                       e.preventDefault()
                       setActiveTab('interaction')
