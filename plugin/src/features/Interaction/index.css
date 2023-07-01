@@ -1,12 +1,21 @@
-
 .read-functions-wrapper {
-    width: 100%;
-    border-bottom: 1px solid var(--accentColor30);
-    display: grid;
-    gap: 0.8rem;
-    padding: 0.5rem 0rem;
+  width: 100%;
+  border-bottom: 1px solid var(--accentColor30);
+  display: grid;
+  gap: 0.8rem;
+  padding: 0.5rem 0rem;
 }
 
 .read-functions-wrapper > div {
-    width: 100%;
+  width: 100%;
+}
+
+.response-wrapper {
+  padding: 0.5rem 0rem;
+}
+
+.response-wrapper p {
+  margin: 0;   
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

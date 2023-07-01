@@ -229,7 +229,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       <Container>
         {contracts.length > 0 && selectedContract != null ? (
           <div className="">
-            <CompiledContracts />
+            <CompiledContracts show={"class"}/>
             <form onSubmit={handleDeploySubmit}>
               {constructorInputs.map((input, index) => {
                 return (

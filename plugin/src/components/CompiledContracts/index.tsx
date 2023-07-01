@@ -9,7 +9,9 @@ import {
 } from '../../utils/utils'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface CompiledContractsProps {}
+interface CompiledContractsProps {
+  show: 'class' | 'contract'
+}
 
 const CompiledContracts: React.FC<CompiledContractsProps> = (props) => {
   const { contracts, selectedContract, setSelectedContract } = useContext(
@@ -34,7 +36,9 @@ const CompiledContracts: React.FC<CompiledContractsProps> = (props) => {
         return (
           <option value={index} key={index}>
             {`${getContractNameFromFullName(contract.name)} (${getShortenedHash(
-              contract.classHash ?? '',
+              props.show === 'contract'
+                ? contract.address
+                : contract.classHash ?? '',
               6,
               4
             )})`}
