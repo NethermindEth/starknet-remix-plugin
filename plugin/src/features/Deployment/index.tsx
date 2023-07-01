@@ -87,7 +87,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
           }
         ])
         await remixClient.call('terminal', 'log', {
-          value: declareResponse,
+          value: JSON.stringify(declareResponse, null, 2),
           type: 'info'
         })
       } catch (error) {
@@ -125,7 +125,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       ])
 
       await remixClient.call('terminal', 'log', {
-        value: deployResponse,
+        value: JSON.stringify(deployResponse, null, 2),
         type: 'info'
       })
       setDeployStatus('done')
@@ -304,7 +304,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
                   Contract deployed! See{' '}
                   <a
                     href="/"
-                    className='text-info'
+                    className="text-info"
                     onClick={(e) => {
                       e.preventDefault()
                       setActiveTab('interaction')

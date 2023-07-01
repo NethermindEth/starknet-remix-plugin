@@ -16,7 +16,7 @@ const CompiledContracts: React.FC<CompiledContractsProps> = (props) => {
     CompiledContractsContext
   )
 
-  function handleCompiledContractSelectionChange (event: any): void {
+  function handleCompiledContractSelectionChange(event: any): void {
     event.preventDefault()
     setSelectedContract(contracts[event.target.value])
   }
@@ -25,7 +25,9 @@ const CompiledContracts: React.FC<CompiledContractsProps> = (props) => {
     <select
       className="custom-select"
       aria-label=".form-select-sm example"
-      onChange={(e) => { handleCompiledContractSelectionChange(e) } }
+      onChange={(e) => {
+        handleCompiledContractSelectionChange(e)
+      }}
       defaultValue={getSelectedContractIndex(contracts, selectedContract)}
     >
       {contracts.map((contract, index) => {

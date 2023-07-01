@@ -12,22 +12,29 @@ import {
 import CompiledContracts from '../../components/CompiledContracts'
 import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
 import { type CallDataObj, type AbiElement } from '../../types/contracts'
-import { getParameterType, getReadFunctions, getWriteFunctions } from '../../utils/utils'
+import {
+  getParameterType,
+  getReadFunctions,
+  getWriteFunctions
+} from '../../utils/utils'
 import Container from '../../ui_components/Container'
 import { ConnectionContext } from '../../contexts/ConnectionContext'
 import TransactionContext from '../../contexts/TransactionContext'
 import { RemixClientContext } from '../../contexts/RemixClientContext'
 import storage from '../../utils/storage'
+import './index.css'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface InteractionProps {}
+type InteractionProps = {}
 
 const Interaction: React.FC<InteractionProps> = () => {
   const [readFunctions, setReadFunctions] = useState<AbiElement[]>([])
   const [writeFunctions, setWriteFunctions] = useState<AbiElement[]>([])
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [responses, setResponses] = useState<Response[]>([])
-  const [notEnoughInputsMap, setNotEnoughInputsMap] = useState<Map<string, boolean>>(new Map())
+  const [notEnoughInputsMap, setNotEnoughInputsMap] = useState<
+    Map<string, boolean>
+  >(new Map())
 
   const { contracts, selectedContract } = useContext(CompiledContractsContext)
   const { account, provider } = useContext(ConnectionContext)
@@ -59,11 +66,13 @@ const Interaction: React.FC<InteractionProps> = () => {
         func.calldata = new Array<CallDataObj>(func.inputs.length).fill([])
         return { ...func }
       })
+      console.log(readFunctions)
 
       writeFunctions = writeFunctions.map((func) => {
         func.calldata = new Array<CallDataObj>(func.inputs.length).fill([])
         return { ...func }
       })
+      console.log(writeFunctions)
 
       readFunctions.forEach((func) => {
         setNotEnoughInputsMap((prev) => {
@@ -90,8 +99,12 @@ const Interaction: React.FC<InteractionProps> = () => {
     contractAddress: string,
     entrypoint: string,
     calldata: BigNumberish[] = []
-  ): (account: Account | AccountInterface) => Promise<InvokeFunctionResponse> => {
-    const invocation = async (account: Account | AccountInterface): Promise<InvokeFunctionResponse> => {
+  ): ((
+    account: Account | AccountInterface
+  ) => Promise<InvokeFunctionResponse>) => {
+    const invocation = async (
+      account: Account | AccountInterface
+    ): Promise<InvokeFunctionResponse> => {
       const response = await account.execute({
         contractAddress,
         entrypoint,
@@ -117,7 +130,12 @@ const Interaction: React.FC<InteractionProps> = () => {
       const currNotifCount = storage.get('notifCount')
       if (currNotifCount !== undefined) {
         const notifCount = parseInt(currNotifCount)
-        if (notifCount === 0) await remixClient.call('notification' as any, 'toast', 'ℹ️ Responses are written to the terminal log')
+        if (notifCount === 0)
+          await remixClient.call(
+            'notification' as any,
+            'toast',
+            'ℹ️ Responses are written to the terminal log'
+          )
         storage.set('notifCount', (notifCount + 1) % 7)
       }
       return response
@@ -129,8 +147,12 @@ const Interaction: React.FC<InteractionProps> = () => {
     contractAddress: string,
     entrypoint: string,
     calldata: BigNumberish[] = []
-  ): (account: Account | AccountInterface) => Promise<CallContractResponse> => {
-    const call = async (account: Account | AccountInterface): Promise<CallContractResponse> => {
+  ): ((
+    account: Account | AccountInterface
+  ) => Promise<CallContractResponse>) => {
+    const call = async (
+      account: Account | AccountInterface
+    ): Promise<CallContractResponse> => {
       const response = await account.callContract({
         contractAddress,
         entrypoint,
@@ -147,7 +169,12 @@ const Interaction: React.FC<InteractionProps> = () => {
       const currNotifCount = storage.get('notifCount')
       if (currNotifCount !== undefined) {
         const notifCount = parseInt(currNotifCount)
-        if (notifCount === 0) await remixClient.call('notification' as any, 'toast', 'ℹ️ Responses are written to the terminal log')
+        if (notifCount === 0)
+          await remixClient.call(
+            'notification' as any,
+            'toast',
+            'ℹ️ Responses are written to the terminal log'
+          )
         storage.set('notifCount', (notifCount + 1) % 7)
       }
       return response
@@ -171,7 +198,10 @@ const Interaction: React.FC<InteractionProps> = () => {
       const calldata = newReadFunctions[functionIndex].calldata
       if (calldata !== undefined) {
         if (value.trim().length !== 0) {
-          calldata[index] = value.trim().split(',').map((val: string) => val.trim())
+          calldata[index] = value
+            .trim()
+            .split(',')
+            .map((val: string) => val.trim())
         } else {
           calldata[index] = []
         }
@@ -186,7 +216,10 @@ const Interaction: React.FC<InteractionProps> = () => {
       const calldata = newWriteFunctions[functionIndex].calldata
       if (calldata !== undefined) {
         if (value.trim().length !== 0) {
-          calldata[index] = value.trim().split(',').map((val: string) => val.trim())
+          calldata[index] = value
+            .trim()
+            .split(',')
+            .map((val: string) => val.trim())
         } else {
           calldata[index] = []
         }
@@ -200,7 +233,10 @@ const Interaction: React.FC<InteractionProps> = () => {
     return functions.findIndex((func) => func.name === name)
   }
 
-  const getFunctionFromName = (name: string, functions: AbiElement[]): AbiElement | undefined => {
+  const getFunctionFromName = (
+    name: string,
+    functions: AbiElement[]
+  ): AbiElement | undefined => {
     return functions.find((func) => func.name === name)
   }
 
@@ -225,7 +261,7 @@ const Interaction: React.FC<InteractionProps> = () => {
         selectedContract?.address!,
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
         func?.name!,
-        func?.calldata?.flat() as BigNumberish[] ?? []
+        (func?.calldata?.flat() as BigNumberish[]) ?? []
       )
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
       const response = await callFunction(account!)
@@ -252,7 +288,7 @@ const Interaction: React.FC<InteractionProps> = () => {
           })
         }
       })
-      if (((func !== undefined) && notEnoughInputsMap.get(func.name)) ?? false) {
+      if ((func !== undefined && notEnoughInputsMap.get(func.name)) ?? false) {
         return
       }
       const invocation = getInvocation(
@@ -260,7 +296,7 @@ const Interaction: React.FC<InteractionProps> = () => {
         selectedContract?.address!,
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
         func?.name!,
-        func?.calldata?.flat() as BigNumberish[] ?? []
+        (func?.calldata?.flat() as BigNumberish[]) ?? []
       )
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
       const response = await invocation(account!)
@@ -289,95 +325,112 @@ const Interaction: React.FC<InteractionProps> = () => {
 
   return (
     <Container>
-      {contracts.length > 0 && selectedContract != null
-        ? (
+      {contracts.length > 0 && selectedContract != null ? (
         <CompiledContracts />
-          )
-        : (
+      ) : (
         <div>
           <p>No compiled contracts to interact with... Yet.</p>
         </div>
-          )}
-      { ((selectedContract?.deployed) ?? false)
+      )}
+
+      {selectedContract?.deployed ?? false ? (
         // eslint-disable-next-line multiline-ternary
-        ? <>
-      {readFunctions.map((func, index) => {
-        return (
-          <div
-            className="udapp_contractActionsContainerSingle pt-2 function-label-wrapper"
-            style={{ display: 'flex' }}
-            key={index}
-          >
-            <button
-              className="udapp_instanceButton undefined btn btn-sm btn-warning w-50"
-              data-name={func.name}
-              data-type={func.state_mutability}
-              // eslint-disable-next-line @typescript-eslint/no-misused-promises
-              onClick={handleCall}
-            >
-              {func.name}
-            </button>
-            <div className="function-inputs w-50">
-              {func.inputs.length > 0 &&
-                func.inputs.map((input, index) => {
-                  return (
-                    <input
-                      className="form-control function-input"
-                      name={func.name}
-                      data-type={func.state_mutability}
-                      data-index={index}
-                      data-datatype={input.type}
-                      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                      placeholder={`${input.name} (${getParameterType(input.type)})`}
-                      onChange={handleCalldataChange}
-                      key={index}
-                    />
-                  )
-                })}
-            </div>
-            <label>{(notEnoughInputsMap.get(func.name) ?? false) && 'Not enough inputs provided'}</label>
+        <>
+          <div className="read-functions-wrapper">
+            {readFunctions.map((func, index) => {
+              return (
+                <div
+                  className="udapp_contractActionsContainerSingle function-label-wrapper"
+                  style={{ display: 'flex' }}
+                  key={index}
+                >
+                  <button
+                    className={`udapp_instanceButton undefined btn btn-sm btn-warning ${
+                      func.inputs.length === 0 ? 'w-100' : 'w-50'
+                    }`}
+                    data-name={func.name}
+                    data-type={func.state_mutability}
+                    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                    onClick={handleCall}
+                  >
+                    {func.name}
+                  </button>
+                  <div
+                    className={`function-inputs ${
+                      func.inputs.length === 0 ? 'w-0' : 'w-50'
+                    }`}
+                  >
+                    {func.inputs.length > 0 &&
+                      func.inputs.map((input, index) => {
+                        return (
+                          <input
+                            className="form-control function-input"
+                            name={func.name}
+                            data-type={func.state_mutability}
+                            data-index={index}
+                            data-datatype={input.type}
+                            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+                            placeholder={`${input.name} (${getParameterType(
+                              input.type
+                            )})`}
+                            onChange={handleCalldataChange}
+                            key={index}
+                          />
+                        )
+                      })}
+                  </div>
+                  <label>
+                    {(notEnoughInputsMap.get(func.name) ?? false) &&
+                      'Not enough inputs provided'}
+                  </label>
+                </div>
+              )
+            })}
           </div>
-        )
-      })}
-      {writeFunctions.map((func, index) => {
-        return (
-          <div
-            className="udapp_contractActionsContainerSingle pt-2 function-label-wrapper"
-            style={{ display: 'flex' }}
-            key={index}
-          >
-            <button
-              className="udapp_instanceButton undefined btn btn-sm btn-info w-50"
-              // eslint-disable-next-line @typescript-eslint/no-misused-promises
-              onClick={handleCall}
-              data-name={func.name}
-              data-type={func.state_mutability}
-            >
-              {func.name}
-            </button>
-            <div className="function-inputs w-50">
-              {func.inputs.length > 0 &&
-                func.inputs.map((input, index) => {
-                  return (
-                    <input
-                      className="form-control function-input"
-                      name={func.name}
-                      data-type={func.state_mutability}
-                      data-index={index}
-                      data-datatype={input.type}
-                      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                      placeholder={`${input.name} (${getParameterType(input.type)})`}
-                      // value={constructorCalldata[index]?.value || ""}
-                      onChange={handleCalldataChange}
-                      key={index}
-                    />
-                  )
-                })}
-            </div>
-          </div>
-        )
-      })}
-      </> : <p> Selected contract is not deployed yet... </p>}
+          {writeFunctions.map((func, index) => {
+            return (
+              <div
+                className="udapp_contractActionsContainerSingle pt-2 function-label-wrapper"
+                style={{ display: 'flex' }}
+                key={index}
+              >
+                <button
+                  className="udapp_instanceButton undefined btn btn-sm btn-info w-50"
+                  // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                  onClick={handleCall}
+                  data-name={func.name}
+                  data-type={func.state_mutability}
+                >
+                  {func.name}
+                </button>
+                <div className="function-inputs w-50">
+                  {func.inputs.length > 0 &&
+                    func.inputs.map((input, index) => {
+                      return (
+                        <input
+                          className="form-control function-input"
+                          name={func.name}
+                          data-type={func.state_mutability}
+                          data-index={index}
+                          data-datatype={input.type}
+                          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+                          placeholder={`${input.name} (${getParameterType(
+                            input.type
+                          )})`}
+                          // value={constructorCalldata[index]?.value || ""}
+                          onChange={handleCalldataChange}
+                          key={index}
+                        />
+                      )
+                    })}
+                </div>
+              </div>
+            )
+          })}
+        </>
+      ) : (
+        <p> Selected contract is not deployed yet... </p>
+      )}
     </Container>
   )
 }

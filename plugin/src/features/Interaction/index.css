@@ -1,0 +1,12 @@
+
+.read-functions-wrapper {
+    width: 100%;
+    border-bottom: 1px solid var(--accentColor30);
+    display: grid;
+    gap: 0.8rem;
+    padding: 0.5rem 0rem;
+}
+
+.read-functions-wrapper > div {
+    width: 100%;
+}
