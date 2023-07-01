@@ -28,7 +28,7 @@ import EnvironmentContext from '../../contexts/EnvironmentContext'
 import ManualAccountContext from '../../contexts/ManualAccountContext'
 import { type Transaction } from '../../types/transaction'
 import TransactionContext from '../../contexts/TransactionContext'
-import type ManualAccount from '../../components/ManualAccount'
+import type { ManualAccount } from '../../types/accounts'
 import { networks } from '../../utils/constants'
 
 export type AccordianTabs =

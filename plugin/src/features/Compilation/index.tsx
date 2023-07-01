@@ -413,11 +413,13 @@ const Compilation: React.FC<CompilationProps> = () => {
       const casm = await JSON.parse(casmFile)
       const compiledClassHash = hash.computeCompiledClassHash(casm)
       const classHash = hash.computeContractClassHash(sierra)
+      const sierraClassHash = hash.computeSierraContractClassHash(sierra)
       const contract = {
         name: contractName,
         abi: sierra.abi,
         compiledClassHash,
         classHash,
+        sierraClassHash,
         sierra,
         casm,
         path,

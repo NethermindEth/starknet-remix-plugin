@@ -32,7 +32,7 @@ interface ManualAccount {
   private_key: string
   public_key: string
   balance: BigNumberish
-  deployed: boolean
+  deployed_networks: string[]
 }
 
 export type { Account, Connection, Provider, DevnetAccount, ManualAccount }

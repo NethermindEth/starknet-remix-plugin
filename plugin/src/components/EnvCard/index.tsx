@@ -40,7 +40,7 @@ export const EnvCard: React.FC<EnvCardProps> = ({
             type="button"
             className="mb-0 btn btn-sm btn-outline-secondary float-right rounded-pill env-testnet-btn"
             onClick={() => {
-              setPrevEnv(env)
+              if (env !== 'manual') setPrevEnv(env)
               setEnv('manual')
             }}
           >

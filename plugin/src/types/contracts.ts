@@ -9,6 +9,7 @@ interface Contract {
   name: string
   compiledClassHash: string
   classHash: string
+  sierraClassHash: string
   sierra: any // CompiledSierra
   casm: CairoAssembly
   abi: Abi
