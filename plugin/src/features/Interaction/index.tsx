@@ -25,7 +25,11 @@ import storage from '../../utils/storage'
 import './index.css'
 import { useAtom } from 'jotai'
 import { EnhancedAbiElement, interactAtom } from '../../atoms'
-import { BsHash } from 'react-icons/bs'
+import { BsArrowReturnRight, BsHash } from 'react-icons/bs'
+import { Formik } from 'formik'
+import Yup, { transformInputs } from '../../utils/yup'
+
+import { BiReset } from 'react-icons/bi'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 type InteractionProps = {}
@@ -39,7 +43,7 @@ const Interaction: React.FC<InteractionProps> = () => {
 
   const [contractsState, setContractsState] = useAtom(interactAtom)
 
-  console.log(contractsState)
+  console.log(contractsState[selectedContract?.address!])
 
   const setReadState = (readState: EnhancedAbiElement[]) => {
     if (selectedContract)
@@ -73,21 +77,27 @@ const Interaction: React.FC<InteractionProps> = () => {
       switch (stateType) {
         case 'read':
           const readState = currentContractObj.readState
-          const oldElem = readState.find((r_obj) => r_obj.name === funcName)
-          const oldReadStateFunc = readState.filter(
-            (r_obj) => r_obj.name !== funcName
+          const oldElemIdx = readState.findIndex(
+            (r_obj) => r_obj.name === funcName
           )
-          if (oldElem) {
-            if (responseType === 'call') {
-              const newElem = {
-                ...oldElem,
-                callResponse: response as CallContractResponse
+          if (oldElemIdx !== -1) {
+            const oldElem = readState[oldElemIdx]
+            const newElem = {
+              ...oldElem,
+              callResponse: response as CallContractResponse
+            }
+            const newReadState = readState.map((r_obj) => {
+              if (r_obj.name === funcName) {
+                return newElem
               }
+              return r_obj
+            })
+            if (responseType === 'call') {
               setContractsState({
                 ...contractsState,
                 [selectedContract?.address]: {
                   ...currentContractObj,
-                  readState: [...oldReadStateFunc, newElem]
+                  readState: newReadState
                 }
               })
             } else if (responseType === 'invoke') {
@@ -99,47 +109,48 @@ const Interaction: React.FC<InteractionProps> = () => {
                 ...contractsState,
                 [selectedContract?.address]: {
                   ...currentContractObj,
-                  readState: [...oldReadStateFunc, newElem]
+                  readState: newReadState
                 }
               })
-            }
-          } /// If no old elem found, no need to udpate
+            } /// If no old elem found, no need to udpate
+          }
           break
         case 'write':
-          console.log('in write')
           const writeState = currentContractObj.writeState
-          const oldElemW = writeState.find((r_obj) => r_obj.name === funcName)
-          const oldWriteStateFunc = writeState.filter(
-            (r_obj) => r_obj.name !== funcName
+          const oldElemWIdx = writeState.findIndex(
+            (r_obj) => r_obj.name === funcName
           )
-          if (oldElemW) {
-            if (responseType === 'call') {
-              const newElem = {
-                ...oldElemW,
-                callResponse: response as CallContractResponse
+          if (oldElemWIdx !== -1) {
+            const oldElemW = writeState[oldElemWIdx]
+            const newElemW = {
+              ...oldElemW,
+              invocationResponse: response as InvokeFunctionResponse
+            }
+            const newWriteStateFunc = writeState.map((r_obj) => {
+              if (r_obj.name === funcName) {
+                return newElemW
               }
+              return r_obj
+            })
+            if (responseType === 'call') {
               setContractsState({
                 ...contractsState,
                 [selectedContract?.address]: {
                   ...currentContractObj,
-                  writeState: [...oldWriteStateFunc, newElem]
+                  writeState: newWriteStateFunc
                 }
               })
             } else if (responseType === 'invoke') {
-              const newElem = {
-                ...oldElemW,
-                invocationResponse: response as InvokeFunctionResponse
-              }
-
               setContractsState({
                 ...contractsState,
                 [selectedContract?.address]: {
                   ...currentContractObj,
-                  writeState: [...oldWriteStateFunc, newElem]
+                  writeState: newWriteStateFunc
                 }
               })
             }
-          } /// If no old elem found, no need to udpate
+          }
+          /// If no old elem found, no need to udpate
           break
       }
     }
@@ -177,13 +188,11 @@ const Interaction: React.FC<InteractionProps> = () => {
         func.calldata = new Array<CallDataObj>(func.inputs.length).fill([])
         return { ...func }
       })
-      console.log(readFunctions)
 
       writeFunctions = writeFunctions.map((func) => {
         func.calldata = new Array<CallDataObj>(func.inputs.length).fill([])
         return { ...func }
       })
-      console.log(writeFunctions)
 
       // Merge with old objs, since old objs can have responses.
       const oldContractObj = contractsState[selectedContract.address]
@@ -341,56 +350,64 @@ const Interaction: React.FC<InteractionProps> = () => {
   }
 
   // Handle calldata change
-  const handleCalldataChange = (e: any): void => {
-    const { name, value, dataset } = e.target
-    const { type, index } = dataset
-    // set not enough inputs to false
-    setNotEnoughInputsMap((prev) => {
-      const newMap = new Map(prev)
-      newMap.set(name, false)
-      return newMap
-    })
+  const handleCalldataChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    func_name: string,
+    type: 'view' | 'external',
+    index: number
+  ): void => {
+    const { value } = e.target
+
+    // // set not enough inputs to false
+    // setNotEnoughInputsMap((prev) => {
+    //   const newMap = new Map(prev)
+    //   newMap.set(name, false)
+    //   return newMap
+    // })
     if (!selectedContract) {
       console.error('No Contract Selected!!')
       return
     }
-    if (type === 'view') {
-      const readFunctions = contractsState[selectedContract?.address].readState
-      const functionIndex = getFunctionIndex(name, readFunctions)
-      const newReadFunctions = [...readFunctions]
-      const calldata = newReadFunctions[functionIndex].calldata
-      if (calldata !== undefined) {
-        if (value.trim().length !== 0) {
-          calldata[index] = value
-            .trim()
-            .split(',')
-            .map((val: string) => val.trim())
-        } else {
-          calldata[index] = []
+    switch (type) {
+      case 'view':
+        const readFunctions =
+          contractsState[selectedContract?.address].readState
+        const rfunctionIndex = getFunctionIndex(func_name, readFunctions)
+        const newReadFunctions = [...readFunctions]
+        const rcalldata = newReadFunctions[rfunctionIndex].calldata
+        if (rcalldata !== undefined) {
+          if (value.trim().length !== 0) {
+            rcalldata[index] = value
+              .trim()
+              .split(',')
+              .map((val: string) => val.trim())
+          } else {
+            rcalldata[index] = []
+          }
         }
-      }
-      // add valdiation on datatype
-      newReadFunctions[functionIndex].calldata = calldata
-      setReadState(newReadFunctions)
-    }
-    if (type === 'external') {
-      const writeFunctions =
-        contractsState[selectedContract?.address].writeState
-      const functionIndex = getFunctionIndex(name, writeFunctions)
-      const newWriteFunctions = [...writeFunctions]
-      const calldata = newWriteFunctions[functionIndex].calldata
-      if (calldata !== undefined) {
-        if (value.trim().length !== 0) {
-          calldata[index] = value
-            .trim()
-            .split(',')
-            .map((val: string) => val.trim())
-        } else {
-          calldata[index] = []
+        // add valdiation on datatype
+        newReadFunctions[rfunctionIndex].calldata = rcalldata
+        setReadState(newReadFunctions)
+        break
+      case 'external':
+        const writeFunctions =
+          contractsState[selectedContract?.address].writeState
+        const functionIndex = getFunctionIndex(func_name, writeFunctions)
+        const newWriteFunctions = [...writeFunctions]
+        const calldata = newWriteFunctions[functionIndex].calldata
+        if (calldata !== undefined) {
+          if (value.trim().length !== 0) {
+            calldata[index] = value
+              .trim()
+              .split(',')
+              .map((val: string) => val.trim())
+          } else {
+            calldata[index] = []
+          }
         }
-      }
-      newWriteFunctions[functionIndex].calldata = calldata
-      setWriteState(newWriteFunctions)
+        newWriteFunctions[functionIndex].calldata = calldata
+        setWriteState(newWriteFunctions)
+        break
     }
   }
 
@@ -521,55 +538,129 @@ const Interaction: React.FC<InteractionProps> = () => {
             {selectedContract &&
               contractsState[selectedContract.address]?.readState?.map(
                 (func, index) => {
+                  const init: any = func.inputs.reduce((p, c) => {
+                    return {
+                      ...p,
+                      [c.name]: ''
+                    }
+                  }, {})
+
+                  const validationSchema = func.inputs.reduce((p, c) => {
+                    return {
+                      ...p,
+
+                      [c.name]: Yup.string()
+                        .required(`${c.name} is required.`)
+                        // @ts-ignore
+                        .validate_ip(c.type)
+                    }
+                  }, {})
+
                   return (
                     <>
-                      <div
-                        className="udapp_contractActionsContainerSingle function-label-wrapper"
-                        style={{ display: 'flex' }}
-                        key={index}
+                      <Formik
+                        initialValues={{ ...init }}
+                        onSubmit={(e, { resetForm }) => {
+                          // handleCall(e)
+                          console.log(e)
+                          // Do Call data transforms here and call
+                          resetForm()
+                        }}
+                        validationSchema={Yup.object().shape({
+                          ...validationSchema
+                        })}
                       >
-                        <button
-                          className={`udapp_instanceButton undefined btn btn-sm btn-warning ${
-                            func.inputs.length === 0 ? 'w-100' : 'w-50'
-                          }`}
-                          data-name={func.name}
-                          data-type={func.state_mutability}
-                          // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                          onClick={handleCall}
-                        >
-                          {func.name}
-                        </button>
-                        <div
-                          className={`function-inputs ${
-                            func.inputs.length === 0 ? 'w-0' : 'w-50'
-                          }`}
-                        >
-                          {func.inputs.length > 0 &&
-                            func.inputs.map((input, index) => {
-                              return (
-                                <input
-                                  className="form-control function-input"
-                                  name={func.name}
-                                  data-type={func.state_mutability}
-                                  data-index={index}
-                                  data-datatype={input.type}
-                                  // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                                  placeholder={`${
-                                    input.name
-                                  } (${getParameterType(input.type)})`}
-                                  onChange={handleCalldataChange}
-                                  key={index}
-                                />
-                              )
-                            })}
-                        </div>
-                        <label>
-                          {(notEnoughInputsMap.get(func.name) ?? false) &&
-                            'Not enough inputs provided'}
-                        </label>
-                      </div>
+                        {(props) => {
+                          const {
+                            values,
+                            touched,
+                            errors,
+                            dirty,
+                            isSubmitting,
+                            handleChange,
+                            handleBlur,
+                            handleSubmit,
+                            handleReset
+                          } = props
+
+                          // console.log(values, errors)
+                          return (
+                            <form
+                              className="udapp_contractActionsContainerSingle function-label-wrapper"
+                              style={{ display: 'flex' }}
+                              key={index}
+                              onSubmit={handleSubmit}
+                            >
+                              <button
+                                className={`udapp_instanceButton undefined btn btn-sm btn-warning ${
+                                  func.inputs.length === 0 ? 'w-100' : 'w-50'
+                                }`}
+                                data-name={func.name}
+                                data-type={func.state_mutability}
+                                type="submit"
+                                disabled={isSubmitting}
+                              >
+                                {func.name}
+                              </button>
+
+                              <div
+                                className={`function-inputs ${
+                                  func.inputs.length === 0 ? 'w-0' : 'w-50'
+                                }`}
+                              >
+                                {func.inputs.length > 0 &&
+                                  func.inputs.map((input, index) => {
+                                    return (
+                                      <div className="input-func-wrapper">
+                                        <div className="hint">
+                                          {errors[input.name] &&
+                                            touched[input.name] && (
+                                              <div className="input-feedback text-danger">
+                                                {(errors as any)[input?.name]}
+                                              </div>
+                                            )}
+                                        </div>
+                                        <input
+                                          name={input.name}
+                                          value={values[input.name]}
+                                          data-datatype={input.type}
+                                          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+                                          placeholder={`${
+                                            input.name
+                                          } (${getParameterType(input.type)})`}
+                                          onBlur={handleBlur}
+                                          className={
+                                            errors[input.name] &&
+                                            touched[input.name]
+                                              ? 'form-control function-input function-error text-danger'
+                                              : 'form-control function-input'
+                                          }
+                                          onChange={handleChange}
+                                          key={index}
+                                        />
+                                      </div>
+                                    )
+                                  })}
+                              </div>
+                              <button className={'reset'} onClick={handleReset}>
+                                <BiReset />
+                              </button>
+                              <label>
+                                {(notEnoughInputsMap.get(func.name) ?? false) &&
+                                  'Not enough inputs provided'}
+                              </label>
+                            </form>
+                          )
+                        }}
+                      </Formik>
                       <div className="w-100">
-                        {func?.outputs && func.outputs?.map(o => o.type).join(',')}
+                        <span className="response-type-wrapper">
+                          <p>
+                            {func?.outputs && <BsArrowReturnRight />}
+                            {func?.outputs &&
+                              func.outputs?.map((o) => o.type).join(',')}
+                          </p>
+                        </span>
                         {func.callResponse?.result && (
                           <p>{JSON.stringify(func.callResponse.result)}</p>
                         )}
@@ -605,15 +696,19 @@ const Interaction: React.FC<InteractionProps> = () => {
                               <input
                                 className="form-control function-input"
                                 name={func.name}
-                                data-type={func.state_mutability}
-                                data-index={index}
-                                data-datatype={input.type}
                                 // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                                 placeholder={`${input.name} (${getParameterType(
                                   input.type
                                 )})`}
                                 // value={constructorCalldata[index]?.value || ""}
-                                onChange={handleCalldataChange}
+                                onChange={(e) =>
+                                  handleCalldataChange(
+                                    e,
+                                    func.name,
+                                    'external',
+                                    index
+                                  )
+                                }
                                 key={index}
                               />
                             )
@@ -621,7 +716,9 @@ const Interaction: React.FC<InteractionProps> = () => {
                       </div>
                     </div>
                     <div className="response-wrapper w-100">
-                      <p>Last Response</p>
+                      {func?.invocationResponse?.transaction_hash && (
+                        <p>Last Response</p>
+                      )}
                       {func?.invocationResponse?.transaction_hash && (
                         <span className="d-flex">
                           {' '}

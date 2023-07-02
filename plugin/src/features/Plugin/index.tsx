@@ -120,7 +120,7 @@ const Plugin: React.FC = () => {
                 setTransactions
               }}
             >
-              <div>
+              <div className="plugin-main-wrapper">
                 <CairoVersion />
                 <Accordian
                   type="single"
@@ -166,7 +166,7 @@ const Plugin: React.FC = () => {
                         </span>
                       </AccordionTrigger>
                       <AccordionContent>
-                        <Compilation />
+                        <Compilation setAccordian={setCurrentAccordian} />
                       </AccordionContent>
                     </AccordianItem>
                   </CompilationContext.Provider>

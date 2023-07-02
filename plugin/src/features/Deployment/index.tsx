@@ -92,7 +92,6 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         })
       } catch (error) {
         if (error instanceof Error) {
-          setDeployStatus('error')
           await remixClient.call('terminal', 'log', {
             value: error.message,
             type: 'error'
@@ -129,6 +128,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         type: 'info'
       })
       setDeployStatus('done')
+      setActiveTab('interaction')
       setContractDeployment(selectedContract, deployResponse.contract_address)
       // setContractAsDeployed(selectedContract as Contract);
     } catch (error) {

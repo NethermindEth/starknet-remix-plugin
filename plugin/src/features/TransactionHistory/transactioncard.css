@@ -28,7 +28,8 @@
   font-weight: 600;
 }
 .account-wrapper p > a {
-  all: unset;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .account-wrapper p > a:hover {
   cursor: pointer;
@@ -38,6 +39,8 @@
   grid-area: c;
   display: flex;
   flex-direction: column;
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .txn-wrapper p {
@@ -45,6 +48,7 @@
 }
 
 .txn-wrapper a {
+  overflow: hidden;
   text-overflow: ellipsis;
   font-weight: 600;
 }

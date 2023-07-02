@@ -16,11 +16,14 @@ import Container from '../../ui_components/Container'
 import storage from '../../utils/storage'
 import { ethers } from 'ethers'
 import CompilationContext from '../../contexts/CompilationContext'
+import { AccordianTabs } from '../Plugin'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface CompilationProps {}
+interface CompilationProps {
+  setAccordian: React.Dispatch<React.SetStateAction<AccordianTabs>>
+}
 
-const Compilation: React.FC<CompilationProps> = () => {
+const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
   const remixClient = useContext(RemixClientContext)
 
   const { contracts, setContracts, selectedContract, setSelectedContract } =
@@ -413,6 +416,7 @@ const Compilation: React.FC<CompilationProps> = () => {
       console.error(e)
     }
     setStatus('done')
+    setAccordian('deploy')
     setIsCompiling(false)
   }
 

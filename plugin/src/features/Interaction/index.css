@@ -15,7 +15,45 @@
 }
 
 .response-wrapper p {
-  margin: 0;   
+  margin: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.response-type-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+}
+.response-type-wrapper p {
+  margin: 0;
+}
+
+.input-func-wrapper {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.1rem;
+  grid-template-areas:
+    'hint hint hint hint'
+    'input input input reset';
+}
+
+.input-func-wrapper .hint {
+  grid-area: hint;
+}
+
+.input-func-wrapper input {
+  grid-area: input;
+}
+
+.input-func-wrapper .reset {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  grid-area: reset;
+}
+
+
+.function-error {
+  border: 1px solid red;
+  outline: 1px solid red;
 }
