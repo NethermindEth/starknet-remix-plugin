@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from 'react'
 import { BigNumber, type BigNumberish } from 'ethers'
 
 import {
-  type Account,
+  Account,
   type RawCalldata,
   type CallContractResponse,
   type GetTransactionReceiptResponse,
@@ -11,7 +11,7 @@ import {
 } from 'starknet'
 import CompiledContracts from '../../components/CompiledContracts'
 import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
-import { type CallDataObj, type AbiElement } from '../../types/contracts'
+import { type CallDataObj, type AbiElement, Input } from '../../types/contracts'
 import {
   getParameterType,
   getReadFunctions,
@@ -156,10 +156,8 @@ const Interaction: React.FC<InteractionProps> = () => {
     }
   }
 
-  // const [readFunctions, setReadFunctions] = useState<AbiElement[]>([])
-  // const [writeFunctions, setWriteFunctions] = useState<AbiElement[]>([])
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [responses, setResponses] = useState<Response[]>([])
+  const [_, setResponses] = useState<Response[]>([])
   const [notEnoughInputsMap, setNotEnoughInputsMap] = useState<
     Map<string, boolean>
   >(new Map())
@@ -349,15 +347,74 @@ const Interaction: React.FC<InteractionProps> = () => {
     return call
   }
 
+  const makeCallDatafromInput = (
+    input: Input[],
+    finalInputForm: any
+  ): CallDataObj[] => {
+    let inputs: CallDataObj[] = []
+    try {
+      input.forEach((c) => {
+        if (c.name) {
+          if (finalInputForm[c.name]) {
+            const callDataB = transformInputs(finalInputForm[c.name])
+            if (!Array.isArray(callDataB)) {
+              inputs.push([callDataB.toHexString()])
+            } else {
+              inputs.push(callDataB.map((c) => c.toHexString()))
+            }
+          }
+        }
+      })
+    } catch (e) {
+      console.error(e)
+      alert('Fatal Error in converting to calldata!!')
+    }
+
+    return inputs
+  }
+
+  const propogateStateToCalldata = (
+    finalIPs: any,
+    type: 'view' | 'external',
+    funcName: string
+  ) => {
+    if (!selectedContract) {
+      console.error('No Contract Selected!!')
+      return
+    }
+    switch (type) {
+      case 'view':
+        console.log(finalIPs)
+        const readFunctions =
+          contractsState[selectedContract?.address].readState
+        const newReadFns = readFunctions.map((rf) => {
+          if (rf.name === funcName) {
+            const transformedCallData = makeCallDatafromInput(
+              rf.inputs,
+              finalIPs
+            )
+            const new_rf = {
+              ...rf,
+              calldata: transformedCallData
+            }
+
+            return new_rf
+          }
+          return rf
+        })
+        setReadState(newReadFns)
+        break
+      case 'external':
+        break
+    }
+  }
   // Handle calldata change
   const handleCalldataChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
+    value: string,
     func_name: string,
     type: 'view' | 'external',
     index: number
   ): void => {
-    const { value } = e.target
-
     // // set not enough inputs to false
     // setNotEnoughInputsMap((prev) => {
     //   const newMap = new Map(prev)
@@ -422,27 +479,29 @@ const Interaction: React.FC<InteractionProps> = () => {
     return functions.find((func) => func.name === name)
   }
 
-  const handleCall = async (e: any): Promise<void> => {
-    e.preventDefault()
+  const handleCall = async (
+    name: string,
+    type: 'view' | 'external'
+  ): Promise<void> => {
     if (!selectedContract) {
       console.error('No Contract Selected!!')
       return
     }
-    const { name, type } = e.target.dataset
+
     if (type === 'view') {
       const readFunctions = contractsState[selectedContract?.address].readState
       const func = getFunctionFromName(name, readFunctions)
-      const newMap = new Map(notEnoughInputsMap)
-      func?.calldata?.forEach((calldata) => {
-        if (calldata.length === 0) {
-          newMap.set(func.name, true)
-        }
-      })
-      setNotEnoughInputsMap(newMap)
-      // if any value is true then return
-      if (Array.from(newMap.values()).includes(true)) {
-        return
-      }
+      // const newMap = new Map(notEnoughInputsMap)
+      // func?.calldata?.forEach((calldata) => {
+      //   if (calldata.length === 0) {
+      //     newMap.set(func.name, true)
+      //   }
+      // })
+      // setNotEnoughInputsMap(newMap)
+      // // if any value is true then return
+      // if (Array.from(newMap.values()).includes(true)) {
+      //   return
+      // }
       const callFunction = getCall(
         selectedContract.address,
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
@@ -548,7 +607,6 @@ const Interaction: React.FC<InteractionProps> = () => {
                   const validationSchema = func.inputs.reduce((p, c) => {
                     return {
                       ...p,
-
                       [c.name]: Yup.string()
                         .required(`${c.name} is required.`)
                         // @ts-ignore
@@ -557,13 +615,25 @@ const Interaction: React.FC<InteractionProps> = () => {
                   }, {})
 
                   return (
-                    <>
+                    <div className="form-function-wrapper">
                       <Formik
                         initialValues={{ ...init }}
-                        onSubmit={(e, { resetForm }) => {
-                          // handleCall(e)
-                          console.log(e)
-                          // Do Call data transforms here and call
+                        onSubmit={(final_state, { resetForm }) => {
+                          // console.log(
+                          //   final_state,
+                          //   'this conforms to init state'
+                          // )
+                          propogateStateToCalldata(
+                            final_state,
+                            'view',
+                            func?.name
+                          )
+                          handleCall(
+                            func.name,
+                            func?.state_mutability === 'view'
+                              ? 'view'
+                              : 'external'
+                          )
                           resetForm()
                         }}
                         validationSchema={Yup.object().shape({
@@ -575,7 +645,6 @@ const Interaction: React.FC<InteractionProps> = () => {
                             values,
                             touched,
                             errors,
-                            dirty,
                             isSubmitting,
                             handleChange,
                             handleBlur,
@@ -586,28 +655,29 @@ const Interaction: React.FC<InteractionProps> = () => {
                           // console.log(values, errors)
                           return (
                             <form
-                              className="udapp_contractActionsContainerSingle function-label-wrapper"
+                              className="function-label-wrapper"
                               style={{ display: 'flex' }}
                               key={index}
                               onSubmit={handleSubmit}
                             >
-                              <button
-                                className={`udapp_instanceButton undefined btn btn-sm btn-warning ${
-                                  func.inputs.length === 0 ? 'w-100' : 'w-50'
-                                }`}
-                                data-name={func.name}
-                                data-type={func.state_mutability}
-                                type="submit"
-                                disabled={isSubmitting}
-                              >
-                                {func.name}
-                              </button>
-
-                              <div
-                                className={`function-inputs ${
-                                  func.inputs.length === 0 ? 'w-0' : 'w-50'
-                                }`}
-                              >
+                              <div className="form-action-wrapper">
+                                <button
+                                  className={`udapp_instanceButton undefined btn btn-sm btn-warning 'w-100'`}
+                                  data-name={func.name}
+                                  data-type={func.state_mutability}
+                                  type="submit"
+                                  disabled={isSubmitting}
+                                >
+                                  {func.name}
+                                </button>
+                                <button
+                                  className={'btn btn-sm reset'}
+                                  onClick={handleReset}
+                                >
+                                  <BiReset />
+                                </button>
+                              </div>
+                              <div className={`function-inputs`}>
                                 {func.inputs.length > 0 &&
                                   func.inputs.map((input, index) => {
                                     return (
@@ -629,6 +699,7 @@ const Interaction: React.FC<InteractionProps> = () => {
                                             input.name
                                           } (${getParameterType(input.type)})`}
                                           onBlur={handleBlur}
+                                          disabled={isSubmitting}
                                           className={
                                             errors[input.name] &&
                                             touched[input.name]
@@ -642,13 +713,6 @@ const Interaction: React.FC<InteractionProps> = () => {
                                     )
                                   })}
                               </div>
-                              <button className={'reset'} onClick={handleReset}>
-                                <BiReset />
-                              </button>
-                              <label>
-                                {(notEnoughInputsMap.get(func.name) ?? false) &&
-                                  'Not enough inputs provided'}
-                              </label>
                             </form>
                           )
                         }}
@@ -656,7 +720,11 @@ const Interaction: React.FC<InteractionProps> = () => {
                       <div className="w-100">
                         <span className="response-type-wrapper">
                           <p>
-                            {func?.outputs && <BsArrowReturnRight />}
+                            {func?.outputs && (
+                              <BsArrowReturnRight
+                                style={{ marginRight: '10px' }}
+                              />
+                            )}
                             {func?.outputs &&
                               func.outputs?.map((o) => o.type).join(',')}
                           </p>
@@ -665,7 +733,7 @@ const Interaction: React.FC<InteractionProps> = () => {
                           <p>{JSON.stringify(func.callResponse.result)}</p>
                         )}
                       </div>
-                    </>
+                    </div>
                   )
                 }
               )}
@@ -683,7 +751,7 @@ const Interaction: React.FC<InteractionProps> = () => {
                       <button
                         className="udapp_instanceButton undefined btn btn-sm btn-info w-50"
                         // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                        onClick={handleCall}
+                        onClick={() => handleCall(func.name, 'external')}
                         data-name={func.name}
                         data-type={func.state_mutability}
                       >
@@ -703,7 +771,7 @@ const Interaction: React.FC<InteractionProps> = () => {
                                 // value={constructorCalldata[index]?.value || ""}
                                 onChange={(e) =>
                                   handleCalldataChange(
-                                    e,
+                                    e.target.value,
                                     func.name,
                                     'external',
                                     index
@@ -717,7 +785,7 @@ const Interaction: React.FC<InteractionProps> = () => {
                     </div>
                     <div className="response-wrapper w-100">
                       {func?.invocationResponse?.transaction_hash && (
-                        <p>Last Response</p>
+                        <BsArrowReturnRight />
                       )}
                       {func?.invocationResponse?.transaction_hash && (
                         <span className="d-flex">

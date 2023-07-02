@@ -34,7 +34,7 @@
   padding: 0.1rem;
   grid-template-areas:
     'hint hint hint hint'
-    'input input input reset';
+    'input input input input';
 }
 
 .input-func-wrapper .hint {
@@ -45,15 +45,30 @@
   grid-area: input;
 }
 
-.input-func-wrapper .reset {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  grid-area: reset;
+.form-function-wrapper {
+  border-radius: 0.5rem;
+  border: 1px solid var(--accentColor);
+  padding: 0.2rem;
 }
-
 
 .function-error {
   border: 1px solid red;
   outline: 1px solid red;
+}
+
+.function-label-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.function-label-wrapper > div {
+  width: 100%;
+}
+
+.form-action-wrapper {
+  display: grid;
+  grid-template-columns: 9fr 1fr;
+  align-items: center;
+  justify-content: center;
 }

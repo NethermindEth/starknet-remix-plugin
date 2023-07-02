@@ -2,7 +2,7 @@ import { BigNumber } from 'ethers'
 import { uint256 } from 'starknet'
 import * as Yup from 'yup'
 
-export const transformInputs = (val: string) => {
+export const transformInputs = (val: string): BigNumber | BigNumber[] => {
   const isArrayRegex = /[,[\]]/
   const replaceSquareBracesRegex = /[[\]]/g
 
@@ -16,31 +16,35 @@ export const transformInputs = (val: string) => {
   }
 }
 
-const typeValidation = (
+export const typeValidation = (
   type: string,
   value: BigNumber | BigNumber[]
 ): boolean => {
-  let isValid = false
+  let isValid = true
   try {
     if (!Array.isArray(value)) {
       switch (type) {
         case 'core::integer::u8':
-          return value.lte(255)
+          return value.lte(2 ** 8)
         case 'core::integer::u16':
-          return value.lte(65535)
+          return value.lte(2 ** 16)
         case 'core::integer::u32':
-          return value.lte(4294967295)
+          return value.lte(2 ** 32)
         case 'core::integer::u64':
           return value.lte(2 ** 64)
         case 'core::integer::u128':
           return value.lte(uint256.UINT_128_MAX)
+        case 'core::felt252':
+          return value.lte(2 ** 252 - 1)
         default:
+          return false
       }
     } else if (Array.isArray(value)) {
       switch (type) {
         case 'core::integer::u256':
           // Should be only 2 comma seperated value
           if (value.length !== 2) {
+            console.log(value.length)
             return false
           }
           value.forEach((v) => {
@@ -49,6 +53,8 @@ const typeValidation = (
             }
           })
           break
+        default:
+          return false
       }
     }
     return isValid
@@ -67,8 +73,10 @@ Yup.addMethod(Yup.string, 'validate_ip', function (type: string) {
         const i_p = transformInputs(val)
         console.log(i_p)
         const isValid = typeValidation(type, i_p)
-        if(!isValid) {
-            return createError(new Yup.ValidationError(`${val} is not correct for type ${type}`))
+        if (!isValid) {
+          return createError(
+            new Yup.ValidationError(`${val} is not correct for type ${type}`)
+          )
         }
         return true
       } catch (e: any) {
