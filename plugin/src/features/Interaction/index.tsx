@@ -406,69 +406,6 @@ const Interaction: React.FC<InteractionProps> = () => {
         break
     }
   }
-  // Handle calldata change
-  const handleCalldataChange = (
-    value: string,
-    func_name: string,
-    type: 'view' | 'external',
-    index: number
-  ): void => {
-    // // set not enough inputs to false
-    // setNotEnoughInputsMap((prev) => {
-    //   const newMap = new Map(prev)
-    //   newMap.set(name, false)
-    //   return newMap
-    // })
-    if (!selectedContract) {
-      console.error('No Contract Selected!!')
-      return
-    }
-    switch (type) {
-      case 'view':
-        const readFunctions =
-          contractsState[selectedContract?.address].readState
-        const rfunctionIndex = getFunctionIndex(func_name, readFunctions)
-        const newReadFunctions = [...readFunctions]
-        const rcalldata = newReadFunctions[rfunctionIndex].calldata
-        if (rcalldata !== undefined) {
-          if (value.trim().length !== 0) {
-            rcalldata[index] = value
-              .trim()
-              .split(',')
-              .map((val: string) => val.trim())
-          } else {
-            rcalldata[index] = []
-          }
-        }
-        // add valdiation on datatype
-        newReadFunctions[rfunctionIndex].calldata = rcalldata
-        setReadState(newReadFunctions)
-        break
-      case 'external':
-        const writeFunctions =
-          contractsState[selectedContract?.address].writeState
-        const functionIndex = getFunctionIndex(func_name, writeFunctions)
-        const newWriteFunctions = [...writeFunctions]
-        const calldata = newWriteFunctions[functionIndex].calldata
-        if (calldata !== undefined) {
-          if (value.trim().length !== 0) {
-            calldata[index] = value
-              .trim()
-              .split(',')
-              .map((val: string) => val.trim())
-          } else {
-            calldata[index] = []
-          }
-        }
-        newWriteFunctions[functionIndex].calldata = calldata
-        setWriteState(newWriteFunctions)
-        break
-    }
-  }
-
-  const getFunctionIndex = (name: string, functions: AbiElement[]): number => {
-    return functions.findIndex((func) => func.name === name)
-  }
 
   const getFunctionFromName = (
     name: string,
@@ -838,41 +775,6 @@ const Interaction: React.FC<InteractionProps> = () => {
                           )
                         }}
                       </Formik>
-                      {/* <button
-                        className="udapp_instanceButton undefined btn btn-sm btn-info w-50"
-                        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                        onClick={() => handleCall(func.name, 'external')}
-                        data-name={func.name}
-                        data-type={func.state_mutability}
-                      >
-                        {func.name}
-                      </button>
-                      <div className="function-inputs w-50">
-                        {func.inputs.length > 0 &&
-                          func.inputs.map((input, index) => {
-                            return (
-                              <input
-                                className="form-control function-input"
-                                name={func.name}
-                                // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                                placeholder={`${input.name} (${getParameterType(
-                                  input.type
-                                )})`}
-                                // value={constructorCalldata[index]?.value || ""}
-                                onChange={(e) =>
-                                  handleCalldataChange(
-                                    e.target.value,
-                                    func.name,
-                                    'external',
-                                    index
-                                  )
-                                }
-                                key={index}
-                              />
-                            )
-                          })}
-                      </div> */}
-
                       <div className="response-wrapper w-100">
                         {func?.invocationResponse?.transaction_hash && (
                           <BsArrowReturnRight />

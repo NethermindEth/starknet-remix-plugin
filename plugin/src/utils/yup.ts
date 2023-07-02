@@ -35,7 +35,7 @@ export const typeValidation = (
         case 'core::integer::u128':
           return value.lte(uint256.UINT_128_MAX)
         case 'core::felt252':
-          return value.lte(2 ** 252 - 1)
+          return value.lte(uint256.UINT_128_MAX)
         default:
           return false
       }
