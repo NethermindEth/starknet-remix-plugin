@@ -158,9 +158,6 @@ const Interaction: React.FC<InteractionProps> = () => {
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [_, setResponses] = useState<Response[]>([])
-  const [notEnoughInputsMap, setNotEnoughInputsMap] = useState<
-    Map<string, boolean>
-  >(new Map())
 
   interface Response {
     contractName: string
@@ -237,22 +234,6 @@ const Interaction: React.FC<InteractionProps> = () => {
           }
         })
       }
-
-      readFunctions.forEach((func) => {
-        setNotEnoughInputsMap((prev) => {
-          const newMap = new Map(prev)
-          newMap.set(func.name, false)
-          return newMap
-        })
-      })
-
-      writeFunctions.forEach((func) => {
-        setNotEnoughInputsMap((prev) => {
-          const newMap = new Map(prev)
-          newMap.set(func.name, false)
-          return newMap
-        })
-      })
     }
   }, [selectedContract])
 
@@ -384,7 +365,6 @@ const Interaction: React.FC<InteractionProps> = () => {
     }
     switch (type) {
       case 'view':
-        console.log(finalIPs)
         const readFunctions =
           contractsState[selectedContract?.address].readState
         const newReadFns = readFunctions.map((rf) => {
@@ -405,6 +385,24 @@ const Interaction: React.FC<InteractionProps> = () => {
         setReadState(newReadFns)
         break
       case 'external':
+        const writeFunctions =
+          contractsState[selectedContract?.address].writeState
+        const newWriteFns = writeFunctions.map((rf) => {
+          if (rf.name === funcName) {
+            const transformedCallData = makeCallDatafromInput(
+              rf.inputs,
+              finalIPs
+            )
+            const new_rf = {
+              ...rf,
+              calldata: transformedCallData
+            }
+
+            return new_rf
+          }
+          return rf
+        })
+        setWriteState(newWriteFns)
         break
     }
   }
@@ -487,21 +485,12 @@ const Interaction: React.FC<InteractionProps> = () => {
       console.error('No Contract Selected!!')
       return
     }
+    console.log(name, type)
 
     if (type === 'view') {
       const readFunctions = contractsState[selectedContract?.address].readState
       const func = getFunctionFromName(name, readFunctions)
-      // const newMap = new Map(notEnoughInputsMap)
-      // func?.calldata?.forEach((calldata) => {
-      //   if (calldata.length === 0) {
-      //     newMap.set(func.name, true)
-      //   }
-      // })
-      // setNotEnoughInputsMap(newMap)
-      // // if any value is true then return
-      // if (Array.from(newMap.values()).includes(true)) {
-      //   return
-      // }
+
       const callFunction = getCall(
         selectedContract.address,
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
@@ -532,18 +521,6 @@ const Interaction: React.FC<InteractionProps> = () => {
       const writeFunctions =
         contractsState[selectedContract?.address].writeState
       const func = getFunctionFromName(name, writeFunctions)
-      func?.calldata?.forEach((calldata) => {
-        if (calldata.length === 0) {
-          setNotEnoughInputsMap((prev) => {
-            const newMap = new Map(prev)
-            newMap.set(func.name, true)
-            return newMap
-          })
-        }
-      })
-      if ((func !== undefined && notEnoughInputsMap.get(func.name)) ?? false) {
-        return
-      }
       const invocation = getInvocation(
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
         selectedContract?.address!,
@@ -741,14 +718,127 @@ const Interaction: React.FC<InteractionProps> = () => {
           {selectedContract &&
             contractsState[selectedContract.address]?.writeState?.map(
               (func, index) => {
+                const init: any = func.inputs.reduce((p, c) => {
+                  return {
+                    ...p,
+                    [c.name]: ''
+                  }
+                }, {})
+
+                const validationSchema = func.inputs.reduce((p, c) => {
+                  return {
+                    ...p,
+                    [c.name]: Yup.string()
+                      .required(`${c.name} is required.`)
+                      // @ts-ignore
+                      .validate_ip(c.type)
+                  }
+                }, {})
                 return (
                   <>
-                    <div
-                      className="udapp_contractActionsContainerSingle pt-2 function-label-wrapper"
-                      style={{ display: 'flex' }}
-                      key={index}
-                    >
-                      <button
+                    <div className="form-function-wrapper" key={index}>
+                      <Formik
+                        initialValues={{ ...init }}
+                        onSubmit={(final_state, { resetForm }) => {
+                          // console.log(
+                          //   final_state,
+                          //   'this conforms to init state'
+                          // )
+                          propogateStateToCalldata(
+                            final_state,
+                            'external',
+                            func?.name
+                          )
+                          handleCall(
+                            func.name,
+                            func.state_mutability === 'view'
+                              ? 'view'
+                              : 'external'
+                          )
+                          resetForm()
+                        }}
+                        validationSchema={Yup.object().shape({
+                          ...validationSchema
+                        })}
+                      >
+                        {(props) => {
+                          const {
+                            values,
+                            touched,
+                            errors,
+                            isSubmitting,
+                            handleChange,
+                            handleBlur,
+                            handleSubmit,
+                            handleReset
+                          } = props
+
+                          // console.log(values, errors)
+                          return (
+                            <form
+                              className="function-label-wrapper"
+                              style={{ display: 'flex' }}
+                              key={index}
+                              onSubmit={handleSubmit}
+                            >
+                              <div className="form-action-wrapper">
+                                <button
+                                  className={`udapp_instanceButton undefined btn btn-sm btn-info 'w-100'`}
+                                  data-name={func.name}
+                                  data-type={func.state_mutability}
+                                  type="submit"
+                                  disabled={isSubmitting}
+                                >
+                                  {func.name}
+                                </button>
+                                <button
+                                  className={'btn btn-sm reset'}
+                                  onClick={handleReset}
+                                >
+                                  <BiReset />
+                                </button>
+                              </div>
+                              <div className={`function-inputs`}>
+                                {func.inputs.length > 0 &&
+                                  func.inputs.map((input, index) => {
+                                    return (
+                                      <div className="input-func-wrapper">
+                                        <div className="hint">
+                                          {errors[input.name] &&
+                                            touched[input.name] && (
+                                              <div className="input-feedback text-danger">
+                                                {(errors as any)[input?.name]}
+                                              </div>
+                                            )}
+                                        </div>
+                                        <input
+                                          name={input.name}
+                                          value={values[input.name]}
+                                          data-datatype={input.type}
+                                          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+                                          placeholder={`${
+                                            input.name
+                                          } (${getParameterType(input.type)})`}
+                                          onBlur={handleBlur}
+                                          disabled={isSubmitting}
+                                          className={
+                                            errors[input.name] &&
+                                            touched[input.name]
+                                              ? 'form-control function-input function-error text-danger'
+                                              : 'form-control function-input'
+                                          }
+                                          onChange={handleChange}
+                                          key={index}
+                                        />
+                                      </div>
+                                    )
+                                  })}
+                              </div>
+                            </form>
+                          )
+                        }}
+                      </Formik>
+                      {/* <button
                         className="udapp_instanceButton undefined btn btn-sm btn-info w-50"
                         // eslint-disable-next-line @typescript-eslint/no-misused-promises
                         onClick={() => handleCall(func.name, 'external')}
@@ -781,41 +871,44 @@ const Interaction: React.FC<InteractionProps> = () => {
                               />
                             )
                           })}
-                      </div>
-                    </div>
-                    <div className="response-wrapper w-100">
-                      {func?.invocationResponse?.transaction_hash && (
-                        <BsArrowReturnRight />
-                      )}
-                      {func?.invocationResponse?.transaction_hash && (
-                        <span className="d-flex">
-                          {' '}
-                          <BsHash size={24} />
-                          <p title={func?.invocationResponse?.transaction_hash}>
+                      </div> */}
+
+                      <div className="response-wrapper w-100">
+                        {func?.invocationResponse?.transaction_hash && (
+                          <BsArrowReturnRight />
+                        )}
+                        {func?.invocationResponse?.transaction_hash && (
+                          <span className="d-flex">
                             {' '}
-                            {func?.invocationResponse?.transaction_hash}
+                            <BsHash size={24} />
+                            <p
+                              title={func?.invocationResponse?.transaction_hash}
+                            >
+                              {' '}
+                              {func?.invocationResponse?.transaction_hash}
+                            </p>
+                          </span>
+                        )}
+                        {func?.invocationResponse?.actual_fee && (
+                          <p>
+                            Fee:{' '}
+                            {BigNumber.from(
+                              func?.invocationResponse?.actual_fee
+                            ).toString()}{' '}
+                            WEI
                           </p>
-                        </span>
-                      )}
-                      {func?.invocationResponse?.actual_fee && (
-                        <p>
-                          Fee:{' '}
-                          {BigNumber.from(
-                            func?.invocationResponse?.actual_fee
-                          ).toString()}{' '}
-                          WEI
-                        </p>
-                      )}
-                      {(func?.invocationResponse as any)
-                        ?.execution_resources && (
-                        <p>
-                          {JSON.stringify(
-                            (func?.invocationResponse as any)
-                              ?.execution_resources['n_steps']
-                          )}{' '}
-                          Steps
-                        </p>
-                      )}
+                        )}
+                        {(func?.invocationResponse as any)
+                          ?.execution_resources && (
+                          <p>
+                            {JSON.stringify(
+                              (func?.invocationResponse as any)
+                                ?.execution_resources['n_steps']
+                            )}{' '}
+                            Steps
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </>
                 )
