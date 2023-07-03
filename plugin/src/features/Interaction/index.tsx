@@ -7,7 +7,8 @@ import {
   type CallContractResponse,
   type GetTransactionReceiptResponse,
   type AccountInterface,
-  type InvokeFunctionResponse
+  type InvokeFunctionResponse,
+  constants
 } from 'starknet'
 import CompiledContracts from '../../components/CompiledContracts'
 import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
@@ -42,6 +43,22 @@ const Interaction: React.FC<InteractionProps> = () => {
     callResponse?: CallContractResponse
     invocationResponse?: GetTransactionReceiptResponse
   }
+
+  const [chainId, setChainId] = useState<constants.StarknetChainId>(constants.StarknetChainId.SN_GOERLI)
+
+  useEffect(() => {
+    if (provider !== null) {
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      setTimeout(async () => {
+        try {
+          const chainId = await provider.getChainId()
+          setChainId(chainId)
+        } catch (error) {
+          console.log(error)
+        }
+      })
+    }
+  }, [provider])
 
   useEffect(() => {
     const currNotifCount = storage.get('notifCount')
@@ -298,7 +315,7 @@ const Interaction: React.FC<InteractionProps> = () => {
           <p>No compiled contracts to interact with... Yet.</p>
         </div>
           )}
-      { ((selectedContract?.deployed) ?? false)
+      { (account != null && selectedContract != null && selectedContract.deployedInfo.includes({ address: account.address, chainId }))
         // eslint-disable-next-line multiline-ternary
         ? <>
       {readFunctions.map((func, index) => {

@@ -23,7 +23,7 @@ interface CompilationProps {}
 const Compilation: React.FC<CompilationProps> = () => {
   const remixClient = useContext(RemixClientContext)
 
-  const { contracts, setContracts, selectedContract, setSelectedContract } = useContext(
+  const { contracts, setContracts, setSelectedContract } = useContext(
     CompiledContractsContext
   )
 
@@ -348,7 +348,7 @@ const Compilation: React.FC<CompilationProps> = () => {
       remixClient.emit('statusChanged', {
         key: 'succeed',
         type: 'success',
-        title: `Cheers : last cairo compilation was successful, classHash: ${selectedContract?.classHash ?? ''}`
+        title: `Cheers : compilation successful, classHash: ${hash.computeContractClassHash(sierra.file_content)}`
       })
 
       try {
@@ -414,6 +414,9 @@ const Compilation: React.FC<CompilationProps> = () => {
       const compiledClassHash = hash.computeCompiledClassHash(casm)
       const classHash = hash.computeContractClassHash(sierra)
       const sierraClassHash = hash.computeSierraContractClassHash(sierra)
+      if (contracts.find((contract) => contract.classHash === classHash && contract.compiledClassHash === compiledClassHash)) {
+        return
+      }
       const contract = {
         name: contractName,
         abi: sierra.abi,
@@ -423,22 +426,11 @@ const Compilation: React.FC<CompilationProps> = () => {
         sierra,
         casm,
         path,
-        deployed: false,
+        deployedInfo: [],
         address: ''
       }
       setSelectedContract(contract)
-      const contractsList = [...contracts, contract]
-      // remove duplicates using contract.classHash and contract.compiledClassHash
-      const uniqueContracts = contractsList.filter(
-        (contract, index, self) =>
-          index ===
-          self.findIndex(
-            (t) =>
-              t.classHash === contract.classHash &&
-              t.compiledClassHash === contract.compiledClassHash
-          )
-      )
-      setContracts(uniqueContracts)
+      setContracts([...contracts, contract])
     } catch (e) {
       console.error(e)
     }

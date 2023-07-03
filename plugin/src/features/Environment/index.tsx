@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from 'react'
+import React, { useContext } from 'react'
 import DevnetAccountSelector from '../../components/DevnetAccountSelector'
 import './styles.css'
 import {
@@ -14,7 +14,6 @@ import Wallet from '../../components/Wallet'
 import { EnvCard } from '../../components/EnvCard'
 import { RxDotFilled } from 'react-icons/rx'
 import EnvironmentContext from '../../contexts/EnvironmentContext'
-import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
 import ManualAccount from '../../components/ManualAccount'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -22,32 +21,9 @@ interface EnvironmentProps {}
 
 const Environment: React.FC<EnvironmentProps> = () => {
   const remixClient = useContext(RemixClientContext)
-  const { account, provider, setAccount, setProvider } = useContext(ConnectionContext)
+  const { setAccount, setProvider } = useContext(ConnectionContext)
 
   const { devnet, setDevnet, env, setEnv, isDevnetAlive, starknetWindowObject, setStarknetWindowObject } = useContext(EnvironmentContext)
-
-  const { selectedContract, setSelectedContract, contracts, setContracts } = useContext(CompiledContractsContext)
-
-  // set selected contract to not deployed on the environment change
-  useEffect(() => {
-    console.log(selectedContract)
-    if (selectedContract != null) {
-      // selectedContract.deployed = false
-      const newSelectedContract = { ...selectedContract }
-      newSelectedContract.deployed = false
-      console.log('setting new selected contract to not deployed')
-      setSelectedContract(newSelectedContract)
-      // replace the selected contract in the contracts array
-      const newContracts = contracts.map((contract) => {
-        if (contract.classHash === selectedContract.classHash) {
-          return newSelectedContract
-        }
-        return contract
-      }
-      )
-      setContracts(newContracts)
-    }
-  }, [account, provider])
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const connectWalletHandler = async (

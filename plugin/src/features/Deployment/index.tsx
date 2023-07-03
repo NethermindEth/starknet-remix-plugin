@@ -13,6 +13,7 @@ import { RemixClientContext } from '../../contexts/RemixClientContext'
 import { type AccordianTabs } from '../Plugin'
 import DeploymentContext from '../../contexts/DeploymentContext'
 import TransactionContext from '../../contexts/TransactionContext'
+import { constants } from 'starknet'
 
 interface DeploymentProps {
   setActiveTab: (tab: AccordianTabs) => void
@@ -30,6 +31,22 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   const { isDeploying, setIsDeploying, deployStatus, setDeployStatus, constructorInputs, setConstructorInputs, notEnoughInputs, setNotEnoughInputs } = useContext(DeploymentContext)
 
   const { transactions, setTransactions } = useContext(TransactionContext)
+
+  const [chainId, setChainId] = useState<constants.StarknetChainId>(constants.StarknetChainId.SN_GOERLI)
+
+  useEffect(() => {
+    if (provider !== null) {
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      setTimeout(async () => {
+        try {
+          const chainId = await provider.getChainId()
+          setChainId(chainId)
+        } catch (error) {
+          console.log(error)
+        }
+      })
+    }
+  }, [provider])
 
   useEffect(() => {
     setConstructorCalldata({})
@@ -86,6 +103,8 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
           if (error.message.includes('is already declared')) await remixClient.call('notification' as any, 'toast', `ℹ️ Contract with classHash: ${selectedContract.classHash} already has been declared, proceeding to deployment...`)
         }
       }
+
+      setDeployStatus('Deploying...')
 
       const deployResponse = await account.deployContract(
         {
@@ -187,10 +206,11 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     currentContract: Contract,
     address: string
   ): void => {
+    if (account == null) return
     const deployedContract = {
       ...currentContract,
       address,
-      deployed: true
+      deployedInfo: [...currentContract.deployedInfo, { address: account.address, chainId }]
     }
     const updatedContracts = contracts.map((contract) => {
       if (contract.classHash === deployedContract.classHash) {
@@ -233,10 +253,10 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
               <button
                 className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3 px-0"
                 style={{
-                  cursor: `${(account == null || selectedContract.deployed) ? 'not-allowed' : 'pointer'}`
+                  cursor: `${(isDeploying || account == null || selectedContract.deployedInfo.some((info) => info.address === account.address && info.chainId === chainId)) ? 'not-allowed' : 'pointer'}`
                 }}
-                disabled={account == null || selectedContract.deployed}
-                aria-disabled={account == null || selectedContract.deployed}
+                disabled={isDeploying || account == null || selectedContract.deployedInfo.some((info) => info.address === account.address && info.chainId === chainId)}
+                aria-disabled={isDeploying || account == null || selectedContract.deployedInfo.some((info) => info.address === account.address && info.chainId === chainId)}
                 type="submit"
               >
                 <div className="d-flex align-items-center justify-content-center">
@@ -258,14 +278,14 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
                         )
                       : (
                       <div className="text-truncate overflow-hidden text-nowrap">
-                        {selectedContract.deployed ? <span> Deployed  <i className="bi bi-check"></i> {selectedContract.name}</span> : <span> Deploy {selectedContract.name}</span> }
+                        {(account != null && selectedContract.deployedInfo.some((info) => info.address === account.address && info.chainId === chainId)) ? <span> Deployed  <i className="bi bi-check"></i> {selectedContract.name}</span> : <span> Deploy {selectedContract.name}</span> }
                       </div>
                         )}
                   </div>
                 </div>
               </button>
             </form>
-            {selectedContract.deployed && (
+            {(account != null && selectedContract.deployedInfo.some((info) => info.address === account.address && info.chainId === chainId)) && (
               <div className="mt-3">
                 <label style={{ display: 'block' }}>Contract deployed!</label>
                 <label style={{ display: 'block' }}>
