@@ -23,7 +23,7 @@ const Environment: React.FC<EnvironmentProps> = () => {
   const remixClient = useContext(RemixClientContext)
   const { setAccount, setProvider } = useContext(ConnectionContext)
 
-  const { devnet, setDevnet, env, setEnv, isDevnetAlive, starknetWindowObject, setStarknetWindowObject } = useContext(EnvironmentContext)
+  const { env, setEnv, isDevnetAlive, starknetWindowObject, setStarknetWindowObject } = useContext(EnvironmentContext)
 
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const connectWalletHandler = async (
@@ -110,10 +110,6 @@ const Environment: React.FC<EnvironmentProps> = () => {
                 <label className="">Environment selection</label>
                 <div className='flex_dot'>
                 <EnvironmentSelector
-                  env={env}
-                  setEnv={setEnv}
-                  devnet={devnet}
-                  setDevnet={setDevnet}
                   connectWalletHandler={connectWalletHandler}
                   disconnectWalletHandler={disconnectWalletHandler}
                 />
@@ -121,7 +117,7 @@ const Environment: React.FC<EnvironmentProps> = () => {
                 </div>
               </div>
               <div className="flex">
-                {env === 'devnet'
+                {env === 'localDevnet' || env === 'remoteDevnet'
                   ? (
                   <DevnetAccountSelector/>
                     )

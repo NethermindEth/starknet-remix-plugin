@@ -25,6 +25,12 @@ const networkEquivalents = new Map([
   ['mainnet-alpha', constants.StarknetChainId.SN_MAIN]
 ])
 
+const networkEquivalentsRev = new Map([
+  [constants.StarknetChainId.SN_GOERLI, 'goerli-alpha'],
+  [constants.StarknetChainId.SN_GOERLI2, 'goerli-alpha-2'],
+  [constants.StarknetChainId.SN_MAIN, 'mainnet-alpha']
+])
+
 const networkNameEquivalents = new Map([
   ['goerli-alpha', constants.NetworkName.SN_GOERLI],
   ['goerli-alpha-2', constants.NetworkName.SN_GOERLI2],
@@ -53,6 +59,7 @@ export {
   networks,
   networkExplorerUrls,
   networkEquivalents,
+  networkEquivalentsRev,
   networkNameEquivalents,
   licenses, constants
 }

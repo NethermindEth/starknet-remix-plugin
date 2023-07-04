@@ -14,6 +14,7 @@ import { type AccordianTabs } from '../Plugin'
 import DeploymentContext from '../../contexts/DeploymentContext'
 import TransactionContext from '../../contexts/TransactionContext'
 import { constants } from 'starknet'
+import EnvironmentContext from '../../contexts/EnvironmentContext'
 
 interface DeploymentProps {
   setActiveTab: (tab: AccordianTabs) => void
@@ -31,6 +32,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   const { isDeploying, setIsDeploying, deployStatus, setDeployStatus, constructorInputs, setConstructorInputs, notEnoughInputs, setNotEnoughInputs } = useContext(DeploymentContext)
 
   const { transactions, setTransactions } = useContext(TransactionContext)
+  const { env } = useContext(EnvironmentContext)
 
   const [chainId, setChainId] = useState<constants.StarknetChainId>(constants.StarknetChainId.SN_GOERLI)
 
@@ -44,7 +46,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         } catch (error) {
           console.log(error)
         }
-      })
+      }, 1)
     }
   }, [provider])
 
@@ -57,6 +59,13 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 
   const deploy = async (calldata: BigNumberish[]): Promise<void> => {
     setIsDeploying(true)
+    remixClient.emit('statusChanged', {
+      key: 'loading',
+      type: 'info',
+      title: `Deploying ${selectedContract?.name ?? ''} ...`
+    })
+    let classHash = selectedContract?.sierraClassHash
+    let updatedTransactions = transactions
     try {
       if (account?.constructor.name === 'WrappedAccount') {
         await remixClient.call('notification' as any, 'alert', {
@@ -81,58 +90,69 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
           contract: selectedContract.sierra,
           compiledClassHash: selectedContract.compiledClassHash
         })
-        setTransactions([
-          ...transactions,
-          {
-            type: 'declare',
-            account,
-            provider,
-            txId: declareResponse.transaction_hash
-          }
-        ])
         await remixClient.call('terminal', 'log', {
           value: declareResponse,
           type: 'info'
         })
+        updatedTransactions = [
+          ...updatedTransactions,
+          {
+            type: 'declare',
+            account,
+            provider,
+            txId: declareResponse.transaction_hash,
+            env
+          }
+        ]
+        setTransactions(updatedTransactions)
+        await account.waitForTransaction(declareResponse.transaction_hash)
+        classHash = declareResponse.class_hash
       } catch (error) {
         if (error instanceof Error) {
           await remixClient.call('terminal', 'log', {
             value: error.message,
             type: 'error'
           })
-          if (error.message.includes('is already declared')) await remixClient.call('notification' as any, 'toast', `ℹ️ Contract with classHash: ${selectedContract.classHash} already has been declared, proceeding to deployment...`)
+          if (error.message.includes('is already declared')) await remixClient.call('notification' as any, 'toast', `ℹ️ Contract with classHash: ${classHash ?? selectedContract.classHash} already has been declared, proceeding to deployment...`)
         }
       }
 
       setDeployStatus('Deploying...')
 
+      console.log(selectedContract)
+
       const deployResponse = await account.deployContract(
         {
-          classHash: selectedContract.classHash,
+          classHash: classHash ?? selectedContract.classHash,
           constructorCalldata: calldata
         },
         { cairoVersion: '1' }
       )
-
-      setTransactions([
-        ...transactions,
-        {
-          type: 'deploy',
-          account,
-          provider,
-          txId: deployResponse.transaction_hash
-        }
-      ])
-
       await remixClient.call('terminal', 'log', {
         value: deployResponse,
         type: 'info'
       })
 
+      setTransactions([
+        ...updatedTransactions,
+        {
+          type: 'deploy',
+          account,
+          provider,
+          txId: deployResponse.transaction_hash,
+          env
+        }
+      ])
+      await account.waitForTransaction(deployResponse.transaction_hash)
       setContractDeployment(
         selectedContract,
         deployResponse.contract_address
       )
+      remixClient.emit('statusChanged', {
+        key: 'succeed',
+        type: 'success',
+        title: `Contract ${selectedContract?.name} deployed!`
+      })
       // setContractAsDeployed(selectedContract as Contract);
     } catch (error) {
       if (error instanceof Error) {
@@ -141,6 +161,11 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
           type: 'error'
         })
       }
+      remixClient.emit('statusChanged', {
+        key: 'failed',
+        type: 'error',
+        title: 'Deployment failed, error logged in the terminal!'
+      })
     }
     setIsDeploying(false)
   }

@@ -44,7 +44,7 @@ export const EnvCard: React.FC<EnvCardProps> = ({
               setEnv('manual')
             }}
           >
-            Create testnet account
+            Create Accounts
           </button>
         </div>
       )}

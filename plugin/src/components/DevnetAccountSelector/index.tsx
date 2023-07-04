@@ -4,9 +4,7 @@ import {
   getShortenedHash,
   weiToEth
 } from '../../utils/utils'
-import {
-  getAccounts
-} from '../../utils/network'
+import { getAccounts } from '../../utils/network'
 import React, { useContext, useEffect, useState } from 'react'
 import { ConnectionContext } from '../../contexts/ConnectionContext'
 import { Account, Provider } from 'starknet'
@@ -19,7 +17,15 @@ const DevnetAccountSelector: React.FC = () => {
   const { setAccount, provider, setProvider } = useContext(ConnectionContext)
   const remixClient = useContext(RemixClientContext)
 
-  const { devnet, isDevnetAlive, setIsDevnetAlive, selectedDevnetAccount, setSelectedDevnetAccount, availableDevnetAccounts, setAvailableDevnetAccounts } = useContext(EnvironmentContext)
+  const {
+    devnet,
+    isDevnetAlive,
+    setIsDevnetAlive,
+    selectedDevnetAccount,
+    setSelectedDevnetAccount,
+    availableDevnetAccounts,
+    setAvailableDevnetAccounts
+  } = useContext(EnvironmentContext)
 
   // devnet live status
   useEffect(() => {
@@ -54,7 +60,7 @@ const DevnetAccountSelector: React.FC = () => {
       await remixClient.call(
         'notification' as any,
         'toast',
-      `❗️ Server ${devnet.name} - ${devnet.url} is not healthy or not reachable at the moment`
+        `❗️ Server ${devnet.name} - ${devnet.url} is not healthy or not reachable at the moment`
       )
     } catch (e) {
       console.log(e)
@@ -62,14 +68,20 @@ const DevnetAccountSelector: React.FC = () => {
   }
 
   useEffect(() => {
-    if (!isDevnetAlive) notifyDevnetStatus().catch((e) => { console.log(e) })
+    if (!isDevnetAlive) {
+      notifyDevnetStatus().catch((e) => {
+        console.log(e)
+      })
+    }
   }, [isDevnetAlive])
 
   const refreshDevnetAccounts = async (): Promise<void> => {
     setAccountRefreshing(true)
     try {
       const accounts = await getAccounts(devnet.url)
-      if (JSON.stringify(accounts) !== JSON.stringify(availableDevnetAccounts)) setAvailableDevnetAccounts(accounts)
+      if (JSON.stringify(accounts) !== JSON.stringify(availableDevnetAccounts)) {
+        setAvailableDevnetAccounts(accounts)
+      }
     } catch (e) {
       await remixClient.terminal.log({
         type: 'error',
@@ -90,7 +102,13 @@ const DevnetAccountSelector: React.FC = () => {
   }, [devnet, isDevnetAlive])
 
   useEffect(() => {
-    if (!(selectedDevnetAccount !== null && availableDevnetAccounts.includes(selectedDevnetAccount)) && availableDevnetAccounts.length > 0) {
+    if (
+      !(
+        selectedDevnetAccount !== null &&
+        availableDevnetAccounts.includes(selectedDevnetAccount)
+      ) &&
+      availableDevnetAccounts.length > 0
+    ) {
       setSelectedDevnetAccount(availableDevnetAccounts[0])
     }
   }, [availableDevnetAccounts, devnet])
@@ -173,7 +191,9 @@ const DevnetAccountSelector: React.FC = () => {
         <button
           className="refresh"
           // eslint-disable-next-line @typescript-eslint/no-misused-promises
-          onClick={async () => { await refreshDevnetAccounts() } }
+          onClick={async () => {
+            await refreshDevnetAccounts()
+          }}
           title="Refresh devnet accounts"
           data-loading={accountRefreshing ? 'loading' : 'loaded'}
         >

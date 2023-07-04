@@ -6,7 +6,7 @@ import { type StarknetWindowObject } from 'get-starknet'
 const EnvironmentContext = createContext({
   devnet: devnets[0],
   setDevnet: ((_: Devnet) => {}) as React.Dispatch<React.SetStateAction<Devnet>>,
-  env: 'devnet' as string,
+  env: 'remoteDevnet' as string,
   setEnv: ((_: string) => {}) as React.Dispatch<React.SetStateAction<string>>,
   isDevnetAlive: true as boolean,
   setIsDevnetAlive: ((_: boolean) => {}) as React.Dispatch<React.SetStateAction<boolean>>,

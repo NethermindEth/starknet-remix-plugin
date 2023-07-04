@@ -12,6 +12,8 @@ import { ethers } from 'ethers'
 import ManualAccountContext from '../../contexts/ManualAccountContext'
 import storage from '../../utils/storage'
 import { RemixClientContext } from '../../contexts/RemixClientContext'
+import TransactionContext from '../../contexts/TransactionContext'
+import EnvironmentContext from '../../contexts/EnvironmentContext'
 
 // TODOS: move state parts to contexts
 // Account address selection
@@ -30,6 +32,10 @@ const ManualAccount: React.FC = () => {
   const [accountDeploying, setAccountDeploying] = useState(false)
 
   const remixClient = useContext(RemixClientContext)
+
+  const { transactions, setTransactions } = useContext(TransactionContext)
+
+  const { env } = useContext(EnvironmentContext)
 
   const {
     accounts,
@@ -210,6 +216,17 @@ const ManualAccount: React.FC = () => {
 
       await provider.waitForTransaction(transaction_hash)
 
+      setTransactions([
+        ...transactions,
+        {
+          type: 'deployAccount',
+          account,
+          provider,
+          txId: transaction_hash,
+          env
+        }
+      ])
+
       const newAccount = {
         ...selectedAccount,
         deployed_networks: [...selectedAccount.deployed_networks, networkName]
@@ -231,82 +248,21 @@ const ManualAccount: React.FC = () => {
       console.error(e)
       await remixClient.call(
         'notification' as any,
-        'error',
+        'toast',
         '❌ Error while deploying account'
       )
-      await remixClient.terminal.log({
-        type: 'error',
-        value: e as any
-      })
+      if (e instanceof Error) {
+        await remixClient.terminal.log({
+          type: 'error',
+          value: e.message
+        })
+      }
     }
     setAccountDeploying(false)
   }
 
   return (
     <>
-      {/* {accountAddressGenerated
-        ? (
-        <div>
-          {(account != null) && <p> Using address: {account.address}</p>}
-          {(provider != null) && <p>Using provider: {networkName}</p>}
-          {((account != null) && (provider != null)) && <p>Balance: {(ethers.utils.formatEther(accountBalance)).toString()} eth</p>}
-        </div>
-          )
-        : (
-        <form onSubmit={createTestnetAccount}>
-          <select
-            className="custom-select"
-            aria-label=".form-select-sm example"
-            onChange={handleProviderChange}
-            defaultValue={networkConstants[0].value}
-          >
-            {networkConstants.map((network) => {
-              return (
-                <option value={network.value} key={network.name}>
-                  {network.value}
-                </option>
-              )
-            })}
-          </select>
-          <button
-            className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3"
-            type="submit"
-          >
-            createAccount
-          </button>
-        </form>
-          )}
-      {accountAddressGenerated && <button
-        className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3"
-        style={{
-          cursor: `${
-            accountDeployed || accountDeploying ? 'not-allowed' : 'pointer'
-          }`
-        }}
-        disabled={accountDeployed || accountDeploying}
-        aria-disabled={accountDeployed || accountDeploying}
-        onClick={(e) => {
-          e.preventDefault()
-          void deployAccountHandler()
-        }}
-      >
-        {accountDeploying
-          ? (
-          <>
-            <span
-              className="spinner-border spinner-border-sm"
-              role="status"
-              aria-hidden="true"
-            >
-              {' '}
-            </span>
-            <span style={{ paddingLeft: '0.5rem' }}>Deploying Account...</span>
-          </>
-            )
-          : (
-          <p> DeployAccount </p>
-            )}
-      </button>} */}
       <select
         className="custom-select"
         aria-label=".form-select-sm example"
@@ -418,7 +374,7 @@ const ManualAccount: React.FC = () => {
           </>
             )
           : (
-          <p> DeployAccount </p>
+              (selectedAccount?.deployed_networks.includes(networkName) ?? false) ? <p> Account Deployed </p> : <p> DeployAccount </p>
             )}
       </button>
     </>

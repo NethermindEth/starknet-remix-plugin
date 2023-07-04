@@ -2,6 +2,7 @@ import React, { useContext, useEffect, useState } from 'react'
 import Container from '../../ui_components/Container'
 import TransactionContext from '../../contexts/TransactionContext'
 import { type constants } from 'starknet'
+import { networkEquivalentsRev } from '../../utils/constants'
 
 const TransactionHistory: React.FC = () => {
   const { transactions } = useContext(TransactionContext)
@@ -20,6 +21,13 @@ const TransactionHistory: React.FC = () => {
     })
   })
 
+  const getChain = (txId: string | undefined): string => {
+    if (txId == null) return 'unknown'
+    const chainId = txChainIds.get(txId)
+    if (chainId == null) return 'unknown'
+    return networkEquivalentsRev.get(chainId) ?? 'unknown'
+  }
+
   return (
     <Container>
       {transactions.length === 0
@@ -30,7 +38,7 @@ const TransactionHistory: React.FC = () => {
               <div>type: {transaction.type}</div>
               <div>TxId: {transaction.txId}</div>
               <div>Acc: {transaction.account?.address}</div>
-              <div>chainId : {txChainIds.get(transaction.txId)} </div>
+              { (transaction.env === 'localDevnet' || transaction.env === 'remoteDevnet') ? <div>network: {transaction.env}</div> : <div>chain : {getChain(transaction.txId)} </div> }
             </div>
           )
         })
