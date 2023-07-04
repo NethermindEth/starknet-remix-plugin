@@ -37,6 +37,12 @@ const networkNameEquivalents = new Map([
   ['mainnet-alpha', constants.NetworkName.SN_MAIN]
 ])
 
+const networkNameEquivalentsRev = new Map([
+  [constants.NetworkName.SN_GOERLI, 'goerli-alpha'],
+  [constants.NetworkName.SN_GOERLI2, 'goerli-alpha-2'],
+  [constants.NetworkName.SN_MAIN, 'mainnet-alpha']
+])
+
 const licenses = [
   'No License (None)',
   'The Unlicense (Unlicense)',
@@ -61,6 +67,7 @@ export {
   networkEquivalents,
   networkEquivalentsRev,
   networkNameEquivalents,
+  networkNameEquivalentsRev,
   licenses, constants
 }
 

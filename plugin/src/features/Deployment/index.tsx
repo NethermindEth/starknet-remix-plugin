@@ -67,14 +67,6 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     let classHash = selectedContract?.sierraClassHash
     let updatedTransactions = transactions
     try {
-      if (account?.constructor.name === 'WrappedAccount') {
-        await remixClient.call('notification' as any, 'alert', {
-          id: 'wallet not supported',
-          title: 'wallet does not support cairo1 deployment',
-          message: 'Wallet accounts do not support cairo1 deployment!'
-        })
-        throw new Error('Wallet accounts do not support cairo1 deployment!')
-      }
       if (account === null || provider === null) {
         throw new Error('No account or provider selected!')
       }
@@ -86,6 +78,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       setDeployStatus('Declaring...')
 
       try {
+        if (env === 'wallet') throw new Error('Wallet environment does not support contract declaration!')
         const declareResponse = await account.declare({
           contract: selectedContract.sierra,
           compiledClassHash: selectedContract.compiledClassHash

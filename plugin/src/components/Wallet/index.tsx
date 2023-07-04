@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import {
   type ConnectOptions,
   type DisconnectOptions,
@@ -8,10 +8,13 @@ import {
 import copy from 'copy-to-clipboard'
 import Tooltip from '../../ui_components/Tooltip'
 import { CiWarning } from 'react-icons/ci'
-import { BsChevronDown } from 'react-icons/bs'
+// import { BsChevronDown } from 'react-icons/bs'
 import * as D from '../../ui_components/Dropdown'
 
 import './wallet.css'
+import { Provider, constants } from 'starknet'
+import { networkEquivalents, networkNameEquivalents, networkNameEquivalentsRev } from '../../utils/constants'
+import { ConnectionContext } from '../../contexts/ConnectionContext'
 
 const trimAddress = (adr: string): string => {
   if ((adr.length > 0) && adr.startsWith('0x')) {
@@ -44,6 +47,7 @@ const Wallet: React.FC<WalletProps> = (props) => {
   const [showCopied, setCopied] = useState(false)
 
   const [voyagerLink, setVoyagerLink] = useState('')
+  const { setProvider } = useContext(ConnectionContext)
 
   useEffect(() => {
     ;void (async () => {
@@ -52,17 +56,51 @@ const Wallet: React.FC<WalletProps> = (props) => {
     })()
   }, [props])
 
-  const refreshWalletConnection = async (): Promise<void> => {
-    props.disconnectWalletHandler()
+  const refreshWalletConnection = (e: any): void => {
+    e.preventDefault()
+    console.log('refreshWalletConnection')
+    if (props.starknetWindowObject !== null) props.disconnectWalletHandler()
     props.connectWalletHandler()
   }
 
   const [currentNetwork, setCurrentNetwork] = useState('goerli')
-  const [availableNetworks] = useState<string[]>([
-    'goerli',
-    'dev-goerli',
-    'mainnet'
-  ])
+  const [availableNetworks] = useState<string[]>(Array.from(networkEquivalents.keys()))
+
+  useEffect(() => {
+    const currChain = props.starknetWindowObject?.chainId ?? constants.NetworkName.SN_GOERLI
+    setCurrentNetwork(networkNameEquivalentsRev.get(currChain as constants.NetworkName) ?? 'goerli')
+  }, [props.starknetWindowObject])
+
+  useEffect(() => {
+    props.starknetWindowObject?.on('accountsChanged', (accounts: string[]) => {
+      console.log('accountsChanged', accounts)
+    })
+    props.starknetWindowObject?.on('networkChanged', (network?: string) => {
+      console.log('networkChanged', network)
+    })
+  }, [props.starknetWindowObject])
+
+  const handleNetworkChange = async (event: any, chainName: string): Promise<void> => {
+    event.preventDefault()
+    const networkName = networkNameEquivalents.get(chainName)
+    const chainId = networkEquivalents.get(chainName)
+    setCurrentNetwork(chainName)
+    if (chainName.length > 0 && chainId && networkName) {
+      const resp = await props.starknetWindowObject?.request({
+        type: 'wallet_switchStarknetChain',
+        params: { chainId }
+      })
+      console.log('wallet_switchStarknetChain', resp)
+      setProvider(
+        new Provider({
+          sequencer: {
+            network: networkName,
+            chainId
+          }
+        })
+      )
+    }
+  }
 
   return (
     <div
@@ -75,7 +113,7 @@ const Wallet: React.FC<WalletProps> = (props) => {
     >
       <button
         className="btn btn-primary mt-2 mb-2"
-        onClick={() => refreshWalletConnection}
+        onClick={(e) => { refreshWalletConnection(e) }}
       >
         Reconnect
       </button>
@@ -94,7 +132,8 @@ const Wallet: React.FC<WalletProps> = (props) => {
           <D.Root>
             <D.Trigger>
               <label className="account-network-selector">
-                Connected to {currentNetwork} <BsChevronDown />
+                Connected to {currentNetwork}
+                {/* <BsChevronDown /> */}
               </label>
             </D.Trigger>
             <D.Portal>
@@ -103,8 +142,10 @@ const Wallet: React.FC<WalletProps> = (props) => {
                   return (
                     <D.Item
                       key={i}
-                      onClick={() => {
-                        setCurrentNetwork(v)
+                      onClick={(e) => {
+                        handleNetworkChange(e, v).catch((err) => {
+                          console.error(err)
+                        })
                       }}
                     >
                       {v}

@@ -46,10 +46,10 @@ const Environment: React.FC<EnvironmentProps> = () => {
             modalMode: 'neverAsk',
             modalTheme: 'dark'
           })
-          connectedStarknetWindowObject.off(
-            'accountsChanged',
-            (_accounts: string[]) => {}
-          )
+          // connectedStarknetWindowObject.off(
+          //   'accountsChanged',
+          //   (_accounts: string[]) => {}
+          // )
         }
       )
 
@@ -59,10 +59,10 @@ const Environment: React.FC<EnvironmentProps> = () => {
           modalMode: 'neverAsk',
           modalTheme: 'dark'
         })
-        connectedStarknetWindowObject.off(
-          'networkChanged',
-          (_network?: string) => {}
-        )
+        // connectedStarknetWindowObject.off(
+        //   'networkChanged',
+        //   (_network?: string) => {}
+        // )
       })
       setStarknetWindowObject(connectedStarknetWindowObject)
       if (connectedStarknetWindowObject.account != null) {
@@ -123,8 +123,10 @@ const Environment: React.FC<EnvironmentProps> = () => {
                     )
                   : <Wallet
                     starknetWindowObject={starknetWindowObject}
-                    connectWalletHandler={() => connectWalletHandler}
-                    disconnectWalletHandler={() => disconnectWalletHandler}
+                    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                    connectWalletHandler={connectWalletHandler}
+                    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                    disconnectWalletHandler={disconnectWalletHandler}
                   />
                 }
               </div>

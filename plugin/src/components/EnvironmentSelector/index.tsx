@@ -61,7 +61,7 @@ const EnvironmentSelector: React.FC<EnvironmentSelectorProps> = (props) => {
           },
           [
             <option value={0} key={0}>
-              Injected Wallet Provider
+              Wallet Selection
             </option>
           ]
         )}
