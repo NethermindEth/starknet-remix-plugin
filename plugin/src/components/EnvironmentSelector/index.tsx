@@ -19,11 +19,9 @@ const EnvironmentSelector: React.FC<EnvironmentSelectorProps> = (props) => {
   async function handleEnvironmentChange (event: any): Promise<void> {
     const value = parseInt(event.target.value)
     if (value > 0) {
-      console.log('bsdk')
       setDevnet(devnets[value - 1])
       if (value === 2) setEnv('remoteDevnet')
       else setEnv('localDevnet')
-      // setEnv('remoteDevnet')
       setProvider(
         new Provider({
           sequencer: {
@@ -38,7 +36,6 @@ const EnvironmentSelector: React.FC<EnvironmentSelectorProps> = (props) => {
   }
 
   const getDefualtIndex = (): number => {
-    console.log('env', env)
     if (env === 'wallet') return 0
     if (env === 'localDevnet') return 1
     return 2

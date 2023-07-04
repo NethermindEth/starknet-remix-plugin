@@ -75,7 +75,20 @@ const ManualAccount: React.FC = () => {
   })
 
   useEffect(() => {
-    if (selectedAccount != null) return
+    if (selectedAccount != null && account != null) {
+      if (account.address === selectedAccount.address) return
+      const accountExist = accounts.find(
+        (acc) => acc.address === selectedAccount.address
+      )
+      if (accountExist != null) {
+        if (provider != null) {
+          setAccount(
+            new Account(provider, selectedAccount.address, selectedAccount.private_key)
+          )
+        }
+      }
+      return
+    }
     if (accounts.length > 0) {
       setSelectedAccount(accounts[0])
       if (provider != null) {
