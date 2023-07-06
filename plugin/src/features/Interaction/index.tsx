@@ -48,7 +48,7 @@ const Interaction: React.FC<InteractionProps> = () => {
 
   const [contractsState, setContractsState] = useAtom(interactAtom)
 
-  console.log(contractsState[selectedContract?.address!])
+  // console.log(contractsState[selectedContract?.address!])
 
   const setReadState = (readState: EnhancedAbiElement[]) => {
     if (selectedContract)

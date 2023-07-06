@@ -44,7 +44,6 @@ export const typeValidation = (
         case 'core::integer::u256':
           // Should be only 2 comma seperated value
           if (value.length !== 2) {
-            console.log(value.length)
             return false
           }
           value.forEach((v) => {
@@ -71,7 +70,6 @@ Yup.addMethod(Yup.string, 'validate_ip', function (type: string) {
     if (val !== undefined) {
       try {
         const i_p = transformInputs(val)
-        console.log(i_p)
         const isValid = typeValidation(type, i_p)
         if (!isValid) {
           return createError(
