@@ -14,11 +14,29 @@ type NetworkTypeTag = {
   type: string
 }
 
-const NetworkTag:React.FC<NetworkTypeTag> = ({ type }) => {
-  return <span className={`p-2 tag tag-${type}`}>{type}</span>
+const transformTypeToText = (type: string) => {
+  switch (type) {
+    case 'localDevnet':
+      return 'Local Devnet'
+    case 'remoteDevnet':
+      return 'Remote Devnet'
+    default:
+      return type
+  }
 }
 
-const TransactionCard: React.FC<Transaction> = ({ account, txId, type, env }) => {
+const NetworkTag: React.FC<NetworkTypeTag> = ({ type }) => {
+  return (
+    <span className={`p-2 tag tag-${type}`}>{transformTypeToText(type)}</span>
+  )
+}
+
+const TransactionCard: React.FC<Transaction> = ({
+  account,
+  txId,
+  type,
+  env
+}) => {
   const cardRef = useRef<HTMLDivElement>(null)
   const width = useMemo(() => {
     return cardRef.current ? cardRef.current.offsetWidth : 0
