@@ -74,13 +74,13 @@ const Interaction: React.FC<InteractionProps> = () => {
   const writeResponse = (
     response: CallContractResponse | GetTransactionReceiptResponse,
     funcName: string,
-    stateType: 'read' | 'write',
-    responseType: 'call' | 'invoke'
+    stateType: 'external' | 'view'
   ) => {
+    console.log(response, funcName, stateType)
     if (selectedContract) {
       const currentContractObj = contractsState[selectedContract.address]
       switch (stateType) {
-        case 'read':
+        case 'view':
           const readState = currentContractObj.readState
           const oldElemIdx = readState.findIndex(
             (r_obj) => r_obj.name === funcName
@@ -97,30 +97,17 @@ const Interaction: React.FC<InteractionProps> = () => {
               }
               return r_obj
             })
-            if (responseType === 'call') {
-              setContractsState({
-                ...contractsState,
-                [selectedContract?.address]: {
-                  ...currentContractObj,
-                  readState: newReadState
-                }
-              })
-            } else if (responseType === 'invoke') {
-              const newElem = {
-                ...oldElem,
-                invocationResponse: response as InvokeFunctionResponse
+            setContractsState({
+              ...contractsState,
+              [selectedContract?.address]: {
+                ...currentContractObj,
+                readState: newReadState
               }
-              setContractsState({
-                ...contractsState,
-                [selectedContract?.address]: {
-                  ...currentContractObj,
-                  readState: newReadState
-                }
-              })
-            } /// If no old elem found, no need to udpate
+            })
+            /// If no old elem found, no need to udpate
           }
           break
-        case 'write':
+        case 'external':
           const writeState = currentContractObj.writeState
           const oldElemWIdx = writeState.findIndex(
             (r_obj) => r_obj.name === funcName
@@ -137,23 +124,14 @@ const Interaction: React.FC<InteractionProps> = () => {
               }
               return r_obj
             })
-            if (responseType === 'call') {
-              setContractsState({
-                ...contractsState,
-                [selectedContract?.address]: {
-                  ...currentContractObj,
-                  writeState: newWriteStateFunc
-                }
-              })
-            } else if (responseType === 'invoke') {
-              setContractsState({
-                ...contractsState,
-                [selectedContract?.address]: {
-                  ...currentContractObj,
-                  writeState: newWriteStateFunc
-                }
-              })
-            }
+
+            setContractsState({
+              ...contractsState,
+              [selectedContract?.address]: {
+                ...currentContractObj,
+                writeState: newWriteStateFunc
+              }
+            })
           }
           /// If no old elem found, no need to udpate
           break
@@ -378,6 +356,52 @@ const Interaction: React.FC<InteractionProps> = () => {
     return inputs
   }
 
+  const clearRawInputs = async (
+    type: 'view' | 'external',
+    funcName: string
+  ) => {
+    if (!selectedContract) {
+      console.error('No Contract Selected!!')
+      return
+    }
+    switch (type) {
+      case 'view':
+        const readFunctions =
+          contractsState[selectedContract?.address].readState
+        const newReadFns = readFunctions.map((rf) => {
+          if (rf.name === funcName) {
+            return {
+              ...rf,
+              inputs: rf.inputs.map((prev) => {
+                const { rawInput, ...rest } = prev
+                return rest
+              })
+            }
+          }
+          return rf
+        })
+        setReadState(newReadFns)
+        break
+      case 'external':
+        const writeFunctions =
+          contractsState[selectedContract?.address].writeState
+        const newWriteFns = writeFunctions.map((rf) => {
+          if (rf.name === funcName) {
+            return {
+              ...rf,
+              inputs: rf.inputs.map((prev) => {
+                const { rawInput, ...rest } = prev
+                return rest
+              })
+            }
+          }
+          return rf
+        })
+        setWriteState(newWriteFns)
+        break
+    }
+  }
+
   const propogateInputToState = async (
     type: 'view' | 'external',
     funcName: string,
@@ -444,7 +468,7 @@ const Interaction: React.FC<InteractionProps> = () => {
     }
   }
 
-  const propogateStateToCalldata = async (
+  const makeCallDataAndHandleCall = async (
     finalIPs: any,
     type: 'view' | 'external',
     funcName: string
@@ -457,61 +481,39 @@ const Interaction: React.FC<InteractionProps> = () => {
       case 'view':
         const readFunctions =
           contractsState[selectedContract?.address].readState
-        const newReadFns = readFunctions.map((rf) => {
-          if (rf.name === funcName) {
-            const transformedCallData = makeCallDatafromInput(
-              rf.inputs,
-              finalIPs
-            )
-            const new_rf = {
-              ...rf,
-              calldata: transformedCallData
-            }
-
-            return new_rf
-          }
-          return rf
-        })
-        setReadState(newReadFns)
+        const calledReadFn = readFunctions.find((rf) => rf.name === funcName)
+        if (calledReadFn) {
+          const transformedCallData = makeCallDatafromInput(
+            calledReadFn.inputs,
+            finalIPs
+          )
+          await handleCall(funcName, 'view', transformedCallData)
+        }
         break
       case 'external':
         const writeFunctions =
           contractsState[selectedContract?.address].writeState
-        const newWriteFns = writeFunctions.map((rf) => {
-          if (rf.name === funcName) {
-            const transformedCallData = makeCallDatafromInput(
-              rf.inputs,
-              finalIPs
-            )
-            const new_rf = {
-              ...rf,
-              calldata: transformedCallData
-            }
-
-            return new_rf
-          }
-          return rf
-        })
-        setWriteState(newWriteFns)
+        const calledWriteFn = writeFunctions.find((rf) => rf.name === funcName)
+        if (calledWriteFn) {
+          const transformedCallData = makeCallDatafromInput(
+            calledWriteFn.inputs,
+            finalIPs
+          )
+          await handleCall(funcName, 'external', transformedCallData)
+        }
         break
     }
   }
 
-  const getFunctionFromName = (
-    name: string,
-    functions: AbiElement[]
-  ): AbiElement | undefined => {
-    return functions.find((func) => func.name === name)
-  }
-
   const handleCall = async (
     name: string,
-    type: 'view' | 'external'
+    type: 'view' | 'external',
+    callData: CallDataObj[]
   ): Promise<void> => {
     remixClient.emit('statusChanged', {
       key: 'loading',
       type: 'info',
-      title: `Calling ${name as string}...`
+      title: `Calling ${name}...`
     })
     try {
       if (!selectedContract) {
@@ -521,29 +523,20 @@ const Interaction: React.FC<InteractionProps> = () => {
       console.log(name, type)
 
       if (type === 'view') {
-        const readFunctions =
-          contractsState[selectedContract?.address].readState
-        const func = getFunctionFromName(name, readFunctions)
-
         const callFunction = getCall(
           selectedContract.address,
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
-          func?.name!,
-          (func?.calldata?.flat() as BigNumberish[]) ?? []
+          name!,
+          (callData?.flat() as BigNumberish[]) ?? []
         )
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
         const response = await callFunction(account!)
-        writeResponse(
-          response,
-          func?.name!,
-          func?.state_mutability === 'view' ? 'read' : 'write',
-          'call'
-        )
+        writeResponse(response, name, type)
         setResponses((responses) => [
           ...responses,
           {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
-            functionName: func?.name!,
+            functionName: name,
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
             contractName: selectedContract?.name!,
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
@@ -552,19 +545,15 @@ const Interaction: React.FC<InteractionProps> = () => {
           }
         ])
       } else {
-        const writeFunctions =
-          contractsState[selectedContract?.address].writeState
-        const func = getFunctionFromName(name, writeFunctions)
         const invocation = getInvocation(
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
           selectedContract?.address!,
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
-          func?.name!,
-          (func?.calldata?.flat() as BigNumberish[]) ?? []
+          name!,
+          (callData?.flat() as BigNumberish[]) ?? []
         )
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
         const response = await invocation(account!)
-        console.log(response)
         console.log(
           'Transaction:',
           await account?.getTransaction(response.transaction_hash)
@@ -574,13 +563,13 @@ const Interaction: React.FC<InteractionProps> = () => {
         )
         if (resultOfTx) {
           console.log('Writing Result of txn')
-          writeResponse(resultOfTx, func?.name!, 'write', 'invoke')
+          writeResponse(resultOfTx, name, type)
         }
         setResponses((responses) => [
           ...responses,
           {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
-            functionName: func?.name!,
+            functionName: name,
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
             contractName: selectedContract?.name!,
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
@@ -647,23 +636,16 @@ const Interaction: React.FC<InteractionProps> = () => {
                     <div className="form-function-wrapper">
                       <Formik
                         initialValues={{ ...init }}
-                        onSubmit={(final_state, { resetForm }) => {
+                        onSubmit={(final_state) => {
                           // console.log(
                           //   final_state,
                           //   'this conforms to init state'
                           // )
-                          propogateStateToCalldata(
+                          makeCallDataAndHandleCall(
                             final_state,
                             'view',
                             func?.name
                           )
-                          handleCall(
-                            func.name,
-                            func?.state_mutability === 'view'
-                              ? 'view'
-                              : 'external'
-                          )
-                          resetForm()
                         }}
                         validationSchema={Yup.object().shape({
                           ...validationSchema
@@ -698,7 +680,10 @@ const Interaction: React.FC<InteractionProps> = () => {
                                 </button>
                                 <button
                                   className={'btn btn-sm reset'}
-                                  onClick={handleReset}
+                                  onClick={(e) => {
+                                    clearRawInputs('view', func.name)
+                                    handleReset(e)
+                                  }}
                                 >
                                   <BiReset />
                                 </button>
@@ -796,23 +781,16 @@ const Interaction: React.FC<InteractionProps> = () => {
                     <div className="form-function-wrapper" key={index}>
                       <Formik
                         initialValues={{ ...init }}
-                        onSubmit={(final_state, { resetForm }) => {
+                        onSubmit={(final_state) => {
                           // console.log(
                           //   final_state,
                           //   'this conforms to init state'
                           // )
-                          propogateStateToCalldata(
+                          makeCallDataAndHandleCall(
                             final_state,
                             'external',
                             func?.name
                           )
-                          handleCall(
-                            func.name,
-                            func.state_mutability === 'view'
-                              ? 'view'
-                              : 'external'
-                          )
-                          resetForm()
                         }}
                         validationSchema={Yup.object().shape({
                           ...validationSchema
@@ -850,7 +828,10 @@ const Interaction: React.FC<InteractionProps> = () => {
                                 </button>
                                 <button
                                   className={'btn btn-sm reset'}
-                                  onClick={handleReset}
+                                  onClick={(e) => {
+                                    clearRawInputs('external', func.name)
+                                    handleReset(e)
+                                  }}
                                 >
                                   <BiReset />
                                 </button>
