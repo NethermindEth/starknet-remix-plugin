@@ -46,3 +46,12 @@
   justify-content:space-between;
   align-items: center;
 }
+
+.env-testnet-btn {
+  border: 1px solid orange;
+  color: var(--white);
+}
+
+.env-testnet-btn:hover {
+  border: 1px solid orange;
+}

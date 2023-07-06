@@ -41,6 +41,7 @@ const Environment: React.FC<EnvironmentProps> = () => {
     starknetWindowObject,
     setStarknetWindowObject
   } = useContext(EnvironmentContext)
+  const [prevEnv, setPrevEnv] = useState<string>(env)
 
   const { selectedContract, setSelectedContract, contracts, setContracts } =
     useContext(CompiledContractsContext)
@@ -187,12 +188,13 @@ const Environment: React.FC<EnvironmentProps> = () => {
                           connectWalletHandler={connectWalletHandler}
                           // eslint-disable-next-line @typescript-eslint/no-misused-promises
                           disconnectWalletHandler={disconnectWalletHandler}
+                          setPrevEnv={setPrevEnv}
                         />
                       )}
                     </div>
                   </>
                 ) : (
-                  <ManualAccount />
+                  <ManualAccount prevEnv={prevEnv} />
                 )}
               </div>
             </>

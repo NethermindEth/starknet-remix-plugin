@@ -14,9 +14,14 @@ import * as D from '../../ui_components/Dropdown'
 import './wallet.css'
 import { MdCopyAll } from 'react-icons/md'
 import { Provider, constants } from 'starknet'
-import { networkEquivalents, networkNameEquivalents, networkNameEquivalentsRev } from '../../utils/constants'
+import {
+  networkEquivalents,
+  networkNameEquivalents,
+  networkNameEquivalentsRev
+} from '../../utils/constants'
 import { ConnectionContext } from '../../contexts/ConnectionContext'
 import { BsChevronDown } from 'react-icons/bs'
+import EnvironmentContext from '../../contexts/EnvironmentContext'
 
 const trimAddress = (adr: string): string => {
   if (adr.length > 0 && adr.startsWith('0x')) {
@@ -47,6 +52,7 @@ interface WalletProps {
   starknetWindowObject: StarknetWindowObject | null
   connectWalletHandler: (options?: ConnectOptions) => void
   disconnectWalletHandler: (options?: DisconnectOptions) => void
+  setPrevEnv: (newEnv: string) => void
 }
 
 const Wallet: React.FC<WalletProps> = (props) => {
@@ -54,6 +60,8 @@ const Wallet: React.FC<WalletProps> = (props) => {
 
   const [voyagerLink, setVoyagerLink] = useState('')
   const { setProvider } = useContext(ConnectionContext)
+
+  const { env, setEnv } = useContext(EnvironmentContext)
 
   useEffect(() => {
     void (async () => {
@@ -70,11 +78,17 @@ const Wallet: React.FC<WalletProps> = (props) => {
   }
 
   const [currentNetwork, setCurrentNetwork] = useState('goerli')
-  const [availableNetworks] = useState<string[]>(Array.from(networkEquivalents.keys()))
+  const [availableNetworks] = useState<string[]>(
+    Array.from(networkEquivalents.keys())
+  )
 
   useEffect(() => {
-    const currChain = props.starknetWindowObject?.chainId ?? constants.NetworkName.SN_GOERLI
-    setCurrentNetwork(networkNameEquivalentsRev.get(currChain as constants.NetworkName) ?? 'goerli')
+    const currChain =
+      props.starknetWindowObject?.chainId ?? constants.NetworkName.SN_GOERLI
+    setCurrentNetwork(
+      networkNameEquivalentsRev.get(currChain as constants.NetworkName) ??
+        'goerli'
+    )
   }, [props.starknetWindowObject])
 
   useEffect(() => {
@@ -86,7 +100,10 @@ const Wallet: React.FC<WalletProps> = (props) => {
     })
   }, [props.starknetWindowObject])
 
-  const handleNetworkChange = async (event: any, chainName: string): Promise<void> => {
+  const handleNetworkChange = async (
+    event: any,
+    chainName: string
+  ): Promise<void> => {
     event.preventDefault()
     const networkName = networkNameEquivalents.get(chainName)
     const chainId = networkEquivalents.get(chainName)
@@ -119,9 +136,21 @@ const Wallet: React.FC<WalletProps> = (props) => {
     >
       <button
         className="btn btn-primary mt-2 mb-2"
-        onClick={(e) => { refreshWalletConnection(e) }}
+        onClick={(e) => {
+          refreshWalletConnection(e)
+        }}
       >
         Reconnect
+      </button>
+      <button
+        type="button"
+        className="mb-0 btn btn-sm btn-outline-secondary float-right rounded-pill env-testnet-btn"
+        onClick={() => {
+          if (env !== 'manual') props.setPrevEnv(env)
+          setEnv('manual')
+        }}
+      >
+        Create Accounts
       </button>
       {props.starknetWindowObject != null ? (
         <>

@@ -18,14 +18,6 @@ const NetworkTag:React.FC<NetworkTypeTag> = ({ type }) => {
   return <span className={`p-2 tag tag-${type}`}>{type}</span>
 }
 
-// const trimAddress = (str?: string, strip?: number) => {
-//   if (!str) {
-//     return ''
-//   }
-//   const length = str.length
-//   return `${str?.slice(0, strip || 6)}...${str?.slice(length - (strip || 6))}`
-// }
-
 const TransactionCard: React.FC<Transaction> = ({ account, txId, type, env }) => {
   const cardRef = useRef<HTMLDivElement>(null)
   const width = useMemo(() => {
