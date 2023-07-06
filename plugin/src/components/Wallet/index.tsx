@@ -131,39 +131,42 @@ const Wallet: React.FC<WalletProps> = (props) => {
       style={{
         display: 'flex',
         flexDirection: 'column',
-        gap: '0.5rem'
+        gap: '1rem',
+        padding: '1rem 0rem'
       }}
     >
-      <button
-        className="btn btn-primary mt-2 mb-2"
-        onClick={(e) => {
-          refreshWalletConnection(e)
-        }}
-      >
-        Reconnect
-      </button>
-      <button
-        type="button"
-        className="mb-0 btn btn-sm btn-outline-secondary float-right rounded-pill env-testnet-btn"
-        onClick={() => {
-          if (env !== 'manual') props.setPrevEnv(env)
-          setEnv('manual')
-        }}
-      >
-        Create Accounts
-      </button>
+      <div>
+        <button
+          type="button"
+          className="mb-0 btn btn-sm btn-outline-secondary float-right rounded-pill env-testnet-btn"
+          onClick={() => {
+            if (env !== 'manual') props.setPrevEnv(env)
+            setEnv('manual')
+          }}
+        >
+          Create Test Accounts
+        </button>
+        <button
+          className="btn btn-primary"
+          onClick={(e) => {
+            refreshWalletConnection(e)
+          }}
+        >
+          Reconnect
+        </button>
+      </div>
       {props.starknetWindowObject != null ? (
         <>
           <div className="wallet-row-wrapper">
             <div className="wallet-wrapper">
               <img src={props.starknetWindowObject?.icon} alt="wallet icon" />
               <p className="text"> {props.starknetWindowObject?.id}</p>
-              <Tooltip
+              {/* <Tooltip
                 icon={<CiWarning color="yellow" />}
                 content={`${
                   props.starknetWindowObject?.name ?? 'It'
                 } doesn't support cairo 1 contracts`}
-              />
+              /> */}
             </div>
             <div className="account-network-wrapper">
               <D.Root>
@@ -191,7 +194,7 @@ const Wallet: React.FC<WalletProps> = (props) => {
               </D.Root>
             </div>
           </div>
-          <div className="account-wrapper">
+          <div className="wallet-account-wrapper">
             <span>
               <p
                 className="text account"

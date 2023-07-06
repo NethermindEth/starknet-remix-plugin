@@ -5,14 +5,26 @@
 }
 
 .account-network-wrapper {
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .account-network-selector {
   font-size: 0.8rem;
   color: var(--white);
   margin: 0px;
+}
+
+.wallet-account-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.wallet-account-wrapper > span {
+  display: flex;
+  align-items: center;
 }
