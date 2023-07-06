@@ -19,6 +19,7 @@ const DevnetAccountSelector: React.FC = () => {
     useContext(ConnectionContext)
   const remixClient = useContext(RemixClientContext)
   const {
+    env,
     devnet,
     isDevnetAlive,
     setIsDevnetAlive,
@@ -139,6 +140,7 @@ const DevnetAccountSelector: React.FC = () => {
     if (event.target.value === -1) {
       return
     }
+    setAccountIdx(event.target.value)
     setSelectedDevnetAccount(availableDevnetAccounts[event.target.value])
     const newProvider = new Provider({
       sequencer: {
@@ -173,6 +175,12 @@ const DevnetAccountSelector: React.FC = () => {
 
   const [accountRefreshing, setAccountRefreshing] = useState(false)
   const [showCopied, setCopied] = useState(false)
+
+  const [accountIdx, setAccountIdx] = useState(0)
+
+  useEffect(() => {
+    setAccountIdx(0)
+  }, [env])
   return (
     <>
       <label className="">Devnet account selection</label>
@@ -181,6 +189,7 @@ const DevnetAccountSelector: React.FC = () => {
           className="custom-select"
           aria-label=".form-select-sm example"
           onChange={handleAccountChange}
+          value={accountIdx}
           defaultValue={getSelectedAccountIndex(
             availableDevnetAccounts,
             selectedDevnetAccount

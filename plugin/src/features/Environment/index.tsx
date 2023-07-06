@@ -178,7 +178,7 @@ const Environment: React.FC<EnvironmentProps> = () => {
                       </div>
                     </div>
                     <div className="flex">
-                      {env === 'localDevnet' || env === 'remoteDevnet' ? (
+                      {['localDevnet', 'remoteDevnet'].indexOf(env) !== -1 ? (
                         <DevnetAccountSelector />
                       ) : (
                         <Wallet
