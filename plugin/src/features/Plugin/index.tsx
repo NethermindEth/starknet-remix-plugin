@@ -35,6 +35,7 @@ import TransactionContext from '../../contexts/TransactionContext'
 import StateAction from '../../components/StateAction'
 import type { ManualAccount } from '../../types/accounts'
 import { networks } from '../../utils/constants'
+import BackgroundNotices from '../../components/BackgroundNotices'
 
 export type AccordianTabs =
   | 'compile'
@@ -267,6 +268,9 @@ const Plugin: React.FC = () => {
                       </AccordionContent>
                     </AccordianItem>
                   </Accordian>
+                  <div className='mt-5'>
+                    <BackgroundNotices />
+                  </div>
                 </div>
                 <div>
                   <ManualAccountContext.Provider

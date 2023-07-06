@@ -8,4 +8,5 @@
 
 .plugin-main-wrapper {
   overflow-y: scroll;
+  height: 100%;
 }
