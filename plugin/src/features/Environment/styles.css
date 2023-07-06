@@ -65,5 +65,5 @@
 }
 .trigger-env > p {
   margin: 0;
-  text-shadow: 1px 1px 2px var(--accentColor);
+  text-shadow: 2px 2px 3px var(--accentColor);
 }

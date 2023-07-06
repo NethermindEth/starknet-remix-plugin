@@ -39,8 +39,10 @@ export const typeValidation = (
           return value.lte(uint256.UINT_128_MAX)
         case 'core::felt252':
           return value.lte(uint256.UINT_128_MAX)
-        // case 'core::bool':
-        //   return value.lte(1)
+        case 'core::bool':
+          return value.lte(1)
+        case 'core::integer::u256':
+          return false
         default:
           // TODO: @prix0007  add more validations here
           return true
@@ -59,13 +61,11 @@ export const typeValidation = (
           }
           value.forEach((v) => {
             if (!v.lte(uint256.UINT_128_MAX)) {
-              isValid = false;
+              isValid = false
             }
           })
           break
         default:
-          // TODO: @prix0007 Handle it more definite
-          return true
       }
     }
     return isValid
