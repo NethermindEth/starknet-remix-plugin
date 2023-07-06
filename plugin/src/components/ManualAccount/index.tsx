@@ -7,7 +7,7 @@ import {
   networkNameEquivalents
 } from '../../utils/constants'
 import { ConnectionContext } from '../../contexts/ConnectionContext'
-import { ethers } from 'ethers'
+import { BigNumber, ethers } from 'ethers'
 
 import ManualAccountContext from '../../contexts/ManualAccountContext'
 import storage from '../../utils/storage'
@@ -346,7 +346,7 @@ const ManualAccount: React.FC<{
           {account != null && provider != null && (
             <div className="manual-balance-wrapper">
               <p>
-                Balance: {ethers.utils.formatEther(selectedAccount.balance)} ETH
+                Balance: {parseFloat(ethers.utils.formatEther(selectedAccount.balance))?.toFixed(6)} ETH
               </p>
               <button
                 className="btn btn-refresh"
