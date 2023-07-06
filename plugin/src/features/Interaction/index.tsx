@@ -76,7 +76,6 @@ const Interaction: React.FC<InteractionProps> = () => {
     funcName: string,
     stateType: 'external' | 'view'
   ) => {
-    console.log(response, funcName, stateType)
     if (selectedContract) {
       const currentContractObj = contractsState[selectedContract.address]
       switch (stateType) {
@@ -520,7 +519,6 @@ const Interaction: React.FC<InteractionProps> = () => {
         console.error('No Contract Selected!!')
         return
       }
-      console.log(name, type)
 
       if (type === 'view') {
         const callFunction = getCall(
