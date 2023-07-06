@@ -136,18 +136,9 @@ const Wallet: React.FC<WalletProps> = (props) => {
       }}
     >
       <div className='wallet-actions'>
+        
         <button
-          type="button"
-          className="mb-0 btn btn-sm btn-outline-secondary float-right rounded-pill env-testnet-btn"
-          onClick={() => {
-            if (env !== 'manual') props.setPrevEnv(env)
-            setEnv('manual')
-          }}
-        >
-          Create Test Accounts
-        </button>
-        <button
-          className="btn btn-primary"
+          className="btn btn-primary w-100"
           onClick={(e) => {
             refreshWalletConnection(e)
           }}

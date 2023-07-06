@@ -149,7 +149,20 @@ const Environment: React.FC<EnvironmentProps> = () => {
               setCurrentPane(currentPane === 'environment' ? '' : 'environment')
             }
           >
-            Environment
+            <div className="trigger-env">
+              <p>Environment</p>
+              <button
+                type="button"
+                className="mb-0 btn btn-sm btn-outline-secondary float-right rounded-pill env-testnet-btn"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  if (env !== 'manual') setPrevEnv(env)
+                  setEnv('manual')
+                }}
+              >
+                Create Test Accounts
+              </button>
+            </div>
           </AccordionTrigger>
           <AccordionContent>
             <>

@@ -55,3 +55,15 @@
 .env-testnet-btn:hover {
   border: 1px solid orange;
 }
+
+.trigger-env {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-right: 1rem;
+}
+.trigger-env > p {
+  margin: 0;
+  text-shadow: 1px 1px 2px var(--accentColor);
+}
