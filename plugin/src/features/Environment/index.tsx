@@ -51,7 +51,7 @@ const Environment: React.FC<EnvironmentProps> = () => {
     if (selectedContract != null) {
       // selectedContract.deployed = false
       const newSelectedContract = { ...selectedContract }
-      newSelectedContract.deployed = false
+
       console.log('setting new selected contract to not deployed')
       setSelectedContract(newSelectedContract)
       // replace the selected contract in the contracts array
@@ -156,10 +156,6 @@ const Environment: React.FC<EnvironmentProps> = () => {
                 <label className="">Environment selection</label>
                 <div className="flex_dot">
                   <EnvironmentSelector
-                    env={env}
-                    setEnv={setEnv}
-                    devnet={devnet}
-                    setDevnet={setDevnet}
                     connectWalletHandler={connectWalletHandler}
                     disconnectWalletHandler={disconnectWalletHandler}
                   />
