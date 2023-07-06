@@ -37,7 +37,8 @@ export const typeValidation = (
         case 'core::felt252':
           return value.lte(uint256.UINT_128_MAX)
         default:
-          return false
+          // TODO: @prix0007  add more validations here
+          return true
       }
     } else if (Array.isArray(value)) {
       switch (type) {
