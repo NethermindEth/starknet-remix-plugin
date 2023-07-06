@@ -23,6 +23,9 @@ export const typeValidation = (
   let isValid = true
   try {
     if (!Array.isArray(value)) {
+      if (value.lt(0)) {
+        return false
+      }
       switch (type) {
         case 'core::integer::u8':
           return value.lte(2 ** 8)
@@ -36,11 +39,18 @@ export const typeValidation = (
           return value.lte(uint256.UINT_128_MAX)
         case 'core::felt252':
           return value.lte(uint256.UINT_128_MAX)
+        // case 'core::bool':
+        //   return value.lte(1)
         default:
           // TODO: @prix0007  add more validations here
           return true
       }
     } else if (Array.isArray(value)) {
+      value.forEach((v) => {
+        if (v.lt(0)) {
+          isValid = false
+        }
+      })
       switch (type) {
         case 'core::integer::u256':
           // Should be only 2 comma seperated value
@@ -49,7 +59,7 @@ export const typeValidation = (
           }
           value.forEach((v) => {
             if (!v.lte(uint256.UINT_128_MAX)) {
-              return false
+              isValid = false;
             }
           })
           break
