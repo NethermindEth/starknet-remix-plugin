@@ -22,6 +22,7 @@ import {
 import { ConnectionContext } from '../../contexts/ConnectionContext'
 import { BsChevronDown } from 'react-icons/bs'
 import EnvironmentContext from '../../contexts/EnvironmentContext'
+import ExplorerSelector from '../ExplorerSelector'
 
 const trimAddress = (adr: string): string => {
   if (adr.length > 0 && adr.startsWith('0x')) {
@@ -135,8 +136,7 @@ const Wallet: React.FC<WalletProps> = (props) => {
         padding: '1rem 0rem'
       }}
     >
-      <div className='wallet-actions'>
-        
+      <div className="wallet-actions">
         <button
           className="btn btn-primary w-100"
           onClick={(e) => {
@@ -160,29 +160,12 @@ const Wallet: React.FC<WalletProps> = (props) => {
               /> */}
             </div>
             <div className="account-network-wrapper">
-              <D.Root>
-                <D.Trigger>
-                  <label className="account-network-selector">
-                    Connected to {currentNetwork} <BsChevronDown />
-                  </label>
-                </D.Trigger>
-                <D.Portal>
-                  <D.Content>
-                    {availableNetworks.map((v, i) => {
-                      return (
-                        <D.Item
-                          key={i}
-                          onClick={() => {
-                            setCurrentNetwork(v)
-                          }}
-                        >
-                          {v}
-                        </D.Item>
-                      )
-                    })}
-                  </D.Content>
-                </D.Portal>
-              </D.Root>
+              <ExplorerSelector
+                path={`/contract/${props.starknetWindowObject?.account?.address}`}
+                title={props.starknetWindowObject?.account?.address}
+                text="View"
+                isInline
+              />
             </div>
           </div>
           <div className="wallet-account-wrapper">
@@ -209,9 +192,6 @@ const Wallet: React.FC<WalletProps> = (props) => {
               </button>
               {showCopied && <p>Copied</p>}
             </span>
-            <a href={voyagerLink} target="_blank" rel="noopnener noreferrer">
-              View on Voyager
-            </a>
           </div>
         </>
       ) : (

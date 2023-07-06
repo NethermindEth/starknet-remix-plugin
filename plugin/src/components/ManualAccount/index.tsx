@@ -16,10 +16,11 @@ import TransactionContext from '../../contexts/TransactionContext'
 import EnvironmentContext from '../../contexts/EnvironmentContext'
 
 import './index.css'
-import { BiPlus } from 'react-icons/bi'
+import { BiCopy, BiPlus } from 'react-icons/bi'
 import { trimStr } from '../../utils/utils'
 import { MdRefresh } from 'react-icons/md'
 import copy from 'copy-to-clipboard'
+import ExplorerSelector from '../ExplorerSelector'
 
 // TODOS: move state parts to contexts
 // Account address selection
@@ -305,7 +306,7 @@ const ManualAccount: React.FC<{
           className="custom-select"
           aria-label=".form-select-sm example"
           onChange={handleAccountChange}
-          value={trimStr(selectedAccount?.address ?? '', 6)}
+          // value={selectedAccount?.address}
           defaultValue={
             selectedAccount == null
               ? -1
@@ -340,13 +341,35 @@ const ManualAccount: React.FC<{
       </div>
       {selectedAccount != null && (
         <div>
-          {account != null && (
-            <p> Selected Address: {selectedAccount.address}</p>
-          )}
+          <div className="mb-2">
+            <div className="selected-address-wrapper">
+              {account != null && (
+                <p className="m-0">
+                  {' '}
+                  Selected Address: {trimStr(selectedAccount.address, 8)}
+                </p>
+              )}
+              <button
+                className="btn"
+                onClick={() => copy(selectedAccount.address)}
+              >
+                <BiCopy />
+              </button>
+            </div>
+            <ExplorerSelector
+              path={`/contract/${selectedAccount.address}`}
+              title={selectedAccount.address}
+              isInline
+            />
+          </div>
           {account != null && provider != null && (
             <div className="manual-balance-wrapper">
               <p>
-                Balance: {parseFloat(ethers.utils.formatEther(selectedAccount.balance))?.toFixed(6)} ETH
+                Balance:{' '}
+                {parseFloat(
+                  ethers.utils.formatEther(selectedAccount.balance)
+                )?.toFixed(6)}{' '}
+                ETH
               </p>
               <button
                 className="btn btn-refresh"
@@ -361,19 +384,21 @@ const ManualAccount: React.FC<{
               </button>
             </div>
           )}
-          <button
-            className="btn btn-secondary w-100"
-            onClick={() => {
-              copy(selectedAccount?.address || '')
-              window?.open(
-                'https://faucet.goerli.starknet.io/',
-                '_blank',
-                'noopener noreferrer'
-              )
-            }}
-          >
-            Request funds on Starknet Facuet
-          </button>
+          {networkName === 'goerli-alpha' && (
+            <button
+              className="btn btn-secondary w-100"
+              onClick={() => {
+                copy(selectedAccount?.address || '')
+                window?.open(
+                  'https://faucet.goerli.starknet.io/',
+                  '_blank',
+                  'noopener noreferrer'
+                )
+              }}
+            >
+              Request funds on Starknet Facuet
+            </button>
+          )}
         </div>
       )}
 

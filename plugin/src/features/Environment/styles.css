@@ -52,6 +52,12 @@
   color: var(--white);
 }
 
+@media screen and (max-width: 310px) {
+  .env-testnet-btn {
+    font-size: 8px;
+  }
+}
+
 .env-testnet-btn:hover {
   border: 1px solid orange;
 }

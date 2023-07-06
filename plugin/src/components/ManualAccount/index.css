@@ -39,3 +39,10 @@
   -o-animation: rotating 1s linear infinite;
   animation: rotating 1s linear infinite;
 }
+
+.selected-address-wrapper {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  align-items: center;
+}

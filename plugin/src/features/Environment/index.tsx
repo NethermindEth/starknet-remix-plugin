@@ -176,7 +176,13 @@ const Environment: React.FC<EnvironmentProps> = () => {
                           connectWalletHandler={connectWalletHandler}
                           disconnectWalletHandler={disconnectWalletHandler}
                         />
-                        {isDevnetAlive ? (
+                        {env === 'wallet' ? (
+                          <RxDotFilled
+                            size={'30px'}
+                            color="rebeccapurple"
+                            title="Wallet is active"
+                          />
+                        ) : isDevnetAlive ? (
                           <RxDotFilled
                             size={'30px'}
                             color="lime"
