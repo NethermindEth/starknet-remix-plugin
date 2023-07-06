@@ -53,7 +53,8 @@ export const typeValidation = (
           })
           break
         default:
-          return false
+          // TODO: @prix0007 Handle it more definite
+          return true
       }
     }
     return isValid

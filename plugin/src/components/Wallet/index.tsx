@@ -135,7 +135,7 @@ const Wallet: React.FC<WalletProps> = (props) => {
         padding: '1rem 0rem'
       }}
     >
-      <div>
+      <div className='wallet-actions'>
         <button
           type="button"
           className="mb-0 btn btn-sm btn-outline-secondary float-right rounded-pill env-testnet-btn"

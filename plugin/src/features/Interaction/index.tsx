@@ -1,6 +1,6 @@
 /* eslint-disable multiline-ternary */
 import React, { useContext, useEffect, useState } from 'react'
-import { BigNumber, type BigNumberish } from 'ethers'
+import { BigNumber, ethers, type BigNumberish } from 'ethers'
 
 import {
   Account,
@@ -634,7 +634,7 @@ const Interaction: React.FC<InteractionProps> = () => {
                     <div className="form-function-wrapper">
                       <Formik
                         initialValues={{ ...init }}
-                        onSubmit={(final_state) => {
+                        onSubmit={(final_state, { setSubmitting }) => {
                           // console.log(
                           //   final_state,
                           //   'this conforms to init state'
@@ -644,6 +644,7 @@ const Interaction: React.FC<InteractionProps> = () => {
                             'view',
                             func?.name
                           )
+                          setSubmitting(false)
                         }}
                         validationSchema={Yup.object().shape({
                           ...validationSchema
@@ -779,7 +780,7 @@ const Interaction: React.FC<InteractionProps> = () => {
                     <div className="form-function-wrapper" key={index}>
                       <Formik
                         initialValues={{ ...init }}
-                        onSubmit={(final_state) => {
+                        onSubmit={(final_state, { setSubmitting }) => {
                           // console.log(
                           //   final_state,
                           //   'this conforms to init state'
@@ -789,6 +790,7 @@ const Interaction: React.FC<InteractionProps> = () => {
                             'external',
                             func?.name
                           )
+                          setSubmitting(false)
                         }}
                         validationSchema={Yup.object().shape({
                           ...validationSchema
@@ -902,9 +904,13 @@ const Interaction: React.FC<InteractionProps> = () => {
                         {func?.invocationResponse?.actual_fee && (
                           <p>
                             Fee:{' '}
-                            {BigNumber.from(
-                              func?.invocationResponse?.actual_fee
-                            ).toString()}{' '}
+                            {ethers.utils
+                              .parseEther(
+                                BigNumber.from(
+                                  func?.invocationResponse?.actual_fee
+                                ).toString()
+                              )
+                              .toString()}{' '}
                             WEI
                           </p>
                         )}

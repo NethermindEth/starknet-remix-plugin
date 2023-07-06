@@ -51,6 +51,10 @@
   padding: 0.2rem;
 }
 
+.form-function-wrapper p, span {
+  word-break: break-all;
+}
+
 .function-error {
   border: 1px solid red;
   outline: 1px solid red;

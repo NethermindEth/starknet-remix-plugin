@@ -28,3 +28,10 @@
   display: flex;
   align-items: center;
 }
+
+.wallet-actions {
+  align-items: center;
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: space-between;
+}
