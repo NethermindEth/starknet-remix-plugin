@@ -8,30 +8,38 @@
   border-radius: 0.5rem;
   grid-template-areas:
     'a a b b'
-    'c c c c';
+    'c c c c'
+    'd d d d';
 }
 
 .tag-wrapper {
   grid-area: a;
+  display: flex;
+  flex-wrap: wrap;
 }
 
 .account-wrapper {
   grid-area: b;
   width: 100%;
+  max-width: 100%;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: flex-end;
+  overflow: hidden;
+  gap: 0.5rem;
 }
 
 .account-wrapper p {
   text-overflow: ellipsis;
+  margin: 0;
+  display: block;
   font-weight: 600;
 }
-.account-wrapper p > a {
+.account-wrapper a {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.account-wrapper p > a:hover {
+.account-wrapper a:hover {
   cursor: pointer;
 }
 
@@ -51,6 +59,17 @@
   overflow: hidden;
   text-overflow: ellipsis;
   font-weight: 600;
+}
+
+.txn-network {
+  grid-area: d;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.txn-network > p {
+  margin: 0;
 }
 
 /* Tag Css */
@@ -76,4 +95,20 @@
 .tag-deploy {
   border-color: palegreen;
   color: palegreen;
+}
+
+.tag-deployAccount {
+  border-color: yellow;
+  color: yellow;
+}
+
+
+.tag-localDevnet {
+  border-color: orange;
+  color: orange;
+}
+
+.tag-remoteDevnet {
+  border-color: palegoldenrod;
+  color: palegoldenrod;
 }

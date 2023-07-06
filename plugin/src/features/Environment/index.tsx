@@ -153,28 +153,6 @@ const Environment: React.FC<EnvironmentProps> = () => {
           <AccordionContent>
             <>
               <div className="flex">
-                <label className="">Environment selection</label>
-                <div className="flex_dot">
-                  <EnvironmentSelector
-                    connectWalletHandler={connectWalletHandler}
-                    disconnectWalletHandler={disconnectWalletHandler}
-                  />
-                  {isDevnetAlive ? (
-                    <RxDotFilled
-                      size={'30px'}
-                      color="lime"
-                      title="Devnet is live"
-                    />
-                  ) : (
-                    <RxDotFilled
-                      size={'30px'}
-                      color="red"
-                      title="Devnet server down"
-                    />
-                  )}
-                </div>
-              </div>
-              <div className="flex">
                 {env !== 'manual' ? (
                   <>
                     <div className="flex">

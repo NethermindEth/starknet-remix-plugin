@@ -42,25 +42,6 @@ const TransactionHistory: React.FC = () => {
           })
         )}
       </div>
-      {transactions.length === 0 ? (
-        <div>No transactions yet</div>
-      ) : (
-        transactions.map((transaction, index) => {
-          return (
-            <div key={index}>
-              <div>type: {transaction.type}</div>
-              <div>TxId: {transaction.txId}</div>
-              <div>Acc: {transaction.account?.address}</div>
-              {transaction.env === 'localDevnet' ||
-              transaction.env === 'remoteDevnet' ? (
-                <div>network: {transaction.env}</div>
-              ) : (
-                <div>chain : {getChain(transaction.txId)} </div>
-              )}
-            </div>
-          )
-        })
-      )}
     </Container>
   )
 }
