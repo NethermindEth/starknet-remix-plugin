@@ -234,11 +234,9 @@ const DevnetAccountSelector: React.FC = () => {
           )}
         </div>
         <button
-          className="refresh"
+          className="btn refresh"
           // eslint-disable-next-line @typescript-eslint/no-misused-promises
-          onClick={async () => {
-            await refreshDevnetAccounts()
-          }}
+          onClick={refreshDevnetAccounts}
           title="Refresh devnet accounts"
           data-loading={accountRefreshing ? 'loading' : 'loaded'}
         >

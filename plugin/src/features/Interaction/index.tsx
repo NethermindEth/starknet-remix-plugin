@@ -33,6 +33,7 @@ import Yup, { transformInputs } from '../../utils/yup'
 
 import { BiReset } from 'react-icons/bi'
 import EnvironmentContext from '../../contexts/EnvironmentContext'
+import { nanoid } from 'nanoid'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 type InteractionProps = {}
@@ -377,7 +378,73 @@ const Interaction: React.FC<InteractionProps> = () => {
     return inputs
   }
 
-  const propogateStateToCalldata = (
+  const propogateInputToState = async (
+    type: 'view' | 'external',
+    funcName: string,
+    inputName: string,
+    newValue?: string
+  ) => {
+    if (!selectedContract) {
+      console.error('No Contract Selected!!')
+      return
+    }
+    switch (type) {
+      case 'view':
+        const readFunctions =
+          contractsState[selectedContract?.address].readState
+        const newReadFns = readFunctions.map((rf) => {
+          if (rf.name === funcName) {
+            const oldInputIdx = rf.inputs.findIndex((i) => i.name === inputName)
+            if (oldInputIdx !== -1) {
+              const oldInput = rf.inputs[oldInputIdx]
+              const newInput = {
+                ...oldInput,
+                rawInput: newValue
+              }
+              const newInputs = rf.inputs.map((i, idx) => {
+                if (idx === oldInputIdx) return newInput
+                return i
+              })
+              return {
+                ...rf,
+                inputs: newInputs
+              }
+            }
+          }
+          return rf
+        })
+        setReadState(newReadFns)
+        break
+      case 'external':
+        const writeFunctions =
+          contractsState[selectedContract?.address].writeState
+        const newWriteFns = writeFunctions.map((rf) => {
+          if (rf.name === funcName) {
+            const oldInputIdx = rf.inputs.findIndex((i) => i.name === inputName)
+            if (oldInputIdx !== -1) {
+              const oldInput = rf.inputs[oldInputIdx]
+              const newInput = {
+                ...oldInput,
+                rawInput: newValue
+              }
+              const newInputs = rf.inputs.map((i, idx) => {
+                if (idx === oldInputIdx) return newInput
+                return i
+              })
+              return {
+                ...rf,
+                inputs: newInputs
+              }
+            }
+          }
+          return rf
+        })
+        setWriteState(newWriteFns)
+        break
+    }
+  }
+
+  const propogateStateToCalldata = async (
     finalIPs: any,
     type: 'view' | 'external',
     funcName: string
@@ -561,7 +628,8 @@ const Interaction: React.FC<InteractionProps> = () => {
                   const init: any = func.inputs.reduce((p, c) => {
                     return {
                       ...p,
-                      [c.name]: ''
+                      // Check if already has a rawInput in storage
+                      [c.name]: c.rawInput ?? ''
                     }
                   }, {})
 
@@ -618,14 +686,11 @@ const Interaction: React.FC<InteractionProps> = () => {
                             <form
                               className="function-label-wrapper"
                               style={{ display: 'flex' }}
-                              key={index}
                               onSubmit={handleSubmit}
                             >
                               <div className="form-action-wrapper">
                                 <button
                                   className={`udapp_instanceButton undefined btn btn-sm btn-warning 'w-100'`}
-                                  data-name={func.name}
-                                  data-type={func.state_mutability}
                                   type="submit"
                                   disabled={isSubmitting}
                                 >
@@ -667,8 +732,16 @@ const Interaction: React.FC<InteractionProps> = () => {
                                               ? 'form-control function-input function-error text-danger'
                                               : 'form-control function-input'
                                           }
-                                          onChange={handleChange}
-                                          key={index}
+                                          onChange={(e) => {
+                                            handleChange(e)
+                                            // Propogate to rawInputs in storage.
+                                            propogateInputToState(
+                                              'view',
+                                              func.name,
+                                              input.name,
+                                              e.target.value
+                                            )
+                                          }}
                                         />
                                       </div>
                                     )
@@ -705,7 +778,7 @@ const Interaction: React.FC<InteractionProps> = () => {
                 const init: any = func.inputs.reduce((p, c) => {
                   return {
                     ...p,
-                    [c.name]: ''
+                    [c.name]: c.rawInput ?? ''
                   }
                 }, {})
 
@@ -811,7 +884,16 @@ const Interaction: React.FC<InteractionProps> = () => {
                                               ? 'form-control function-input function-error text-danger'
                                               : 'form-control function-input'
                                           }
-                                          onChange={handleChange}
+                                          onChange={(e) => {
+                                            handleChange(e)
+                                            // Propogate to rawInputs in storage.
+                                            propogateInputToState(
+                                              'external',
+                                              func.name,
+                                              input.name,
+                                              e.target.value
+                                            )
+                                          }}
                                           key={index}
                                         />
                                       </div>
