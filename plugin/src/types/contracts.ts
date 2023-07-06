@@ -1,5 +1,6 @@
 import { type BigNumberish } from 'ethers'
 import {
+  type constants,
   type Account,
   type CairoAssembly,
   type InvokeFunctionResponse
@@ -9,11 +10,15 @@ interface Contract {
   name: string
   compiledClassHash: string
   classHash: string
+  sierraClassHash: string
   sierra: any // CompiledSierra
   casm: CairoAssembly
   abi: Abi
   path: string
-  deployed: boolean
+  deployedInfo: Array<{
+    address: string
+    chainId: constants.StarknetChainId
+  }>
   address: string
 }
 

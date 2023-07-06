@@ -4,11 +4,7 @@ import {
   getShortenedHash,
   weiToEth
 } from '../../utils/utils'
-import {
-  type Devnet,
-  type DevnetAccount,
-  getAccounts
-} from '../../utils/network'
+import { getAccounts } from '../../utils/network'
 import React, { useContext, useEffect, useState } from 'react'
 import { ConnectionContext } from '../../contexts/ConnectionContext'
 import { Account, Provider } from 'starknet'
@@ -18,30 +14,26 @@ import './devnetAccountSelector.css'
 import EnvironmentContext from '../../contexts/EnvironmentContext'
 import copy from 'copy-to-clipboard'
 
-interface DevnetAccountSelectorProps {
-  devnet: Devnet
-  isDevnetAlive: boolean
-  setIsDevnetAlive: React.Dispatch<React.SetStateAction<boolean>>
-}
-
-const DevnetAccountSelector: React.FC<DevnetAccountSelectorProps> = (props) => {
+const DevnetAccountSelector: React.FC = () => {
   const { account, setAccount, provider, setProvider } =
     useContext(ConnectionContext)
   const remixClient = useContext(RemixClientContext)
-
-  const [availableDevnetAccounts, setAvailableDevnetAccounts] = useState<
-    DevnetAccount[]
-  >([])
-
-  const { selectedDevnetAccount, setSelectedDevnetAccount } =
-    useContext(EnvironmentContext)
+  const {
+    devnet,
+    isDevnetAlive,
+    setIsDevnetAlive,
+    selectedDevnetAccount,
+    setSelectedDevnetAccount,
+    availableDevnetAccounts,
+    setAvailableDevnetAccounts
+  } = useContext(EnvironmentContext)
 
   // devnet live status
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     const interval = setInterval(async () => {
       try {
-        const response = await fetch(`${props.devnet.url}/is_alive`, {
+        const response = await fetch(`${devnet.url}/is_alive`, {
           method: 'GET',
           redirect: 'follow',
           headers: {
@@ -51,25 +43,25 @@ const DevnetAccountSelector: React.FC<DevnetAccountSelectorProps> = (props) => {
         const status = await response.text()
 
         if (status !== 'Alive!!!' || response.status !== 200) {
-          props.setIsDevnetAlive(() => false)
+          setIsDevnetAlive(() => false)
         } else {
-          props.setIsDevnetAlive(() => true)
+          setIsDevnetAlive(() => true)
         }
       } catch (error) {
-        props.setIsDevnetAlive(() => false)
+        setIsDevnetAlive(() => false)
       }
     }, 1000)
     return () => {
       clearInterval(interval)
     }
-  }, [props.devnet])
+  }, [devnet])
 
   const notifyDevnetStatus = async (): Promise<void> => {
     try {
       await remixClient.call(
         'notification' as any,
         'toast',
-        `❗️ Server ${props.devnet.name} - ${props.devnet.url} is not healthy or not reachable at the moment`
+        `❗️ Server ${devnet.name} - ${devnet.url} is not healthy or not reachable at the moment`
       )
     } catch (e) {
       console.log(e)
@@ -77,21 +69,26 @@ const DevnetAccountSelector: React.FC<DevnetAccountSelectorProps> = (props) => {
   }
 
   useEffect(() => {
-    if (!props.isDevnetAlive)
+    if (!isDevnetAlive) {
       notifyDevnetStatus().catch((e) => {
         console.log(e)
       })
-  }, [props.isDevnetAlive])
+    }
+  }, [isDevnetAlive])
 
   const refreshDevnetAccounts = async (): Promise<void> => {
     setAccountRefreshing(true)
     try {
-      const accounts = await getAccounts(props.devnet.url)
-      setAvailableDevnetAccounts(accounts)
+      const accounts = await getAccounts(devnet.url)
+      if (
+        JSON.stringify(accounts) !== JSON.stringify(availableDevnetAccounts)
+      ) {
+        setAvailableDevnetAccounts(accounts)
+      }
     } catch (e) {
       await remixClient.terminal.log({
         type: 'error',
-        value: `Failed to get accounts information from ${props.devnet.url}`
+        value: `Failed to get accounts information from ${devnet.url}`
       })
     }
     setAccountRefreshing(false)
@@ -100,24 +97,30 @@ const DevnetAccountSelector: React.FC<DevnetAccountSelectorProps> = (props) => {
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     setTimeout(async () => {
-      if (!props.isDevnetAlive) {
+      if (!isDevnetAlive) {
         return
       }
       await refreshDevnetAccounts()
-    }, 500)
-  }, [props.devnet, props.isDevnetAlive])
+    }, 1)
+  }, [devnet, isDevnetAlive])
 
   useEffect(() => {
-    if (availableDevnetAccounts.length > 0) {
+    if (
+      !(
+        selectedDevnetAccount !== null &&
+        availableDevnetAccounts.includes(selectedDevnetAccount)
+      ) &&
+      availableDevnetAccounts.length > 0
+    ) {
       setSelectedDevnetAccount(availableDevnetAccounts[0])
     }
-  }, [availableDevnetAccounts])
+  }, [availableDevnetAccounts, devnet])
 
   useEffect(() => {
     setProvider(
       new Provider({
         sequencer: {
-          baseUrl: props.devnet.url
+          baseUrl: devnet.url
         }
       })
     )
@@ -130,7 +133,7 @@ const DevnetAccountSelector: React.FC<DevnetAccountSelectorProps> = (props) => {
         )
       )
     }
-  }, [props.devnet, selectedDevnetAccount])
+  }, [devnet, selectedDevnetAccount])
 
   function handleAccountChange(event: any): void {
     if (event.target.value === -1) {
@@ -139,7 +142,7 @@ const DevnetAccountSelector: React.FC<DevnetAccountSelectorProps> = (props) => {
     setSelectedDevnetAccount(availableDevnetAccounts[event.target.value])
     const newProvider = new Provider({
       sequencer: {
-        baseUrl: props.devnet.url
+        baseUrl: devnet.url
       }
     })
     if (provider == null) setProvider(newProvider)
@@ -178,9 +181,12 @@ const DevnetAccountSelector: React.FC<DevnetAccountSelectorProps> = (props) => {
           className="custom-select"
           aria-label=".form-select-sm example"
           onChange={handleAccountChange}
-          defaultValue={getDefaultValue()}
+          defaultValue={getSelectedAccountIndex(
+            availableDevnetAccounts,
+            selectedDevnetAccount
+          )}
         >
-          {props.isDevnetAlive && availableDevnetAccounts.length > 0
+          {isDevnetAlive && availableDevnetAccounts.length > 0
             ? availableDevnetAccounts.map((account, index) => {
                 return (
                   <option value={index} key={index}>

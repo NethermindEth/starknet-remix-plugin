@@ -90,12 +90,13 @@ const getSelectedContractIndex = (
 const getSelectedAccountIndex = (
   accounts: DevnetAccount[],
   selectedAccount: DevnetAccount | null
-): number | undefined => {
+): number => {
   if (selectedAccount != null) {
     return accounts.findIndex(
       (account) => account.address === selectedAccount.address
     )
   }
+  return -1
 }
 
 const getRoundedNumber = (number: number, decimals: number): number => {

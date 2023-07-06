@@ -363,9 +363,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       remixClient.emit('statusChanged', {
         key: 'succeed',
         type: 'success',
-        title: `Cheers : last cairo compilation was successful, classHash: ${
-          selectedContract?.classHash ?? ''
-        }`
+        title: `Cheers : compilation successful, classHash: ${hash.computeContractClassHash(sierra.file_content)}`
       })
 
       try {
@@ -431,30 +429,24 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       const casm = await JSON.parse(casmFile)
       const compiledClassHash = hash.computeCompiledClassHash(casm)
       const classHash = hash.computeContractClassHash(sierra)
+      const sierraClassHash = hash.computeSierraContractClassHash(sierra)
+      if (contracts.find((contract) => contract.classHash === classHash && contract.compiledClassHash === compiledClassHash)) {
+        return
+      }
       const contract = {
         name: contractName,
         abi: sierra.abi,
         compiledClassHash,
         classHash,
+        sierraClassHash,
         sierra,
         casm,
         path,
-        deployed: false,
+        deployedInfo: [],
         address: ''
       }
       setSelectedContract(contract)
-      const contractsList = [...contracts, contract]
-      // remove duplicates using contract.classHash and contract.compiledClassHash
-      const uniqueContracts = contractsList.filter(
-        (contract, index, self) =>
-          index ===
-          self.findIndex(
-            (t) =>
-              t.classHash === contract.classHash &&
-              t.compiledClassHash === contract.compiledClassHash
-          )
-      )
-      setContracts(uniqueContracts)
+      setContracts([...contracts, contract])
     } catch (e) {
       console.error(e)
     }

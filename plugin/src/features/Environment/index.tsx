@@ -21,6 +21,7 @@ import Accordian, {
   AccordionTrigger
 } from '../../ui_components/Accordian'
 import { AccordionHeader } from '@radix-ui/react-accordion'
+import ManualAccount from '../../components/ManualAccount'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface EnvironmentProps {}
@@ -85,10 +86,10 @@ const Environment: React.FC<EnvironmentProps> = () => {
             modalMode: 'neverAsk',
             modalTheme: 'dark'
           })
-          connectedStarknetWindowObject.off(
-            'accountsChanged',
-            (_accounts: string[]) => {}
-          )
+          // connectedStarknetWindowObject.off(
+          //   'accountsChanged',
+          //   (_accounts: string[]) => {}
+          // )
         }
       )
 
@@ -98,10 +99,10 @@ const Environment: React.FC<EnvironmentProps> = () => {
           modalMode: 'neverAsk',
           modalTheme: 'dark'
         })
-        connectedStarknetWindowObject.off(
-          'networkChanged',
-          (_network?: string) => {}
-        )
+        // connectedStarknetWindowObject.off(
+        //   'networkChanged',
+        //   (_network?: string) => {}
+        // )
       })
       setStarknetWindowObject(connectedStarknetWindowObject)
       if (connectedStarknetWindowObject.account != null) {
@@ -140,11 +141,7 @@ const Environment: React.FC<EnvironmentProps> = () => {
 
   return (
     <div className="starknet-connection-component mb-8">
-      <Accordian
-        type="single"
-        value={currentPane}
-        defaultValue={'environment'}
-      >
+      <Accordian type="single" value={currentPane} defaultValue={'environment'}>
         <AccordianItem value="environment">
           <AccordionTrigger
             onClick={() =>
@@ -182,18 +179,46 @@ const Environment: React.FC<EnvironmentProps> = () => {
                 </div>
               </div>
               <div className="flex">
-                {env === 'devnet' ? (
-                  <DevnetAccountSelector
-                    devnet={devnet}
-                    isDevnetAlive={isDevnetAlive}
-                    setIsDevnetAlive={setIsDevnetAlive}
-                  />
+                {env !== 'manual' ? (
+                  <>
+                    <div className="flex">
+                      <label className="">Environment selection</label>
+                      <div className="flex_dot">
+                        <EnvironmentSelector
+                          connectWalletHandler={connectWalletHandler}
+                          disconnectWalletHandler={disconnectWalletHandler}
+                        />
+                        {isDevnetAlive ? (
+                          <RxDotFilled
+                            size={'30px'}
+                            color="lime"
+                            title="Devnet is live"
+                          />
+                        ) : (
+                          <RxDotFilled
+                            size={'30px'}
+                            color="red"
+                            title="Devnet server down"
+                          />
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex">
+                      {env === 'localDevnet' || env === 'remoteDevnet' ? (
+                        <DevnetAccountSelector />
+                      ) : (
+                        <Wallet
+                          starknetWindowObject={starknetWindowObject}
+                          // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                          connectWalletHandler={connectWalletHandler}
+                          // eslint-disable-next-line @typescript-eslint/no-misused-promises
+                          disconnectWalletHandler={disconnectWalletHandler}
+                        />
+                      )}
+                    </div>
+                  </>
                 ) : (
-                  <Wallet
-                    starknetWindowObject={starknetWindowObject}
-                    connectWalletHandler={() => connectWalletHandler}
-                    disconnectWalletHandler={() => disconnectWalletHandler}
-                  />
+                  <ManualAccount />
                 )}
               </div>
             </>

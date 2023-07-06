@@ -29,9 +29,12 @@ import DeploymentContext from '../../contexts/DeploymentContext'
 import { type Devnet, devnets, type DevnetAccount } from '../../utils/network'
 import { type StarknetWindowObject } from 'get-starknet'
 import EnvironmentContext from '../../contexts/EnvironmentContext'
+import ManualAccountContext from '../../contexts/ManualAccountContext'
 import { type Transaction } from '../../types/transaction'
 import TransactionContext from '../../contexts/TransactionContext'
 import StateAction from '../../components/StateAction'
+import type { ManualAccount } from '../../types/accounts'
+import { networks } from '../../utils/constants'
 
 export type AccordianTabs =
   | 'compile'
@@ -58,13 +61,23 @@ const Plugin: React.FC = () => {
   const [notEnoughInputs, setNotEnoughInputs] = useState(false)
 
   // Environment Context state variables
-  const [devnet, setDevnet] = useState<Devnet>(devnets[0])
-  const [env, setEnv] = useState<string>('devnet')
+  const [devnet, setDevnet] = useState<Devnet>(devnets[1])
+  const [env, setEnv] = useState<string>('remoteDevnet')
   const [isDevnetAlive, setIsDevnetAlive] = useState<boolean>(true)
   const [starknetWindowObject, setStarknetWindowObject] =
     useState<StarknetWindowObject | null>(null)
   const [selectedDevnetAccount, setSelectedDevnetAccount] =
     useState<DevnetAccount | null>(null)
+  const [availableDevnetAccounts, setAvailableDevnetAccounts] = useState<
+    DevnetAccount[]
+  >([])
+
+  // Manual Account Context state variables
+  const [accounts, setAccounts] = useState<ManualAccount[]>([])
+  const [selectedAccount, setSelectedAccount] = useState<ManualAccount | null>(
+    null
+  )
+  const [networkName, setNetworkName] = useState<string>(networks[0].value)
 
   // Transaction History Context state variables
   const [transactions, setTransactions] = useState<Transaction[]>([])
@@ -98,168 +111,181 @@ const Plugin: React.FC = () => {
     // add a button for selecting the cairo version
     <>
       <div className="plugin-wrapper">
-        <CompiledContractsContext.Provider
+        <EnvironmentContext.Provider
           value={{
-            contracts: compiledContracts,
-            setContracts: setCompiledContracts,
-            selectedContract,
-            setSelectedContract
+            devnet,
+            setDevnet,
+            env,
+            setEnv,
+            isDevnetAlive,
+            setIsDevnetAlive,
+            starknetWindowObject,
+            setStarknetWindowObject,
+            selectedDevnetAccount,
+            setSelectedDevnetAccount,
+            availableDevnetAccounts,
+            setAvailableDevnetAccounts
           }}
         >
-          <ConnectionContext.Provider
+          <CompiledContractsContext.Provider
             value={{
-              provider,
-              setProvider,
-              account,
-              setAccount
+              contracts: compiledContracts,
+              setContracts: setCompiledContracts,
+              selectedContract,
+              setSelectedContract
             }}
           >
-            <TransactionContext.Provider
+            <ConnectionContext.Provider
               value={{
-                transactions,
-                setTransactions
+                provider,
+                setProvider,
+                account,
+                setAccount
               }}
             >
-              <div className="plugin-main-wrapper">
-                <CairoVersion />
-                <Accordian
-                  type="single"
-                  value={currentAccordian}
-                  defaultValue={'compile'}
-                >
-                  <CompilationContext.Provider
-                    value={{
-                      status,
-                      setStatus,
-                      currentFilename,
-                      setCurrentFilename,
-                      isCompiling,
-                      setIsCompiling,
-                      isValidCairo,
-                      setIsValidCairo,
-                      noFileSelected,
-                      setNoFileSelected,
-                      hashDir,
-                      setHashDir
-                    }}
+              <TransactionContext.Provider
+                value={{
+                  transactions,
+                  setTransactions
+                }}
+              >
+                <div className="plugin-main-wrapper">
+                  <CairoVersion />
+                  <Accordian
+                    type="single"
+                    value={currentAccordian}
+                    defaultValue={'compile'}
                   >
-                    <AccordianItem value="compile">
-                      <AccordionTrigger
-                        onClick={() => {
-                          handleTabView('compile')
-                        }}
-                      >
-                        <span
-                          className="d-flex align-items-center"
-                          style={{ gap: '0.5rem' }}
-                        >
-                          <p style={{ all: 'unset' }}>Compile</p>
-                          <StateAction
-                            value={
-                              isCompiling
-                                ? 'loading'
-                                : status === 'done'
-                                ? 'success'
-                                : ''
-                            }
-                          />
-                        </span>
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <Compilation setAccordian={setCurrentAccordian} />
-                      </AccordionContent>
-                    </AccordianItem>
-                  </CompilationContext.Provider>
-                  <DeploymentContext.Provider
-                    value={{
-                      isDeploying,
-                      setIsDeploying,
-                      deployStatus,
-                      setDeployStatus,
-                      constructorCalldata,
-                      setConstructorCalldata,
-                      constructorInputs,
-                      setConstructorInputs,
-                      notEnoughInputs,
-                      setNotEnoughInputs
-                    }}
-                  >
-                    <AccordianItem value="deploy">
-                      <AccordionTrigger
-                        onClick={() => {
-                          handleTabView('deploy')
-                        }}
-                      >
-                        <span
-                          className="d-flex align-items-center"
-                          style={{ gap: '0.5rem' }}
-                        >
-                          <p style={{ all: 'unset' }}>Deploy</p>
-                          <StateAction
-                            value={
-                              isDeploying
-                                ? 'loading'
-                                : deployStatus === 'error'
-                                ? 'error'
-                                : deployStatus === 'done'
-                                ? 'success'
-                                : ''
-                            }
-                          />
-                        </span>
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <Deployment setActiveTab={setCurrentAccordian} />
-                      </AccordionContent>
-                    </AccordianItem>
-                    <AccordianItem value="interaction">
-                      <AccordionTrigger
-                        onClick={() => {
-                          handleTabView('interaction')
-                        }}
-                      >
-                        Interact
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <Interaction />
-                      </AccordionContent>
-                    </AccordianItem>
-                  </DeploymentContext.Provider>
-                  <AccordianItem value="transactions">
-                    <AccordionTrigger
-                      onClick={() => {
-                        handleTabView('transactions')
+                    <CompilationContext.Provider
+                      value={{
+                        status,
+                        setStatus,
+                        currentFilename,
+                        setCurrentFilename,
+                        isCompiling,
+                        setIsCompiling,
+                        isValidCairo,
+                        setIsValidCairo,
+                        noFileSelected,
+                        setNoFileSelected,
+                        hashDir,
+                        setHashDir
                       }}
                     >
-                      Transactions
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <TransactionHistory />
-                    </AccordionContent>
-                  </AccordianItem>
-                </Accordian>
-              </div>
-              <div>
-                <EnvironmentContext.Provider
-                  value={{
-                    devnet,
-                    setDevnet,
-                    env,
-                    setEnv,
-                    isDevnetAlive,
-                    setIsDevnetAlive,
-                    starknetWindowObject,
-                    setStarknetWindowObject,
-                    selectedDevnetAccount,
-                    setSelectedDevnetAccount
-                  }}
-                >
-                  <Environment />
-                </EnvironmentContext.Provider>
-              </div>
-            </TransactionContext.Provider>
-          </ConnectionContext.Provider>
-        </CompiledContractsContext.Provider>
+                      <AccordianItem value="compile">
+                        <AccordionTrigger
+                          onClick={() => {
+                            handleTabView('compile')
+                          }}
+                        >
+                          <span
+                            className="d-flex align-items-center"
+                            style={{ gap: '0.5rem' }}
+                          >
+                            <p style={{ all: 'unset' }}>Compile</p>
+                            <StateAction
+                              value={
+                                isCompiling
+                                  ? 'loading'
+                                  : status === 'done'
+                                  ? 'success'
+                                  : ''
+                              }
+                            />
+                          </span>
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          <Compilation setAccordian={setCurrentAccordian} />
+                        </AccordionContent>
+                      </AccordianItem>
+                    </CompilationContext.Provider>
+                    <DeploymentContext.Provider
+                      value={{
+                        isDeploying,
+                        setIsDeploying,
+                        deployStatus,
+                        setDeployStatus,
+                        constructorCalldata,
+                        setConstructorCalldata,
+                        constructorInputs,
+                        setConstructorInputs,
+                        notEnoughInputs,
+                        setNotEnoughInputs
+                      }}
+                    >
+                      <AccordianItem value="deploy">
+                        <AccordionTrigger
+                          onClick={() => {
+                            handleTabView('deploy')
+                          }}
+                        >
+                          <span
+                            className="d-flex align-items-center"
+                            style={{ gap: '0.5rem' }}
+                          >
+                            <p style={{ all: 'unset' }}>Deploy</p>
+                            <StateAction
+                              value={
+                                isDeploying
+                                  ? 'loading'
+                                  : deployStatus === 'error'
+                                  ? 'error'
+                                  : deployStatus === 'done'
+                                  ? 'success'
+                                  : ''
+                              }
+                            />
+                          </span>
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          <Deployment setActiveTab={setCurrentAccordian} />
+                        </AccordionContent>
+                      </AccordianItem>
+                      <AccordianItem value="interaction">
+                        <AccordionTrigger
+                          onClick={() => {
+                            handleTabView('interaction')
+                          }}
+                        >
+                          Interact
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          <Interaction />
+                        </AccordionContent>
+                      </AccordianItem>
+                    </DeploymentContext.Provider>
+                    <AccordianItem value="transactions">
+                      <AccordionTrigger
+                        onClick={() => {
+                          handleTabView('transactions')
+                        }}
+                      >
+                        Transactions
+                      </AccordionTrigger>
+                      <AccordionContent>
+                        <TransactionHistory />
+                      </AccordionContent>
+                    </AccordianItem>
+                  </Accordian>
+                </div>
+                <div>
+                  <ManualAccountContext.Provider
+                    value={{
+                      accounts,
+                      setAccounts,
+                      selectedAccount,
+                      setSelectedAccount,
+                      networkName,
+                      setNetworkName
+                    }}
+                  >
+                    <Environment />
+                  </ManualAccountContext.Provider>
+                </div>
+              </TransactionContext.Provider>
+            </ConnectionContext.Provider>
+          </CompiledContractsContext.Provider>
+        </EnvironmentContext.Provider>
       </div>
     </>
   )

@@ -28,6 +28,7 @@ export function normalizeParam (
     const paramLength = param.length / propertyLength
     return [paramLength, ...param].map(parse)
   }
+  // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
   if (param.toString().includes(',') || Array.isArray(param)) {
     if (!Array.isArray(param)) {
       param = param.split(/(?:,| )+/)

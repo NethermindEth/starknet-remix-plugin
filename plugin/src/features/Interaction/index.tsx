@@ -1,3 +1,4 @@
+/* eslint-disable multiline-ternary */
 import React, { useContext, useEffect, useState } from 'react'
 import { BigNumber, type BigNumberish } from 'ethers'
 
@@ -7,7 +8,8 @@ import {
   type CallContractResponse,
   type GetTransactionReceiptResponse,
   type AccountInterface,
-  type InvokeFunctionResponse
+  type InvokeFunctionResponse,
+  constants
 } from 'starknet'
 import CompiledContracts from '../../components/CompiledContracts'
 import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
@@ -30,6 +32,7 @@ import { Formik } from 'formik'
 import Yup, { transformInputs } from '../../utils/yup'
 
 import { BiReset } from 'react-icons/bi'
+import EnvironmentContext from '../../contexts/EnvironmentContext'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 type InteractionProps = {}
@@ -40,6 +43,7 @@ const Interaction: React.FC<InteractionProps> = () => {
 
   const { transactions, setTransactions } = useContext(TransactionContext)
   const remixClient = useContext(RemixClientContext)
+  const { env } = useContext(EnvironmentContext)
 
   const [contractsState, setContractsState] = useAtom(interactAtom)
 
@@ -167,6 +171,24 @@ const Interaction: React.FC<InteractionProps> = () => {
     invocationResponse?: GetTransactionReceiptResponse
   }
 
+  const [chainId, setChainId] = useState<constants.StarknetChainId>(
+    constants.StarknetChainId.SN_GOERLI
+  )
+
+  useEffect(() => {
+    if (provider !== null) {
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      setTimeout(async () => {
+        try {
+          const chainId = await provider.getChainId()
+          setChainId(chainId)
+        } catch (error) {
+          console.log(error)
+        }
+      }, 1)
+    }
+  }, [provider])
+
   useEffect(() => {
     const currNotifCount = storage.get('notifCount')
     if (currNotifCount === null || currNotifCount === undefined) {
@@ -258,7 +280,8 @@ const Interaction: React.FC<InteractionProps> = () => {
           type: 'invoke',
           account,
           provider,
-          txId: response.transaction_hash
+          txId: response.transaction_hash,
+          env
         }
       ])
       await remixClient.call('terminal', 'log', {
@@ -418,79 +441,99 @@ const Interaction: React.FC<InteractionProps> = () => {
     name: string,
     type: 'view' | 'external'
   ): Promise<void> => {
-    if (!selectedContract) {
-      console.error('No Contract Selected!!')
-      return
-    }
-    console.log(name, type)
-
-    if (type === 'view') {
-      const readFunctions = contractsState[selectedContract?.address].readState
-      const func = getFunctionFromName(name, readFunctions)
-
-      const callFunction = getCall(
-        selectedContract.address,
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
-        func?.name!,
-        (func?.calldata?.flat() as BigNumberish[]) ?? []
-      )
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
-      const response = await callFunction(account!)
-      writeResponse(
-        response,
-        func?.name!,
-        func?.state_mutability === 'view' ? 'read' : 'write',
-        'call'
-      )
-      setResponses((responses) => [
-        ...responses,
-        {
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
-          functionName: func?.name!,
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
-          contractName: selectedContract?.name!,
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
-          contractAddress: selectedContract?.address!,
-          callResponse: response
-        }
-      ])
-    } else {
-      const writeFunctions =
-        contractsState[selectedContract?.address].writeState
-      const func = getFunctionFromName(name, writeFunctions)
-      const invocation = getInvocation(
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
-        selectedContract?.address!,
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
-        func?.name!,
-        (func?.calldata?.flat() as BigNumberish[]) ?? []
-      )
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
-      const response = await invocation(account!)
-      console.log(response)
-      console.log(
-        'Transaction:',
-        await account?.getTransaction(response.transaction_hash)
-      )
-      const resultOfTx = await provider?.waitForTransaction(
-        response.transaction_hash
-      )
-      if (resultOfTx) {
-        console.log('Writing Result of txn')
-        writeResponse(resultOfTx, func?.name!, 'write', 'invoke')
+    remixClient.emit('statusChanged', {
+      key: 'loading',
+      type: 'info',
+      title: `Calling ${name as string}...`
+    })
+    try {
+      if (!selectedContract) {
+        console.error('No Contract Selected!!')
+        return
       }
-      setResponses((responses) => [
-        ...responses,
-        {
+      console.log(name, type)
+
+      if (type === 'view') {
+        const readFunctions =
+          contractsState[selectedContract?.address].readState
+        const func = getFunctionFromName(name, readFunctions)
+
+        const callFunction = getCall(
+          selectedContract.address,
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
-          functionName: func?.name!,
+          func?.name!,
+          (func?.calldata?.flat() as BigNumberish[]) ?? []
+        )
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
+        const response = await callFunction(account!)
+        writeResponse(
+          response,
+          func?.name!,
+          func?.state_mutability === 'view' ? 'read' : 'write',
+          'call'
+        )
+        setResponses((responses) => [
+          ...responses,
+          {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
+            functionName: func?.name!,
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
+            contractName: selectedContract?.name!,
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
+            contractAddress: selectedContract?.address!,
+            callResponse: response
+          }
+        ])
+      } else {
+        const writeFunctions =
+          contractsState[selectedContract?.address].writeState
+        const func = getFunctionFromName(name, writeFunctions)
+        const invocation = getInvocation(
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
-          contractName: selectedContract?.name!,
+          selectedContract?.address!,
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
-          contractAddress: selectedContract?.address!,
-          invocationResponse: resultOfTx
+          func?.name!,
+          (func?.calldata?.flat() as BigNumberish[]) ?? []
+        )
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
+        const response = await invocation(account!)
+        console.log(response)
+        console.log(
+          'Transaction:',
+          await account?.getTransaction(response.transaction_hash)
+        )
+        const resultOfTx = await provider?.waitForTransaction(
+          response.transaction_hash
+        )
+        if (resultOfTx) {
+          console.log('Writing Result of txn')
+          writeResponse(resultOfTx, func?.name!, 'write', 'invoke')
         }
-      ])
+        setResponses((responses) => [
+          ...responses,
+          {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
+            functionName: func?.name!,
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
+            contractName: selectedContract?.name!,
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
+            contractAddress: selectedContract?.address!,
+            invocationResponse: resultOfTx
+          }
+        ])
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        await remixClient.call('terminal', 'log', {
+          value: error.message,
+          type: 'error'
+        })
+      }
+      remixClient.emit('statusChanged', {
+        key: 'failed',
+        type: 'error',
+        title: 'Interaction responses have been written to the terminal log'
+      })
     }
   }
 
@@ -504,7 +547,11 @@ const Interaction: React.FC<InteractionProps> = () => {
         </div>
       )}
 
-      {selectedContract?.deployed ?? false ? (
+      {account != null &&
+      selectedContract != null &&
+      selectedContract.deployedInfo.some(
+        (info) => info.address === account.address && info.chainId === chainId
+      ) ? (
         // eslint-disable-next-line multiline-ternary
         <>
           <div className="read-functions-wrapper">
