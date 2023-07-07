@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import {
   type ConnectOptions,
   type DisconnectOptions,
@@ -8,13 +8,24 @@ import {
 import copy from 'copy-to-clipboard'
 import Tooltip from '../../ui_components/Tooltip'
 import { CiWarning } from 'react-icons/ci'
-import { BsChevronDown } from 'react-icons/bs'
+// import { BsChevronDown } from 'react-icons/bs'
 import * as D from '../../ui_components/Dropdown'
 
 import './wallet.css'
+import { MdCopyAll } from 'react-icons/md'
+import { Provider, constants } from 'starknet'
+import {
+  networkEquivalents,
+  networkNameEquivalents,
+  networkNameEquivalentsRev
+} from '../../utils/constants'
+import { ConnectionContext } from '../../contexts/ConnectionContext'
+import { BsChevronDown } from 'react-icons/bs'
+import EnvironmentContext from '../../contexts/EnvironmentContext'
+import ExplorerSelector from '../ExplorerSelector'
 
 const trimAddress = (adr: string): string => {
-  if ((adr.length > 0) && adr.startsWith('0x')) {
+  if (adr.length > 0 && adr.startsWith('0x')) {
     const len = adr.length
     return `${adr.slice(0, 6)}...${adr.slice(len - 6, len)}`
   }
@@ -26,9 +37,13 @@ const makeVoyagerLink = async (starknetObj?: StarknetWindowObject | null) => {
   if (starknetObj != null) {
     const chainId = await starknetObj?.account?.getChainId()
     if (chainId === '0x534e5f4d41494e') {
-      return `https://goerli.voyager.online/contract/${starknetObj?.account?.address ?? ''}`
+      return `https://goerli.voyager.online/contract/${
+        starknetObj?.account?.address ?? ''
+      }`
     } else {
-      return `https://voyager.online/contract/${starknetObj?.account?.address ?? ''}`
+      return `https://voyager.online/contract/${
+        starknetObj?.account?.address ?? ''
+      }`
     }
   }
   return 'https://voyager.online'
@@ -38,31 +53,78 @@ interface WalletProps {
   starknetWindowObject: StarknetWindowObject | null
   connectWalletHandler: (options?: ConnectOptions) => void
   disconnectWalletHandler: (options?: DisconnectOptions) => void
+  setPrevEnv: (newEnv: string) => void
 }
 
 const Wallet: React.FC<WalletProps> = (props) => {
   const [showCopied, setCopied] = useState(false)
 
   const [voyagerLink, setVoyagerLink] = useState('')
+  const { setProvider } = useContext(ConnectionContext)
+
+  const { env, setEnv } = useContext(EnvironmentContext)
 
   useEffect(() => {
-    ;void (async () => {
+    void (async () => {
       const link = await makeVoyagerLink(props.starknetWindowObject)
       setVoyagerLink(link)
     })()
   }, [props])
 
-  const refreshWalletConnection = async (): Promise<void> => {
-    props.disconnectWalletHandler()
+  const refreshWalletConnection = (e: any): void => {
+    e.preventDefault()
+    console.log('refreshWalletConnection')
+    if (props.starknetWindowObject !== null) props.disconnectWalletHandler()
     props.connectWalletHandler()
   }
 
   const [currentNetwork, setCurrentNetwork] = useState('goerli')
-  const [availableNetworks] = useState<string[]>([
-    'goerli',
-    'dev-goerli',
-    'mainnet'
-  ])
+  const [availableNetworks] = useState<string[]>(
+    Array.from(networkEquivalents.keys())
+  )
+
+  useEffect(() => {
+    const currChain =
+      props.starknetWindowObject?.chainId ?? constants.NetworkName.SN_GOERLI
+    setCurrentNetwork(
+      networkNameEquivalentsRev.get(currChain as constants.NetworkName) ??
+        'goerli'
+    )
+  }, [props.starknetWindowObject])
+
+  useEffect(() => {
+    props.starknetWindowObject?.on('accountsChanged', (accounts: string[]) => {
+      console.log('accountsChanged', accounts)
+    })
+    props.starknetWindowObject?.on('networkChanged', (network?: string) => {
+      console.log('networkChanged', network)
+    })
+  }, [props.starknetWindowObject])
+
+  const handleNetworkChange = async (
+    event: any,
+    chainName: string
+  ): Promise<void> => {
+    event.preventDefault()
+    const networkName = networkNameEquivalents.get(chainName)
+    const chainId = networkEquivalents.get(chainName)
+    setCurrentNetwork(chainName)
+    if (chainName.length > 0 && chainId && networkName) {
+      const resp = await props.starknetWindowObject?.request({
+        type: 'wallet_switchStarknetChain',
+        params: { chainId }
+      })
+      console.log('wallet_switchStarknetChain', resp)
+      setProvider(
+        new Provider({
+          sequencer: {
+            network: networkName,
+            chainId
+          }
+        })
+      )
+    }
+  }
 
   return (
     <div
@@ -70,93 +132,71 @@ const Wallet: React.FC<WalletProps> = (props) => {
       style={{
         display: 'flex',
         flexDirection: 'column',
-        gap: '0.5rem'
+        gap: '1rem',
+        padding: '1rem 0rem'
       }}
     >
-      <button
-        className="btn btn-primary mt-2 mb-2"
-        onClick={() => refreshWalletConnection}
-      >
-        Reconnect
-      </button>
-      {(props.starknetWindowObject != null)
-        ? <>
-      <div className="wallet-row-wrapper">
-        <div className="wallet-wrapper">
-          <img src={props.starknetWindowObject?.icon} alt="wallet icon" />
-          <p className="text"> {props.starknetWindowObject?.id}</p>
-          <Tooltip
-            icon={<CiWarning color="yellow" />}
-            content={`${props.starknetWindowObject?.name ?? 'It'} doesn't support cairo 1 contracts`}
-          />
-        </div>
-        <div className="account-network-wrapper">
-          <D.Root>
-            <D.Trigger>
-              <label className="account-network-selector">
-                Connected to {currentNetwork} <BsChevronDown />
-              </label>
-            </D.Trigger>
-            <D.Portal>
-              <D.Content>
-                {availableNetworks.map((v, i) => {
-                  return (
-                    <D.Item
-                      key={i}
-                      onClick={() => {
-                        setCurrentNetwork(v)
-                      }}
-                    >
-                      {v}
-                    </D.Item>
-                  )
-                })}
-              </D.Content>
-            </D.Portal>
-          </D.Root>
-        </div>
+      <div className="wallet-actions">
+        <button
+          className="btn btn-primary w-100"
+          onClick={(e) => {
+            refreshWalletConnection(e)
+          }}
+        >
+          Reconnect
+        </button>
       </div>
-      <div className="account-wrapper">
-        <span>
-          <p
-            className="text account"
-            title={props.starknetWindowObject?.account?.address}
-          >
-            {trimAddress(props.starknetWindowObject?.account?.address ?? '')}
-          </p>
-          <button
-            className="btn"
-            onClick={() => {
-              copy(props.starknetWindowObject?.account?.address ?? '')
-              setCopied(true)
-              setTimeout(() => {
-                setCopied(false)
-              }, 1000)
-            }}
-          >
-            <svg
-              stroke="currentColor"
-              fill="none"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              height="1em"
-              width="1em"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-            </svg>
-          </button>
-          {showCopied && <p>Copied</p>}
-        </span>
-        <a href={voyagerLink} target="_blank" rel="noopnener noreferrer">
-          View on Voyager
-        </a>
-      </div>
-      </>
-        : <p> Wallet not connected</p> }
+      {props.starknetWindowObject != null ? (
+        <>
+          <div className="wallet-row-wrapper">
+            <div className="wallet-wrapper">
+              <img src={props.starknetWindowObject?.icon} alt="wallet icon" />
+              <p className="text"> {props.starknetWindowObject?.id}</p>
+              {/* <Tooltip
+                icon={<CiWarning color="yellow" />}
+                content={`${
+                  props.starknetWindowObject?.name ?? 'It'
+                } doesn't support cairo 1 contracts`}
+              /> */}
+            </div>
+            <div className="account-network-wrapper">
+              <ExplorerSelector
+                path={`/contract/${props.starknetWindowObject?.account?.address}`}
+                title={props.starknetWindowObject?.account?.address}
+                text="View"
+                isInline
+              />
+            </div>
+          </div>
+          <div className="wallet-account-wrapper">
+            <span>
+              <p
+                className="text account"
+                title={props.starknetWindowObject?.account?.address}
+              >
+                {trimAddress(
+                  props.starknetWindowObject?.account?.address ?? ''
+                )}
+              </p>
+              <button
+                className="btn"
+                onClick={() => {
+                  copy(props.starknetWindowObject?.account?.address ?? '')
+                  setCopied(true)
+                  setTimeout(() => {
+                    setCopied(false)
+                  }, 1000)
+                }}
+              >
+                <MdCopyAll />
+              </button>
+              {showCopied && <p>Copied</p>}
+            </span>
+          </div>
+        </>
+      ) : (
+        <p> Wallet not connected</p>
+      )}
     </div>
   )
 }

@@ -3,7 +3,11 @@ import React, { useContext, useEffect, useState } from 'react'
 import { type BigNumberish } from 'ethers'
 import CompiledContracts from '../../components/CompiledContracts'
 import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
-import { type CallDataObj, type CallDataObject, type Contract } from '../../types/contracts'
+import {
+  type CallDataObj,
+  type CallDataObject,
+  type Contract
+} from '../../types/contracts'
 import { getConstructor, getParameterType } from '../../utils/utils'
 import './styles.css'
 import Container from '../../ui_components/Container'
@@ -13,6 +17,8 @@ import { RemixClientContext } from '../../contexts/RemixClientContext'
 import { type AccordianTabs } from '../Plugin'
 import DeploymentContext from '../../contexts/DeploymentContext'
 import TransactionContext from '../../contexts/TransactionContext'
+import { constants } from 'starknet'
+import EnvironmentContext from '../../contexts/EnvironmentContext'
 
 interface DeploymentProps {
   setActiveTab: (tab: AccordianTabs) => void
@@ -27,9 +33,37 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   const [constructorCalldata, setConstructorCalldata] =
     useState<CallDataObject>({})
 
-  const { isDeploying, setIsDeploying, deployStatus, setDeployStatus, constructorInputs, setConstructorInputs, notEnoughInputs, setNotEnoughInputs } = useContext(DeploymentContext)
+  const {
+    isDeploying,
+    setIsDeploying,
+    deployStatus,
+    setDeployStatus,
+    constructorInputs,
+    setConstructorInputs,
+    notEnoughInputs,
+    setNotEnoughInputs
+  } = useContext(DeploymentContext)
 
   const { transactions, setTransactions } = useContext(TransactionContext)
+  const { env } = useContext(EnvironmentContext)
+
+  const [chainId, setChainId] = useState<constants.StarknetChainId>(
+    constants.StarknetChainId.SN_GOERLI
+  )
+
+  useEffect(() => {
+    if (provider !== null) {
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises
+      setTimeout(async () => {
+        try {
+          const chainId = await provider.getChainId()
+          setChainId(chainId)
+        } catch (error) {
+          console.log(error)
+        }
+      }, 1)
+    }
+  }, [provider])
 
   useEffect(() => {
     setConstructorCalldata({})
@@ -40,15 +74,14 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 
   const deploy = async (calldata: BigNumberish[]): Promise<void> => {
     setIsDeploying(true)
+    remixClient.emit('statusChanged', {
+      key: 'loading',
+      type: 'info',
+      title: `Deploying ${selectedContract?.name ?? ''} ...`
+    })
+    let classHash = selectedContract?.sierraClassHash
+    let updatedTransactions = transactions
     try {
-      if (account?.constructor.name === 'WrappedAccount') {
-        await remixClient.call('notification' as any, 'alert', {
-          id: 'wallet not supported',
-          title: 'wallet does not support cairo1 deployment',
-          message: 'Wallet accounts do not support cairo1 deployment!'
-        })
-        throw new Error('Wallet accounts do not support cairo1 deployment!')
-      }
       if (account === null || provider === null) {
         throw new Error('No account or provider selected!')
       }
@@ -60,68 +93,97 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       setDeployStatus('Declaring...')
 
       try {
+        if (env === 'wallet') {
+          throw new Error(
+            'Wallet environment does not support contract declaration!'
+          )
+        }
         const declareResponse = await account.declare({
           contract: selectedContract.sierra,
           compiledClassHash: selectedContract.compiledClassHash
         })
-        setTransactions([
-          ...transactions,
+        await remixClient.call('terminal', 'log', {
+          value: JSON.stringify(declareResponse, null, 2),
+          type: 'info'
+        })
+        updatedTransactions = [
+          ...updatedTransactions,
           {
             type: 'declare',
             account,
             provider,
-            txId: declareResponse.transaction_hash
+            txId: declareResponse.transaction_hash,
+            env
           }
-        ])
-        await remixClient.call('terminal', 'log', {
-          value: declareResponse,
-          type: 'info'
-        })
+        ]
+        setTransactions(updatedTransactions)
+        await account.waitForTransaction(declareResponse.transaction_hash)
+        classHash = declareResponse.class_hash
       } catch (error) {
         if (error instanceof Error) {
           await remixClient.call('terminal', 'log', {
             value: error.message,
             type: 'error'
           })
-          if (error.message.includes('is already declared')) await remixClient.call('notification' as any, 'toast', `ℹ️ Contract with classHash: ${selectedContract.classHash} already has been declared, proceeding to deployment...`)
+          if (error.message.includes('is already declared')) {
+            await remixClient.call(
+              'notification' as any,
+              'toast',
+              `ℹ️ Contract with classHash: ${selectedContract.classHash} already has been declared, proceeding to deployment...`
+            )
+          }
         }
       }
 
+      setDeployStatus('Deploying...')
+
+      console.log(selectedContract)
+
       const deployResponse = await account.deployContract(
         {
-          classHash: selectedContract.classHash,
+          classHash: classHash ?? selectedContract.classHash,
           constructorCalldata: calldata
         },
         { cairoVersion: '1' }
       )
+      await remixClient.call('terminal', 'log', {
+        value: JSON.stringify(deployResponse, null, 2),
+        type: 'info'
+      })
+      setActiveTab('interaction')
 
       setTransactions([
-        ...transactions,
+        ...updatedTransactions,
         {
           type: 'deploy',
           account,
           provider,
-          txId: deployResponse.transaction_hash
+          txId: deployResponse.transaction_hash,
+          env
         }
       ])
-
-      await remixClient.call('terminal', 'log', {
-        value: deployResponse,
-        type: 'info'
+      await account.waitForTransaction(deployResponse.transaction_hash)
+      setDeployStatus('done')
+      setContractDeployment(selectedContract, deployResponse.contract_address)
+      remixClient.emit('statusChanged', {
+        key: 'succeed',
+        type: 'success',
+        title: `Contract ${selectedContract?.name} deployed!`
       })
-
-      setContractDeployment(
-        selectedContract,
-        deployResponse.contract_address
-      )
       // setContractAsDeployed(selectedContract as Contract);
     } catch (error) {
+      setDeployStatus('error')
       if (error instanceof Error) {
         await remixClient.call('terminal', 'log', {
           value: error.message,
           type: 'error'
         })
       }
+      remixClient.emit('statusChanged', {
+        key: 'failed',
+        type: 'error',
+        title: 'Deployment failed, error logged in the terminal!'
+      })
     }
     setIsDeploying(false)
   }
@@ -175,7 +237,12 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       const formattedCalldata: CallDataObj[] = []
 
       Object.values(constructorCalldata).forEach((input) => {
-        formattedCalldata.push(input.value.trim().split(',').map((val) => val.trim()) as CallDataObj)
+        formattedCalldata.push(
+          input.value
+            .trim()
+            .split(',')
+            .map((val) => val.trim()) as CallDataObj
+        )
       })
 
       return formattedCalldata.flat() as BigNumberish[]
@@ -187,10 +254,14 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     currentContract: Contract,
     address: string
   ): void => {
+    if (account == null) return
     const deployedContract = {
       ...currentContract,
       address,
-      deployed: true
+      deployedInfo: [
+        ...currentContract.deployedInfo,
+        { address: account.address, chainId }
+      ]
     }
     const updatedContracts = contracts.map((contract) => {
       if (contract.classHash === deployedContract.classHash) {
@@ -208,7 +279,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         {contracts.length > 0 && selectedContract != null
           ? (
           <div className="">
-            <CompiledContracts />
+            <CompiledContracts show={'class'} />
             <form onSubmit={handleDeploySubmit}>
               {constructorInputs.map((input, index) => {
                 return (
@@ -217,7 +288,9 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
                     key={index}
                   >
                     <label key={index} className="constructor-label">
-                      {`${input.name} (${getParameterType(input.type) ?? ''}): `}
+                      {`${input.name} (${
+                        getParameterType(input.type) ?? ''
+                      }): `}
                     </label>
                     <input
                       className="form-control constructor-input"
@@ -233,10 +306,36 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
               <button
                 className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3 px-0"
                 style={{
-                  cursor: `${(account == null || selectedContract.deployed) ? 'not-allowed' : 'pointer'}`
+                  cursor: `${
+                    isDeploying ||
+                    account == null ||
+                    selectedContract.deployedInfo.some(
+                      (info) =>
+                        info.address === account.address &&
+                        info.chainId === chainId
+                    )
+                      ? 'not-allowed'
+                      : 'pointer'
+                  }`
                 }}
-                disabled={account == null || selectedContract.deployed}
-                aria-disabled={account == null || selectedContract.deployed}
+                disabled={
+                  isDeploying ||
+                  account == null ||
+                  selectedContract.deployedInfo.some(
+                    (info) =>
+                      info.address === account.address &&
+                      info.chainId === chainId
+                  )
+                }
+                aria-disabled={
+                  isDeploying ||
+                  account == null ||
+                  selectedContract.deployedInfo.some(
+                    (info) =>
+                      info.address === account.address &&
+                      info.chainId === chainId
+                  )
+                }
                 type="submit"
               >
                 <div className="d-flex align-items-center justify-content-center">
@@ -258,30 +357,49 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
                         )
                       : (
                       <div className="text-truncate overflow-hidden text-nowrap">
-                        {selectedContract.deployed ? <span> Deployed  <i className="bi bi-check"></i> {selectedContract.name}</span> : <span> Deploy {selectedContract.name}</span> }
+                        {account != null &&
+                        selectedContract.deployedInfo.some(
+                          (info) =>
+                            info.address === account.address &&
+                            info.chainId === chainId
+                        )
+                          ? (
+                          <span>
+                            {' '}
+                            Deployed <i className="bi bi-check"></i>{' '}
+                            {selectedContract.name}
+                          </span>
+                            )
+                          : (
+                          <span> Deploy {selectedContract.name}</span>
+                            )}
                       </div>
                         )}
                   </div>
                 </div>
               </button>
             </form>
-            {selectedContract.deployed && (
-              <div className="mt-3">
-                <label style={{ display: 'block' }}>Contract deployed!</label>
-                <label style={{ display: 'block' }}>
-                  See{' '}
-                  <a
-                    href="/"
-                    onClick={(e) => {
-                      e.preventDefault()
-                      setActiveTab('interaction')
-                    }}
-                  >
-                    Interact
-                  </a>{' '}
-                  for more!
-                </label>
-              </div>
+            {account != null &&
+              selectedContract.deployedInfo.some(
+                (info) =>
+                  info.address === account.address && info.chainId === chainId
+              ) && (
+                <div className="mt-3">
+                  <label style={{ display: 'block' }}>
+                    Contract deployed! See{' '}
+                    <a
+                      href="/"
+                      className="text-info"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        setActiveTab('interaction')
+                      }}
+                    >
+                      Interact
+                    </a>{' '}
+                    for more!
+                  </label>
+                </div>
             )}
             {notEnoughInputs && (
               <label>Please fill out all constructor fields!</label>

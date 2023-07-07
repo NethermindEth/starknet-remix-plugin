@@ -44,4 +44,32 @@
 .flex_dot {
   display: flex;
   justify-content:space-between;
+  align-items: center;
+}
+
+.env-testnet-btn {
+  border: 1px solid orange;
+  color: var(--white);
+}
+
+@media screen and (max-width: 310px) {
+  .env-testnet-btn {
+    font-size: 8px;
+  }
+}
+
+.env-testnet-btn:hover {
+  border: 1px solid orange;
+}
+
+.trigger-env {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-right: 1rem;
+}
+.trigger-env > p {
+  margin: 0;
+  text-shadow: 2px 2px 3px var(--accentColor);
 }

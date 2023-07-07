@@ -1,0 +1,61 @@
+.explorer-link {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+  color: var(--secondaryColor);
+}
+
+.img-explorer-logo {
+  width: 1rem;
+  height: 1rem;
+}
+
+.styled-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+}
+.styled-dropdown-item:hover {
+  cursor: pointer;
+  background-color: var(--accentColor);
+}
+
+.styled-dropdown-item * {
+  margin: 0px;
+  text-transform: capitalize;
+}
+
+.styled-dropdown-item img {
+  border-radius: 100%;
+  box-shadow: 2px 2px 5px var(--accentColor);
+}
+
+.network-dropdown-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+
+.network-dropdown-trigger * {
+    margin: 0;
+    padding: 0;
+    text-transform: capitalize;
+}
+
+.selectors-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.inline-root-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}

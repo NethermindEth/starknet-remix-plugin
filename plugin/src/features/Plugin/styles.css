@@ -1,6 +1,12 @@
 .plugin-wrapper {
   height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  max-height: 100vh;
+}
+
+
+.plugin-main-wrapper {
+  overflow-y: scroll;
+  height: 100%;
 }

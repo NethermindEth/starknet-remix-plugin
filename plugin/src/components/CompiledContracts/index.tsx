@@ -9,14 +9,16 @@ import {
 } from '../../utils/utils'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface CompiledContractsProps {}
+interface CompiledContractsProps {
+  show: 'class' | 'contract'
+}
 
 const CompiledContracts: React.FC<CompiledContractsProps> = (props) => {
   const { contracts, selectedContract, setSelectedContract } = useContext(
     CompiledContractsContext
   )
 
-  function handleCompiledContractSelectionChange (event: any): void {
+  function handleCompiledContractSelectionChange(event: any): void {
     event.preventDefault()
     setSelectedContract(contracts[event.target.value])
   }
@@ -25,14 +27,18 @@ const CompiledContracts: React.FC<CompiledContractsProps> = (props) => {
     <select
       className="custom-select"
       aria-label=".form-select-sm example"
-      onChange={(e) => { handleCompiledContractSelectionChange(e) } }
+      onChange={(e) => {
+        handleCompiledContractSelectionChange(e)
+      }}
       defaultValue={getSelectedContractIndex(contracts, selectedContract)}
     >
       {contracts.map((contract, index) => {
         return (
           <option value={index} key={index}>
             {`${getContractNameFromFullName(contract.name)} (${getShortenedHash(
-              contract.classHash ?? '',
+              props.show === 'contract'
+                ? contract.address
+                : contract.classHash ?? '',
               6,
               4
             )})`}
