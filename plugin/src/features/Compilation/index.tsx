@@ -16,18 +16,33 @@ import Container from '../../ui_components/Container'
 import storage from '../../utils/storage'
 import { ethers } from 'ethers'
 import CompilationContext from '../../contexts/CompilationContext'
+import { AccordianTabs } from '../Plugin'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface CompilationProps {}
+interface CompilationProps {
+  setAccordian: React.Dispatch<React.SetStateAction<AccordianTabs>>
+}
 
-const Compilation: React.FC<CompilationProps> = () => {
+const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
   const remixClient = useContext(RemixClientContext)
 
-  const { contracts, setContracts, setSelectedContract } = useContext(
-    CompiledContractsContext
-  )
+  const { contracts, setContracts, selectedContract, setSelectedContract } =
+    useContext(CompiledContractsContext)
 
-  const { status, setStatus, currentFilename, setCurrentFilename, isCompiling, setIsCompiling, isValidCairo, setIsValidCairo, noFileSelected, setNoFileSelected, hashDir, setHashDir } = useContext(CompilationContext)
+  const {
+    status,
+    setStatus,
+    currentFilename,
+    setCurrentFilename,
+    isCompiling,
+    setIsCompiling,
+    isValidCairo,
+    setIsValidCairo,
+    noFileSelected,
+    setNoFileSelected,
+    hashDir,
+    setHashDir
+  } = useContext(CompilationContext)
 
   useEffect(() => {
     // read hashDir from localStorage
@@ -155,7 +170,7 @@ const Compilation: React.FC<CompilationProps> = () => {
     }
   ]
 
-  async function compile (): Promise<void> {
+  async function compile(): Promise<void> {
     setIsCompiling(true)
     setStatus('Compiling...')
     // clear current file annotations: inline syntax error reporting
@@ -399,10 +414,11 @@ const Compilation: React.FC<CompilationProps> = () => {
       console.error(e)
     }
     setStatus('done')
+    setAccordian('deploy')
     setIsCompiling(false)
   }
 
-  async function storeContract (
+  async function storeContract(
     contractName: string,
     path: string,
     sierraFile: string,
@@ -457,15 +473,12 @@ const Compilation: React.FC<CompilationProps> = () => {
         >
           <div className="d-flex align-items-center justify-content-center">
             <div className="text-truncate overflow-hidden text-nowrap">
-              {!validation
-                ? (
+              {!validation ? (
                 <span>Not a valid cairo file</span>
-                  )
-                : (
+              ) : (
                 <>
                   <div className="d-flex align-items-center justify-content-center">
-                    {isLoading
-                      ? (
+                    {isLoading ? (
                       <>
                         <span
                           className="spinner-border spinner-border-sm"
@@ -476,18 +489,17 @@ const Compilation: React.FC<CompilationProps> = () => {
                         </span>
                         <span style={{ paddingLeft: '0.5rem' }}>{status}</span>
                       </>
-                        )
-                      : (
+                    ) : (
                       <div className="text-truncate overflow-hidden text-nowrap">
                         <span>Compile</span>
                         <span className="ml-1 text-nowrap">
                           {currentFilename}
                         </span>
                       </div>
-                        )}
+                    )}
                   </div>
                 </>
-                  )}
+              )}
             </div>
           </div>
         </button>

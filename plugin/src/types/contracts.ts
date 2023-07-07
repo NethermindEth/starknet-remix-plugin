@@ -46,12 +46,12 @@ type Abi = AbiElement[]
 type Contracts = Record<string, Contract>
 
 type CallDataObject = Record<
-string,
-{
-  name: string
-  value: string
-  type: string | undefined
-}
+  string,
+  {
+    name: string
+    value: string
+    type: string | undefined
+  }
 >
 
 // TODO: felt252
@@ -60,7 +60,7 @@ enum ParameterType {
   VarFelt = 'felt*',
   String = 'string',
   Complex = 'complex',
-  Uint256 = 'Uint256',
+  Uint256 = 'Uint256'
 }
 
 interface ParameterMetadata {

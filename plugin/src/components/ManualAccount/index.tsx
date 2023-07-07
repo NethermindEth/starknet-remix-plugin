@@ -7,7 +7,7 @@ import {
   networkNameEquivalents
 } from '../../utils/constants'
 import { ConnectionContext } from '../../contexts/ConnectionContext'
-import { ethers } from 'ethers'
+import { BigNumber, ethers } from 'ethers'
 
 import ManualAccountContext from '../../contexts/ManualAccountContext'
 import storage from '../../utils/storage'
@@ -15,11 +15,20 @@ import { RemixClientContext } from '../../contexts/RemixClientContext'
 import TransactionContext from '../../contexts/TransactionContext'
 import EnvironmentContext from '../../contexts/EnvironmentContext'
 
+import './index.css'
+import { BiCopy, BiPlus } from 'react-icons/bi'
+import { trimStr } from '../../utils/utils'
+import { MdRefresh } from 'react-icons/md'
+import copy from 'copy-to-clipboard'
+import ExplorerSelector from '../ExplorerSelector'
+
 // TODOS: move state parts to contexts
 // Account address selection
 // network selection drop down
 
-const ManualAccount: React.FC = () => {
+const ManualAccount: React.FC<{
+  prevEnv: string
+}> = ({ prevEnv }) => {
   const OZaccountClassHash =
     '0x2794ce20e5f2ff0d40e632cb53845b9f4e526ebd8471983f7dbd355b721d5a'
 
@@ -35,7 +44,7 @@ const ManualAccount: React.FC = () => {
 
   const { transactions, setTransactions } = useContext(TransactionContext)
 
-  const { env } = useContext(EnvironmentContext)
+  const { env, setEnv } = useContext(EnvironmentContext)
 
   const {
     accounts,
@@ -83,7 +92,11 @@ const ManualAccount: React.FC = () => {
       if (accountExist != null) {
         if (provider != null) {
           setAccount(
-            new Account(provider, selectedAccount.address, selectedAccount.private_key)
+            new Account(
+              provider,
+              selectedAccount.address,
+              selectedAccount.private_key
+            )
           )
         }
       }
@@ -118,6 +131,7 @@ const ManualAccount: React.FC = () => {
       })
       setSelectedAccount(newAccount)
       setAccounts(newAccounts)
+      setBalanceRefreshing(false)
       storage.set('manualAccounts', JSON.stringify(accounts))
     }
   }
@@ -160,7 +174,7 @@ const ManualAccount: React.FC = () => {
     storage.set('manualAccounts', JSON.stringify(newAccounts))
   }
 
-  function handleProviderChange (
+  function handleProviderChange(
     event: React.ChangeEvent<HTMLSelectElement>
   ): void {
     const networkName = networkNameEquivalents.get(event.target.value)
@@ -180,7 +194,7 @@ const ManualAccount: React.FC = () => {
     setProvider(null)
   }
 
-  function handleAccountChange (
+  function handleAccountChange(
     event: React.ChangeEvent<HTMLSelectElement>
   ): void {
     const accountIndex = parseInt(event.target.value)
@@ -198,7 +212,7 @@ const ManualAccount: React.FC = () => {
     }
   }
 
-  async function deployAccountHandler (): Promise<void> {
+  async function deployAccountHandler(): Promise<void> {
     if (account == null || provider == null || selectedAccount == null) {
       return
     }
@@ -274,71 +288,125 @@ const ManualAccount: React.FC = () => {
     setAccountDeploying(false)
   }
 
-  return (
-    <>
-      <select
-        className="custom-select"
-        aria-label=".form-select-sm example"
-        onChange={handleAccountChange}
-        defaultValue={
-          selectedAccount == null
-            ? -1
-            : accounts.findIndex(
-              (acc) => acc.address === selectedAccount?.address
-            )
-        }
-      >
-        {accounts.length > 0
-          ? (
-              accounts.map((account, index) => {
-                return (
-              <option value={index} key={index}>
-                {account.address}
-              </option>
-                )
-              })
-            )
-          : (
-          <option value={-1} key={-1}>
-            No account created yet
-          </option>
-            )}
-      </select>
+  const [balanceRefreshing, setBalanceRefreshing] = useState(false)
 
+  return (
+    <div className="manual-root-wrapper">
+      <button
+        type="button"
+        className="mb-0 btn btn-sm btn-outline-secondary float-right rounded-pill env-testnet-btn"
+        onClick={() => {
+          setEnv(prevEnv)
+        }}
+      >
+        Back to Previous
+      </button>
+      <div className="network-selection-wrapper">
+        <select
+          className="custom-select"
+          aria-label=".form-select-sm example"
+          onChange={handleAccountChange}
+          // value={selectedAccount?.address}
+          defaultValue={
+            selectedAccount == null
+              ? -1
+              : accounts.findIndex(
+                  (acc) => acc.address === selectedAccount?.address
+                )
+          }
+        >
+          {accounts.length > 0 ? (
+            accounts.map((account, index) => {
+              return (
+                <option value={index} key={index}>
+                  {trimStr(account.address, 6)}
+                </option>
+              )
+            })
+          ) : (
+            <option value={-1} key={-1}>
+              No account created yet
+            </option>
+          )}
+        </select>
+        <button
+          className="btn btn-primary"
+          onClick={(e) => {
+            e.preventDefault()
+            void createTestnetAccount()
+          }}
+        >
+          <BiPlus />
+        </button>
+      </div>
       {selectedAccount != null && (
         <div>
-          {account != null && <p> Using address: {selectedAccount.address}</p>}
+          <div className="mb-2">
+            <div className="selected-address-wrapper">
+              {account != null && (
+                <p className="m-0">
+                  {' '}
+                  Selected Address: {trimStr(selectedAccount.address, 8)}
+                </p>
+              )}
+              <button
+                className="btn"
+                onClick={() => copy(selectedAccount.address)}
+              >
+                <BiCopy />
+              </button>
+            </div>
+            <ExplorerSelector
+              path={`/contract/${selectedAccount.address}`}
+              title={selectedAccount.address}
+              isInline
+            />
+          </div>
           {account != null && provider != null && (
-            <p>
-              Balance:{' '}
-              {ethers.utils.formatEther(selectedAccount.balance).toString()} eth
-            </p>
+            <div className="manual-balance-wrapper">
+              <p>
+                Balance:{' '}
+                {parseFloat(
+                  ethers.utils.formatEther(selectedAccount.balance)
+                )?.toFixed(6)}{' '}
+                ETH
+              </p>
+              <button
+                className="btn btn-refresh"
+                data-refreshing={balanceRefreshing}
+                onClick={(e) => {
+                  e.preventDefault()
+                  setBalanceRefreshing(true)
+                  updateBalance()
+                }}
+              >
+                <MdRefresh />
+              </button>
+            </div>
           )}
-          <button
-            className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3"
-            onClick={(e) => {
-              e.preventDefault()
-              void updateBalance()
-            }}
-          >
-            <p> Update Balance </p>
-          </button>
+          {networkName === 'goerli-alpha' && (
+            <button
+              className="btn btn-secondary w-100"
+              onClick={() => {
+                copy(selectedAccount?.address || '')
+                window?.open(
+                  'https://faucet.goerli.starknet.io/',
+                  '_blank',
+                  'noopener noreferrer'
+                )
+              }}
+            >
+              Request funds on Starknet Facuet
+            </button>
+          )}
         </div>
       )}
 
-      <button
-        className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3"
-        onClick={(e) => {
-          e.preventDefault()
-          void createTestnetAccount()
-        }}
-      >
-        <p> Generate New Address </p>
-      </button>
       <select
         className="custom-select"
         aria-label=".form-select-sm example"
         onChange={handleProviderChange}
+        value={networkName}
         defaultValue={networkName}
       >
         {networkConstants.map((network) => {
@@ -350,7 +418,7 @@ const ManualAccount: React.FC = () => {
         })}
       </select>
       <button
-        className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3"
+        className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled"
         style={{
           cursor: `${
             (selectedAccount?.deployed_networks.includes(networkName) ??
@@ -373,24 +441,23 @@ const ManualAccount: React.FC = () => {
           void deployAccountHandler()
         }}
       >
-        {accountDeploying
-          ? (
+        {accountDeploying ? (
           <>
             <span
               className="spinner-border spinner-border-sm"
               role="status"
               aria-hidden="true"
-            >
-              {' '}
-            </span>
+            />
             <span style={{ paddingLeft: '0.5rem' }}>Deploying Account...</span>
           </>
-            )
-          : (
-              (selectedAccount?.deployed_networks.includes(networkName) ?? false) ? <p> Account Deployed </p> : <p> DeployAccount </p>
-            )}
+        ) : selectedAccount?.deployed_networks.includes(networkName) ??
+          false ? (
+          'Account Deployed'
+        ) : (
+          'Deploy Account'
+        )}
       </button>
-    </>
+    </div>
   )
 }
 

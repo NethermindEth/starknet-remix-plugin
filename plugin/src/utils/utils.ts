@@ -2,7 +2,7 @@ import { type DevnetAccount } from '../types/accounts'
 import { type AbiElement, type Abi, type Contract } from '../types/contracts'
 import { type Network, networkExplorerUrls } from './constants'
 
-function isValidCairo (filename: string): boolean {
+function isValidCairo(filename: string): boolean {
   return filename.endsWith('.cairo')
 }
 
@@ -110,6 +110,14 @@ const weiToEth = (wei: number): number => {
 const getExplorerUrl = (network: Network): string | undefined =>
   networkExplorerUrls[network]
 
+const trimStr = (str?: string, strip?: number) => {
+  if (!str) {
+    return ''
+  }
+  const length = str.length
+  return `${str?.slice(0, strip || 6)}...${str?.slice(length - (strip || 6))}`
+}
+
 export {
   isValidCairo,
   getFileExtension,
@@ -128,5 +136,6 @@ export {
   getSelectedAccountIndex,
   getRoundedNumber,
   weiToEth,
-  getExplorerUrl
+  getExplorerUrl,
+  trimStr
 }

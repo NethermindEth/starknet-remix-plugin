@@ -1,0 +1,114 @@
+/* Card Css */
+
+.maincard {
+  background: var(--accentColor30);
+  display: grid;
+  padding: 1rem;
+  gap: 0.5rem;
+  border-radius: 0.5rem;
+  grid-template-areas:
+    'a a b b'
+    'c c c c'
+    'd d d d';
+}
+
+.tag-wrapper {
+  grid-area: a;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.account-wrapper {
+  grid-area: b;
+  width: 100%;
+  max-width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  overflow: hidden;
+  gap: 0.5rem;
+}
+
+.account-wrapper p {
+  text-overflow: ellipsis;
+  margin: 0;
+  display: block;
+  font-weight: 600;
+}
+.account-wrapper a {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.account-wrapper a:hover {
+  cursor: pointer;
+}
+
+.txn-wrapper {
+  grid-area: c;
+  display: flex;
+  flex-direction: column;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.txn-wrapper p {
+  margin: 0;
+}
+
+.txn-wrapper a {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 600;
+}
+
+.txn-network {
+  grid-area: d;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.txn-network > p {
+  margin: 0;
+}
+
+/* Tag Css */
+
+.tag {
+  border: 1px solid;
+  border-color: white;
+  border-radius: 0.5rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+
+.tag-declare {
+  border-color: green;
+  color: green;
+}
+
+.tag-invoke {
+  border-color: blueviolet;
+  color: blueviolet;
+}
+
+.tag-deploy {
+  border-color: palegreen;
+  color: palegreen;
+}
+
+.tag-deployAccount {
+  border-color: yellow;
+  color: yellow;
+}
+
+
+.tag-localDevnet {
+  border-color: orange;
+  color: orange;
+}
+
+.tag-remoteDevnet {
+  border-color: palegoldenrod;
+  color: palegoldenrod;
+}
