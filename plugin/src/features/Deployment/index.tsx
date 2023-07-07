@@ -93,10 +93,11 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       setDeployStatus('Declaring...')
 
       try {
-        if (env === 'wallet')
+        if (env === 'wallet') {
           throw new Error(
             'Wallet environment does not support contract declaration!'
           )
+        }
         const declareResponse = await account.declare({
           contract: selectedContract.sierra,
           compiledClassHash: selectedContract.compiledClassHash
@@ -124,12 +125,13 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
             value: error.message,
             type: 'error'
           })
-          if (error.message.includes('is already declared'))
+          if (error.message.includes('is already declared')) {
             await remixClient.call(
               'notification' as any,
               'toast',
               `ℹ️ Contract with classHash: ${selectedContract.classHash} already has been declared, proceeding to deployment...`
             )
+          }
         }
       }
 
@@ -148,7 +150,6 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         value: JSON.stringify(deployResponse, null, 2),
         type: 'info'
       })
-      setDeployStatus('done')
       setActiveTab('interaction')
 
       setTransactions([
@@ -162,6 +163,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         }
       ])
       await account.waitForTransaction(deployResponse.transaction_hash)
+      setDeployStatus('done')
       setContractDeployment(selectedContract, deployResponse.contract_address)
       remixClient.emit('statusChanged', {
         key: 'succeed',
@@ -274,7 +276,8 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   return (
     <>
       <Container>
-        {contracts.length > 0 && selectedContract != null ? (
+        {contracts.length > 0 && selectedContract != null
+          ? (
           <div className="">
             <CompiledContracts show={'class'} />
             <form onSubmit={handleDeploySubmit}>
@@ -337,7 +340,8 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
               >
                 <div className="d-flex align-items-center justify-content-center">
                   <div className="text-truncate overflow-hidden text-nowrap">
-                    {isDeploying ? (
+                    {isDeploying
+                      ? (
                       <>
                         <span
                           className="spinner-border spinner-border-sm"
@@ -350,24 +354,27 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
                           {deployStatus}
                         </span>
                       </>
-                    ) : (
+                        )
+                      : (
                       <div className="text-truncate overflow-hidden text-nowrap">
                         {account != null &&
                         selectedContract.deployedInfo.some(
                           (info) =>
                             info.address === account.address &&
                             info.chainId === chainId
-                        ) ? (
+                        )
+                          ? (
                           <span>
                             {' '}
                             Deployed <i className="bi bi-check"></i>{' '}
                             {selectedContract.name}
                           </span>
-                        ) : (
+                            )
+                          : (
                           <span> Deploy {selectedContract.name}</span>
-                        )}
+                            )}
                       </div>
-                    )}
+                        )}
                   </div>
                 </div>
               </button>
@@ -393,14 +400,15 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
                     for more!
                   </label>
                 </div>
-              )}
+            )}
             {notEnoughInputs && (
               <label>Please fill out all constructor fields!</label>
             )}
           </div>
-        ) : (
+            )
+          : (
           <p>No contracts ready for deployment yet, compile a cairo contract</p>
-        )}
+            )}
       </Container>
     </>
   )

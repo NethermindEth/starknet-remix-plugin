@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useRef } from 'react'
-import { Transaction } from '../../types/transaction'
+import { type Transaction } from '../../types/transaction'
 import './transactioncard.css'
+import { networkEquivalentsRev } from '../../utils/constants'
 
-type TagType = {
+interface TagType {
   type: 'deploy' | 'declare' | 'invoke' | 'deployAccount'
 }
 
@@ -10,7 +11,7 @@ const Tag: React.FC<TagType> = ({ type }) => {
   return <span className={`p-2 tag tag-${type}`}>{type}</span>
 }
 
-type NetworkTypeTag = {
+interface NetworkTypeTag {
   type: string
 }
 
@@ -35,12 +36,24 @@ const TransactionCard: React.FC<Transaction> = ({
   account,
   txId,
   type,
-  env
+  env,
+  provider
 }) => {
   const cardRef = useRef<HTMLDivElement>(null)
   const width = useMemo(() => {
-    return cardRef.current ? cardRef.current.offsetWidth : 0
+    return (cardRef.current != null) ? cardRef.current.offsetWidth : 0
   }, [cardRef.current])
+  const [chain, setChain] = React.useState<string>('goerli-alpha')
+
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    setTimeout(async () => {
+      if (provider == null) return
+      const chainId = await provider.getChainId()
+      setChain(networkEquivalentsRev.get(chainId) ?? 'unknown')
+    })
+  })
+
   return (
     <div className="maincard" ref={cardRef}>
       <div className="tag-wrapper">
@@ -51,20 +64,20 @@ const TransactionCard: React.FC<Transaction> = ({
         <a
           title={account?.address}
           href="https://voyager.online"
-          target="_blank"
+          target="_blank" rel="noreferrer"
         >
           {account?.address}
         </a>
       </div>
       <div className="txn-wrapper">
         <p>Transaction ID</p>
-        <a href="https://voyager.online" target="_blank" title={txId}>
+        <a href="https://voyager.online" target="_blank" title={txId} rel="noreferrer">
           {txId}
         </a>
       </div>
       <div className="txn-network">
-        <p>Network</p>
-        <NetworkTag type={env} />
+        { (env === 'localDevnet' || env === 'remoteDevnet') ? <p>Network</p> : <p>Chain</p> }
+        <NetworkTag type={(env === 'localDevnet' || env === 'remoteDevnet') ? env : chain} />
       </div>
     </div>
   )
