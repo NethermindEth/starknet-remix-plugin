@@ -1,0 +1,78 @@
+.read-functions-wrapper {
+  width: 100%;
+  border-bottom: 1px solid var(--accentColor30);
+  display: grid;
+  gap: 0.8rem;
+  padding: 0.5rem 0rem;
+}
+
+.read-functions-wrapper > div {
+  width: 100%;
+}
+
+.response-wrapper {
+  padding: 0.5rem 0rem;
+}
+
+.response-wrapper p {
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.response-type-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+}
+.response-type-wrapper p {
+  margin: 0;
+}
+
+.input-func-wrapper {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.1rem;
+  grid-template-areas:
+    'hint hint hint hint'
+    'input input input input';
+}
+
+.input-func-wrapper .hint {
+  grid-area: hint;
+}
+
+.input-func-wrapper input {
+  grid-area: input;
+}
+
+.form-function-wrapper {
+  border-radius: 0.5rem;
+  border: 1px solid var(--accentColor);
+  padding: 0.2rem;
+}
+
+.form-function-wrapper p, span {
+  word-break: break-all;
+}
+
+.function-error {
+  border: 1px solid red;
+  outline: 1px solid red;
+}
+
+.function-label-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.function-label-wrapper > div {
+  width: 100%;
+}
+
+.form-action-wrapper {
+  display: grid;
+  grid-template-columns: 9fr 1fr;
+  align-items: center;
+  justify-content: center;
+}

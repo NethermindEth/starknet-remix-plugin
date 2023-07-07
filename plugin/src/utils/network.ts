@@ -1,6 +1,6 @@
 import { type DevnetAccount } from '../types/accounts'
 
-const apiUrl = process.env.REACT_APP_API_URL
+const apiUrl = process.env.REACT_APP_API_URL ?? 'cairo-compile-remix-test.nethermind.io'
 const devnetUrl = process.env.REACT_APP_DEVNET_URL ?? 'http://localhost:5050'
 const remoteDevnetUrl = process.env.REACT_APP_REMOTE_DEVNET_URL ?? 'https://starknet-devnet-dev.nethermind.io'
 
@@ -12,18 +12,18 @@ interface Devnet {
 const devnets: Devnet[] = [
   {
     name: 'Local Devnet',
-    url: devnetUrl,
+    url: devnetUrl
   },
   {
     name: 'Remote Devnet',
-    url: remoteDevnetUrl, 
+    url: remoteDevnetUrl
   }
 ]
 
 const getAccounts = async (
   customDevnetUrl: string = devnetUrl
 ): Promise<DevnetAccount[]> => {
-  const response = await fetch(`${devnetUrl}/predeployed_accounts`)
+  const response = await fetch(`${customDevnetUrl}/predeployed_accounts`)
   const accounts: DevnetAccount[] = await response.json()
   return accounts
 }
@@ -33,7 +33,7 @@ const getAccountBalance = async (
   customDevnetUrl: string = devnetUrl
 ): Promise<any> => {
   const response = await fetch(
-    `${devnetUrl}/account_balance?address=${address}`
+    `${customDevnetUrl}/account_balance?address=${address}`
   )
   const account = await response.json()
   return account.balance

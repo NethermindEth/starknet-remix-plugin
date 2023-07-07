@@ -1,17 +1,12 @@
-.version-wrapper {
-  display: grid;
-  padding: 0.5rem 0rem;
-  grid-template-columns: 1fr 200px;
-  justify-items: start;
-}
-
-.version-wrapper > label:last-child {
-  justify-self: end;
-}
-
 .plugin-wrapper {
   height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  max-height: 100vh;
+}
+
+
+.plugin-main-wrapper {
+  overflow-y: scroll;
+  height: 100%;
 }

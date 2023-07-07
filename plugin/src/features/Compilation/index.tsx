@@ -1,4 +1,6 @@
-import React, { useContext, useEffect, useState } from 'react'
+/* eslint-disable @typescript-eslint/restrict-plus-operands */
+/* eslint-disable @typescript-eslint/strict-boolean-expressions */
+import React, { useContext, useEffect } from 'react'
 import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
 import { RemixClientContext } from '../../contexts/RemixClientContext'
 import { apiUrl } from '../../utils/network'
@@ -13,30 +15,39 @@ import { hash } from 'starknet'
 import Container from '../../ui_components/Container'
 import storage from '../../utils/storage'
 import { ethers } from 'ethers'
+import CompilationContext from '../../contexts/CompilationContext'
+import { AccordianTabs } from '../Plugin'
 
-interface CompilationProps {}
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+interface CompilationProps {
+  setAccordian: React.Dispatch<React.SetStateAction<AccordianTabs>>
+}
 
-const Compilation: React.FC<CompilationProps> = () => {
+const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
   const remixClient = useContext(RemixClientContext)
 
-  const [status, setStatus] = useState('Compiling...')
+  const { contracts, setContracts, selectedContract, setSelectedContract } =
+    useContext(CompiledContractsContext)
 
-  const { contracts, setContracts, setSelectedContract } = useContext(
-    CompiledContractsContext
-  )
-
-  const [currentFilename, setCurrentFilename] = useState('')
-  const [isCompiling, setIsCompiling] = useState(false)
-  const [isValidCairo, setIsValidCairo] = useState(false)
-
-  const [noFileSelected, setNoFileSelected] = useState(false)
-
-  const [hashDir, setHashDir] = useState('')
+  const {
+    status,
+    setStatus,
+    currentFilename,
+    setCurrentFilename,
+    isCompiling,
+    setIsCompiling,
+    isValidCairo,
+    setIsValidCairo,
+    noFileSelected,
+    setNoFileSelected,
+    hashDir,
+    setHashDir
+  } = useContext(CompilationContext)
 
   useEffect(() => {
     // read hashDir from localStorage
     const hashDir = storage.get('hashDir')
-    if (hashDir) {
+    if (hashDir != null) {
       setHashDir(hashDir)
     } else {
       // create a random hash of length 32
@@ -55,6 +66,7 @@ const Compilation: React.FC<CompilationProps> = () => {
   }, [remixClient])
 
   useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     setTimeout(async () => {
       try {
         if (noFileSelected) {
@@ -66,11 +78,17 @@ const Compilation: React.FC<CompilationProps> = () => {
           'fileManager',
           'getCurrentFile'
         )
-        if (currentFile) {
+        if (currentFile.length > 0) {
           const filename = getFileNameFromPath(currentFile)
           const currentFileExtension = getFileExtension(filename)
           setIsValidCairo(currentFileExtension === 'cairo')
           setCurrentFilename(filename)
+
+          remixClient.emit('statusChanged', {
+            key: 'succeed',
+            type: 'info',
+            title: 'Current file: ' + currentFilename
+          })
 
           console.log('current File: ', currentFilename)
         }
@@ -86,6 +104,7 @@ const Compilation: React.FC<CompilationProps> = () => {
   }, [remixClient, currentFilename, noFileSelected])
 
   useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     setTimeout(async () => {
       remixClient.on(
         'fileManager',
@@ -95,6 +114,11 @@ const Compilation: React.FC<CompilationProps> = () => {
           const currentFileExtension = getFileExtension(filename)
           setIsValidCairo(currentFileExtension === 'cairo')
           setCurrentFilename(filename)
+          remixClient.emit('statusChanged', {
+            key: 'succeed',
+            type: 'info',
+            title: 'Current file: ' + currentFilename
+          })
           console.log('current File here: ', currentFilename)
           setNoFileSelected(false)
         }
@@ -103,6 +127,7 @@ const Compilation: React.FC<CompilationProps> = () => {
   }, [remixClient, currentFilename])
 
   useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     setTimeout(async () => {
       try {
         if (noFileSelected) {
@@ -145,7 +170,7 @@ const Compilation: React.FC<CompilationProps> = () => {
     }
   ]
 
-  async function compile () {
+  async function compile(): Promise<void> {
     setIsCompiling(true)
     setStatus('Compiling...')
     // clear current file annotations: inline syntax error reporting
@@ -178,7 +203,7 @@ const Compilation: React.FC<CompilationProps> = () => {
       )
 
       if (!response.ok) {
-        remixClient.call(
+        await remixClient.call(
           'notification' as any,
           'toast',
           'Could not reach cairo compilation server'
@@ -199,7 +224,7 @@ const Compilation: React.FC<CompilationProps> = () => {
       )
 
       if (!response.ok) {
-        remixClient.call(
+        await remixClient.call(
           'notification' as any,
           'toast',
           'Could not reach cairo compilation server'
@@ -212,7 +237,7 @@ const Compilation: React.FC<CompilationProps> = () => {
 
       if (sierra.status !== 'Success') {
         setStatus('Reporting Errors...')
-        remixClient.terminal.log(sierra.message)
+        await remixClient.terminal.log(sierra.message)
 
         const errorLets = sierra.message.trim().split('\n')
 
@@ -237,8 +262,7 @@ const Compilation: React.FC<CompilationProps> = () => {
         // remove the first array
         errorLetsArray.shift()
 
-        console.log(errorLetsArray)
-
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
         errorLetsArray.forEach(async (errorLet: any) => {
           const errorType = errorLet[0].split(':')[0].trim()
           const errorTitle = errorLet[0].split(':').slice(1).join(':').trim()
@@ -292,7 +316,7 @@ const Compilation: React.FC<CompilationProps> = () => {
       )
 
       if (!response.ok) {
-        remixClient.call(
+        await remixClient.call(
           'notification' as any,
           'toast',
           'Could not reach cairo compilation server'
@@ -304,7 +328,7 @@ const Compilation: React.FC<CompilationProps> = () => {
       const casm = JSON.parse(await response.text())
 
       if (casm.status !== 'Success') {
-        remixClient.terminal.log(casm.message)
+        await remixClient.terminal.log(casm.message)
 
         const lastLine = casm.message.trim().split('\n').pop().trim()
 
@@ -318,6 +342,13 @@ const Compilation: React.FC<CompilationProps> = () => {
         )
       }
 
+      await storeContract(
+        currentFilename,
+        currentFilePath,
+        sierra.file_content,
+        casm.file_content
+      )
+
       setStatus('Saving artifacts...')
 
       const sierraPath = `${artifactFolder(currentFilePath)}/${artifactFilename(
@@ -329,20 +360,11 @@ const Compilation: React.FC<CompilationProps> = () => {
         currentFilename
       )}`
 
-      storeContract(
-        currentFilename,
-        currentFilePath,
-        sierra.file_content,
-        casm.file_content
-      )
-
       remixClient.emit('statusChanged', {
         key: 'succeed',
         type: 'success',
-        title: 'Cheers : last cairo compilation was succeessful'
+        title: `Cheers : compilation successful, classHash: ${hash.computeContractClassHash(sierra.file_content)}`
       })
-
-      remixClient.terminal.log(sierra.file_content)
 
       try {
         await remixClient.call(
@@ -359,7 +381,7 @@ const Compilation: React.FC<CompilationProps> = () => {
         )
       } catch (e) {
         if (e instanceof Error) {
-          remixClient.call(
+          await remixClient.call(
             'notification' as any,
             'toast',
             e.message +
@@ -374,16 +396,16 @@ const Compilation: React.FC<CompilationProps> = () => {
 
       setStatus('Opening artifacts...')
 
-      remixClient.fileManager.open(sierraPath)
+      // await remixClient.fileManager.open(sierraPath)
 
-      remixClient.call(
+      await remixClient.call(
         'notification' as any,
         'toast',
         `Cairo compilation output written to: ${sierraPath} `
       )
     } catch (e) {
       if (e instanceof Error) {
-        remixClient.call('notification' as any, 'alert', {
+        await remixClient.call('notification' as any, 'alert', {
           id: 'starknetRemixPluginAlert',
           title: 'Expectation Failed',
           message: e.message
@@ -392,27 +414,35 @@ const Compilation: React.FC<CompilationProps> = () => {
       console.error(e)
     }
     setStatus('done')
+    setAccordian('deploy')
     setIsCompiling(false)
   }
 
-  async function storeContract (
+  async function storeContract(
     contractName: string,
     path: string,
     sierraFile: string,
     casmFile: string
-  ) {
+  ): Promise<void> {
     try {
       const sierra = await JSON.parse(sierraFile)
       const casm = await JSON.parse(casmFile)
-      const classHash = hash.computeCompiledClassHash(casm)
+      const compiledClassHash = hash.computeCompiledClassHash(casm)
+      const classHash = hash.computeContractClassHash(sierra)
+      const sierraClassHash = hash.computeSierraContractClassHash(sierra)
+      if (contracts.find((contract) => contract.classHash === classHash && contract.compiledClassHash === compiledClassHash)) {
+        return
+      }
       const contract = {
         name: contractName,
         abi: sierra.abi,
+        compiledClassHash,
         classHash,
+        sierraClassHash,
         sierra,
         casm,
         path,
-        deployed: false,
+        deployedInfo: [],
         address: ''
       }
       setSelectedContract(contract)
@@ -426,8 +456,8 @@ const Compilation: React.FC<CompilationProps> = () => {
     header: string,
     validation: boolean,
     isLoading: boolean,
-    onClick: () => {}
-  ) => {
+    onClick: () => unknown
+  ): React.ReactElement => {
     return (
       <Container>
         <button
@@ -443,15 +473,12 @@ const Compilation: React.FC<CompilationProps> = () => {
         >
           <div className="d-flex align-items-center justify-content-center">
             <div className="text-truncate overflow-hidden text-nowrap">
-              {!validation
-                ? (
+              {!validation ? (
                 <span>Not a valid cairo file</span>
-                  )
-                : (
+              ) : (
                 <>
                   <div className="d-flex align-items-center justify-content-center">
-                    {isLoading
-                      ? (
+                    {isLoading ? (
                       <>
                         <span
                           className="spinner-border spinner-border-sm"
@@ -462,18 +489,17 @@ const Compilation: React.FC<CompilationProps> = () => {
                         </span>
                         <span style={{ paddingLeft: '0.5rem' }}>{status}</span>
                       </>
-                        )
-                      : (
+                    ) : (
                       <div className="text-truncate overflow-hidden text-nowrap">
                         <span>Compile</span>
                         <span className="ml-1 text-nowrap">
                           {currentFilename}
                         </span>
                       </div>
-                        )}
+                    )}
                   </div>
                 </>
-                  )}
+              )}
             </div>
           </div>
         </button>

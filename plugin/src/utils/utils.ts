@@ -2,7 +2,7 @@ import { type DevnetAccount } from '../types/accounts'
 import { type AbiElement, type Abi, type Contract } from '../types/contracts'
 import { type Network, networkExplorerUrls } from './constants'
 
-function isValidCairo (filename: string): boolean {
+function isValidCairo(filename: string): boolean {
   return filename.endsWith('.cairo')
 }
 
@@ -70,7 +70,9 @@ const getWriteFunctions = (abi: Abi): AbiElement[] => {
 }
 
 const getParameterType = (parameter: string): string | undefined => {
-  return parameter.split('::').pop()
+  const type = parameter.split('::').pop()
+  if (type === 'u256') return 'u256 (low, high)'
+  return type
 }
 
 const getSelectedContractIndex = (
@@ -88,12 +90,13 @@ const getSelectedContractIndex = (
 const getSelectedAccountIndex = (
   accounts: DevnetAccount[],
   selectedAccount: DevnetAccount | null
-): number | undefined => {
+): number => {
   if (selectedAccount != null) {
     return accounts.findIndex(
       (account) => account.address === selectedAccount.address
     )
   }
+  return -1
 }
 
 const getRoundedNumber = (number: number, decimals: number): number => {
@@ -106,6 +109,14 @@ const weiToEth = (wei: number): number => {
 
 const getExplorerUrl = (network: Network): string | undefined =>
   networkExplorerUrls[network]
+
+const trimStr = (str?: string, strip?: number) => {
+  if (!str) {
+    return ''
+  }
+  const length = str.length
+  return `${str?.slice(0, strip || 6)}...${str?.slice(length - (strip || 6))}`
+}
 
 export {
   isValidCairo,
@@ -125,5 +136,6 @@ export {
   getSelectedAccountIndex,
   getRoundedNumber,
   weiToEth,
-  getExplorerUrl
+  getExplorerUrl,
+  trimStr
 }

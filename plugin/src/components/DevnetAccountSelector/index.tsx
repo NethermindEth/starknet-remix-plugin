@@ -4,40 +4,37 @@ import {
   getShortenedHash,
   weiToEth
 } from '../../utils/utils'
-import {
-  type Devnet,
-  type DevnetAccount,
-  getAccounts
-} from '../../utils/network'
+import { getAccounts } from '../../utils/network'
 import React, { useContext, useEffect, useState } from 'react'
 import { ConnectionContext } from '../../contexts/ConnectionContext'
 import { Account, Provider } from 'starknet'
 import { RemixClientContext } from '../../contexts/RemixClientContext'
-import { MdRefresh } from 'react-icons/md'
+import { MdCopyAll, MdRefresh } from 'react-icons/md'
 import './devnetAccountSelector.css'
+import EnvironmentContext from '../../contexts/EnvironmentContext'
+import copy from 'copy-to-clipboard'
 
-interface DevnetAccountSelectorProps {
-  devnet: Devnet
-}
-
-const DevnetAccountSelector: React.FC<DevnetAccountSelectorProps> = (props) => {
-  const { setAccount, provider, setProvider } = useContext(ConnectionContext)
+const DevnetAccountSelector: React.FC = () => {
+  const { account, setAccount, provider, setProvider } =
+    useContext(ConnectionContext)
   const remixClient = useContext(RemixClientContext)
-
-  const [availableDevnetAccounts, setAvailableDevnetAccounts] = useState<
-    DevnetAccount[]
-  >([])
-
-  const [selectedDevnetAccount, setSelectedDevnetAccount] =
-    useState<DevnetAccount | null>(null)
-
-  const [isDevnetAlive, setIsDevnetAlive] = useState<boolean>(false)
+  const {
+    env,
+    devnet,
+    isDevnetAlive,
+    setIsDevnetAlive,
+    selectedDevnetAccount,
+    setSelectedDevnetAccount,
+    availableDevnetAccounts,
+    setAvailableDevnetAccounts
+  } = useContext(EnvironmentContext)
 
   // devnet live status
   useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     const interval = setInterval(async () => {
       try {
-        const response = await fetch(`${props.devnet.url}/is_alive`, {
+        const response = await fetch(`${devnet.url}/is_alive`, {
           method: 'GET',
           redirect: 'follow',
           headers: {
@@ -47,58 +44,84 @@ const DevnetAccountSelector: React.FC<DevnetAccountSelectorProps> = (props) => {
         const status = await response.text()
 
         if (status !== 'Alive!!!' || response.status !== 200) {
-          if (isDevnetAlive) setIsDevnetAlive(false)
+          setIsDevnetAlive(() => false)
         } else {
-          if (!isDevnetAlive) setIsDevnetAlive(true)
+          setIsDevnetAlive(() => true)
         }
       } catch (error) {
-        if (isDevnetAlive) setIsDevnetAlive(false)
+        setIsDevnetAlive(() => false)
       }
-    }, 10000)
+    }, 1000)
     return () => {
       clearInterval(interval)
     }
-  })
+  }, [devnet])
+
+  const notifyDevnetStatus = async (): Promise<void> => {
+    try {
+      await remixClient.call(
+        'notification' as any,
+        'toast',
+        `❗️ Server ${devnet.name} - ${devnet.url} is not healthy or not reachable at the moment`
+      )
+    } catch (e) {
+      console.log(e)
+    }
+  }
 
   useEffect(() => {
-    setTimeout(async () => {
-      if (!isDevnetAlive) {
-        try {
-          remixClient.cancel('notification' as any, 'toast')
-          await remixClient.call(
-            'notification' as any,
-            'toast',
-            `❗️ Server ${props.devnet.name} - ${props.devnet.url} is not healthy or not reachable at the moment`
-          )
-        } catch (e) {
-          console.log('Failed to post message')
-          console.log(e)
-        }
+    if (!isDevnetAlive) {
+      notifyDevnetStatus().catch((e) => {
+        console.log(e)
+      })
+    }
+  }, [isDevnetAlive])
+
+  const refreshDevnetAccounts = async (): Promise<void> => {
+    setAccountRefreshing(true)
+    try {
+      const accounts = await getAccounts(devnet.url)
+      if (
+        JSON.stringify(accounts) !== JSON.stringify(availableDevnetAccounts)
+      ) {
+        setAvailableDevnetAccounts(accounts)
       }
-    }, 11000)
-  }, [props.devnet, isDevnetAlive, remixClient])
+    } catch (e) {
+      await remixClient.terminal.log({
+        type: 'error',
+        value: `Failed to get accounts information from ${devnet.url}`
+      })
+    }
+    setAccountRefreshing(false)
+  }
 
   useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     setTimeout(async () => {
       if (!isDevnetAlive) {
         return
       }
-      const accounts = await getAccounts(props.devnet.url)
-      setAvailableDevnetAccounts(accounts)
-    }, 500)
-  }, [props.devnet, isDevnetAlive])
+      await refreshDevnetAccounts()
+    }, 1)
+  }, [devnet, isDevnetAlive])
 
   useEffect(() => {
-    if (availableDevnetAccounts.length > 0) {
+    if (
+      !(
+        selectedDevnetAccount !== null &&
+        availableDevnetAccounts.includes(selectedDevnetAccount)
+      ) &&
+      availableDevnetAccounts.length > 0
+    ) {
       setSelectedDevnetAccount(availableDevnetAccounts[0])
     }
-  }, [availableDevnetAccounts])
+  }, [availableDevnetAccounts, devnet])
 
   useEffect(() => {
     setProvider(
       new Provider({
         sequencer: {
-          baseUrl: props.devnet.url
+          baseUrl: devnet.url
         }
       })
     )
@@ -111,29 +134,30 @@ const DevnetAccountSelector: React.FC<DevnetAccountSelectorProps> = (props) => {
         )
       )
     }
-  }, [props.devnet, selectedDevnetAccount])
+  }, [devnet, selectedDevnetAccount])
 
-  function handleAccountChange(event: any) {
+  function handleAccountChange(event: any): void {
     if (event.target.value === -1) {
       return
     }
-    setSelectedDevnetAccount(availableDevnetAccounts[event.target.value - 1])
+    setAccountIdx(event.target.value)
+    setSelectedDevnetAccount(availableDevnetAccounts[event.target.value])
     const newProvider = new Provider({
       sequencer: {
-        baseUrl: props.devnet.url
+        baseUrl: devnet.url
       }
     })
     if (provider == null) setProvider(newProvider)
     setAccount(
       new Account(
         provider ?? newProvider,
-        availableDevnetAccounts[event.target.value - 1].address,
-        availableDevnetAccounts[event.target.value - 1].private_key
+        availableDevnetAccounts[event.target.value].address,
+        availableDevnetAccounts[event.target.value].private_key
       )
     )
   }
 
-  function getDefaultValue() {
+  function getDefaultValue(): number | undefined {
     const index = getSelectedAccountIndex(
       availableDevnetAccounts,
       selectedDevnetAccount
@@ -149,8 +173,14 @@ const DevnetAccountSelector: React.FC<DevnetAccountSelectorProps> = (props) => {
     return index + 1
   }
 
-  const [accountRefreshing, setAccountRefreshing] = useState(true)
+  const [accountRefreshing, setAccountRefreshing] = useState(false)
+  const [showCopied, setCopied] = useState(false)
 
+  const [accountIdx, setAccountIdx] = useState(0)
+
+  useEffect(() => {
+    setAccountIdx(0)
+  }, [env])
   return (
     <>
       <label className="">Devnet account selection</label>
@@ -159,14 +189,18 @@ const DevnetAccountSelector: React.FC<DevnetAccountSelectorProps> = (props) => {
           className="custom-select"
           aria-label=".form-select-sm example"
           onChange={handleAccountChange}
-          defaultValue={getDefaultValue()}
+          value={accountIdx}
+          defaultValue={getSelectedAccountIndex(
+            availableDevnetAccounts,
+            selectedDevnetAccount
+          )}
         >
           {isDevnetAlive && availableDevnetAccounts.length > 0
             ? availableDevnetAccounts.map((account, index) => {
                 return (
                   <option value={index} key={index}>
                     {`${getShortenedHash(
-                      account.address || '',
+                      account.address ?? '',
                       6,
                       4
                     )} (${getRoundedNumber(
@@ -182,15 +216,28 @@ const DevnetAccountSelector: React.FC<DevnetAccountSelectorProps> = (props) => {
                 </option>
               ] as JSX.Element[])}
         </select>
+        <div className="position-relative">
+          <button
+            className="btn"
+            onClick={() => {
+              copy(account?.address || '')
+              setCopied(true)
+              setTimeout(() => {
+                setCopied(false)
+              }, 1000)
+            }}
+          >
+            <MdCopyAll />
+          </button>
+          {showCopied && (
+            <p className="position-absolute text-copied">Copied</p>
+          )}
+        </div>
         <button
-          className="refresh"
-          onClick={() => {
-            setAccountRefreshing(true)
-            // ONLY DEBUG CODE REMOVE WHILE USING
-            setTimeout(() => {
-              setAccountRefreshing(false)
-            }, 3000)
-          }}
+          className="btn refresh"
+          // eslint-disable-next-line @typescript-eslint/no-misused-promises
+          onClick={refreshDevnetAccounts}
+          title="Refresh devnet accounts"
           data-loading={accountRefreshing ? 'loading' : 'loaded'}
         >
           <MdRefresh />
