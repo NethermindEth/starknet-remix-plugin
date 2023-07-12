@@ -347,16 +347,17 @@ const ManualAccount: React.FC<{
             <div className="selected-address-wrapper">
               {account != null && (
                 <p className="m-0">
+                  Address:{' '}
                   <a
                     href={`${explorerHook.currentLink}/contract/${selectedAccount?.address}`}
                     target="_blank"
                     rel="noreferer noopener"
                   >
-                    Address: {trimStr(selectedAccount.address, 8)}
+                    {trimStr(selectedAccount.address, 8)}
                   </a>
                 </p>
               )}
-              <div className='d-flex'>
+              <div className="d-flex">
                 <button
                   className="btn"
                   onClick={() => copy(selectedAccount.address)}
