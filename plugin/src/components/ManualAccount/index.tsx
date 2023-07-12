@@ -352,7 +352,7 @@ const ManualAccount: React.FC<{
                     target="_blank"
                     rel="noreferer noopener"
                   >
-                    {trimStr(selectedAccount.address, 8)}
+                    Address: {trimStr(selectedAccount.address, 8)}
                   </a>
                 </p>
               )}
@@ -379,7 +379,7 @@ const ManualAccount: React.FC<{
                 Balance:{' '}
                 {parseFloat(
                   ethers.utils.formatEther(selectedAccount.balance)
-                )?.toFixed(6)}{' '}
+                )?.toFixed(8)}{' '}
                 ETH
               </p>
               <button
