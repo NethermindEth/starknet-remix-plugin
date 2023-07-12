@@ -1,3 +1,5 @@
+/* eslint-disable multiline-ternary */
+/* eslint-disable @typescript-eslint/no-misused-promises */
 import React, { useContext, useEffect, useState } from 'react'
 import {
   type ConnectOptions,
@@ -16,6 +18,7 @@ import { MdCopyAll } from 'react-icons/md'
 import { Provider, constants } from 'starknet'
 import {
   networkEquivalents,
+  networkEquivalentsRev,
   networkNameEquivalents,
   networkNameEquivalentsRev
 } from '../../utils/constants'
@@ -84,6 +87,10 @@ const Wallet: React.FC<WalletProps> = (props) => {
     Array.from(networkEquivalents.keys())
   )
 
+  const [currentChain, setCurrentChain] = useState<string>(
+    'goerli-alpha'
+  )
+
   useEffect(() => {
     const currChain =
       props.starknetWindowObject?.chainId ?? constants.NetworkName.SN_GOERLI
@@ -102,6 +109,7 @@ const Wallet: React.FC<WalletProps> = (props) => {
     })
   }, [props.starknetWindowObject])
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleNetworkChange = async (
     event: any,
     chainName: string
@@ -126,6 +134,13 @@ const Wallet: React.FC<WalletProps> = (props) => {
       )
     }
   }
+
+  useEffect(() => {
+    setTimeout(async () => {
+      const currChainId = await props.starknetWindowObject?.provider?.getChainId()
+      if (currChainId !== undefined) setCurrentChain(networkEquivalentsRev.get(currChainId) ?? 'goerli-alpha')
+    }, 100)
+  }, [props.starknetWindowObject])
 
   const explorerHook = useCurrentExplorer()
 
@@ -155,16 +170,11 @@ const Wallet: React.FC<WalletProps> = (props) => {
             <div className="wallet-wrapper">
               <img src={props.starknetWindowObject?.icon} alt="wallet icon" />
               <p className="text"> {props.starknetWindowObject?.id}</p>
-              {/* <Tooltip
-                icon={<CiWarning color="yellow" />}
-                content={`${
-                  props.starknetWindowObject?.name ?? 'It'
-                } doesn't support cairo 1 contracts`}
-              /> */}
+              <p className="text text-right text-secondary"> {currentChain}</p>
             </div>
             <div className="account-network-wrapper">
               <ExplorerSelector
-                path={`/contract/${props.starknetWindowObject?.account?.address}`}
+                path={`/contract/${props.starknetWindowObject?.account?.address ?? ''}`}
                 title={props.starknetWindowObject?.account?.address}
                 text="View"
                 isInline
@@ -179,9 +189,9 @@ const Wallet: React.FC<WalletProps> = (props) => {
               title={props.starknetWindowObject?.account?.address}
             >
               <a
-                href={`${explorerHook.currentLink}/contract/${props.starknetWindowObject?.account?.address}`}
+                href={`${explorerHook.currentLink}/contract/${props.starknetWindowObject?.account?.address ?? ''}`}
                 target="_blank"
-                rel="noreferer noopener"
+                rel="noreferer noopener noreferrer"
               >
                 {trimStr(
                   props.starknetWindowObject?.account?.address ?? '',
