@@ -35,28 +35,57 @@ type IExplorerSelector = {
   text?: string
   title?: string
   isInline?: boolean
+  isNetworkVisible?: boolean
+  isTextVisible?: boolean
+  controlHook: IUseCurrentExplorer
+}
+
+type IUseCurrentExplorer = {
+  explorer: 'voyager' | 'starkscan'
+  network: 'goerli' | 'goerli-2' | 'mainnet'
+  currentLink: string
+  setExplorer: React.Dispatch<React.SetStateAction<'voyager' | 'starkscan'>>
+  setCurrentNetwork: React.Dispatch<keyof typeof EXPLORERS.voyager>
+}
+export const useCurrentExplorer = (): IUseCurrentExplorer => {
+  const [currentExplorerKey, setCurrentExplorerKey] =
+    useState<keyof typeof EXPLORERS>('voyager')
+  const [currentNetwork, setCurrentNetwork] =
+    useState<keyof typeof EXPLORERS.voyager>('goerli')
+
+  return {
+    explorer: currentExplorerKey,
+    network: currentNetwork,
+    currentLink: EXPLORERS[currentExplorerKey][currentNetwork],
+    setExplorer: setCurrentExplorerKey,
+    setCurrentNetwork: setCurrentNetwork
+  }
 }
 
 const ExplorerSelector: React.FC<IExplorerSelector> = ({
   path,
   text,
   title,
-  isInline
+  isInline,
+  isNetworkVisible = false,
+  isTextVisible = true,
+  controlHook
 }) => {
-  const [currentExplorerKey, setCurrentExplorerKey] =
-    useState<keyof typeof EXPLORERS>('voyager')
-  const [currentNetwork, setCurrentNetwork] =
-    useState<keyof typeof EXPLORERS.voyager>('goerli')
-
+  const { explorer, network, setCurrentNetwork, setExplorer } = controlHook
   return (
-    <div className={`${isInline && 'inline-root-wrapper'}`}>
+    <div
+      className={`${isInline && 'inline-root-wrapper'}`}
+      onClick={(e) => {
+        e.stopPropagation()
+      }}
+    >
       <div className="selectors-wrapper">
         <D.Root>
           <D.Trigger>
             <div className="network-dropdown-trigger">
               <img
                 className="img-explorer-logo"
-                src={explorerToLogo(currentExplorerKey)}
+                src={explorerToLogo(explorer)}
               />
             </div>
           </D.Trigger>
@@ -68,7 +97,7 @@ const ExplorerSelector: React.FC<IExplorerSelector> = ({
                     className="styled-dropdown-item"
                     key={i}
                     onClick={() => {
-                      setCurrentExplorerKey(v as keyof typeof EXPLORERS)
+                      setExplorer(v as keyof typeof EXPLORERS)
                     }}
                   >
                     <img
@@ -82,40 +111,44 @@ const ExplorerSelector: React.FC<IExplorerSelector> = ({
             </D.Content>
           </D.Portal>
         </D.Root>
-        <D.Root>
-          <D.Trigger>
-            <div className="network-dropdown-trigger">
-              <p>{currentNetwork}</p>
-              <BsChevronDown />
-            </div>
-          </D.Trigger>
-          <D.Portal>
-            <D.Content>
-              {Object.keys(EXPLORERS.voyager).map((v, i) => {
-                return (
-                  <D.Item
-                    className="styled-dropdown-item"
-                    key={i}
-                    onClick={() => {
-                      setCurrentNetwork(v as any)
-                    }}
-                  >
-                    <p>{v}</p>
-                  </D.Item>
-                )
-              })}
-            </D.Content>
-          </D.Portal>
-        </D.Root>
+        {isNetworkVisible && (
+          <D.Root>
+            <D.Trigger>
+              <div className="network-dropdown-trigger">
+                <p>{network}</p>
+                <BsChevronDown />
+              </div>
+            </D.Trigger>
+            <D.Portal>
+              <D.Content>
+                {Object.keys(EXPLORERS.voyager).map((v, i) => {
+                  return (
+                    <D.Item
+                      className="styled-dropdown-item"
+                      key={i}
+                      onClick={() => {
+                        setCurrentNetwork(v as any)
+                      }}
+                    >
+                      <p>{v}</p>
+                    </D.Item>
+                  )
+                })}
+              </D.Content>
+            </D.Portal>
+          </D.Root>
+        )}
       </div>
-      <a
-        href={`${EXPLORERS[currentExplorerKey][currentNetwork]}${path}`}
-        target="_blank"
-        title={title || text}
-        className="explorer-link"
-      >
-        {text || `View on ${currentExplorerKey}`}
-      </a>
+      {isTextVisible && (
+        <a
+          href={`${EXPLORERS[explorer][network]}${path}`}
+          target="_blank"
+          title={title || text}
+          className="explorer-link"
+        >
+          {text || `View on ${network}`}
+        </a>
+      )}
     </div>
   )
 }

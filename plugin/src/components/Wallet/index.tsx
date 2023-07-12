@@ -22,7 +22,8 @@ import {
 import { ConnectionContext } from '../../contexts/ConnectionContext'
 import { BsChevronDown } from 'react-icons/bs'
 import EnvironmentContext from '../../contexts/EnvironmentContext'
-import ExplorerSelector from '../ExplorerSelector'
+import ExplorerSelector, { useCurrentExplorer } from '../ExplorerSelector'
+import { trimStr } from '../../utils/utils'
 
 const trimAddress = (adr: string): string => {
   if (adr.length > 0 && adr.startsWith('0x')) {
@@ -126,6 +127,8 @@ const Wallet: React.FC<WalletProps> = (props) => {
     }
   }
 
+  const explorerHook = useCurrentExplorer()
+
   return (
     <div
       className="flex"
@@ -165,21 +168,30 @@ const Wallet: React.FC<WalletProps> = (props) => {
                 title={props.starknetWindowObject?.account?.address}
                 text="View"
                 isInline
+                isTextVisible={false}
+                controlHook={explorerHook}
               />
             </div>
           </div>
           <div className="wallet-account-wrapper">
-            <span>
-              <p
-                className="text account"
-                title={props.starknetWindowObject?.account?.address}
+            <p
+              className="text account"
+              title={props.starknetWindowObject?.account?.address}
+            >
+              <a
+                href={`${explorerHook.currentLink}/contract/${props.starknetWindowObject?.account?.address}`}
+                target="_blank"
+                rel="noreferer noopener"
               >
-                {trimAddress(
-                  props.starknetWindowObject?.account?.address ?? ''
+                {trimStr(
+                  props.starknetWindowObject?.account?.address ?? '',
+                  10
                 )}
-              </p>
+              </a>
+            </p>
+            <span style={{ position: 'relative' }}>
               <button
-                className="btn"
+                className="btn p-0"
                 onClick={() => {
                   copy(props.starknetWindowObject?.account?.address ?? '')
                   setCopied(true)
@@ -190,7 +202,11 @@ const Wallet: React.FC<WalletProps> = (props) => {
               >
                 <MdCopyAll />
               </button>
-              {showCopied && <p>Copied</p>}
+              {showCopied && (
+                <p style={{ position: 'absolute', right: 0, minWidth: '70px' }}>
+                  Copied
+                </p>
+              )}
             </span>
           </div>
         </>

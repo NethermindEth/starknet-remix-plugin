@@ -736,7 +736,7 @@ const Interaction: React.FC<InteractionProps> = () => {
                         }}
                       </Formik>
                       <div className="w-100">
-                        <span className="response-type-wrapper">
+                        {/* <span className="response-type-wrapper">
                           <p>
                             {func?.outputs && (
                               <BsArrowReturnRight
@@ -749,7 +749,7 @@ const Interaction: React.FC<InteractionProps> = () => {
                         </span>
                         {func.callResponse?.result && (
                           <p>{JSON.stringify(func.callResponse.result)}</p>
-                        )}
+                        )} */}
                       </div>
                     </div>
                   )
@@ -901,7 +901,7 @@ const Interaction: React.FC<InteractionProps> = () => {
                             </p>
                           </span>
                         )}
-                        {func?.invocationResponse?.actual_fee && (
+                        {/* {func?.invocationResponse?.actual_fee && (
                           <p>
                             Fee:{' '}
                             {ethers.utils
@@ -923,7 +923,7 @@ const Interaction: React.FC<InteractionProps> = () => {
                             )}{' '}
                             Steps
                           </p>
-                        )}
+                        )} */}
                       </div>
                     </div>
                   </>

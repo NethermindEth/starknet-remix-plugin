@@ -36,6 +36,9 @@ import StateAction from '../../components/StateAction'
 import type { ManualAccount } from '../../types/accounts'
 import { networks } from '../../utils/constants'
 import BackgroundNotices from '../../components/BackgroundNotices'
+import ExplorerSelector, {
+  useCurrentExplorer
+} from '../../components/ExplorerSelector'
 
 export type AccordianTabs =
   | 'compile'
@@ -107,6 +110,8 @@ const Plugin: React.FC = () => {
       setCurrentAccordian(clicked)
     }
   }
+
+  const explorerHook = useCurrentExplorer()
 
   return (
     // add a button for selecting the cairo version
@@ -261,14 +266,24 @@ const Plugin: React.FC = () => {
                           handleTabView('transactions')
                         }}
                       >
-                        Transactions
+                        <span
+                          className="d-flex align-items-center"
+                          style={{ gap: '0.5rem' }}
+                        >
+                          <p style={{ all: 'unset' }}> Transactions</p>
+                          <ExplorerSelector
+                            path=""
+                            isTextVisible={false}
+                            controlHook={explorerHook}
+                          />
+                        </span>
                       </AccordionTrigger>
                       <AccordionContent>
                         <TransactionHistory />
                       </AccordionContent>
                     </AccordianItem>
                   </Accordian>
-                  <div className='mt-5'>
+                  <div className="mt-5">
                     <BackgroundNotices />
                   </div>
                 </div>
