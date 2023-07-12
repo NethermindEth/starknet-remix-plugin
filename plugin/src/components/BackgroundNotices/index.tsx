@@ -1,9 +1,9 @@
 import React from 'react'
 
 const Notices = [
-  'This is ALPHA Release for Starknet Remix Plugin.',
-  'Currently only One file compilation is supported.',
-  'Scarb Support will be present in the next version for this project'
+  'The Starknet Remix Plugin is in alpha.',
+  'Compilation only supports single, stand-alone files.',
+  'Support for imports through Scarb is coming soon.'
 ]
 
 const BackgroundNotices = () => {
