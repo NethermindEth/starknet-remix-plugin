@@ -20,7 +20,7 @@ import { BiCopy, BiPlus } from 'react-icons/bi'
 import { trimStr } from '../../utils/utils'
 import { MdRefresh } from 'react-icons/md'
 import copy from 'copy-to-clipboard'
-import ExplorerSelector from '../ExplorerSelector'
+import ExplorerSelector, { useCurrentExplorer } from '../ExplorerSelector'
 
 // TODOS: move state parts to contexts
 // Account address selection
@@ -290,6 +290,8 @@ const ManualAccount: React.FC<{
 
   const [balanceRefreshing, setBalanceRefreshing] = useState(false)
 
+  const explorerHook = useCurrentExplorer()
+
   return (
     <div className="manual-root-wrapper">
       <button
@@ -345,22 +347,31 @@ const ManualAccount: React.FC<{
             <div className="selected-address-wrapper">
               {account != null && (
                 <p className="m-0">
-                  {' '}
-                  Selected Address: {trimStr(selectedAccount.address, 8)}
+                  <a
+                    href={`${explorerHook.currentLink}/contract/${selectedAccount?.address}`}
+                    target="_blank"
+                    rel="noreferer noopener"
+                  >
+                    {trimStr(selectedAccount.address, 8)}
+                  </a>
                 </p>
               )}
-              <button
-                className="btn"
-                onClick={() => copy(selectedAccount.address)}
-              >
-                <BiCopy />
-              </button>
+              <div className='d-flex'>
+                <button
+                  className="btn"
+                  onClick={() => copy(selectedAccount.address)}
+                >
+                  <BiCopy />
+                </button>
+                <ExplorerSelector
+                  path={`/contract/${selectedAccount.address}`}
+                  title={selectedAccount.address}
+                  isInline
+                  isTextVisible={false}
+                  controlHook={explorerHook}
+                />
+              </div>
             </div>
-            <ExplorerSelector
-              path={`/contract/${selectedAccount.address}`}
-              title={selectedAccount.address}
-              isInline
-            />
           </div>
           {account != null && provider != null && (
             <div className="manual-balance-wrapper">

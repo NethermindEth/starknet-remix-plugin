@@ -22,7 +22,7 @@ import {
 import { ConnectionContext } from '../../contexts/ConnectionContext'
 import { BsChevronDown } from 'react-icons/bs'
 import EnvironmentContext from '../../contexts/EnvironmentContext'
-import ExplorerSelector from '../ExplorerSelector'
+import ExplorerSelector, { useCurrentExplorer } from '../ExplorerSelector'
 
 const trimAddress = (adr: string): string => {
   if (adr.length > 0 && adr.startsWith('0x')) {
@@ -126,6 +126,8 @@ const Wallet: React.FC<WalletProps> = (props) => {
     }
   }
 
+  const explorerHook = useCurrentExplorer()
+
   return (
     <div
       className="flex"
@@ -165,6 +167,7 @@ const Wallet: React.FC<WalletProps> = (props) => {
                 title={props.starknetWindowObject?.account?.address}
                 text="View"
                 isInline
+                controlHook={explorerHook}
               />
             </div>
           </div>
@@ -174,9 +177,15 @@ const Wallet: React.FC<WalletProps> = (props) => {
                 className="text account"
                 title={props.starknetWindowObject?.account?.address}
               >
-                {trimAddress(
-                  props.starknetWindowObject?.account?.address ?? ''
-                )}
+                <a
+                  href={`${explorerHook.currentLink}/contract/${props.starknetWindowObject?.account?.address}`}
+                  target="_blank"
+                  rel="noreferer noopener"
+                >
+                  {trimAddress(
+                    props.starknetWindowObject?.account?.address ?? ''
+                  )}
+                </a>
               </p>
               <button
                 className="btn"
