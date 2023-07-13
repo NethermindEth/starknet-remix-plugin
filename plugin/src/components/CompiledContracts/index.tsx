@@ -18,7 +18,7 @@ const CompiledContracts: React.FC<CompiledContractsProps> = (props) => {
     CompiledContractsContext
   )
 
-  function handleCompiledContractSelectionChange(event: any): void {
+  function handleCompiledContractSelectionChange (event: any): void {
     event.preventDefault()
     setSelectedContract(contracts[event.target.value])
   }
@@ -36,9 +36,7 @@ const CompiledContracts: React.FC<CompiledContractsProps> = (props) => {
         return (
           <option value={index} key={index}>
             {`${getContractNameFromFullName(contract.name)} (${getShortenedHash(
-              props.show === 'contract'
-                ? contract.address
-                : contract.classHash ?? '',
+              contract.classHash ?? '',
               6,
               4
             )})`}

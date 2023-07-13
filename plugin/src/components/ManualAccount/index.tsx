@@ -9,6 +9,7 @@ import {
 import { ConnectionContext } from '../../contexts/ConnectionContext'
 import { BigNumber, ethers } from 'ethers'
 
+
 import ManualAccountContext from '../../contexts/ManualAccountContext'
 import storage from '../../utils/storage'
 import { RemixClientContext } from '../../contexts/RemixClientContext'
@@ -18,7 +19,7 @@ import EnvironmentContext from '../../contexts/EnvironmentContext'
 import './index.css'
 import { BiCopy, BiPlus } from 'react-icons/bi'
 import { trimStr } from '../../utils/utils'
-import { MdRefresh } from 'react-icons/md'
+import { MdRefresh, MdCheckCircleOutline } from 'react-icons/md'
 import copy from 'copy-to-clipboard'
 import ExplorerSelector, { useCurrentExplorer } from '../ExplorerSelector'
 
@@ -174,7 +175,7 @@ const ManualAccount: React.FC<{
     storage.set('manualAccounts', JSON.stringify(newAccounts))
   }
 
-  function handleProviderChange(
+  function handleProviderChange (
     event: React.ChangeEvent<HTMLSelectElement>
   ): void {
     const networkName = networkNameEquivalents.get(event.target.value)
@@ -194,7 +195,7 @@ const ManualAccount: React.FC<{
     setProvider(null)
   }
 
-  function handleAccountChange(
+  function handleAccountChange (
     event: React.ChangeEvent<HTMLSelectElement>
   ): void {
     const accountIndex = parseInt(event.target.value)
@@ -212,7 +213,7 @@ const ManualAccount: React.FC<{
     }
   }
 
-  async function deployAccountHandler(): Promise<void> {
+  async function deployAccountHandler (): Promise<void> {
     if (account == null || provider == null || selectedAccount == null) {
       return
     }
@@ -240,6 +241,8 @@ const ManualAccount: React.FC<{
           constructorCalldata: OZaccountConstructorCallData,
           addressSalt: await account.signer.getPubKey()
         })
+
+      console.log('transaction_hash=', transaction_hash)
 
       await provider.waitForTransaction(transaction_hash)
 
@@ -276,7 +279,7 @@ const ManualAccount: React.FC<{
       await remixClient.call(
         'notification' as any,
         'toast',
-        '❌ Error while deploying account'
+        '❌ Error while deploying account, check account balance'
       )
       if (e instanceof Error) {
         await remixClient.terminal.log({
@@ -313,23 +316,25 @@ const ManualAccount: React.FC<{
             selectedAccount == null
               ? -1
               : accounts.findIndex(
-                  (acc) => acc.address === selectedAccount?.address
-                )
+                (acc) => acc.address === selectedAccount?.address
+              )
           }
         >
-          {accounts.length > 0 ? (
-            accounts.map((account, index) => {
-              return (
+          {accounts.length > 0
+            ? (
+                accounts.map((account, index) => {
+                  return (
                 <option value={index} key={index}>
                   {trimStr(account.address, 6)}
                 </option>
+                  )
+                })
               )
-            })
-          ) : (
+            : (
             <option value={-1} key={-1}>
               No account created yet
             </option>
-          )}
+              )}
         </select>
         <button
           className="btn btn-primary"
@@ -351,7 +356,7 @@ const ManualAccount: React.FC<{
                   <a
                     href={`${explorerHook.currentLink}/contract/${selectedAccount?.address}`}
                     target="_blank"
-                    rel="noreferer noopener"
+                    rel="noreferer noopener noreferrer"
                   >
                     {trimStr(selectedAccount.address, 8)}
                   </a>
@@ -389,7 +394,9 @@ const ManualAccount: React.FC<{
                 onClick={(e) => {
                   e.preventDefault()
                   setBalanceRefreshing(true)
-                  updateBalance()
+                  updateBalance().catch((err) => {
+                    console.log(err)
+                  })
                 }}
               >
                 <MdRefresh />
@@ -453,7 +460,8 @@ const ManualAccount: React.FC<{
           void deployAccountHandler()
         }}
       >
-        {accountDeploying ? (
+        {accountDeploying
+          ? (
           <>
             <span
               className="spinner-border spinner-border-sm"
@@ -462,12 +470,18 @@ const ManualAccount: React.FC<{
             />
             <span style={{ paddingLeft: '0.5rem' }}>Deploying Account...</span>
           </>
-        ) : selectedAccount?.deployed_networks.includes(networkName) ??
-          false ? (
-          'Account Deployed'
-        ) : (
-          'Deploy Account'
-        )}
+            )
+          : selectedAccount?.deployed_networks.includes(networkName) ??
+          false
+            ? (
+              <>
+              <MdCheckCircleOutline color="#0fd543" size={18} />
+              <span style={{ paddingLeft: '0.5rem' }}>Account Deployed</span>
+            </>
+              )
+            : (
+                'Deploy Account'
+              )}
       </button>
     </div>
   )

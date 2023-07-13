@@ -117,8 +117,8 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
           }
         ]
         setTransactions(updatedTransactions)
-        await account.waitForTransaction(declareResponse.transaction_hash)
         classHash = declareResponse.class_hash
+        await account.waitForTransaction(declareResponse.transaction_hash)
       } catch (error) {
         if (error instanceof Error) {
           await remixClient.call('terminal', 'log', {
