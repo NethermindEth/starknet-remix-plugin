@@ -247,8 +247,8 @@ const Interaction: React.FC<InteractionProps> = () => {
     entrypoint: string,
     calldata: BigNumberish[] = []
   ): ((
-      account: Account | AccountInterface
-    ) => Promise<InvokeFunctionResponse>) => {
+    account: Account | AccountInterface
+  ) => Promise<InvokeFunctionResponse>) => {
     const invocation = async (
       account: Account | AccountInterface
     ): Promise<InvokeFunctionResponse> => {
@@ -297,8 +297,8 @@ const Interaction: React.FC<InteractionProps> = () => {
     entrypoint: string,
     calldata: BigNumberish[] = []
   ): ((
-      account: Account | AccountInterface
-    ) => Promise<CallContractResponse>) => {
+    account: Account | AccountInterface
+  ) => Promise<CallContractResponse>) => {
     const call = async (
       account: Account | AccountInterface
     ): Promise<CallContractResponse> => {
@@ -608,8 +608,8 @@ const Interaction: React.FC<InteractionProps> = () => {
         </div>
       )}
 
-      {account != null &&
-      selectedContract != null &&
+      { (contracts.length > 0 && selectedContract != null) && ((account != null &&
+      selectedContract != null) &&
       selectedContract.deployedInfo.some(
         (info) => info.address === account.address && info.chainId === chainId
       ) ? (
@@ -673,7 +673,9 @@ const Interaction: React.FC<InteractionProps> = () => {
                             >
                               <div className="form-action-wrapper">
                                 <button
-                                  className={'udapp_instanceButton undefined btn btn-sm btn-warning \'w-100\''}
+                                  className={
+                                    "udapp_instanceButton undefined btn btn-sm btn-warning 'w-100'"
+                                  }
                                   type="submit"
                                   disabled={isSubmitting}
                                 >
@@ -700,7 +702,7 @@ const Interaction: React.FC<InteractionProps> = () => {
                                               <div className="input-feedback text-danger">
                                                 {(errors as any)[input?.name]}
                                               </div>
-                                          )}
+                                            )}
                                         </div>
                                         <input
                                           name={input.name}
@@ -820,7 +822,9 @@ const Interaction: React.FC<InteractionProps> = () => {
                             >
                               <div className="form-action-wrapper">
                                 <button
-                                  className={'udapp_instanceButton undefined btn btn-sm btn-info \'w-100\''}
+                                  className={
+                                    "udapp_instanceButton undefined btn btn-sm btn-info 'w-100'"
+                                  }
                                   data-name={func.name}
                                   data-type={func.state_mutability}
                                   type="submit"
@@ -849,7 +853,7 @@ const Interaction: React.FC<InteractionProps> = () => {
                                               <div className="input-feedback text-danger">
                                                 {(errors as any)[input?.name]}
                                               </div>
-                                          )}
+                                            )}
                                         </div>
                                         <input
                                           name={input.name}
@@ -933,9 +937,9 @@ const Interaction: React.FC<InteractionProps> = () => {
               }
             )}
         </>
-          ) : (
+      ) : (
         <p> Selected contract is not deployed yet... </p>
-          )}
+      ))}
     </Container>
   )
 }
