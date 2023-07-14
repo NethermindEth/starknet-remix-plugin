@@ -14,9 +14,16 @@ const networks = [
 ]
 
 const networkExplorerUrls = {
-  'goerli-alpha': 'https://goerli.voyager.online',
-  'goerli-alpha-2': 'https://goerli-2.voyager.online',
-  'mainnet-alpha': 'https://voyager.online'
+  voyager: {
+    'goerli-alpha': 'https://goerli.voyager.online',
+    'goerli-alpha-2': 'https://goerli-2.voyager.online',
+    'mainnet-alpha': 'https://voyager.online'
+  },
+  starkscan: {
+    'goerli-alpha': 'https://testnet.starkscan.co',
+    'goerli-alpha-2': 'https://testnet-2.starkscan.co',
+    'mainnet-alpha': 'https://starkscan.co'
+  }
 }
 
 const networkEquivalents = new Map([

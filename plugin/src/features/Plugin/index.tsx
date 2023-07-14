@@ -73,7 +73,7 @@ const Plugin: React.FC = () => {
   const [selectedDevnetAccount, setSelectedDevnetAccount] =
     useState<DevnetAccount | null>(null)
   const [availableDevnetAccounts, setAvailableDevnetAccounts] = useState<
-    DevnetAccount[]
+  DevnetAccount[]
   >([])
 
   // Manual Account Context state variables
@@ -103,6 +103,7 @@ const Plugin: React.FC = () => {
   const [currentAccordian, setCurrentAccordian] =
     useState<AccordianTabs>('compile')
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const handleTabView = (clicked: AccordianTabs) => {
     if (currentAccordian === clicked) {
       setCurrentAccordian('')
@@ -194,8 +195,8 @@ const Plugin: React.FC = () => {
                                 isCompiling
                                   ? 'loading'
                                   : status === 'done'
-                                  ? 'success'
-                                  : ''
+                                    ? 'success'
+                                    : ''
                               }
                             />
                           </span>
@@ -235,10 +236,10 @@ const Plugin: React.FC = () => {
                                 isDeploying
                                   ? 'loading'
                                   : deployStatus === 'error'
-                                  ? 'error'
-                                  : deployStatus === 'done'
-                                  ? 'success'
-                                  : ''
+                                    ? 'error'
+                                    : deployStatus === 'done'
+                                      ? 'success'
+                                      : ''
                               }
                             />
                           </span>
@@ -279,7 +280,7 @@ const Plugin: React.FC = () => {
                         </span>
                       </AccordionTrigger>
                       <AccordionContent>
-                        <TransactionHistory />
+                        <TransactionHistory controlHook={explorerHook}/>
                       </AccordionContent>
                     </AccordianItem>
                   </Accordian>

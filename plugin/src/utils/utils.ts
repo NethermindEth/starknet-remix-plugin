@@ -2,7 +2,7 @@ import { type DevnetAccount } from '../types/accounts'
 import { type AbiElement, type Abi, type Contract } from '../types/contracts'
 import { type Network, networkExplorerUrls } from './constants'
 
-function isValidCairo(filename: string): boolean {
+function isValidCairo (filename: string): boolean {
   return filename.endsWith('.cairo')
 }
 
@@ -107,10 +107,9 @@ const weiToEth = (wei: number): number => {
   return wei / 10 ** 18
 }
 
-const getExplorerUrl = (network: Network): string | undefined =>
-  networkExplorerUrls[network]
+const getExplorerUrl = (explorer: keyof typeof networkExplorerUrls, chain: Network): string => networkExplorerUrls[explorer][chain]
 
-const trimStr = (str?: string, strip?: number) => {
+const trimStr = (str?: string, strip?: number): string => {
   if (!str) {
     return ''
   }

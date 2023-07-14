@@ -160,7 +160,7 @@ const Environment: React.FC<EnvironmentProps> = () => {
                   setEnv('manual')
                 }}
               >
-                Create Test Accounts
+                Test Accounts
               </button>
             </div>
           </AccordionTrigger>

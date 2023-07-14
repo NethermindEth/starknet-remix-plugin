@@ -2,13 +2,13 @@
 import React, { useContext, useEffect, useState } from 'react'
 import { Account, CallData, Provider, ec, hash, stark } from 'starknet'
 import {
+  Network,
   networks as networkConstants,
   networkEquivalents,
   networkNameEquivalents
 } from '../../utils/constants'
 import { ConnectionContext } from '../../contexts/ConnectionContext'
-import { BigNumber, ethers } from 'ethers'
-
+import { ethers } from 'ethers'
 
 import ManualAccountContext from '../../contexts/ManualAccountContext'
 import storage from '../../utils/storage'
@@ -18,7 +18,7 @@ import EnvironmentContext from '../../contexts/EnvironmentContext'
 
 import './index.css'
 import { BiCopy, BiPlus } from 'react-icons/bi'
-import { trimStr } from '../../utils/utils'
+import { getExplorerUrl, trimStr } from '../../utils/utils'
 import { MdRefresh, MdCheckCircleOutline } from 'react-icons/md'
 import copy from 'copy-to-clipboard'
 import ExplorerSelector, { useCurrentExplorer } from '../ExplorerSelector'
@@ -354,7 +354,7 @@ const ManualAccount: React.FC<{
                 <p className="m-0">
                   Address:{' '}
                   <a
-                    href={`${explorerHook.currentLink}/contract/${selectedAccount?.address}`}
+                    href={`${getExplorerUrl(explorerHook.explorer, networkName as Network)}/contract/${selectedAccount?.address}`}
                     target="_blank"
                     rel="noreferer noopener noreferrer"
                   >
@@ -407,7 +407,7 @@ const ManualAccount: React.FC<{
             <button
               className="btn btn-secondary w-100"
               onClick={() => {
-                copy(selectedAccount?.address || '')
+                copy(selectedAccount?.address ?? '')
                 window?.open(
                   'https://faucet.goerli.starknet.io/',
                   '_blank',
