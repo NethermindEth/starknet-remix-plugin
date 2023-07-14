@@ -1,25 +1,14 @@
 import React, { useState } from 'react'
 import * as D from '../../ui_components/Dropdown'
+import { networkExplorerUrls as EXPLORERS } from '../../utils/constants'
 
 import './index.css'
-import { BsChevronDown } from 'react-icons/bs'
+import { type IExplorerSelector, type IUseCurrentExplorer } from '../../utils/misc'
 
 const VOYAGER_LOGO = 'https://voyager.online/favicons/favicon-32x32.png'
 const STARKSCAN_LOGO = 'https://starkscan.co/img/company/favicon.ico'
 
-const EXPLORERS = {
-  voyager: {
-    goerli: 'https://goerli.voyager.online',
-    'goerli-2': 'https://goerli-2.voyager.online',
-    mainnet: 'https://voyager.online'
-  },
-  starkscan: {
-    goerli: 'https://testnet.starkscan.co',
-    'goerli-2': 'https://testnet-2.starkscan.co',
-    mainnet: 'https://starkscan.co'
-  }
-}
-
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const explorerToLogo = (explorer: keyof typeof EXPLORERS) => {
   switch (explorer) {
     case 'starkscan':
@@ -30,51 +19,24 @@ const explorerToLogo = (explorer: keyof typeof EXPLORERS) => {
   }
 }
 
-type IExplorerSelector = {
-  path: string
-  text?: string
-  title?: string
-  isInline?: boolean
-  isNetworkVisible?: boolean
-  isTextVisible?: boolean
-  controlHook: IUseCurrentExplorer
-}
-
-type IUseCurrentExplorer = {
-  explorer: 'voyager' | 'starkscan'
-  network: 'goerli' | 'goerli-2' | 'mainnet'
-  currentLink: string
-  setExplorer: React.Dispatch<React.SetStateAction<'voyager' | 'starkscan'>>
-  setCurrentNetwork: React.Dispatch<keyof typeof EXPLORERS.voyager>
-}
 export const useCurrentExplorer = (): IUseCurrentExplorer => {
   const [currentExplorerKey, setCurrentExplorerKey] =
     useState<keyof typeof EXPLORERS>('voyager')
-  const [currentNetwork, setCurrentNetwork] =
-    useState<keyof typeof EXPLORERS.voyager>('goerli')
 
   return {
     explorer: currentExplorerKey,
-    network: currentNetwork,
-    currentLink: EXPLORERS[currentExplorerKey][currentNetwork],
-    setExplorer: setCurrentExplorerKey,
-    setCurrentNetwork: setCurrentNetwork
+    setExplorer: setCurrentExplorerKey
   }
 }
 
 const ExplorerSelector: React.FC<IExplorerSelector> = ({
-  path,
-  text,
-  title,
   isInline,
-  isNetworkVisible = false,
-  isTextVisible = true,
   controlHook
 }) => {
-  const { explorer, network, setCurrentNetwork, setExplorer } = controlHook
+  const { explorer, setExplorer } = controlHook
   return (
     <div
-      className={`${isInline && 'inline-root-wrapper'}`}
+      className={`${(isInline === true) ? 'inline-root-wrapper' : ''}`}
       onClick={(e) => {
         e.stopPropagation()
       }}
@@ -111,44 +73,7 @@ const ExplorerSelector: React.FC<IExplorerSelector> = ({
             </D.Content>
           </D.Portal>
         </D.Root>
-        {isNetworkVisible && (
-          <D.Root>
-            <D.Trigger>
-              <div className="network-dropdown-trigger">
-                <p>{network}</p>
-                <BsChevronDown />
-              </div>
-            </D.Trigger>
-            <D.Portal>
-              <D.Content>
-                {Object.keys(EXPLORERS.voyager).map((v, i) => {
-                  return (
-                    <D.Item
-                      className="styled-dropdown-item"
-                      key={i}
-                      onClick={() => {
-                        setCurrentNetwork(v as any)
-                      }}
-                    >
-                      <p>{v}</p>
-                    </D.Item>
-                  )
-                })}
-              </D.Content>
-            </D.Portal>
-          </D.Root>
-        )}
       </div>
-      {isTextVisible && (
-        <a
-          href={`${EXPLORERS[explorer][network]}${path}`}
-          target="_blank"
-          title={title || text}
-          className="explorer-link"
-        >
-          {text || `View on ${network}`}
-        </a>
-      )}
     </div>
   )
 }

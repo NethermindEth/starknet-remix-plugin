@@ -4,7 +4,7 @@
 import { Provider } from 'starknet'
 import { devnetUrl } from './constants'
 
-const getProvider = ( network: string) => {
+const getProvider = (network: string) => {
   switch (network) {
     case 'mainnet-alpha':
       return new Provider({
@@ -30,4 +30,19 @@ const getProvider = ( network: string) => {
   }
 }
 
-export { getProvider }
+interface IExplorerSelector {
+  path?: string
+  text?: string
+  title?: string
+  isInline?: boolean
+  isNetworkVisible?: boolean
+  isTextVisible?: boolean
+  controlHook: IUseCurrentExplorer
+}
+
+interface IUseCurrentExplorer {
+  explorer: 'voyager' | 'starkscan'
+  setExplorer: React.Dispatch<React.SetStateAction<'voyager' | 'starkscan'>>
+}
+
+export { getProvider, type IExplorerSelector, type IUseCurrentExplorer }

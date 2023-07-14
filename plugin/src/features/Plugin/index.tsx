@@ -291,7 +291,7 @@ const Plugin: React.FC = () => {
                         </span>
                       </AccordionTrigger>
                       <AccordionContent>
-                        <TransactionHistory />
+                        <TransactionHistory controlHook={explorerHook}/>
                       </AccordionContent>
                     </AccordianItem>
                   </Accordian>

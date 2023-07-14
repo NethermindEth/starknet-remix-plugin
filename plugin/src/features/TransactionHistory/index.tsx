@@ -2,8 +2,9 @@ import React, { useContext } from 'react'
 import Container from '../../ui_components/Container'
 import TransactionContext from '../../contexts/TransactionContext'
 import TransactionCard from './TransactionCard'
+import { type IExplorerSelector } from '../../utils/misc'
 
-const TransactionHistory: React.FC = () => {
+const TransactionHistory: React.FC<IExplorerSelector> = (props) => {
   const { transactions } = useContext(TransactionContext)
   return (
     <Container>
@@ -13,8 +14,8 @@ const TransactionHistory: React.FC = () => {
           <div>No transactions yet</div>
             )
           : (
-              transactions.reverse().map((transaction, index) => {
-                return <TransactionCard key={transaction.txId} {...transaction}/>
+              transactions.map((transaction, index) => {
+                return <TransactionCard key={transaction.txId} transaction={transaction} explorer={props.controlHook.explorer} />
               })
             )}
       </div>

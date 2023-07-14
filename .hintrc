@@ -15,6 +15,12 @@
         "aria-valid-attr-value": "off"
       }
     ],
-    "axe/forms": "off"
+    "axe/forms": "off",
+    "axe/text-alternatives": [
+      "default",
+      {
+        "image-alt": "off"
+      }
+    ]
   }
 }
