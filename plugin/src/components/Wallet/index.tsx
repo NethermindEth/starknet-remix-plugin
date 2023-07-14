@@ -8,50 +8,18 @@ import {
 } from 'get-starknet'
 
 import copy from 'copy-to-clipboard'
-import Tooltip from '../../ui_components/Tooltip'
-import { CiWarning } from 'react-icons/ci'
-// import { BsChevronDown } from 'react-icons/bs'
-import * as D from '../../ui_components/Dropdown'
-
 import './wallet.css'
 import { MdCopyAll } from 'react-icons/md'
-import { Provider, constants } from 'starknet'
+import { Provider } from 'starknet'
 import {
+  type Network,
   networkEquivalents,
   networkEquivalentsRev,
-  networkNameEquivalents,
-  networkNameEquivalentsRev
+  networkNameEquivalents
 } from '../../utils/constants'
 import { ConnectionContext } from '../../contexts/ConnectionContext'
-import { BsChevronDown } from 'react-icons/bs'
-import EnvironmentContext from '../../contexts/EnvironmentContext'
 import ExplorerSelector, { useCurrentExplorer } from '../ExplorerSelector'
-import { trimStr } from '../../utils/utils'
-
-const trimAddress = (adr: string): string => {
-  if (adr.length > 0 && adr.startsWith('0x')) {
-    const len = adr.length
-    return `${adr.slice(0, 6)}...${adr.slice(len - 6, len)}`
-  }
-  return adr
-}
-
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const makeVoyagerLink = async (starknetObj?: StarknetWindowObject | null) => {
-  if (starknetObj != null) {
-    const chainId = await starknetObj?.account?.getChainId()
-    if (chainId === '0x534e5f4d41494e') {
-      return `https://goerli.voyager.online/contract/${
-        starknetObj?.account?.address ?? ''
-      }`
-    } else {
-      return `https://voyager.online/contract/${
-        starknetObj?.account?.address ?? ''
-      }`
-    }
-  }
-  return 'https://voyager.online'
-}
+import { getExplorerUrl, trimStr } from '../../utils/utils'
 
 interface WalletProps {
   starknetWindowObject: StarknetWindowObject | null
@@ -63,17 +31,7 @@ interface WalletProps {
 const Wallet: React.FC<WalletProps> = (props) => {
   const [showCopied, setCopied] = useState(false)
 
-  const [voyagerLink, setVoyagerLink] = useState('')
   const { setProvider } = useContext(ConnectionContext)
-
-  const { env, setEnv } = useContext(EnvironmentContext)
-
-  useEffect(() => {
-    void (async () => {
-      const link = await makeVoyagerLink(props.starknetWindowObject)
-      setVoyagerLink(link)
-    })()
-  }, [props])
 
   const refreshWalletConnection = (e: any): void => {
     e.preventDefault()
@@ -82,7 +40,7 @@ const Wallet: React.FC<WalletProps> = (props) => {
     props.connectWalletHandler()
   }
 
-  const [currentNetwork, setCurrentNetwork] = useState('goerli')
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [availableNetworks] = useState<string[]>(
     Array.from(networkEquivalents.keys())
   )
@@ -90,15 +48,6 @@ const Wallet: React.FC<WalletProps> = (props) => {
   const [currentChain, setCurrentChain] = useState<string>(
     'goerli-alpha'
   )
-
-  useEffect(() => {
-    const currChain =
-      props.starknetWindowObject?.chainId ?? constants.NetworkName.SN_GOERLI
-    setCurrentNetwork(
-      networkNameEquivalentsRev.get(currChain as constants.NetworkName) ??
-        'goerli'
-    )
-  }, [props.starknetWindowObject])
 
   useEffect(() => {
     props.starknetWindowObject?.on('accountsChanged', (accounts: string[]) => {
@@ -117,7 +66,6 @@ const Wallet: React.FC<WalletProps> = (props) => {
     event.preventDefault()
     const networkName = networkNameEquivalents.get(chainName)
     const chainId = networkEquivalents.get(chainName)
-    setCurrentNetwork(chainName)
     if (chainName.length > 0 && chainId && networkName) {
       const resp = await props.starknetWindowObject?.request({
         type: 'wallet_switchStarknetChain',
@@ -189,7 +137,7 @@ const Wallet: React.FC<WalletProps> = (props) => {
               title={props.starknetWindowObject?.account?.address}
             >
               <a
-                href={`${explorerHook.currentLink}/contract/${props.starknetWindowObject?.account?.address ?? ''}`}
+                href={`${getExplorerUrl(explorerHook.explorer, currentChain as Network)}/contract/${props.starknetWindowObject?.account?.address ?? ''}`}
                 target="_blank"
                 rel="noreferer noopener noreferrer"
               >
