@@ -2,9 +2,8 @@ import React from 'react'
 
 import './index.css'
 import { MdCheckCircleOutline, MdErrorOutline } from 'react-icons/md'
-import Loader from '../../ui_components/CircularLoader'
 
-type IStateAction = {
+interface IStateAction {
   value?: 'loading' | 'success' | 'error' | ''
 }
 

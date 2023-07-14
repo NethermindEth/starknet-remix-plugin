@@ -13,7 +13,7 @@ const TransactionHistory: React.FC = () => {
           <div>No transactions yet</div>
             )
           : (
-              transactions.map((transaction, index) => {
+              transactions.reverse().map((transaction, index) => {
                 return <TransactionCard key={transaction.txId} {...transaction}/>
               })
             )}

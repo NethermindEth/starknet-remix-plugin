@@ -150,7 +150,6 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         value: JSON.stringify(deployResponse, null, 2),
         type: 'info'
       })
-      setActiveTab('interaction')
 
       setTransactions([
         ...updatedTransactions,
@@ -164,6 +163,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       ])
       await account.waitForTransaction(deployResponse.transaction_hash)
       setDeployStatus('done')
+      setActiveTab('interaction')
       setContractDeployment(selectedContract, deployResponse.contract_address)
       remixClient.emit('statusChanged', {
         key: 'succeed',

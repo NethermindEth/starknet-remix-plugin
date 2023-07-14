@@ -73,7 +73,7 @@ const Plugin: React.FC = () => {
   const [selectedDevnetAccount, setSelectedDevnetAccount] =
     useState<DevnetAccount | null>(null)
   const [availableDevnetAccounts, setAvailableDevnetAccounts] = useState<
-    DevnetAccount[]
+  DevnetAccount[]
   >([])
 
   // Manual Account Context state variables
@@ -100,9 +100,13 @@ const Plugin: React.FC = () => {
     null
   )
 
+  // Interaction state variables
+  const [interactionStatus, setInteractionStatus] = useState<'loading' | 'success' | 'error' | ''>('')
+
   const [currentAccordian, setCurrentAccordian] =
     useState<AccordianTabs>('compile')
 
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   const handleTabView = (clicked: AccordianTabs) => {
     if (currentAccordian === clicked) {
       setCurrentAccordian('')
@@ -194,8 +198,8 @@ const Plugin: React.FC = () => {
                                 isCompiling
                                   ? 'loading'
                                   : status === 'done'
-                                  ? 'success'
-                                  : ''
+                                    ? 'success'
+                                    : status === 'failed' ? 'error' : ''
                               }
                             />
                           </span>
@@ -235,10 +239,10 @@ const Plugin: React.FC = () => {
                                 isDeploying
                                   ? 'loading'
                                   : deployStatus === 'error'
-                                  ? 'error'
-                                  : deployStatus === 'done'
-                                  ? 'success'
-                                  : ''
+                                    ? 'error'
+                                    : deployStatus === 'done'
+                                      ? 'success'
+                                      : ''
                               }
                             />
                           </span>
@@ -253,10 +257,18 @@ const Plugin: React.FC = () => {
                             handleTabView('interaction')
                           }}
                         >
-                          Interact
+                          <span
+                            className="d-flex align-items-center"
+                            style={{ gap: '0.5rem' }}
+                          >
+                            <p style={{ all: 'unset' }}>Interact</p>
+                            <StateAction
+                              value={interactionStatus}
+                            />
+                          </span>
                         </AccordionTrigger>
                         <AccordionContent>
-                          <Interaction />
+                          <Interaction setInteractionStatus={setInteractionStatus} />
                         </AccordionContent>
                       </AccordianItem>
                     </DeploymentContext.Provider>

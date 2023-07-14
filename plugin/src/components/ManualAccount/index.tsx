@@ -407,12 +407,17 @@ const ManualAccount: React.FC<{
             <button
               className="btn btn-secondary w-100"
               onClick={() => {
-                copy(selectedAccount?.address || '')
-                window?.open(
-                  'https://faucet.goerli.starknet.io/',
-                  '_blank',
-                  'noopener noreferrer'
-                )
+                copy(selectedAccount?.address ?? '')
+                remixClient.call('notification' as any, 'toast', 'ℹ️ Address copied to Clipboard').catch((err) => {
+                  console.log(err)
+                })
+                setTimeout(() => {
+                  window?.open(
+                    'https://faucet.goerli.starknet.io/',
+                    '_blank',
+                    'noopener noreferrer'
+                  )
+                }, 2000)
               }}
             >
               Request funds on Starknet Facuet

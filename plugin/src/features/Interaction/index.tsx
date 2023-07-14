@@ -38,9 +38,11 @@ import { BiReset } from 'react-icons/bi'
 import EnvironmentContext from '../../contexts/EnvironmentContext'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-interface InteractionProps {}
+interface InteractionProps {
+  setInteractionStatus: React.Dispatch<React.SetStateAction<'loading' | 'error' | 'success' | ''>>
+}
 
-const Interaction: React.FC<InteractionProps> = () => {
+const Interaction: React.FC<InteractionProps> = (props) => {
   const { contracts, selectedContract } = useContext(CompiledContractsContext)
   const { account, provider } = useContext(ConnectionContext)
 
@@ -520,6 +522,7 @@ const Interaction: React.FC<InteractionProps> = () => {
       type: 'info',
       title: `Calling ${name}...`
     })
+    props.setInteractionStatus('loading')
     try {
       if (selectedContract == null) {
         console.error('No Contract Selected!!')
@@ -548,6 +551,11 @@ const Interaction: React.FC<InteractionProps> = () => {
             callResponse: response
           }
         ])
+        remixClient.emit('statusChanged', {
+          key: 'succeed',
+          type: 'success',
+          title: 'Function call succeeded, results are written to the terminal log'
+        })
       } else {
         const invocation = getInvocation(
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
@@ -581,8 +589,15 @@ const Interaction: React.FC<InteractionProps> = () => {
             invocationResponse: resultOfTx
           }
         ])
+        remixClient.emit('statusChanged', {
+          key: 'succeed',
+          type: 'success',
+          title: 'Transaction sent with Hash: ' + response.transaction_hash
+        })
       }
+      props.setInteractionStatus('success')
     } catch (error) {
+      props.setInteractionStatus('error')
       if (error instanceof Error) {
         await remixClient.call('terminal', 'log', {
           value: error.message,

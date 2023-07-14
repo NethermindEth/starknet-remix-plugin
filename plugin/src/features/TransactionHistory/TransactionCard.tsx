@@ -8,7 +8,7 @@ interface TagType {
 }
 
 const Tag: React.FC<TagType> = ({ type }) => {
-  return <span className={`p-2 tag tag-${type}`}>{type}</span>
+  return <span className={`p-2 tag tag-${type}`}>{type === 'deployAccount' ? 'deploy account' : type}</span>
 }
 
 interface NetworkTypeTag {
