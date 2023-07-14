@@ -1,9 +1,13 @@
+/* eslint-disable react/jsx-key */
+/* eslint-disable @typescript-eslint/strict-boolean-expressions */
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+/* eslint-disable no-case-declarations */
 /* eslint-disable multiline-ternary */
 import React, { useContext, useEffect, useState } from 'react'
-import { BigNumber, ethers, type BigNumberish } from 'ethers'
+import { type BigNumberish } from 'ethers'
 
 import {
-  Account,
+  type Account,
   type RawCalldata,
   type CallContractResponse,
   type GetTransactionReceiptResponse,
@@ -13,7 +17,7 @@ import {
 } from 'starknet'
 import CompiledContracts from '../../components/CompiledContracts'
 import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
-import { type CallDataObj, type AbiElement, Input } from '../../types/contracts'
+import { type CallDataObj, type Input } from '../../types/contracts'
 import {
   getParameterType,
   getReadFunctions,
@@ -26,17 +30,15 @@ import { RemixClientContext } from '../../contexts/RemixClientContext'
 import storage from '../../utils/storage'
 import './index.css'
 import { useAtom } from 'jotai'
-import { EnhancedAbiElement, interactAtom } from '../../atoms'
-import { BsArrowReturnRight, BsHash } from 'react-icons/bs'
+import { type EnhancedAbiElement, interactAtom } from '../../atoms'
 import { Formik } from 'formik'
 import Yup, { transformInputs } from '../../utils/yup'
 
 import { BiReset } from 'react-icons/bi'
 import EnvironmentContext from '../../contexts/EnvironmentContext'
-import { nanoid } from 'nanoid'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
-type InteractionProps = {}
+interface InteractionProps {}
 
 const Interaction: React.FC<InteractionProps> = () => {
   const { contracts, selectedContract } = useContext(CompiledContractsContext)
@@ -51,7 +53,7 @@ const Interaction: React.FC<InteractionProps> = () => {
   // console.log(contractsState[selectedContract?.address!])
 
   const setReadState = (readState: EnhancedAbiElement[]) => {
-    if (selectedContract)
+    if (selectedContract != null) {
       setContractsState({
         ...contractsState,
         [selectedContract?.address]: {
@@ -59,9 +61,10 @@ const Interaction: React.FC<InteractionProps> = () => {
           readState: [...readState]
         }
       })
+    }
   }
   const setWriteState = (writeState: EnhancedAbiElement[]) => {
-    if (selectedContract)
+    if (selectedContract != null) {
       setContractsState({
         ...contractsState,
         [selectedContract?.address]: {
@@ -69,6 +72,7 @@ const Interaction: React.FC<InteractionProps> = () => {
           writeState: [...writeState]
         }
       })
+    }
   }
 
   const writeResponse = (
@@ -76,13 +80,13 @@ const Interaction: React.FC<InteractionProps> = () => {
     funcName: string,
     stateType: 'external' | 'view'
   ) => {
-    if (selectedContract) {
+    if (selectedContract != null) {
       const currentContractObj = contractsState[selectedContract.address]
       switch (stateType) {
         case 'view':
           const readState = currentContractObj.readState
           const oldElemIdx = readState.findIndex(
-            (r_obj) => r_obj.name === funcName
+            (rObj) => rObj.name === funcName
           )
           if (oldElemIdx !== -1) {
             const oldElem = readState[oldElemIdx]
@@ -90,11 +94,11 @@ const Interaction: React.FC<InteractionProps> = () => {
               ...oldElem,
               callResponse: response as CallContractResponse
             }
-            const newReadState = readState.map((r_obj) => {
-              if (r_obj.name === funcName) {
+            const newReadState = readState.map((rObj) => {
+              if (rObj.name === funcName) {
                 return newElem
               }
-              return r_obj
+              return rObj
             })
             setContractsState({
               ...contractsState,
@@ -109,7 +113,7 @@ const Interaction: React.FC<InteractionProps> = () => {
         case 'external':
           const writeState = currentContractObj.writeState
           const oldElemWIdx = writeState.findIndex(
-            (r_obj) => r_obj.name === funcName
+            (rObj) => rObj.name === funcName
           )
           if (oldElemWIdx !== -1) {
             const oldElemW = writeState[oldElemWIdx]
@@ -117,11 +121,11 @@ const Interaction: React.FC<InteractionProps> = () => {
               ...oldElemW,
               invocationResponse: response as InvokeFunctionResponse
             }
-            const newWriteStateFunc = writeState.map((r_obj) => {
-              if (r_obj.name === funcName) {
+            const newWriteStateFunc = writeState.map((rObj) => {
+              if (rObj.name === funcName) {
                 return newElemW
               }
-              return r_obj
+              return rObj
             })
 
             setContractsState({
@@ -195,22 +199,22 @@ const Interaction: React.FC<InteractionProps> = () => {
         const oldReadObjs = oldContractObj.readState
         const oldWriteObj = oldContractObj.writeState
         const mergedReadFuncs = readFunctions.map((f) => {
-          const old_found = oldReadObjs.find((o_f) => o_f.name === f.name)
-          if (old_found) {
+          const oldFound = oldReadObjs.find((oF) => oF.name === f.name)
+          if (oldFound != null) {
             return {
               ...f,
-              ...old_found
+              ...oldFound
             }
           } else {
             return f
           }
         })
         const mergedWriteFunc = writeFunctions.map((f) => {
-          const old_found = oldWriteObj.find((o_f) => o_f.name === f.name)
-          if (old_found) {
+          const oldFound = oldWriteObj.find((oF) => oF.name === f.name)
+          if (oldFound != null) {
             return {
               ...f,
-              ...old_found
+              ...oldFound
             }
           } else {
             return f
@@ -242,8 +246,8 @@ const Interaction: React.FC<InteractionProps> = () => {
     entrypoint: string,
     calldata: BigNumberish[] = []
   ): ((
-    account: Account | AccountInterface
-  ) => Promise<InvokeFunctionResponse>) => {
+      account: Account | AccountInterface
+    ) => Promise<InvokeFunctionResponse>) => {
     const invocation = async (
       account: Account | AccountInterface
     ): Promise<InvokeFunctionResponse> => {
@@ -273,12 +277,13 @@ const Interaction: React.FC<InteractionProps> = () => {
       const currNotifCount = storage.get('notifCount')
       if (currNotifCount !== undefined) {
         const notifCount = parseInt(currNotifCount)
-        if (notifCount === 0)
+        if (notifCount === 0) {
           await remixClient.call(
             'notification' as any,
             'toast',
             'ℹ️ Responses are written to the terminal log'
           )
+        }
         storage.set('notifCount', (notifCount + 1) % 7)
       }
       return response
@@ -291,8 +296,8 @@ const Interaction: React.FC<InteractionProps> = () => {
     entrypoint: string,
     calldata: BigNumberish[] = []
   ): ((
-    account: Account | AccountInterface
-  ) => Promise<CallContractResponse>) => {
+      account: Account | AccountInterface
+    ) => Promise<CallContractResponse>) => {
     const call = async (
       account: Account | AccountInterface
     ): Promise<CallContractResponse> => {
@@ -316,12 +321,13 @@ const Interaction: React.FC<InteractionProps> = () => {
       const currNotifCount = storage.get('notifCount')
       if (currNotifCount !== undefined) {
         const notifCount = parseInt(currNotifCount)
-        if (notifCount === 0)
+        if (notifCount === 0) {
           await remixClient.call(
             'notification' as any,
             'toast',
             'ℹ️ Responses are written to the terminal log'
           )
+        }
         storage.set('notifCount', (notifCount + 1) % 7)
       }
       return response
@@ -333,7 +339,7 @@ const Interaction: React.FC<InteractionProps> = () => {
     input: Input[],
     finalInputForm: any
   ): CallDataObj[] => {
-    let inputs: CallDataObj[] = []
+    const inputs: CallDataObj[] = []
     try {
       input.forEach((c) => {
         if (c.name) {
@@ -359,7 +365,7 @@ const Interaction: React.FC<InteractionProps> = () => {
     type: 'view' | 'external',
     funcName: string
   ) => {
-    if (!selectedContract) {
+    if (selectedContract == null) {
       console.error('No Contract Selected!!')
       return
     }
@@ -407,7 +413,7 @@ const Interaction: React.FC<InteractionProps> = () => {
     inputName: string,
     newValue?: string
   ) => {
-    if (!selectedContract) {
+    if (selectedContract == null) {
       console.error('No Contract Selected!!')
       return
     }
@@ -472,7 +478,7 @@ const Interaction: React.FC<InteractionProps> = () => {
     type: 'view' | 'external',
     funcName: string
   ) => {
-    if (!selectedContract) {
+    if (selectedContract == null) {
       console.error('No Contract Selected!!')
       return
     }
@@ -481,7 +487,7 @@ const Interaction: React.FC<InteractionProps> = () => {
         const readFunctions =
           contractsState[selectedContract?.address].readState
         const calledReadFn = readFunctions.find((rf) => rf.name === funcName)
-        if (calledReadFn) {
+        if (calledReadFn != null) {
           const transformedCallData = makeCallDatafromInput(
             calledReadFn.inputs,
             finalIPs
@@ -493,7 +499,7 @@ const Interaction: React.FC<InteractionProps> = () => {
         const writeFunctions =
           contractsState[selectedContract?.address].writeState
         const calledWriteFn = writeFunctions.find((rf) => rf.name === funcName)
-        if (calledWriteFn) {
+        if (calledWriteFn != null) {
           const transformedCallData = makeCallDatafromInput(
             calledWriteFn.inputs,
             finalIPs
@@ -515,7 +521,7 @@ const Interaction: React.FC<InteractionProps> = () => {
       title: `Calling ${name}...`
     })
     try {
-      if (!selectedContract) {
+      if (selectedContract == null) {
         console.error('No Contract Selected!!')
         return
       }
@@ -524,7 +530,7 @@ const Interaction: React.FC<InteractionProps> = () => {
         const callFunction = getCall(
           selectedContract.address,
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
-          name!,
+          name,
           (callData?.flat() as BigNumberish[]) ?? []
         )
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
@@ -536,18 +542,18 @@ const Interaction: React.FC<InteractionProps> = () => {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
             functionName: name,
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
-            contractName: selectedContract?.name!,
+            contractName: selectedContract?.name,
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
-            contractAddress: selectedContract?.address!,
+            contractAddress: selectedContract?.address,
             callResponse: response
           }
         ])
       } else {
         const invocation = getInvocation(
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
-          selectedContract?.address!,
+          selectedContract?.address,
           // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
-          name!,
+          name,
           (callData?.flat() as BigNumberish[]) ?? []
         )
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
@@ -559,7 +565,7 @@ const Interaction: React.FC<InteractionProps> = () => {
         const resultOfTx = await provider?.waitForTransaction(
           response.transaction_hash
         )
-        if (resultOfTx) {
+        if (resultOfTx != null) {
           console.log('Writing Result of txn')
           writeResponse(resultOfTx, name, type)
         }
@@ -569,9 +575,9 @@ const Interaction: React.FC<InteractionProps> = () => {
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
             functionName: name,
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
-            contractName: selectedContract?.name!,
+            contractName: selectedContract?.name,
             // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
-            contractAddress: selectedContract?.address!,
+            contractAddress: selectedContract?.address,
             invocationResponse: resultOfTx
           }
         ])
@@ -601,8 +607,8 @@ const Interaction: React.FC<InteractionProps> = () => {
         </div>
       )}
 
-      {account != null &&
-      selectedContract != null &&
+      { (contracts.length > 0 && selectedContract != null) && ((account != null &&
+      selectedContract != null) &&
       selectedContract.deployedInfo.some(
         (info) => info.address === account.address && info.chainId === chainId
       ) ? (
@@ -611,7 +617,7 @@ const Interaction: React.FC<InteractionProps> = () => {
           <div className="read-functions-wrapper">
             {selectedContract &&
               contractsState[selectedContract.address]?.readState?.map(
-                (func, index) => {
+                (func, _index) => {
                   const init: any = func.inputs.reduce((p, c) => {
                     return {
                       ...p,
@@ -625,7 +631,7 @@ const Interaction: React.FC<InteractionProps> = () => {
                       ...p,
                       [c.name]: Yup.string()
                         .required(`${c.name} is required.`)
-                        // @ts-ignore
+                        // @ts-expect-error because validate_ip is not a function of Yup
                         .validate_ip(c.type)
                     }
                   }, {})
@@ -634,16 +640,14 @@ const Interaction: React.FC<InteractionProps> = () => {
                     <div className="form-function-wrapper">
                       <Formik
                         initialValues={{ ...init }}
-                        onSubmit={(final_state, { setSubmitting }) => {
-                          // console.log(
-                          //   final_state,
-                          //   'this conforms to init state'
-                          // )
+                        onSubmit={(finalState, { setSubmitting }) => {
                           makeCallDataAndHandleCall(
-                            final_state,
+                            finalState,
                             'view',
                             func?.name
-                          )
+                          ).catch((e) => {
+                            console.error(e)
+                          })
                           setSubmitting(false)
                         }}
                         validationSchema={Yup.object().shape({
@@ -671,7 +675,9 @@ const Interaction: React.FC<InteractionProps> = () => {
                             >
                               <div className="form-action-wrapper">
                                 <button
-                                  className={`udapp_instanceButton undefined btn btn-sm btn-warning 'w-100'`}
+                                  className={
+                                    "udapp_instanceButton undefined btn btn-sm btn-warning 'w-100'"
+                                  }
                                   type="submit"
                                   disabled={isSubmitting}
                                 >
@@ -680,16 +686,18 @@ const Interaction: React.FC<InteractionProps> = () => {
                                 <button
                                   className={'btn btn-sm reset'}
                                   onClick={(e) => {
-                                    clearRawInputs('view', func.name)
+                                    clearRawInputs('view', func.name).catch((e) => {
+                                      console.error(e)
+                                    })
                                     handleReset(e)
                                   }}
                                 >
                                   <BiReset />
                                 </button>
                               </div>
-                              <div className={`function-inputs`}>
+                              <div className={'function-inputs'}>
                                 {func.inputs.length > 0 &&
-                                  func.inputs.map((input, index) => {
+                                  func.inputs.map((input, _index) => {
                                     return (
                                       <div className="input-func-wrapper">
                                         <div className="hint">
@@ -698,7 +706,7 @@ const Interaction: React.FC<InteractionProps> = () => {
                                               <div className="input-feedback text-danger">
                                                 {(errors as any)[input?.name]}
                                               </div>
-                                            )}
+                                          )}
                                         </div>
                                         <input
                                           name={input.name}
@@ -707,7 +715,7 @@ const Interaction: React.FC<InteractionProps> = () => {
                                           // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                                           placeholder={`${
                                             input.name
-                                          } (${getParameterType(input.type)})`}
+                                          } (${getParameterType(input.type) ?? ''})`}
                                           onBlur={handleBlur}
                                           disabled={isSubmitting}
                                           className={
@@ -724,7 +732,9 @@ const Interaction: React.FC<InteractionProps> = () => {
                                               func.name,
                                               input.name,
                                               e.target.value
-                                            )
+                                            ).catch((e) => {
+                                              console.error(e)
+                                            })
                                           }}
                                         />
                                       </div>
@@ -735,22 +745,6 @@ const Interaction: React.FC<InteractionProps> = () => {
                           )
                         }}
                       </Formik>
-                      <div className="w-100">
-                        {/* <span className="response-type-wrapper">
-                          <p>
-                            {func?.outputs && (
-                              <BsArrowReturnRight
-                                style={{ marginRight: '10px' }}
-                              />
-                            )}
-                            {func?.outputs &&
-                              func.outputs?.map((o) => o.type).join(',')}
-                          </p>
-                        </span>
-                        {func.callResponse?.result && (
-                          <p>{JSON.stringify(func.callResponse.result)}</p>
-                        )} */}
-                      </div>
                     </div>
                   )
                 }
@@ -771,7 +765,7 @@ const Interaction: React.FC<InteractionProps> = () => {
                     ...p,
                     [c.name]: Yup.string()
                       .required(`${c.name} is required.`)
-                      // @ts-ignore
+                      // @ts-expect-error because validate_ip is not a function of Yup
                       .validate_ip(c.type)
                   }
                 }, {})
@@ -780,16 +774,18 @@ const Interaction: React.FC<InteractionProps> = () => {
                     <div className="form-function-wrapper" key={index}>
                       <Formik
                         initialValues={{ ...init }}
-                        onSubmit={(final_state, { setSubmitting }) => {
+                        onSubmit={(finalState, { setSubmitting }) => {
                           // console.log(
-                          //   final_state,
+                          //   finalState,
                           //   'this conforms to init state'
                           // )
                           makeCallDataAndHandleCall(
-                            final_state,
+                            finalState,
                             'external',
                             func?.name
-                          )
+                          ).catch((e) => {
+                            console.error(e)
+                          })
                           setSubmitting(false)
                         }}
                         validationSchema={Yup.object().shape({
@@ -818,7 +814,9 @@ const Interaction: React.FC<InteractionProps> = () => {
                             >
                               <div className="form-action-wrapper">
                                 <button
-                                  className={`udapp_instanceButton undefined btn btn-sm btn-info 'w-100'`}
+                                  className={
+                                    "udapp_instanceButton undefined btn btn-sm btn-info 'w-100'"
+                                  }
                                   data-name={func.name}
                                   data-type={func.state_mutability}
                                   type="submit"
@@ -829,14 +827,16 @@ const Interaction: React.FC<InteractionProps> = () => {
                                 <button
                                   className={'btn btn-sm reset'}
                                   onClick={(e) => {
-                                    clearRawInputs('external', func.name)
+                                    clearRawInputs('external', func.name).catch((e) => {
+                                      console.error(e)
+                                    })
                                     handleReset(e)
                                   }}
                                 >
                                   <BiReset />
                                 </button>
                               </div>
-                              <div className={`function-inputs`}>
+                              <div className={'function-inputs'}>
                                 {func.inputs.length > 0 &&
                                   func.inputs.map((input, index) => {
                                     return (
@@ -847,7 +847,7 @@ const Interaction: React.FC<InteractionProps> = () => {
                                               <div className="input-feedback text-danger">
                                                 {(errors as any)[input?.name]}
                                               </div>
-                                            )}
+                                          )}
                                         </div>
                                         <input
                                           name={input.name}
@@ -873,7 +873,9 @@ const Interaction: React.FC<InteractionProps> = () => {
                                               func.name,
                                               input.name,
                                               e.target.value
-                                            )
+                                            ).catch((e) => {
+                                              console.error(e)
+                                            })
                                           }}
                                           key={index}
                                         />
@@ -885,55 +887,15 @@ const Interaction: React.FC<InteractionProps> = () => {
                           )
                         }}
                       </Formik>
-                      <div className="response-wrapper w-100">
-                        {func?.invocationResponse?.transaction_hash && (
-                          <BsArrowReturnRight />
-                        )}
-                        {func?.invocationResponse?.transaction_hash && (
-                          <span className="d-flex">
-                            {' '}
-                            <BsHash size={24} />
-                            <p
-                              title={func?.invocationResponse?.transaction_hash}
-                            >
-                              {' '}
-                              {func?.invocationResponse?.transaction_hash}
-                            </p>
-                          </span>
-                        )}
-                        {/* {func?.invocationResponse?.actual_fee && (
-                          <p>
-                            Fee:{' '}
-                            {ethers.utils
-                              .parseEther(
-                                BigNumber.from(
-                                  func?.invocationResponse?.actual_fee
-                                ).toString()
-                              )
-                              .toString()}{' '}
-                            WEI
-                          </p>
-                        )}
-                        {(func?.invocationResponse as any)
-                          ?.execution_resources && (
-                          <p>
-                            {JSON.stringify(
-                              (func?.invocationResponse as any)
-                                ?.execution_resources['n_steps']
-                            )}{' '}
-                            Steps
-                          </p>
-                        )} */}
-                      </div>
                     </div>
                   </>
                 )
               }
             )}
         </>
-      ) : (
+          ) : (
         <p> Selected contract is not deployed yet... </p>
-      )}
+          ))}
     </Container>
   )
 }
