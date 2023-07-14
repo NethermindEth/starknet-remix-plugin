@@ -31,7 +31,6 @@ import storage from '../../utils/storage'
 import './index.css'
 import { useAtom } from 'jotai'
 import { type EnhancedAbiElement, interactAtom } from '../../atoms'
-import { BsArrowReturnRight, BsHash } from 'react-icons/bs'
 import { Formik } from 'formik'
 import Yup, { transformInputs } from '../../utils/yup'
 
@@ -247,8 +246,8 @@ const Interaction: React.FC<InteractionProps> = () => {
     entrypoint: string,
     calldata: BigNumberish[] = []
   ): ((
-    account: Account | AccountInterface
-  ) => Promise<InvokeFunctionResponse>) => {
+      account: Account | AccountInterface
+    ) => Promise<InvokeFunctionResponse>) => {
     const invocation = async (
       account: Account | AccountInterface
     ): Promise<InvokeFunctionResponse> => {
@@ -297,8 +296,8 @@ const Interaction: React.FC<InteractionProps> = () => {
     entrypoint: string,
     calldata: BigNumberish[] = []
   ): ((
-    account: Account | AccountInterface
-  ) => Promise<CallContractResponse>) => {
+      account: Account | AccountInterface
+    ) => Promise<CallContractResponse>) => {
     const call = async (
       account: Account | AccountInterface
     ): Promise<CallContractResponse> => {
@@ -632,7 +631,8 @@ const Interaction: React.FC<InteractionProps> = () => {
                       ...p,
                       [c.name]: Yup.string()
                         .required(`${c.name} is required.`)
-                        .validate(c.type)
+                        // @ts-expect-error because validate_ip is not a function of Yup
+                        .validate_ip(c.type)
                     }
                   }, {})
 
@@ -641,11 +641,13 @@ const Interaction: React.FC<InteractionProps> = () => {
                       <Formik
                         initialValues={{ ...init }}
                         onSubmit={(finalState, { setSubmitting }) => {
-                          void makeCallDataAndHandleCall(
+                          makeCallDataAndHandleCall(
                             finalState,
                             'view',
                             func?.name
-                          )
+                          ).catch((e) => {
+                            console.error(e)
+                          })
                           setSubmitting(false)
                         }}
                         validationSchema={Yup.object().shape({
@@ -684,7 +686,9 @@ const Interaction: React.FC<InteractionProps> = () => {
                                 <button
                                   className={'btn btn-sm reset'}
                                   onClick={(e) => {
-                                    clearRawInputs('view', func.name)
+                                    clearRawInputs('view', func.name).catch((e) => {
+                                      console.error(e)
+                                    })
                                     handleReset(e)
                                   }}
                                 >
@@ -702,7 +706,7 @@ const Interaction: React.FC<InteractionProps> = () => {
                                               <div className="input-feedback text-danger">
                                                 {(errors as any)[input?.name]}
                                               </div>
-                                            )}
+                                          )}
                                         </div>
                                         <input
                                           name={input.name}
@@ -711,7 +715,7 @@ const Interaction: React.FC<InteractionProps> = () => {
                                           // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                                           placeholder={`${
                                             input.name
-                                          } (${getParameterType(input.type)})`}
+                                          } (${getParameterType(input.type) ?? ''})`}
                                           onBlur={handleBlur}
                                           disabled={isSubmitting}
                                           className={
@@ -723,12 +727,14 @@ const Interaction: React.FC<InteractionProps> = () => {
                                           onChange={(e) => {
                                             handleChange(e)
                                             // Propogate to rawInputs in storage.
-                                            void propogateInputToState(
+                                            propogateInputToState(
                                               'view',
                                               func.name,
                                               input.name,
                                               e.target.value
-                                            )
+                                            ).catch((e) => {
+                                              console.error(e)
+                                            })
                                           }}
                                         />
                                       </div>
@@ -739,22 +745,6 @@ const Interaction: React.FC<InteractionProps> = () => {
                           )
                         }}
                       </Formik>
-                      <div className="w-100">
-                        {/* <span className="response-type-wrapper">
-                          <p>
-                            {func?.outputs && (
-                              <BsArrowReturnRight
-                                style={{ marginRight: '10px' }}
-                              />
-                            )}
-                            {func?.outputs &&
-                              func.outputs?.map((o) => o.type).join(',')}
-                          </p>
-                        </span>
-                        {func.callResponse?.result && (
-                          <p>{JSON.stringify(func.callResponse.result)}</p>
-                        )} */}
-                      </div>
                     </div>
                   )
                 }
@@ -775,7 +765,7 @@ const Interaction: React.FC<InteractionProps> = () => {
                     ...p,
                     [c.name]: Yup.string()
                       .required(`${c.name} is required.`)
-                      // @ts-expect-error
+                      // @ts-expect-error because validate_ip is not a function of Yup
                       .validate_ip(c.type)
                   }
                 }, {})
@@ -793,7 +783,9 @@ const Interaction: React.FC<InteractionProps> = () => {
                             finalState,
                             'external',
                             func?.name
-                          )
+                          ).catch((e) => {
+                            console.error(e)
+                          })
                           setSubmitting(false)
                         }}
                         validationSchema={Yup.object().shape({
@@ -835,7 +827,9 @@ const Interaction: React.FC<InteractionProps> = () => {
                                 <button
                                   className={'btn btn-sm reset'}
                                   onClick={(e) => {
-                                    clearRawInputs('external', func.name)
+                                    clearRawInputs('external', func.name).catch((e) => {
+                                      console.error(e)
+                                    })
                                     handleReset(e)
                                   }}
                                 >
@@ -853,7 +847,7 @@ const Interaction: React.FC<InteractionProps> = () => {
                                               <div className="input-feedback text-danger">
                                                 {(errors as any)[input?.name]}
                                               </div>
-                                            )}
+                                          )}
                                         </div>
                                         <input
                                           name={input.name}
@@ -879,7 +873,9 @@ const Interaction: React.FC<InteractionProps> = () => {
                                               func.name,
                                               input.name,
                                               e.target.value
-                                            )
+                                            ).catch((e) => {
+                                              console.error(e)
+                                            })
                                           }}
                                           key={index}
                                         />
@@ -891,55 +887,15 @@ const Interaction: React.FC<InteractionProps> = () => {
                           )
                         }}
                       </Formik>
-                      <div className="response-wrapper w-100">
-                        {func?.invocationResponse?.transaction_hash && (
-                          <BsArrowReturnRight />
-                        )}
-                        {func?.invocationResponse?.transaction_hash && (
-                          <span className="d-flex">
-                            {' '}
-                            <BsHash size={24} />
-                            <p
-                              title={func?.invocationResponse?.transaction_hash}
-                            >
-                              {' '}
-                              {func?.invocationResponse?.transaction_hash}
-                            </p>
-                          </span>
-                        )}
-                        {/* {func?.invocationResponse?.actual_fee && (
-                          <p>
-                            Fee:{' '}
-                            {ethers.utils
-                              .parseEther(
-                                BigNumber.from(
-                                  func?.invocationResponse?.actual_fee
-                                ).toString()
-                              )
-                              .toString()}{' '}
-                            WEI
-                          </p>
-                        )}
-                        {(func?.invocationResponse as any)
-                          ?.execution_resources && (
-                          <p>
-                            {JSON.stringify(
-                              (func?.invocationResponse as any)
-                                ?.execution_resources['n_steps']
-                            )}{' '}
-                            Steps
-                          </p>
-                        )} */}
-                      </div>
                     </div>
                   </>
                 )
               }
             )}
         </>
-      ) : (
+          ) : (
         <p> Selected contract is not deployed yet... </p>
-      ))}
+          ))}
     </Container>
   )
 }
