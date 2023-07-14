@@ -82,6 +82,17 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     let classHash = selectedContract?.sierraClassHash
     let updatedTransactions = transactions
     try {
+      if (env === 'wallet') {
+        await remixClient.call(
+          'notification' as any,
+          'toast',
+          '❗️ Declaration of contracts with wallets will be supported when wallets update to the latest starknet.js version'
+        )
+        throw new Error(
+          'Declaration of contracts with wallets will be supported when wallets update to the latest starknet.js version'
+        )
+      }
+
       if (account === null || provider === null) {
         throw new Error('No account or provider selected!')
       }

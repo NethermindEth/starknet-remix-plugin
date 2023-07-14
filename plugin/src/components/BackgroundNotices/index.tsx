@@ -3,7 +3,8 @@ import React from 'react'
 const Notices = [
   'The Starknet Remix Plugin is in alpha stage.',
   'Compilation only supports single, stand-alone files.',
-  'Support for imports through Scarb is coming soon.'
+  'Support for imports through Scarb is coming soon.',
+  'Declaration of contracts with wallets will be supported when wallets update to the latest starknet.js version'
 ]
 
 const BackgroundNotices = () => {
