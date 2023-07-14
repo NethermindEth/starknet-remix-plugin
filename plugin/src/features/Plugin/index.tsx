@@ -100,6 +100,9 @@ const Plugin: React.FC = () => {
     null
   )
 
+  // Interaction state variables
+  const [interactionStatus, setInteractionStatus] = useState<'loading' | 'success' | 'error' | ''>('')
+
   const [currentAccordian, setCurrentAccordian] =
     useState<AccordianTabs>('compile')
 
@@ -196,7 +199,7 @@ const Plugin: React.FC = () => {
                                   ? 'loading'
                                   : status === 'done'
                                     ? 'success'
-                                    : ''
+                                    : status === 'failed' ? 'error' : ''
                               }
                             />
                           </span>
@@ -254,10 +257,18 @@ const Plugin: React.FC = () => {
                             handleTabView('interaction')
                           }}
                         >
-                          Interact
+                          <span
+                            className="d-flex align-items-center"
+                            style={{ gap: '0.5rem' }}
+                          >
+                            <p style={{ all: 'unset' }}>Interact</p>
+                            <StateAction
+                              value={interactionStatus}
+                            />
+                          </span>
                         </AccordionTrigger>
                         <AccordionContent>
-                          <Interaction />
+                          <Interaction setInteractionStatus={setInteractionStatus} />
                         </AccordionContent>
                       </AccordianItem>
                     </DeploymentContext.Provider>
