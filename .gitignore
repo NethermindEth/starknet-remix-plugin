@@ -16,9 +16,7 @@ api/sierra/*
 .terraform
 **/.terraform
 .DS_Store
-**/*.pem
 ec2_create_bkp_11/*
-**/*.json
 
 # Local .terraform directories
 **/.terraform/*
