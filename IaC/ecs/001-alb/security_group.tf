@@ -83,10 +83,10 @@ module "ecs_sg" {
     },
     {
       description      = "allow traffic on the https port"
-      from_port        = 3000
-      to_port          = 3000
-      protocol         = "TCP"
-      cidr_blocks      = []
+      from_port        = 0
+      to_port          = 0
+      protocol         = "-1"
+      cidr_blocks      = ["0.0.0.0/0"]
       ipv6_cidr_blocks = []
       security_groups  = [module.loadbalancer_ecs_sg.id]
     }

@@ -21,8 +21,8 @@ lc_volume_size   = 30
 lc_volume_type   = "gp2"
 
 ##################################################Auto scaling groups variables
-asg_min_size         = 1
+asg_min_size         = 2
 asg_max_size         = 3
-asg_desired_capacity = 1
+asg_desired_capacity = 3
 
 

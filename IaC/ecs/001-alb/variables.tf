@@ -56,6 +56,19 @@ variable "health_check_remix" {
   }
 }
 
+variable "aws_lb_target_group" {}
+
+variable "alb_http_listener_port" {
+  type        = string
+  default     = "80"
+  description = "(optional) describe your variable"
+}
+
+variable "alb_http_listener_protocol" {
+  type        = string
+  default     = "HTTP"
+  description = "(optional) describe your variable"
+}
 ##################################### Common Project Variables
 
 variable "project" {
