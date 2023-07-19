@@ -247,14 +247,14 @@ const ManualAccount: React.FC<{
       await provider.waitForTransaction(transaction_hash)
 
       setTransactions([
-        ...transactions,
         {
           type: 'deployAccount',
           account,
           provider,
           txId: transaction_hash,
           env
-        }
+        },
+        ...transactions
       ])
 
       const newAccount = {

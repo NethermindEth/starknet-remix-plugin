@@ -259,14 +259,14 @@ const Interaction: React.FC<InteractionProps> = (props) => {
         calldata: calldata as RawCalldata
       })
       setTransactions([
-        ...transactions,
         {
           type: 'invoke',
           account,
           provider,
           txId: response.transaction_hash,
           env
-        }
+        },
+        ...transactions
       ])
       await remixClient.call('terminal', 'log', {
         value: {
