@@ -78,7 +78,7 @@ const Environment: React.FC<EnvironmentProps> = () => {
       if (connectedStarknetWindowObject == null) {
         throw new Error('Failed to connect to wallet')
       }
-      await connectedStarknetWindowObject.enable({ starknetVersion: 'v4' })
+      await connectedStarknetWindowObject.enable({ starknetVersion: 'v5' })
       connectedStarknetWindowObject.on(
         'accountsChanged',
         (accounts: string[]) => {
