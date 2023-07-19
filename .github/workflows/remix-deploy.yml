@@ -1,0 +1,61 @@
+name: Deploy to S3 Static Web
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'plugin/**'
+      
+env:
+  NODE_VERSION: '20.x'
+  BUCKET_NAME: 'starknet-remix-plugin-web'
+
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v2
+
+      - name: Setup Node ${{ env.NODE_VERSION }} Environment
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install dependencies
+        run: npm install -g pnpm
+
+      - name: pnpm install
+        working-directory: ./plugin
+        run: pnpm install
+      
+      - name: pnpm build
+        working-directory: ./plugin
+        run: pnpm run build
+
+      - name: 'Upload Artifact'
+        uses: actions/upload-artifact@v3
+        with:
+          name: react-github-actions-build
+          path: ./plugin/build/**/*
+  Deploy:
+    runs-on: ubuntu-latest
+    needs: Build
+    steps:
+
+      - name: Get artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: react-github-actions-build
+          path: artifact
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+
+      - name: Deploy to S3
+        run: aws s3 sync . s3://${{ env.BUCKET_NAME }} --acl public-read
+        working-directory: artifact
