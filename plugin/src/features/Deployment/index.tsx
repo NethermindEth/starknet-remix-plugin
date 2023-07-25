@@ -102,13 +102,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       }
 
       setDeployStatus('Declaring...')
-
       try {
-        // if (env === 'wallet') {
-        //   throw new Error(
-        //     'Wallet environment does not support contract declaration!'
-        //   )
-        // }
         const declareResponse = await account.declare({
           contract: selectedContract.sierra,
           classHash: selectedContract.sierraClassHash,
