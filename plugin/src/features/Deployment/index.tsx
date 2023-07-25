@@ -154,8 +154,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         {
           classHash: classHash ?? selectedContract.classHash,
           constructorCalldata: calldata
-        },
-        { cairoVersion: '1' }
+        }
       )
       await remixClient.call('terminal', 'log', {
         value: JSON.stringify(deployResponse, null, 2),

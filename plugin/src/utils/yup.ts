@@ -6,7 +6,7 @@ export const transformInputs = (val: string): BigNumber | BigNumber[] => {
   const isArrayRegex = /[,[\]]/
   const replaceSquareBracesRegex = /[[\]]/g
 
-  if (!val.match(isArrayRegex)) {
+  if (val.match(isArrayRegex) == null) {
     const num = BigNumber.from(val.trim())
     return num
   } else {
@@ -20,6 +20,7 @@ export const typeValidation = (
   type: string,
   value: BigNumber | BigNumber[]
 ): boolean => {
+  console.log(type, value)
   let isValid = true
   try {
     if (!Array.isArray(value)) {
@@ -28,17 +29,17 @@ export const typeValidation = (
       }
       switch (type) {
         case 'core::integer::u8':
-          return value.lte(2 ** 8)
+          return Number(value) < 2 ** 8
         case 'core::integer::u16':
-          return value.lte(2 ** 16)
+          return Number(value) < 2 ** 16
         case 'core::integer::u32':
-          return value.lte(2 ** 32)
+          return Number(value) < 2 ** 32
         case 'core::integer::u64':
-          return value.lte(2 ** 64)
+          return Number(value) < 2 ** 64
         case 'core::integer::u128':
-          return value.lte(uint256.UINT_128_MAX)
+          return Number(value) < uint256.UINT_128_MAX
         case 'core::felt252':
-          return value.lte(uint256.UINT_128_MAX)
+          return Number(value) < 2 ** 252
         case 'core::bool':
           return value.lte(1)
         case 'core::integer::u256':
@@ -60,7 +61,7 @@ export const typeValidation = (
             return false
           }
           value.forEach((v) => {
-            if (!v.lte(uint256.UINT_128_MAX)) {
+            if (!(Number(v) < uint256.UINT_128_MAX)) {
               isValid = false
             }
           })
@@ -81,8 +82,8 @@ Yup.addMethod(Yup.string, 'validate_ip', function (type: string) {
     const { createError } = this
     if (val !== undefined) {
       try {
-        const i_p = transformInputs(val)
-        const isValid = typeValidation(type, i_p)
+        const ip = transformInputs(val)
+        const isValid = typeValidation(type, ip)
         if (!isValid) {
           return createError(
             new Yup.ValidationError(`${val} is not correct for type ${type}`)
@@ -90,7 +91,7 @@ Yup.addMethod(Yup.string, 'validate_ip', function (type: string) {
         }
         return true
       } catch (e: any) {
-        return createError(new Yup.ValidationError(e?.message || e))
+        return createError(new Yup.ValidationError(e?.message ?? e))
       }
     }
     return createError(new Yup.ValidationError('value is required'))
