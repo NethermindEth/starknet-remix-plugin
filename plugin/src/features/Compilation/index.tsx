@@ -391,7 +391,11 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
               casmPath
           )
         }
-        throw e
+        remixClient.emit('statusChanged', {
+          key: 'succeed',
+          type: 'warning',
+          title: 'Failed to save artifacts'
+        })
       }
 
       setStatus('Opening artifacts...')

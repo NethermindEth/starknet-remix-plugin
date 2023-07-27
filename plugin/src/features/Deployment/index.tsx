@@ -82,17 +82,6 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     let classHash = selectedContract?.sierraClassHash
     let updatedTransactions = transactions
     try {
-      if (env === 'wallet') {
-        await remixClient.call(
-          'notification' as any,
-          'toast',
-          '❗️ Declaration of contracts with wallets will be supported when wallets update to the latest starknet.js version'
-        )
-        throw new Error(
-          'Declaration of contracts with wallets will be supported when wallets update to the latest starknet.js version'
-        )
-      }
-
       if (account === null || provider === null) {
         throw new Error('No account or provider selected!')
       }
@@ -102,34 +91,39 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       }
 
       setDeployStatus('Declaring...')
-
       try {
-        if (env === 'wallet') {
-          throw new Error(
-            'Wallet environment does not support contract declaration!'
+        try {
+          await provider.getClassByHash(selectedContract.sierraClassHash)
+          await remixClient.call(
+            'notification' as any,
+            'toast',
+            `ℹ️ Contract with classHash: ${selectedContract.sierraClassHash} already has been declared, proceeding to deployment...`
           )
+        } catch (error) {
+          const declareResponse = await account.declare({
+            contract: selectedContract.sierra,
+            classHash: selectedContract.sierraClassHash,
+            casm: selectedContract.casm,
+            compiledClassHash: selectedContract.compiledClassHash
+          })
+          await remixClient.call('terminal', 'log', {
+            value: JSON.stringify(declareResponse, null, 2),
+            type: 'info'
+          })
+          updatedTransactions = [
+            {
+              type: 'declare',
+              account,
+              provider,
+              txId: declareResponse.transaction_hash,
+              env
+            },
+            ...updatedTransactions
+          ]
+          setTransactions(updatedTransactions)
+          classHash = declareResponse.class_hash
+          await account.waitForTransaction(declareResponse.transaction_hash)
         }
-        const declareResponse = await account.declare({
-          contract: selectedContract.sierra,
-          compiledClassHash: selectedContract.compiledClassHash
-        })
-        await remixClient.call('terminal', 'log', {
-          value: JSON.stringify(declareResponse, null, 2),
-          type: 'info'
-        })
-        updatedTransactions = [
-          ...updatedTransactions,
-          {
-            type: 'declare',
-            account,
-            provider,
-            txId: declareResponse.transaction_hash,
-            env
-          }
-        ]
-        setTransactions(updatedTransactions)
-        classHash = declareResponse.class_hash
-        await account.waitForTransaction(declareResponse.transaction_hash)
       } catch (error) {
         if (error instanceof Error) {
           await remixClient.call('terminal', 'log', {
@@ -148,8 +142,6 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 
       setDeployStatus('Deploying...')
 
-      console.log(selectedContract)
-
       const deployResponse = await account.deployContract(
         {
           classHash: classHash ?? selectedContract.classHash,
@@ -162,14 +154,14 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       })
 
       setTransactions([
-        ...updatedTransactions,
         {
           type: 'deploy',
           account,
           provider,
           txId: deployResponse.transaction_hash,
           env
-        }
+        },
+        ...updatedTransactions
       ])
       await account.waitForTransaction(deployResponse.transaction_hash)
       setDeployStatus('done')

@@ -144,13 +144,8 @@ const ManualAccount: React.FC<{
   }, [account, provider])
 
   const createTestnetAccount = async (): Promise<void> => {
-    // new Open Zeppelin account v0.5.1 :
-    // Generate public and private key pair.
     const privateKey = stark.randomAddress()
-    // console.log('New OZ account :\nprivateKey=', privateKey)
     const starkKeyPub = ec.starkCurve.getStarkKey(privateKey)
-    // console.log('publicKey=', starkKeyPub)
-    // Calculate future address of the account
     const OZaccountConstructorCallData = CallData.compile({
       publicKey: starkKeyPub
     })
@@ -160,7 +155,6 @@ const ManualAccount: React.FC<{
       OZaccountConstructorCallData,
       0
     )
-    // console.log('Precalculated account address=', OZcontractAddress)
     const newAccounts = [
       ...accounts,
       {
@@ -247,14 +241,14 @@ const ManualAccount: React.FC<{
       await provider.waitForTransaction(transaction_hash)
 
       setTransactions([
-        ...transactions,
         {
           type: 'deployAccount',
           account,
           provider,
           txId: transaction_hash,
           env
-        }
+        },
+        ...transactions
       ])
 
       const newAccount = {
