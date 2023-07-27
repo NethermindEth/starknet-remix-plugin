@@ -22,6 +22,7 @@ import Accordian, {
 } from '../../ui_components/Accordian'
 import { AccordionHeader } from '@radix-ui/react-accordion'
 import ManualAccount from '../../components/ManualAccount'
+import { Account, Provider } from 'starknet'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface EnvironmentProps {}
@@ -87,10 +88,6 @@ const Environment: React.FC<EnvironmentProps> = () => {
             modalMode: 'neverAsk',
             modalTheme: 'dark'
           })
-          // connectedStarknetWindowObject.off(
-          //   'accountsChanged',
-          //   (_accounts: string[]) => {}
-          // )
         }
       )
 
@@ -100,10 +97,6 @@ const Environment: React.FC<EnvironmentProps> = () => {
           modalMode: 'neverAsk',
           modalTheme: 'dark'
         })
-        // connectedStarknetWindowObject.off(
-        //   'networkChanged',
-        //   (_network?: string) => {}
-        // )
       })
       setStarknetWindowObject(connectedStarknetWindowObject)
       if (connectedStarknetWindowObject.account != null) {
