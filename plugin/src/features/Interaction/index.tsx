@@ -566,12 +566,12 @@ const Interaction: React.FC<InteractionProps> = (props) => {
         )
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
         const response = await invocation(account!)
+        const resultOfTx = await provider?.waitForTransaction(
+          response.transaction_hash
+        )
         console.log(
           'Transaction:',
           await account?.getTransaction(response.transaction_hash)
-        )
-        const resultOfTx = await provider?.waitForTransaction(
-          response.transaction_hash
         )
         if (resultOfTx != null) {
           console.log('Writing Result of txn')
