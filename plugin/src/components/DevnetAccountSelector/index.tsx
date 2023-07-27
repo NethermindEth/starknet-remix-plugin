@@ -136,7 +136,7 @@ const DevnetAccountSelector: React.FC = () => {
     }
   }, [devnet, selectedDevnetAccount])
 
-  function handleAccountChange(event: any): void {
+  function handleAccountChange (event: any): void {
     if (event.target.value === -1) {
       return
     }
