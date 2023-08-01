@@ -10,11 +10,8 @@ const CairoVersion: React.FC = () => {
   const [cairoVersion, setCairoVersion] = useState('cairo-lang-compiler 1.0.0-alpha.7')
   const remixClient = useContext(RemixClientContext)
 
-  // Latest 6 Cairo Verison
   const [versions] = useState<string[]>([
-    'cairo-lang-compiler 1.0.0-alpha.6',
-    'cairo-lang-compiler 1.0.0-alpha.7',
-    'cairo-lang-compiler 1.0.1'
+    'v2.1.0-rc2'
   ])
 
   useEffect(() => {
