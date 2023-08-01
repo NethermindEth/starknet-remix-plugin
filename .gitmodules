@@ -1,3 +1,0 @@
-[submodule "api/cairo"]
-	path = api/cairo
-	url = https://github.com/starkware-libs/cairo
