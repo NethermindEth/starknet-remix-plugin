@@ -2,12 +2,12 @@ import * as D from '../../ui_components/Dropdown'
 import React, { useContext, useEffect, useState } from 'react'
 import { apiUrl } from '../../utils/network'
 import { RemixClientContext } from '../../contexts/RemixClientContext'
-import { BsChevronDown } from 'react-icons/bs'
+// import { BsChevronDown } from 'react-icons/bs'
 import Nethermind from '../../components/NM'
 import './style.css'
 
 const CairoVersion: React.FC = () => {
-  const [cairoVersion, setCairoVersion] = useState('cairo-lang-compiler 1.0.0-alpha.7')
+  const [cairoVersion, setCairoVersion] = useState('v2.1.0-rc2')
   const remixClient = useContext(RemixClientContext)
 
   const [versions] = useState<string[]>([
@@ -48,7 +48,7 @@ const CairoVersion: React.FC = () => {
         <D.Root>
           <D.Trigger>
             <label className="cairo-version-legend">
-              Using {cairoVersion} <BsChevronDown />
+              Using {cairoVersion} {/* <BsChevronDown /> */ }
             </label>
           </D.Trigger>
           <D.Portal>
