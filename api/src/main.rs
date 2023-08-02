@@ -160,8 +160,7 @@ async fn compile_to_sierra(remix_file_path: PathBuf) -> Json<CompileResponse> {
         .arg("--")
         .arg(&file_path)
         .arg(&sierra_path)
-        .arg("--allowed-libfuncs-list-name")
-        .arg("experimental_v0.1.0")
+        .arg("--single-file")
         .stderr(Stdio::piped())
         .spawn()
         .expect("Failed to execute starknet-compile");
@@ -255,8 +254,6 @@ async fn compile_to_casm(remix_file_path: PathBuf) -> Json<CompileResponse> {
         .arg("--")
         .arg(&file_path)
         .arg(&casm_path)
-        .arg("--allowed-libfuncs-list-name")
-        .arg("experimental_v0.1.0")
         .stderr(Stdio::piped())
         .spawn()
         .expect("Failed to execute starknet-sierra-compile");
