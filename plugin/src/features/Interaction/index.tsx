@@ -185,8 +185,6 @@ const Interaction: React.FC<InteractionProps> = (props) => {
       let readFunctions = getReadFunctions(selectedContract?.abi)
       let writeFunctions = getWriteFunctions(selectedContract?.abi)
 
-      console.log('readFunctions', readFunctions, writeFunctions)
-
       readFunctions = readFunctions.map((func) => {
         func.calldata = new Array<CallDataObj>(func.inputs.length).fill([])
         return { ...func }
