@@ -31,7 +31,7 @@ pub fn get_file_path(file_path:&String) -> PathBuf {
 
         _ => {
             println!("LOG: File extension not supported");
-            Path::new("").join(file_path)
+            Path::new("/dev/null").join(file_path)
         }
     }
 }

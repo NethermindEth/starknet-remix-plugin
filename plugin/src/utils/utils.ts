@@ -56,16 +56,43 @@ const getReadFunctions = (abi: Abi): AbiElement[] => {
       item.name !== 'constructor' &&
       item.state_mutability === 'view'
   )
+  abi.forEach((item) => {
+    if (item.type === 'interface' && item.items !== undefined) {
+      item.items.forEach((it) => {
+        if (
+          it.type === 'function' &&
+          it.name !== 'constructor' &&
+          it.state_mutability === 'view'
+        ) {
+          readFunctions.push(it)
+        }
+      })
+    }
+  })
   return readFunctions
 }
 
 const getWriteFunctions = (abi: Abi): AbiElement[] => {
+  console.log('abi', abi)
   const writeFunctions = abi.filter(
     (item) =>
       item.type === 'function' &&
       item.name !== 'constructor' &&
       item.state_mutability === 'external'
   )
+  abi.forEach((item) => {
+    if (item.type === 'interface' && item.items !== undefined) {
+      item.items.forEach((it) => {
+        if (
+          it.type === 'function' &&
+          it.name !== 'constructor' &&
+          it.state_mutability === 'external'
+        ) {
+          writeFunctions.push(it)
+        }
+      })
+    }
+  })
   return writeFunctions
 }
 
