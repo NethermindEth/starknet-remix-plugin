@@ -38,6 +38,7 @@ interface AbiElement {
   outputs?: Output[]
   state_mutability?: string
   calldata?: CallDataObj[]
+  items?: AbiElement[]
   callFunction?: (account: Account) => Promise<InvokeFunctionResponse>
 }
 
@@ -46,12 +47,12 @@ type Abi = AbiElement[]
 type Contracts = Record<string, Contract>
 
 type CallDataObject = Record<
-  string,
-  {
-    name: string
-    value: string
-    type: string | undefined
-  }
+string,
+{
+  name: string
+  value: string
+  type: string | undefined
+}
 >
 
 // TODO: felt252

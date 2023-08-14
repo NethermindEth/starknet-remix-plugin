@@ -137,6 +137,9 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           'fileManager',
           'getCurrentFile'
         )
+        if (!currentFilePath.endsWith('.cairo')) {
+          throw new Error('Not a valid cairo file')
+        }
         const currentFileContent = await remixClient.call(
           'fileManager',
           'readFile',
