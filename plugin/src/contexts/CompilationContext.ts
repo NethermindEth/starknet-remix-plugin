@@ -13,7 +13,9 @@ const CompilationContext = createContext({
   noFileSelected: false as boolean,
   setNoFileSelected: ((_: boolean) => {}) as React.Dispatch<React.SetStateAction<boolean>>,
   hashDir: '' as string,
-  setHashDir: ((_: string) => {}) as React.Dispatch<React.SetStateAction<string>>
+  setHashDir: ((_: string) => {}) as React.Dispatch<React.SetStateAction<string>>,
+  tomlPaths: [] as string[],
+  setTomlPaths: ((_: string[]) => {}) as React.Dispatch<React.SetStateAction<string[]>>
 })
 
 export default CompilationContext

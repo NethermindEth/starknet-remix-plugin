@@ -55,6 +55,7 @@ const Plugin: React.FC = () => {
   const [isValidCairo, setIsValidCairo] = useState(false)
   const [noFileSelected, setNoFileSelected] = useState(false)
   const [hashDir, setHashDir] = useState('')
+  const [tomlPaths, setTomlPaths] = useState<string[]>([])
 
   // Deployment Context state variables
   const [isDeploying, setIsDeploying] = useState(false)
@@ -179,7 +180,9 @@ const Plugin: React.FC = () => {
                         noFileSelected,
                         setNoFileSelected,
                         hashDir,
-                        setHashDir
+                        setHashDir,
+                        tomlPaths,
+                        setTomlPaths
                       }}
                     >
                       <AccordianItem value="compile">

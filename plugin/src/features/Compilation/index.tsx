@@ -41,8 +41,12 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     noFileSelected,
     setNoFileSelected,
     hashDir,
-    setHashDir
+    setHashDir,
+    tomlPaths,
+    setTomlPaths
   } = useContext(CompilationContext)
+
+  const [currWorkspacePath, setCurrWorkspacePath] = React.useState<string>('')
 
   useEffect(() => {
     // read hashDir from localStorage
@@ -160,6 +164,159 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       }
     }, 100)
   }, [currentFilename, remixClient])
+
+  async function getTomlPaths (workspacePath: string, currPath: string): Promise<string[]> {
+    console.log('currPath: ', workspacePath + '/' + currPath)
+
+    const resTomlPaths: string[] = []
+
+    try {
+      const allFiles = await remixClient.fileManager.readdir(workspacePath + '/' + currPath)
+      // get keys of allFiles object
+      const allFilesKeys = Object.keys(allFiles)
+      // const get all values of allFiles object
+      const allFilesValues = Object.values(allFiles)
+
+      for (let i = 0; i < allFilesKeys.length; i++) {
+        console.log('allFilesValues[i]: ', allFilesValues[i], allFilesKeys[i])
+        if (allFilesKeys[i].endsWith('Scarb.toml')) {
+          resTomlPaths.push(currPath)
+        }
+        console.log('Object.values(allFilesValues[i])[0]', Object.values(allFilesValues[i])[0])
+        if (Object.values(allFilesValues[i])[0]) {
+          const recTomlPaths = await getTomlPaths(workspacePath, allFilesKeys[i])
+          resTomlPaths.push(...recTomlPaths)
+        }
+      }
+    } catch (e) {
+      console.log('error: ', e)
+    }
+    return resTomlPaths
+  }
+
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    setTimeout(async () => {
+      // get current workspace path
+      try {
+        const currWorkspace = await remixClient.filePanel.getCurrentWorkspace()
+        setCurrWorkspacePath(currWorkspace.absolutePath)
+      } catch (e) {
+        console.log('error: ', e)
+      }
+    })
+  })
+
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    setTimeout(async () => {
+      // get current workspace path
+      try {
+        if (currWorkspacePath === '') return
+        const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
+        console.log('allTomlPaths: ', allTomlPaths)
+        setTomlPaths(allTomlPaths)
+      } catch (e) {
+        console.log('error: ', e)
+      }
+    }, 100)
+  }, [currWorkspacePath])
+
+  useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
+    setTimeout(async () => {
+      remixClient.on(
+        'fileManager',
+        'fileAdded',
+        (_: any) => {
+          // eslint-disable-next-line @typescript-eslint/no-misused-promises
+          setTimeout(async () => {
+            // get current workspace path
+            try {
+              console.log('Mc behen ke laude')
+              const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
+              console.log('allTomlPaths: ', allTomlPaths)
+              setTomlPaths(allTomlPaths)
+            } catch (e) {
+              console.log('error: ', e)
+            }
+          }, 100)
+        }
+      )
+      remixClient.on(
+        'fileManager',
+        'folderAdded',
+        (_: any) => {
+          // eslint-disable-next-line @typescript-eslint/no-misused-promises
+          setTimeout(async () => {
+            // get current workspace path
+            try {
+              console.log('Mc behen ke laude')
+              const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
+              console.log('allTomlPaths: ', allTomlPaths)
+              setTomlPaths(allTomlPaths)
+            } catch (e) {
+              console.log('error: ', e)
+            }
+          }, 100)
+        }
+      )
+      remixClient.on(
+        'fileManager',
+        'fileRemoved',
+        (_: any) => {
+          // eslint-disable-next-line @typescript-eslint/no-misused-promises
+          setTimeout(async () => {
+            // get current workspace path
+            try {
+              console.log('Mc behen ke laude')
+              const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
+              console.log('allTomlPaths: ', allTomlPaths)
+              setTomlPaths(allTomlPaths)
+            } catch (e) {
+              console.log('error: ', e)
+            }
+          }, 100)
+        }
+      )
+      remixClient.on(
+        'filePanel',
+        'workspaceCreated',
+        (_: any) => {
+          // eslint-disable-next-line @typescript-eslint/no-misused-promises
+          setTimeout(async () => {
+            // get current workspace path
+            try {
+              console.log('Mc behen ke laude')
+              const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
+              console.log('allTomlPaths: ', allTomlPaths)
+              setTomlPaths(allTomlPaths)
+            } catch (e) {
+              console.log('error: ', e)
+            }
+          }, 100)
+        }
+      )
+      remixClient.on(
+        'filePanel',
+        'workspaceRenamed',
+        (_: any) => {
+          // eslint-disable-next-line @typescript-eslint/no-misused-promises
+          setTimeout(async () => {
+            // get current workspace path
+            try {
+              console.log('Mc behen ke laude')
+              const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
+              console.log('allTomlPaths: ', allTomlPaths)
+              setTomlPaths(allTomlPaths)
+            } catch (e) {
+              console.log('error: ', e)
+            }
+          }, 100)
+        }
+      )
+    }, 500)
+  }, [remixClient])
 
   const compilations = [
     {
@@ -465,6 +622,15 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
   ): React.ReactElement => {
     return (
       <Container>
+        <div className="dropdown">
+          <button className="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Dropdown Example
+          <span className="caret"></span></button>
+          <ul className="dropdown-menu">
+            <li>x</li>
+            <li>y</li>
+            <li>z</li>
+          </ul>
+        </div>
         <button
           className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-1 px-0"
           style={{
