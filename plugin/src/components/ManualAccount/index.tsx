@@ -414,7 +414,7 @@ const ManualAccount: React.FC<{
                 }, 2000)
               }}
             >
-              Request funds on Starknet Facuet
+              Request funds on Starknet Faucet
             </button>
           )}
         </div>
