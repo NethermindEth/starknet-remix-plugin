@@ -285,6 +285,91 @@ async fn compile_to_casm(remix_file_path: PathBuf) -> Json<CompileResponse> {
     })
 }
 
+pub struct FileContentMap {
+    pub file_name: String,
+    pub file_content: String,
+}
+pub struct ScarbCompileResponse {
+    pub status: String,
+    pub message: String,
+    pub file_content_map_array: Vec<Json<FileContentMap>>,
+}
+
+#[get("/scarb-compile/<remix_file_path..>")]
+async fn scarb_compile(remix_file_path: PathBuf) -> Json<ScarbCompileResponse> {
+    let remix_file_path = match remix_file_path.to_str() {
+        Some(path) => path.to_string(),
+        None => {
+            return Json(ScarbCompileResponse {
+                file_content_map_array: vec![],
+                message: "File path not found".to_string(),
+                status: "FileNotFound".to_string(),
+            });
+        }
+    };
+
+    let file_path = get_file_path(&remix_file_path);
+
+    let casm_remix_path = remix_file_path.replace(&get_file_ext(&remix_file_path), "casm");
+
+    let mut compile = Command::new("cargo");
+    compile.current_dir(CAIRO_DIR);
+
+    let casm_path = Path::new(CASM_ROOT).join(&casm_remix_path);
+
+    // create directory for casm file
+    match casm_path.parent() {
+        Some(parent) => match fs::create_dir_all(parent).await {
+            Ok(_) => {
+                println!("LOG: Created directory: {:?}", parent);
+            }
+            Err(e) => {
+                println!("LOG: Error creating directory: {:?}", e);
+            }
+        },
+        None => {
+            println!("LOG: Error creating directory");
+        }
+    }
+
+    let result = compile
+        .arg("run")
+        .arg("--bin")
+        .arg("starknet-sierra-compile")
+        .arg("--")
+        .arg(&file_path)
+        .arg(&casm_path)
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("Failed to execute starknet-sierra-compile");
+
+    println!("LOG: ran command:{:?}", compile);
+
+    let output = result.wait_with_output().expect("Failed to wait on child");
+
+    Json(CompileResponse {
+        file_content: match NamedFile::open(&casm_path).await.ok() {
+            Some(file) => match file.path().to_str() {
+                Some(path) => match fs::read_to_string(path.to_string()).await {
+                    Ok(casm) => casm.to_string(),
+                    Err(e) => e.to_string(),
+                },
+                None => "".to_string(),
+            },
+            None => "".to_string(),
+        },
+        message: String::from_utf8(output.stderr)
+            .unwrap()
+            .replace(&file_path.to_str().unwrap().to_string(), &remix_file_path)
+            .replace(&casm_path.to_str().unwrap().to_string(), &casm_remix_path),
+        status: match output.status.code() {
+            Some(0) => "Success".to_string(),
+            Some(_) => "SierraCompilationFailed".to_string(),
+            None => "UnknownError".to_string(),
+        },
+    })
+}
+
 // Read the version from the cairo Cargo.toml file.
 #[get("/cairo_version")]
 async fn cairo_version() -> String {
@@ -329,6 +414,7 @@ fn rocket() -> _ {
             routes![
                 compile_to_sierra,
                 compile_to_casm,
+                scarb_compile,
                 save_code,
                 cairo_version,
                 health, 
