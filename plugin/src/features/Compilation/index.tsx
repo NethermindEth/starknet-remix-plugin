@@ -166,8 +166,6 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
   }, [currentFilename, remixClient])
 
   async function getTomlPaths (workspacePath: string, currPath: string): Promise<string[]> {
-    console.log('currPath: ', workspacePath + '/' + currPath)
-
     const resTomlPaths: string[] = []
 
     try {
@@ -233,7 +231,6 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           setTimeout(async () => {
             // get current workspace path
             try {
-              console.log('Mc behen ke laude')
               const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
               console.log('allTomlPaths: ', allTomlPaths)
               setTomlPaths(allTomlPaths)
@@ -251,7 +248,6 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           setTimeout(async () => {
             // get current workspace path
             try {
-              console.log('Mc behen ke laude')
               const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
               console.log('allTomlPaths: ', allTomlPaths)
               setTomlPaths(allTomlPaths)
@@ -269,7 +265,6 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           setTimeout(async () => {
             // get current workspace path
             try {
-              console.log('Mc behen ke laude')
               const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
               console.log('allTomlPaths: ', allTomlPaths)
               setTomlPaths(allTomlPaths)
@@ -287,7 +282,6 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           setTimeout(async () => {
             // get current workspace path
             try {
-              console.log('Mc behen ke laude')
               const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
               console.log('allTomlPaths: ', allTomlPaths)
               setTomlPaths(allTomlPaths)
@@ -305,7 +299,6 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           setTimeout(async () => {
             // get current workspace path
             try {
-              console.log('Mc behen ke laude')
               const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
               console.log('allTomlPaths: ', allTomlPaths)
               setTomlPaths(allTomlPaths)
@@ -320,7 +313,6 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
   const compilations = [
     {
-      header: 'Compile',
       validation: isValidCairo,
       isLoading: isCompiling,
       onClick: compile
@@ -580,6 +572,75 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     setIsCompiling(false)
   }
 
+  async function saveScarbWorkspace (workspacePath: string, currPath: string): Promise<string[]> {
+    const resTomlPaths: string[] = []
+
+    try {
+      const allFiles = await remixClient.fileManager.readdir(workspacePath + '/' + currPath)
+      // get keys of allFiles object
+      const allFilesKeys = Object.keys(allFiles)
+      // const get all values of allFiles object
+      const allFilesValues = Object.values(allFiles)
+
+      for (let i = 0; i < allFilesKeys.length; i++) {
+        if (allFilesKeys[i].endsWith('Scarb.toml') || allFilesKeys[i].endsWith('.cairo')) {
+          const fileContent = await remixClient.call(
+            'fileManager',
+            'readFile',
+            workspacePath + '/' + currPath + '/' + allFilesKeys[i]
+          )
+          setStatus(`Saving ${allFilesKeys[i]}...`)
+          const response = await fetch(`${apiUrl}/save_code/${hashDir}/${workspacePath + '/' + currPath + '/' + allFilesKeys[i]}`, {
+            method: 'POST',
+            body: fileContent,
+            redirect: 'follow',
+            headers: {
+              'Content-Type': 'application/octet-stream'
+            }
+          })
+          if (!response.ok) {
+            await remixClient.call(
+              'notification' as any,
+              'toast',
+              'Could not reach cairo compilation server'
+            )
+            throw new Error('Cairo Compilation Request Failed')
+          }
+        }
+        if (Object.values(allFilesValues[i])[0]) {
+          await saveScarbWorkspace(workspacePath, allFilesKeys[i])
+        }
+      }
+    } catch (e) {
+      console.log('error: ', e)
+    }
+    return resTomlPaths
+  }
+
+  async function compileScarb (workspacePath: string, scarbPath: string): Promise<void> {
+    setStatus('Saving scarb workspace...')
+    await saveScarbWorkspace(workspacePath, scarbPath)
+    const response = await fetch(
+      `${apiUrl}/compile-scarb/${hashDir}/${workspacePath}/${scarbPath}`,
+      {
+        method: 'GET',
+        redirect: 'follow',
+        headers: {
+          'Content-Type': 'text/plain'
+        }
+      }
+    )
+
+    if (!response.ok) {
+      await remixClient.call(
+        'notification' as any,
+        'toast',
+        'Could not reach cairo compilation server'
+      )
+      throw new Error('Cairo Compilation Request Failed')
+    }
+  }
+
   async function storeContract (
     contractName: string,
     path: string,
@@ -615,7 +676,6 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
   }
 
   const compilationCard = (
-    header: string,
     validation: boolean,
     isLoading: boolean,
     onClick: () => unknown
@@ -623,7 +683,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     return (
       <Container>
         <div className="dropdown">
-          <button className="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Dropdown Example
+          <button className="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Compile Entry1
           <span className="caret"></span></button>
           <ul className="dropdown-menu">
             <li>x</li>
@@ -686,7 +746,6 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     <div>
       {compilations.map((compilation) => {
         return compilationCard(
-          compilation.header,
           compilation.validation,
           compilation.isLoading,
           compilation.onClick
