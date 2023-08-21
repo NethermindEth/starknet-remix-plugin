@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/restrict-plus-operands */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
-import React, { useContext, useEffect } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
 import { RemixClientContext } from '../../contexts/RemixClientContext'
 import { apiUrl } from '../../utils/network'
@@ -17,6 +17,8 @@ import storage from '../../utils/storage'
 import { ethers } from 'ethers'
 import CompilationContext from '../../contexts/CompilationContext'
 import { type AccordianTabs } from '../Plugin'
+import * as D from '../../ui_components/Dropdown'
+import { BsChevronDown } from 'react-icons/bs'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface CompilationProps {
@@ -26,8 +28,9 @@ interface CompilationProps {
 const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
   const remixClient = useContext(RemixClientContext)
 
-  const { contracts, setContracts, setSelectedContract } =
-    useContext(CompiledContractsContext)
+  const { contracts, setContracts, setSelectedContract } = useContext(
+    CompiledContractsContext
+  )
 
   const {
     status,
@@ -168,11 +171,16 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     }, 100)
   }, [currentFilename, remixClient])
 
-  async function getTomlPaths (workspacePath: string, currPath: string): Promise<string[]> {
+  async function getTomlPaths(
+    workspacePath: string,
+    currPath: string
+  ): Promise<string[]> {
     const resTomlPaths: string[] = []
 
     try {
-      const allFiles = await remixClient.fileManager.readdir(workspacePath + '/' + currPath)
+      const allFiles = await remixClient.fileManager.readdir(
+        workspacePath + '/' + currPath
+      )
       // get keys of allFiles object
       const allFilesKeys = Object.keys(allFiles)
       // const get all values of allFiles object
@@ -183,9 +191,15 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         if (allFilesKeys[i].endsWith('Scarb.toml')) {
           resTomlPaths.push(currPath)
         }
-        console.log('Object.values(allFilesValues[i])[0]', Object.values(allFilesValues[i])[0])
+        console.log(
+          'Object.values(allFilesValues[i])[0]',
+          Object.values(allFilesValues[i])[0]
+        )
         if (Object.values(allFilesValues[i])[0]) {
-          const recTomlPaths = await getTomlPaths(workspacePath, allFilesKeys[i])
+          const recTomlPaths = await getTomlPaths(
+            workspacePath,
+            allFilesKeys[i]
+          )
           resTomlPaths.push(...recTomlPaths)
         }
       }
@@ -226,91 +240,71 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     setTimeout(async () => {
-      remixClient.on(
-        'fileManager',
-        'fileAdded',
-        (_: any) => {
-          // eslint-disable-next-line @typescript-eslint/no-misused-promises
-          setTimeout(async () => {
-            // get current workspace path
-            try {
-              const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
-              console.log('allTomlPaths: ', allTomlPaths)
-              setTomlPaths(allTomlPaths)
-            } catch (e) {
-              console.log('error: ', e)
-            }
-          }, 100)
-        }
-      )
-      remixClient.on(
-        'fileManager',
-        'folderAdded',
-        (_: any) => {
-          // eslint-disable-next-line @typescript-eslint/no-misused-promises
-          setTimeout(async () => {
-            // get current workspace path
-            try {
-              const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
-              console.log('allTomlPaths: ', allTomlPaths)
-              setTomlPaths(allTomlPaths)
-            } catch (e) {
-              console.log('error: ', e)
-            }
-          }, 100)
-        }
-      )
-      remixClient.on(
-        'fileManager',
-        'fileRemoved',
-        (_: any) => {
-          // eslint-disable-next-line @typescript-eslint/no-misused-promises
-          setTimeout(async () => {
-            // get current workspace path
-            try {
-              const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
-              console.log('allTomlPaths: ', allTomlPaths)
-              setTomlPaths(allTomlPaths)
-            } catch (e) {
-              console.log('error: ', e)
-            }
-          }, 100)
-        }
-      )
-      remixClient.on(
-        'filePanel',
-        'workspaceCreated',
-        (_: any) => {
-          // eslint-disable-next-line @typescript-eslint/no-misused-promises
-          setTimeout(async () => {
-            // get current workspace path
-            try {
-              const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
-              console.log('allTomlPaths: ', allTomlPaths)
-              setTomlPaths(allTomlPaths)
-            } catch (e) {
-              console.log('error: ', e)
-            }
-          }, 100)
-        }
-      )
-      remixClient.on(
-        'filePanel',
-        'workspaceRenamed',
-        (_: any) => {
-          // eslint-disable-next-line @typescript-eslint/no-misused-promises
-          setTimeout(async () => {
-            // get current workspace path
-            try {
-              const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
-              console.log('allTomlPaths: ', allTomlPaths)
-              setTomlPaths(allTomlPaths)
-            } catch (e) {
-              console.log('error: ', e)
-            }
-          }, 100)
-        }
-      )
+      remixClient.on('fileManager', 'fileAdded', (_: any) => {
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        setTimeout(async () => {
+          // get current workspace path
+          try {
+            const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
+            console.log('allTomlPaths: ', allTomlPaths)
+            setTomlPaths(allTomlPaths)
+          } catch (e) {
+            console.log('error: ', e)
+          }
+        }, 100)
+      })
+      remixClient.on('fileManager', 'folderAdded', (_: any) => {
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        setTimeout(async () => {
+          // get current workspace path
+          try {
+            const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
+            console.log('allTomlPaths: ', allTomlPaths)
+            setTomlPaths(allTomlPaths)
+          } catch (e) {
+            console.log('error: ', e)
+          }
+        }, 100)
+      })
+      remixClient.on('fileManager', 'fileRemoved', (_: any) => {
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        setTimeout(async () => {
+          // get current workspace path
+          try {
+            const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
+            console.log('allTomlPaths: ', allTomlPaths)
+            setTomlPaths(allTomlPaths)
+          } catch (e) {
+            console.log('error: ', e)
+          }
+        }, 100)
+      })
+      remixClient.on('filePanel', 'workspaceCreated', (_: any) => {
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        setTimeout(async () => {
+          // get current workspace path
+          try {
+            const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
+            console.log('allTomlPaths: ', allTomlPaths)
+            setTomlPaths(allTomlPaths)
+          } catch (e) {
+            console.log('error: ', e)
+          }
+        }, 100)
+      })
+      remixClient.on('filePanel', 'workspaceRenamed', (_: any) => {
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        setTimeout(async () => {
+          // get current workspace path
+          try {
+            const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
+            console.log('allTomlPaths: ', allTomlPaths)
+            setTomlPaths(allTomlPaths)
+          } catch (e) {
+            console.log('error: ', e)
+          }
+        }, 100)
+      })
     }, 500)
   }, [remixClient])
 
@@ -322,7 +316,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     }
   ]
 
-  async function compile (): Promise<void> {
+  async function compile(): Promise<void> {
     setIsCompiling(true)
     setStatus('Compiling...')
     // clear current file annotations: inline syntax error reporting
@@ -515,7 +509,9 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       remixClient.emit('statusChanged', {
         key: 'succeed',
         type: 'success',
-        title: `Cheers : compilation successful, classHash: ${hash.computeContractClassHash(sierra.file_content)}`
+        title: `Cheers : compilation successful, classHash: ${hash.computeContractClassHash(
+          sierra.file_content
+        )}`
       })
 
       try {
@@ -575,32 +571,45 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     setIsCompiling(false)
   }
 
-  async function saveScarbWorkspace (workspacePath: string, currPath: string): Promise<string[]> {
+  async function saveScarbWorkspace(
+    workspacePath: string,
+    currPath: string
+  ): Promise<string[]> {
     const resTomlPaths: string[] = []
 
     try {
-      const allFiles = await remixClient.fileManager.readdir(workspacePath + '/' + currPath)
+      const allFiles = await remixClient.fileManager.readdir(
+        workspacePath + '/' + currPath
+      )
       // get keys of allFiles object
       const allFilesKeys = Object.keys(allFiles)
       // const get all values of allFiles object
       const allFilesValues = Object.values(allFiles)
 
       for (let i = 0; i < allFilesKeys.length; i++) {
-        if (allFilesKeys[i].endsWith('Scarb.toml') || allFilesKeys[i].endsWith('.cairo')) {
+        if (
+          allFilesKeys[i].endsWith('Scarb.toml') ||
+          allFilesKeys[i].endsWith('.cairo')
+        ) {
           const fileContent = await remixClient.call(
             'fileManager',
             'readFile',
             workspacePath + '/' + currPath + '/' + allFilesKeys[i]
           )
           setStatus(`Saving ${allFilesKeys[i]}...`)
-          const response = await fetch(`${apiUrl}/save_code/${hashDir}/${workspacePath + '/' + currPath + '/' + allFilesKeys[i]}`, {
-            method: 'POST',
-            body: fileContent,
-            redirect: 'follow',
-            headers: {
-              'Content-Type': 'application/octet-stream'
+          const response = await fetch(
+            `${apiUrl}/save_code/${hashDir}/${
+              workspacePath + '/' + currPath + '/' + allFilesKeys[i]
+            }`,
+            {
+              method: 'POST',
+              body: fileContent,
+              redirect: 'follow',
+              headers: {
+                'Content-Type': 'application/octet-stream'
+              }
             }
-          })
+          )
           if (!response.ok) {
             await remixClient.call(
               'notification' as any,
@@ -620,7 +629,10 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     return resTomlPaths
   }
 
-  async function compileScarb (workspacePath: string, scarbPath: string): Promise<void> {
+  async function compileScarb(
+    workspacePath: string,
+    scarbPath: string
+  ): Promise<void> {
     setStatus('Saving scarb workspace...')
     await saveScarbWorkspace(workspacePath, scarbPath)
     const response = await fetch(
@@ -644,7 +656,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     }
   }
 
-  async function storeContract (
+  async function storeContract(
     contractName: string,
     path: string,
     sierraFile: string,
@@ -656,7 +668,13 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       const compiledClassHash = hash.computeCompiledClassHash(casm)
       const classHash = hash.computeContractClassHash(sierra)
       const sierraClassHash = hash.computeSierraContractClassHash(sierra)
-      if (contracts.find((contract) => contract.classHash === classHash && contract.compiledClassHash === compiledClassHash)) {
+      if (
+        contracts.find(
+          (contract) =>
+            contract.classHash === classHash &&
+            contract.compiledClassHash === compiledClassHash
+        )
+      ) {
         return
       }
       const contract = {
@@ -678,6 +696,8 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     }
   }
 
+  const [activeTomlPath, setActiveTomlPath] = useState('Entry1')
+
   const compilationCard = (
     validation: boolean,
     isLoading: boolean,
@@ -686,13 +706,42 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     return (
       <Container>
         <div className="dropdown">
-          <button className="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Compile Entry1
-          <span className="caret"></span></button>
+          <D.Root>
+            <D.Trigger>
+              <label className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-1 px-0">
+                Compile {activeTomlPath} <BsChevronDown />
+              </label>
+            </D.Trigger>
+            <D.Portal>
+              <D.Content>
+                {tomlPaths.map((tomlPath, i) => {
+                  return (
+                    <D.Item
+                      key={i + tomlPath}
+                      onClick={() => {
+                        setActiveTomlPath(tomlPath)
+                      }}
+                    >
+                      {tomlPath}
+                    </D.Item>
+                  )
+                })}
+              </D.Content>
+            </D.Portal>
+          </D.Root>
+          {/* <button
+            className="btn btn-primary dropdown-toggle"
+            type="button"
+            data-toggle="dropdown"
+          >
+            Compile Entry1
+            <span className="caret"></span>
+          </button>
           <ul className="dropdown-menu">
             <li>x</li>
             <li>y</li>
             <li>z</li>
-          </ul>
+          </ul> */}
         </div>
         <button
           className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-1 px-0"
@@ -707,15 +756,12 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         >
           <div className="d-flex align-items-center justify-content-center">
             <div className="text-truncate overflow-hidden text-nowrap">
-              {!validation
-                ? (
+              {!validation ? (
                 <span>Not a valid cairo file</span>
-                  )
-                : (
+              ) : (
                 <>
                   <div className="d-flex align-items-center justify-content-center">
-                    {isLoading
-                      ? (
+                    {isLoading ? (
                       <>
                         <span
                           className="spinner-border spinner-border-sm"
@@ -726,18 +772,17 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
                         </span>
                         <span style={{ paddingLeft: '0.5rem' }}>{status}</span>
                       </>
-                        )
-                      : (
+                    ) : (
                       <div className="text-truncate overflow-hidden text-nowrap">
                         <span>Compile</span>
                         <span className="ml-1 text-nowrap">
                           {currentFilename}
                         </span>
                       </div>
-                        )}
+                    )}
                   </div>
                 </>
-                  )}
+              )}
             </div>
           </div>
         </button>
