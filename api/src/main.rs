@@ -1,5 +1,6 @@
 #[macro_use]
 extern crate rocket;
+use rocket::figment::providers::Format;
 use rocket::serde::{json::Json, Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
@@ -10,6 +11,7 @@ use rocket::fs::NamedFile;
 use rocket::tokio::fs;
 use rocket::{Request, Response};
 use rocket::http::{Header, Method, Status};
+
 
 mod utils;
 use utils::lib::{get_file_ext, get_file_path, CAIRO_DIR, CASM_ROOT, SIERRA_ROOT};
@@ -285,14 +287,41 @@ async fn compile_to_casm(remix_file_path: PathBuf) -> Json<CompileResponse> {
     })
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct FileContentMap {
     pub file_name: String,
     pub file_content: String,
 }
+
+#[derive(Serialize, Deserialize)]
 pub struct ScarbCompileResponse {
     pub status: String,
     pub message: String,
-    pub file_content_map_array: Vec<Json<FileContentMap>>,
+    pub file_content_map_array: Vec<FileContentMap>,
+}
+
+fn get_files_recursive(base_path: &Path) -> Vec<FileContentMap> {
+    let mut file_content_map_array: Vec<FileContentMap> = Vec::new();
+
+    if base_path.is_dir() {
+        for entry in base_path.read_dir().unwrap() {
+            if let Ok(entry) = entry {
+                let path = entry.path();
+                if path.is_dir() {
+                    file_content_map_array.extend(get_files_recursive(&path));
+                } else {
+                    if let Ok(content) = std::fs::read_to_string(&path) {
+                        let file_name = path.file_name().unwrap().to_string_lossy().to_string();
+                        let file_content = content;
+                        let file_content_map = FileContentMap { file_name, file_content };
+                        file_content_map_array.push(file_content_map);
+                    }
+                }
+            }
+        }
+    }
+
+    file_content_map_array
 }
 
 #[get("/scarb-compile/<remix_file_path..>")]
@@ -310,58 +339,27 @@ async fn scarb_compile(remix_file_path: PathBuf) -> Json<ScarbCompileResponse> {
 
     let file_path = get_file_path(&remix_file_path);
 
-    let casm_remix_path = remix_file_path.replace(&get_file_ext(&remix_file_path), "casm");
+    
 
-    let mut compile = Command::new("cargo");
-    compile.current_dir(CAIRO_DIR);
-
-    let casm_path = Path::new(CASM_ROOT).join(&casm_remix_path);
-
-    // create directory for casm file
-    match casm_path.parent() {
-        Some(parent) => match fs::create_dir_all(parent).await {
-            Ok(_) => {
-                println!("LOG: Created directory: {:?}", parent);
-            }
-            Err(e) => {
-                println!("LOG: Error creating directory: {:?}", e);
-            }
-        },
-        None => {
-            println!("LOG: Error creating directory");
-        }
-    }
+    let mut compile = Command::new("scarb");
+    compile.current_dir(&file_path);
 
     let result = compile
-        .arg("run")
-        .arg("--bin")
-        .arg("starknet-sierra-compile")
-        .arg("--")
-        .arg(&file_path)
-        .arg(&casm_path)
+        .arg("build")
         .stderr(Stdio::piped())
         .spawn()
-        .expect("Failed to execute starknet-sierra-compile");
+        .expect("Failed to execute scarb build");
 
     println!("LOG: ran command:{:?}", compile);
 
     let output = result.wait_with_output().expect("Failed to wait on child");
 
-    Json(CompileResponse {
-        file_content: match NamedFile::open(&casm_path).await.ok() {
-            Some(file) => match file.path().to_str() {
-                Some(path) => match fs::read_to_string(path.to_string()).await {
-                    Ok(casm) => casm.to_string(),
-                    Err(e) => e.to_string(),
-                },
-                None => "".to_string(),
-            },
-            None => "".to_string(),
-        },
+
+    Json(ScarbCompileResponse {
+        file_content_map_array: get_files_recursive(&file_path.join("target/dev")),
         message: String::from_utf8(output.stderr)
             .unwrap()
-            .replace(&file_path.to_str().unwrap().to_string(), &remix_file_path)
-            .replace(&casm_path.to_str().unwrap().to_string(), &casm_remix_path),
+            .replace(&file_path.to_str().unwrap().to_string(), &remix_file_path),
         status: match output.status.code() {
             Some(0) => "Success".to_string(),
             Some(_) => "SierraCompilationFailed".to_string(),
