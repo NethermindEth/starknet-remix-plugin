@@ -1,4 +1,4 @@
-# CONTRIBUTING.md
+# Welcome to the Starknet Remix Plugin Contribution Guide!
 
 ## Getting Started
 
