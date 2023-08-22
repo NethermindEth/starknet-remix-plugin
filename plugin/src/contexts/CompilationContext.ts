@@ -15,7 +15,9 @@ const CompilationContext = createContext({
   hashDir: '' as string,
   setHashDir: ((_: string) => {}) as React.Dispatch<React.SetStateAction<string>>,
   tomlPaths: [] as string[],
-  setTomlPaths: ((_: string[]) => {}) as React.Dispatch<React.SetStateAction<string[]>>
+  setTomlPaths: ((_: string[]) => {}) as React.Dispatch<React.SetStateAction<string[]>>,
+  activeTomlPath: '' as string,
+  setActiveTomlPath: ((_: string) => {}) as React.Dispatch<React.SetStateAction<string>>
 })
 
 export default CompilationContext

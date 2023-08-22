@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/restrict-plus-operands */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useContext, useEffect } from 'react'
 import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
 import { RemixClientContext } from '../../contexts/RemixClientContext'
 import { apiUrl } from '../../utils/network'
@@ -46,7 +46,9 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     hashDir,
     setHashDir,
     tomlPaths,
-    setTomlPaths
+    setTomlPaths,
+    activeTomlPath,
+    setActiveTomlPath
   } = useContext(CompilationContext)
 
   const [currWorkspacePath, setCurrWorkspacePath] = React.useState<string>('')
@@ -171,7 +173,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     }, 100)
   }, [currentFilename, remixClient])
 
-  async function getTomlPaths(
+  async function getTomlPaths (
     workspacePath: string,
     currPath: string
   ): Promise<string[]> {
@@ -236,6 +238,10 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       }
     }, 100)
   }, [currWorkspacePath])
+
+  useEffect(() => {
+    if (activeTomlPath === '') setActiveTomlPath(tomlPaths[0])
+  }, [tomlPaths])
 
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -316,7 +322,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     }
   ]
 
-  async function compile(): Promise<void> {
+  async function compile (): Promise<void> {
     setIsCompiling(true)
     setStatus('Compiling...')
     // clear current file annotations: inline syntax error reporting
@@ -571,7 +577,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     setIsCompiling(false)
   }
 
-  async function saveScarbWorkspace(
+  async function saveScarbWorkspace (
     workspacePath: string,
     currPath: string
   ): Promise<string[]> {
@@ -629,7 +635,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     return resTomlPaths
   }
 
-  async function compileScarb(
+  async function compileScarb (
     workspacePath: string,
     scarbPath: string
   ): Promise<void> {
@@ -656,7 +662,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     }
   }
 
-  async function storeContract(
+  async function storeContract (
     contractName: string,
     path: string,
     sierraFile: string,
@@ -696,8 +702,6 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     }
   }
 
-  const [activeTomlPath, setActiveTomlPath] = useState('Entry1')
-
   const compilationCard = (
     validation: boolean,
     isLoading: boolean,
@@ -729,19 +733,6 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
               </D.Content>
             </D.Portal>
           </D.Root>
-          {/* <button
-            className="btn btn-primary dropdown-toggle"
-            type="button"
-            data-toggle="dropdown"
-          >
-            Compile Entry1
-            <span className="caret"></span>
-          </button>
-          <ul className="dropdown-menu">
-            <li>x</li>
-            <li>y</li>
-            <li>z</li>
-          </ul> */}
         </div>
         <button
           className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-1 px-0"
@@ -756,12 +747,15 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         >
           <div className="d-flex align-items-center justify-content-center">
             <div className="text-truncate overflow-hidden text-nowrap">
-              {!validation ? (
+              {!validation
+                ? (
                 <span>Not a valid cairo file</span>
-              ) : (
+                  )
+                : (
                 <>
                   <div className="d-flex align-items-center justify-content-center">
-                    {isLoading ? (
+                    {isLoading
+                      ? (
                       <>
                         <span
                           className="spinner-border spinner-border-sm"
@@ -772,17 +766,18 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
                         </span>
                         <span style={{ paddingLeft: '0.5rem' }}>{status}</span>
                       </>
-                    ) : (
+                        )
+                      : (
                       <div className="text-truncate overflow-hidden text-nowrap">
                         <span>Compile</span>
                         <span className="ml-1 text-nowrap">
                           {currentFilename}
                         </span>
                       </div>
-                    )}
+                        )}
                   </div>
                 </>
-              )}
+                  )}
             </div>
           </div>
         </button>
