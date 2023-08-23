@@ -98,8 +98,6 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
             type: 'info',
             title: 'Current file: ' + currentFilename
           })
-
-          console.log('current File: ', currentFilename)
         }
       } catch (e) {
         remixClient.emit('statusChanged', {
@@ -128,7 +126,6 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
             type: 'info',
             title: 'Current file: ' + currentFilename
           })
-          console.log('current File here: ', currentFilename)
           setNoFileSelected(false)
         }
       )
@@ -189,14 +186,9 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       const allFilesValues = Object.values(allFiles)
 
       for (let i = 0; i < allFilesKeys.length; i++) {
-        console.log('allFilesValues[i]: ', allFilesValues[i], allFilesKeys[i])
         if (allFilesKeys[i].endsWith('Scarb.toml')) {
           resTomlPaths.push(currPath)
         }
-        console.log(
-          'Object.values(allFilesValues[i])[0]',
-          Object.values(allFilesValues[i])[0]
-        )
         if (Object.values(allFilesValues[i])[0]) {
           const recTomlPaths = await getTomlPaths(
             workspacePath,
@@ -231,8 +223,9 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       try {
         if (currWorkspacePath === '') return
         const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
-        console.log('allTomlPaths: ', allTomlPaths)
+
         setTomlPaths(allTomlPaths)
+        if (activeTomlPath === '' || activeTomlPath === undefined) setActiveTomlPath(tomlPaths[0])
       } catch (e) {
         console.log('error: ', e)
       }
@@ -240,7 +233,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
   }, [currWorkspacePath])
 
   useEffect(() => {
-    if (activeTomlPath === '') setActiveTomlPath(tomlPaths[0])
+    if (activeTomlPath === '' || activeTomlPath === undefined) setActiveTomlPath(tomlPaths[0])
   }, [tomlPaths])
 
   useEffect(() => {
@@ -252,7 +245,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           // get current workspace path
           try {
             const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
-            console.log('allTomlPaths: ', allTomlPaths)
+
             setTomlPaths(allTomlPaths)
           } catch (e) {
             console.log('error: ', e)
@@ -265,7 +258,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           // get current workspace path
           try {
             const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
-            console.log('allTomlPaths: ', allTomlPaths)
+
             setTomlPaths(allTomlPaths)
           } catch (e) {
             console.log('error: ', e)
@@ -278,7 +271,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           // get current workspace path
           try {
             const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
-            console.log('allTomlPaths: ', allTomlPaths)
+
             setTomlPaths(allTomlPaths)
           } catch (e) {
             console.log('error: ', e)
@@ -291,7 +284,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           // get current workspace path
           try {
             const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
-            console.log('allTomlPaths: ', allTomlPaths)
+
             setTomlPaths(allTomlPaths)
           } catch (e) {
             console.log('error: ', e)
@@ -304,7 +297,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           // get current workspace path
           try {
             const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
-            console.log('allTomlPaths: ', allTomlPaths)
+
             setTomlPaths(allTomlPaths)
           } catch (e) {
             console.log('error: ', e)
@@ -422,13 +415,6 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           const errorColumn = errorLet[1].split(':')[2].trim()
           // join the rest of the array
           const errorMsg = errorLet.slice(2).join('\n')
-
-          console.log({
-            row: Number(errorLine) - 1,
-            column: Number(errorColumn) - 1,
-            text: errorMsg + '\n' + errorTitle,
-            type: errorType
-          })
 
           await remixClient.editor.addAnnotation({
             row: Number(errorLine) - 1,
@@ -600,12 +586,12 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           const fileContent = await remixClient.call(
             'fileManager',
             'readFile',
-            workspacePath + '/' + currPath + '/' + allFilesKeys[i]
+            workspacePath + '/' + allFilesKeys[i]
           )
           setStatus(`Saving ${allFilesKeys[i]}...`)
           const response = await fetch(
             `${apiUrl}/save_code/${hashDir}/${
-              workspacePath + '/' + currPath + '/' + allFilesKeys[i]
+              workspacePath.replace('.', '') + '/' + allFilesKeys[i]
             }`,
             {
               method: 'POST',
@@ -639,27 +625,98 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     workspacePath: string,
     scarbPath: string
   ): Promise<void> {
-    setStatus('Saving scarb workspace...')
-    await saveScarbWorkspace(workspacePath, scarbPath)
-    const response = await fetch(
-      `${apiUrl}/compile-scarb/${hashDir}/${workspacePath}/${scarbPath}`,
-      {
-        method: 'GET',
-        redirect: 'follow',
-        headers: {
-          'Content-Type': 'text/plain'
+    setIsCompiling(true)
+    try {
+      setStatus('Saving scarb workspace...')
+      await saveScarbWorkspace(workspacePath, scarbPath)
+      const response = await fetch(
+        `${apiUrl}/compile-scarb/${hashDir}/${workspacePath.replace('.', '')}/${scarbPath}`,
+        {
+          method: 'GET',
+          redirect: 'follow',
+          headers: {
+            'Content-Type': 'text/plain'
+          }
+        }
+      )
+      if (!response.ok) {
+        await remixClient.call(
+          'notification' as any,
+          'toast',
+          'Scarb compilation failed!'
+        )
+        throw new Error('Cairo Compilation Request Failed')
+      }
+
+      const scarbCompile = JSON.parse(await response.text())
+
+      if (scarbCompile.status !== 'Success') {
+        await remixClient.call(
+          'notification' as any,
+          'alert',
+          'Scarb compilation failed!, you can read logs in the terminal console'
+        )
+        remixClient.emit('statusChanged', {
+          key: 'failed',
+          type: 'error',
+          title: 'Scarb compilation failed!'
+        })
+        throw new Error('Cairo Compilation Request Failed')
+      }
+
+      remixClient.emit('statusChanged', {
+        key: 'succeed',
+        type: 'success',
+        title: 'Scarb compilation successful'
+      })
+
+      setStatus('Analyzing contracts...')
+      for (const file of scarbCompile.file_content_map_array) {
+        if (file.file_name.endsWith('.sierra.json')) {
+          const contractName = file.file_name.replace('.sierra.json', '')
+          const sierra = JSON.parse(file.file_content)
+          const casm = JSON.parse(scarbCompile.file_content_map_array.find((file: { file_name: string }) => file.file_name === contractName + '.casm.json')?.file_content ?? '')
+          await storeContract(
+            contractName,
+            file.file_name,
+            JSON.stringify(sierra),
+            JSON.stringify(casm)
+          )
         }
       }
-    )
 
-    if (!response.ok) {
-      await remixClient.call(
-        'notification' as any,
-        'toast',
-        'Could not reach cairo compilation server'
-      )
-      throw new Error('Cairo Compilation Request Failed')
+      setStatus('Saving compilation output files...')
+      try {
+        for (const file of scarbCompile.file_content_map_array) {
+          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+          const filePath = `${scarbPath}/target/dev/${file.file_name}`
+          await remixClient.call(
+            'fileManager',
+            'writeFile',
+            filePath,
+            file.file_content
+          )
+        }
+      } catch (e) {
+        if (e instanceof Error) {
+          await remixClient.call(
+            'notification' as any,
+            'toast',
+            e.message +
+              ' try deleting the dir: ' +
+              scarbPath
+          )
+        }
+        remixClient.emit('statusChanged', {
+          key: 'succeed',
+          type: 'warning',
+          title: 'Failed to save artifacts'
+        })
+      }
+    } catch (e) {
+      console.log('error: ', e)
     }
+    setIsCompiling(false)
   }
 
   async function storeContract (
@@ -710,10 +767,28 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     return (
       <Container>
         <div className="dropdown">
+          <button className="btn btn-primary btn-block d-block w-100 text-break mb-1 mt-1 px-0"
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
+            onClick={async (): Promise<void> => {
+              try {
+                await compileScarb(currWorkspacePath, activeTomlPath)
+                remixClient.emit('statusChanged', {
+                  key: 'succeed',
+                  type: 'success',
+                  title: 'Cheers : compilation successful'
+                })
+              } catch (e) {
+                console.log('error: ', e)
+              }
+            }
+            }
+          >
+            compile project
+          </button>
           <D.Root>
             <D.Trigger>
               <label className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-1 px-0">
-                Compile {activeTomlPath} <BsChevronDown />
+                {activeTomlPath} <BsChevronDown />
               </label>
             </D.Trigger>
             <D.Portal>
