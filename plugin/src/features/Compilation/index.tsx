@@ -170,7 +170,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     }, 100)
   }, [currentFilename, remixClient])
 
-  async function getTomlPaths (
+  async function getTomlPaths(
     workspacePath: string,
     currPath: string
   ): Promise<string[]> {
@@ -225,7 +225,8 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
 
         setTomlPaths(allTomlPaths)
-        if (activeTomlPath === '' || activeTomlPath === undefined) setActiveTomlPath(tomlPaths[0])
+        if (activeTomlPath === '' || activeTomlPath === undefined)
+          setActiveTomlPath(tomlPaths[0])
       } catch (e) {
         console.log('error: ', e)
       }
@@ -233,7 +234,8 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
   }, [currWorkspacePath])
 
   useEffect(() => {
-    if (activeTomlPath === '' || activeTomlPath === undefined) setActiveTomlPath(tomlPaths[0])
+    if (activeTomlPath === '' || activeTomlPath === undefined)
+      setActiveTomlPath(tomlPaths[0])
   }, [tomlPaths])
 
   useEffect(() => {
@@ -315,7 +317,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     }
   ]
 
-  async function compile (): Promise<void> {
+  async function compile(): Promise<void> {
     setIsCompiling(true)
     setStatus('Compiling...')
     // clear current file annotations: inline syntax error reporting
@@ -563,7 +565,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     setIsCompiling(false)
   }
 
-  async function saveScarbWorkspace (
+  async function saveScarbWorkspace(
     workspacePath: string,
     currPath: string
   ): Promise<string[]> {
@@ -621,7 +623,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     return resTomlPaths
   }
 
-  async function compileScarb (
+  async function compileScarb(
     workspacePath: string,
     scarbPath: string
   ): Promise<void> {
@@ -630,7 +632,10 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       setStatus('Saving scarb workspace...')
       await saveScarbWorkspace(workspacePath, scarbPath)
       const response = await fetch(
-        `${apiUrl}/compile-scarb/${hashDir}/${workspacePath.replace('.', '')}/${scarbPath}`,
+        `${apiUrl}/compile-scarb/${hashDir}/${workspacePath.replace(
+          '.',
+          ''
+        )}/${scarbPath}`,
         {
           method: 'GET',
           redirect: 'follow',
@@ -675,7 +680,12 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         if (file.file_name.endsWith('.sierra.json')) {
           const contractName = file.file_name.replace('.sierra.json', '')
           const sierra = JSON.parse(file.file_content)
-          const casm = JSON.parse(scarbCompile.file_content_map_array.find((file: { file_name: string }) => file.file_name === contractName + '.casm.json')?.file_content ?? '')
+          const casm = JSON.parse(
+            scarbCompile.file_content_map_array.find(
+              (file: { file_name: string }) =>
+                file.file_name === contractName + '.casm.json'
+            )?.file_content ?? ''
+          )
           await storeContract(
             contractName,
             file.file_name,
@@ -702,9 +712,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           await remixClient.call(
             'notification' as any,
             'toast',
-            e.message +
-              ' try deleting the dir: ' +
-              scarbPath
+            e.message + ' try deleting the dir: ' + scarbPath
           )
         }
         remixClient.emit('statusChanged', {
@@ -719,7 +727,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     setIsCompiling(false)
   }
 
-  async function storeContract (
+  async function storeContract(
     contractName: string,
     path: string,
     sierraFile: string,
@@ -766,49 +774,55 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
   ): React.ReactElement => {
     return (
       <Container>
-        <div className="dropdown">
-          <button className="btn btn-primary btn-block d-block w-100 text-break mb-1 mt-1 px-0"
-            // eslint-disable-next-line @typescript-eslint/no-misused-promises
-            onClick={async (): Promise<void> => {
-              try {
-                await compileScarb(currWorkspacePath, activeTomlPath)
-                remixClient.emit('statusChanged', {
-                  key: 'succeed',
-                  type: 'success',
-                  title: 'Cheers : compilation successful'
-                })
-              } catch (e) {
-                console.log('error: ', e)
-              }
-            }
-            }
-          >
-            compile project
-          </button>
-          <D.Root>
-            <D.Trigger>
-              <label className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-1 px-0">
-                {activeTomlPath} <BsChevronDown />
-              </label>
-            </D.Trigger>
-            <D.Portal>
-              <D.Content>
-                {tomlPaths.map((tomlPath, i) => {
-                  return (
-                    <D.Item
-                      key={i + tomlPath}
-                      onClick={() => {
-                        setActiveTomlPath(tomlPath)
-                      }}
-                    >
-                      {tomlPath}
-                    </D.Item>
-                  )
-                })}
-              </D.Content>
-            </D.Portal>
-          </D.Root>
-        </div>
+        {activeTomlPath && tomlPaths?.length > 0 && (
+          <div className="project-dropdown-wrapper">
+            <button
+              className="btn btn-primary btn-block d-block w-100 text-break mb-1 mt-1 px-0"
+              // eslint-disable-next-line @typescript-eslint/no-misused-promises
+              onClick={async (): Promise<void> => {
+                try {
+                  await compileScarb(currWorkspacePath, activeTomlPath)
+                  remixClient.emit('statusChanged', {
+                    key: 'succeed',
+                    type: 'success',
+                    title: 'Cheers : compilation successful'
+                  })
+                } catch (e) {
+                  console.log('error: ', e)
+                }
+              }}
+            >
+              Compile project
+            </button>
+
+            <D.Root>
+              <D.Trigger>
+                <div className="btn btn-primary w-100 text-break remixui_disabled mb-1 mt-1 px-0 trigger-wrapper">
+                  <label className="text-break text-white trigger-label">
+                    {activeTomlPath}
+                  </label>
+                  <BsChevronDown />
+                </div>
+              </D.Trigger>
+              <D.Portal>
+                <D.Content>
+                  {tomlPaths.map((tomlPath, i) => {
+                    return (
+                      <D.Item
+                        key={i + tomlPath}
+                        onClick={() => {
+                          setActiveTomlPath(tomlPath)
+                        }}
+                      >
+                        {tomlPath}
+                      </D.Item>
+                    )
+                  })}
+                </D.Content>
+              </D.Portal>
+            </D.Root>
+          </div>
+        )}
         <button
           className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-1 px-0"
           style={{
@@ -822,15 +836,12 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         >
           <div className="d-flex align-items-center justify-content-center">
             <div className="text-truncate overflow-hidden text-nowrap">
-              {!validation
-                ? (
+              {!validation ? (
                 <span>Not a valid cairo file</span>
-                  )
-                : (
+              ) : (
                 <>
                   <div className="d-flex align-items-center justify-content-center">
-                    {isLoading
-                      ? (
+                    {isLoading ? (
                       <>
                         <span
                           className="spinner-border spinner-border-sm"
@@ -841,18 +852,17 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
                         </span>
                         <span style={{ paddingLeft: '0.5rem' }}>{status}</span>
                       </>
-                        )
-                      : (
+                    ) : (
                       <div className="text-truncate overflow-hidden text-nowrap">
                         <span>Compile</span>
                         <span className="ml-1 text-nowrap">
                           {currentFilename}
                         </span>
                       </div>
-                        )}
+                    )}
                   </div>
                 </>
-                  )}
+              )}
             </div>
           </div>
         </button>

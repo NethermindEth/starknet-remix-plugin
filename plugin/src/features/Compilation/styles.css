@@ -6,3 +6,24 @@
   opacity: 0.5;
   cursor: 'not-allowed';
 }
+
+.project-dropdown-wrapper {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: 4fr 2fr;
+}
+
+.trigger-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.trigger-label {
+  width: 80%;
+  margin: 0px;
+  font-size: 0.8rem;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
