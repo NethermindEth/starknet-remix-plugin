@@ -792,7 +792,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
                 }
               }}
             >
-              Compile project
+              Compile Project
             </button>
 
             <D.Root>
@@ -837,7 +837,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           <div className="d-flex align-items-center justify-content-center">
             <div className="text-truncate overflow-hidden text-nowrap">
               {!validation ? (
-                <span>Not a valid cairo file</span>
+                <span>Select a valid cairo file</span>
               ) : (
                 <>
                   <div className="d-flex align-items-center justify-content-center">
