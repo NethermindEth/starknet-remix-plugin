@@ -324,7 +324,7 @@ fn get_files_recursive(base_path: &Path) -> Vec<FileContentMap> {
     file_content_map_array
 }
 
-#[get("/scarb-compile/<remix_file_path..>")]
+#[get("/compile-scarb/<remix_file_path..>")]
 async fn scarb_compile(remix_file_path: PathBuf) -> Json<ScarbCompileResponse> {
     let remix_file_path = match remix_file_path.to_str() {
         Some(path) => path.to_string(),
