@@ -659,13 +659,18 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         await remixClient.call(
           'notification' as any,
           'alert',
-          'Scarb compilation failed!, you can read logs in the terminal console'
+          {
+            id: 'starknetRemixPluginAlert',
+            title: 'Scarb compilation failed!',
+            message: 'Scarb compilation failed!, you can read logs in the terminal console'
+          }
         )
         remixClient.emit('statusChanged', {
           key: 'failed',
           type: 'error',
           title: 'Scarb compilation failed!'
         })
+        await remixClient.terminal.log({ type: 'error', value: scarbCompile.message })
         throw new Error('Cairo Compilation Request Failed')
       }
 
@@ -704,9 +709,14 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
             'fileManager',
             'writeFile',
             filePath,
-            file.file_content
+            JSON.parse(file.file_content)
           )
         }
+        await remixClient.call(
+          'notification' as any,
+          'toast',
+          `Compilation resultant files are written to ${scarbPath}/target/dev directory`
+        )
       } catch (e) {
         if (e instanceof Error) {
           await remixClient.call(
