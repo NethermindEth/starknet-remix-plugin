@@ -777,7 +777,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         {activeTomlPath && tomlPaths?.length > 0 && (
           <div className="project-dropdown-wrapper">
             <button
-              className="btn btn-primary btn-block d-block w-100 text-break mb-1 mt-1 px-0"
+              className="btn btn-warning btn-block d-block w-100 text-break mb-1 mt-1 px-0"
               // eslint-disable-next-line @typescript-eslint/no-misused-promises
               onClick={async (): Promise<void> => {
                 try {
