@@ -19,6 +19,7 @@ import CompilationContext from '../../contexts/CompilationContext'
 import { type AccordianTabs } from '../Plugin'
 import * as D from '../../ui_components/Dropdown'
 import { BsChevronDown } from 'react-icons/bs'
+import { type Contract } from '../../types/contracts'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface CompilationProps {
@@ -28,7 +29,7 @@ interface CompilationProps {
 const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
   const remixClient = useContext(RemixClientContext)
 
-  const { contracts, setContracts, setSelectedContract } = useContext(
+  const { contracts, selectedContract, setContracts, setSelectedContract } = useContext(
     CompiledContractsContext
   )
 
@@ -170,7 +171,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     }, 100)
   }, [currentFilename, remixClient])
 
-  async function getTomlPaths(
+  async function getTomlPaths (
     workspacePath: string,
     currPath: string
   ): Promise<string[]> {
@@ -225,8 +226,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
 
         setTomlPaths(allTomlPaths)
-        if (activeTomlPath === '' || activeTomlPath === undefined)
-          setActiveTomlPath(tomlPaths[0])
+        if (activeTomlPath === '' || activeTomlPath === undefined) { setActiveTomlPath(tomlPaths[0]) }
       } catch (e) {
         console.log('error: ', e)
       }
@@ -234,8 +234,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
   }, [currWorkspacePath])
 
   useEffect(() => {
-    if (activeTomlPath === '' || activeTomlPath === undefined)
-      setActiveTomlPath(tomlPaths[0])
+    if (activeTomlPath === '' || activeTomlPath === undefined) { setActiveTomlPath(tomlPaths[0]) }
   }, [tomlPaths])
 
   useEffect(() => {
@@ -317,7 +316,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     }
   ]
 
-  async function compile(): Promise<void> {
+  async function compile (): Promise<void> {
     setIsCompiling(true)
     setStatus('Compiling...')
     // clear current file annotations: inline syntax error reporting
@@ -482,12 +481,19 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         )
       }
 
-      await storeContract(
+      const contract = await genContractData(
         currentFilename,
         currentFilePath,
         sierra.file_content,
         casm.file_content
       )
+
+      if (contract != null) {
+        setSelectedContract(contract)
+        setContracts([...contracts, contract])
+      } else {
+        if (selectedContract == null) setSelectedContract(contracts[0])
+      }
 
       setStatus('Saving artifacts...')
 
@@ -565,7 +571,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     setIsCompiling(false)
   }
 
-  async function saveScarbWorkspace(
+  async function saveScarbWorkspace (
     workspacePath: string,
     currPath: string
   ): Promise<string[]> {
@@ -623,7 +629,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     return resTomlPaths
   }
 
-  async function compileScarb(
+  async function compileScarb (
     workspacePath: string,
     scarbPath: string
   ): Promise<void> {
@@ -681,23 +687,52 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       })
 
       setStatus('Analyzing contracts...')
+
+      let notifyCasmInclusion = false
+
+      const contractsToStore: Contract[] = []
+
       for (const file of scarbCompile.file_content_map_array) {
         if (file.file_name.endsWith('.sierra.json')) {
           const contractName = file.file_name.replace('.sierra.json', '')
           const sierra = JSON.parse(file.file_content)
+          if (
+            !scarbCompile.file_content_map_array.find(
+              (file: { file_name: string }) =>
+                file.file_name === contractName + '.casm.json'
+            )
+          ) {
+            notifyCasmInclusion = true
+            continue
+          }
           const casm = JSON.parse(
             scarbCompile.file_content_map_array.find(
               (file: { file_name: string }) =>
                 file.file_name === contractName + '.casm.json'
             )?.file_content ?? ''
           )
-          await storeContract(
+          const genContract = await genContractData(
             contractName,
             file.file_name,
             JSON.stringify(sierra),
             JSON.stringify(casm)
           )
+          if (genContract != null) contractsToStore.push(genContract)
         }
+      }
+
+      if (contractsToStore.length > 1) {
+        setSelectedContract(contractsToStore[0])
+        setContracts([...contracts, ...contractsToStore])
+      } else {
+        if (selectedContract == null) setSelectedContract(contracts[0])
+      }
+      if (notifyCasmInclusion) {
+        await remixClient.call(
+          'notification' as any,
+          'toast',
+          'Please include \'casm=true\' in Scarb.toml to deploy cairo contracts'
+        )
       }
 
       setStatus('Saving compilation output files...')
@@ -709,7 +744,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
             'fileManager',
             'writeFile',
             filePath,
-            JSON.parse(file.file_content)
+            JSON.stringify(JSON.parse(file.file_content))
           )
         }
         await remixClient.call(
@@ -722,7 +757,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           await remixClient.call(
             'notification' as any,
             'toast',
-            e.message + ' try deleting the dir: ' + scarbPath
+            e.message + ' try deleting the dir: ' + scarbPath + 'target/dev'
           )
         }
         remixClient.emit('statusChanged', {
@@ -735,46 +770,42 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       console.log('error: ', e)
     }
     setIsCompiling(false)
+    setStatus('done')
   }
 
-  async function storeContract(
+  async function genContractData (
     contractName: string,
     path: string,
     sierraFile: string,
     casmFile: string
-  ): Promise<void> {
-    try {
-      const sierra = await JSON.parse(sierraFile)
-      const casm = await JSON.parse(casmFile)
-      const compiledClassHash = hash.computeCompiledClassHash(casm)
-      const classHash = hash.computeContractClassHash(sierra)
-      const sierraClassHash = hash.computeSierraContractClassHash(sierra)
-      if (
-        contracts.find(
-          (contract) =>
-            contract.classHash === classHash &&
+  ): Promise<Contract | null> {
+    const sierra = await JSON.parse(sierraFile)
+    const casm = await JSON.parse(casmFile)
+    const compiledClassHash = hash.computeCompiledClassHash(casm)
+    const classHash = hash.computeContractClassHash(sierra)
+    const sierraClassHash = hash.computeSierraContractClassHash(sierra)
+    if (
+      contracts.find(
+        (contract) =>
+          contract.classHash === classHash &&
             contract.compiledClassHash === compiledClassHash
-        )
-      ) {
-        return
-      }
-      const contract = {
-        name: contractName,
-        abi: sierra.abi,
-        compiledClassHash,
-        classHash,
-        sierraClassHash,
-        sierra,
-        casm,
-        path,
-        deployedInfo: [],
-        address: ''
-      }
-      setSelectedContract(contract)
-      setContracts([...contracts, contract])
-    } catch (e) {
-      console.error(e)
+      )
+    ) {
+      return null
     }
+    const contract = {
+      name: contractName,
+      abi: sierra.abi,
+      compiledClassHash,
+      classHash,
+      sierraClassHash,
+      sierra,
+      casm,
+      path,
+      deployedInfo: [],
+      address: ''
+    }
+    return contract
   }
 
   const compilationCard = (
@@ -846,12 +877,15 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         >
           <div className="d-flex align-items-center justify-content-center">
             <div className="text-truncate overflow-hidden text-nowrap">
-              {!validation ? (
+              {!validation
+                ? (
                 <span>Select a valid cairo file</span>
-              ) : (
+                  )
+                : (
                 <>
                   <div className="d-flex align-items-center justify-content-center">
-                    {isLoading ? (
+                    {isLoading
+                      ? (
                       <>
                         <span
                           className="spinner-border spinner-border-sm"
@@ -862,17 +896,18 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
                         </span>
                         <span style={{ paddingLeft: '0.5rem' }}>{status}</span>
                       </>
-                    ) : (
+                        )
+                      : (
                       <div className="text-truncate overflow-hidden text-nowrap">
                         <span>Compile</span>
                         <span className="ml-1 text-nowrap">
                           {currentFilename}
                         </span>
                       </div>
-                    )}
+                        )}
                   </div>
                 </>
-              )}
+                  )}
             </div>
           </div>
         </button>
