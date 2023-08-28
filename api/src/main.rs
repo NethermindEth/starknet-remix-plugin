@@ -1,5 +1,6 @@
 #[macro_use]
 extern crate rocket;
+use rocket::figment::providers::Format;
 use rocket::serde::{json::Json, Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
@@ -7,9 +8,9 @@ use std::process::{Command, Stdio};
 use rocket::data::{Data, ToByteUnit};
 use rocket::fairing::{Fairing, Info, Kind};
 use rocket::fs::NamedFile;
+use rocket::http::{Header, Method, Status};
 use rocket::tokio::fs;
 use rocket::{Request, Response};
-use rocket::http::{Header, Method, Status};
 
 mod utils;
 use utils::lib::{get_file_ext, get_file_path, CAIRO_DIR, CASM_ROOT, SIERRA_ROOT};
@@ -17,7 +18,6 @@ use utils::lib::{get_file_ext, get_file_path, CAIRO_DIR, CASM_ROOT, SIERRA_ROOT}
 #[derive(Default)]
 
 pub struct CORS;
-
 
 #[rocket::async_trait]
 impl Fairing for CORS {
@@ -41,7 +41,7 @@ impl Fairing for CORS {
         response.set_header(Header::new(
             "Access-Control-Allow-Origin",
             "https://cairo-remix-test.nethermind.io"
-            // "*"
+            // "*",
         ));
         response.set_header(Header::new("Access-Control-Allow-Credentials", "true"));
     }
@@ -285,6 +285,91 @@ async fn compile_to_casm(remix_file_path: PathBuf) -> Json<CompileResponse> {
     })
 }
 
+#[derive(Serialize, Deserialize)]
+pub struct FileContentMap {
+    pub file_name: String,
+    pub file_content: String,
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct ScarbCompileResponse {
+    pub status: String,
+    pub message: String,
+    pub file_content_map_array: Vec<FileContentMap>,
+}
+
+fn get_files_recursive(base_path: &Path) -> Vec<FileContentMap> {
+    let mut file_content_map_array: Vec<FileContentMap> = Vec::new();
+
+    if base_path.is_dir() {
+        for entry in base_path.read_dir().unwrap() {
+            if let Ok(entry) = entry {
+                let path = entry.path();
+                if path.is_dir() {
+                    file_content_map_array.extend(get_files_recursive(&path));
+                } else {
+                    if let Ok(content) = std::fs::read_to_string(&path) {
+                        let file_name = path.file_name().unwrap().to_string_lossy().to_string();
+                        let file_content = content;
+                        let file_content_map = FileContentMap {
+                            file_name,
+                            file_content,
+                        };
+                        file_content_map_array.push(file_content_map);
+                    }
+                }
+            }
+        }
+    }
+
+    file_content_map_array
+}
+
+#[get("/compile-scarb/<remix_file_path..>")]
+async fn scarb_compile(remix_file_path: PathBuf) -> Json<ScarbCompileResponse> {
+    let remix_file_path = match remix_file_path.to_str() {
+        Some(path) => path.to_string(),
+        None => {
+            return Json(ScarbCompileResponse {
+                file_content_map_array: vec![],
+                message: "File path not found".to_string(),
+                status: "FileNotFound".to_string(),
+            });
+        }
+    };
+
+    let file_path = get_file_path(&remix_file_path);
+
+    let mut compile = Command::new("scarb");
+    compile.current_dir(&file_path);
+
+    let result = compile
+        .arg("build")
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("Failed to execute scarb build");
+
+    println!("LOG: ran command:{:?}", compile);
+
+    let output = result.wait_with_output().expect("Failed to wait on child");
+
+    Json(ScarbCompileResponse {
+        file_content_map_array: get_files_recursive(&file_path.join("target/dev")),
+        message: String::from_utf8(output.stdout)
+            .unwrap()
+            .replace(&file_path.to_str().unwrap().to_string(), &remix_file_path)
+            + &String::from_utf8(output.stderr)
+                .unwrap()
+                .replace(&file_path.to_str().unwrap().to_string(), &remix_file_path),
+        status: match output.status.code() {
+            Some(0) => "Success".to_string(),
+            Some(_) => "SierraCompilationFailed".to_string(),
+            None => "UnknownError".to_string(),
+        },
+    })
+}
+
 // Read the version from the cairo Cargo.toml file.
 #[get("/cairo_version")]
 async fn cairo_version() -> String {
@@ -303,7 +388,7 @@ async fn cairo_version() -> String {
             .expect("Failed to execute cairo-compile")
             .wait_with_output()
             .expect("Failed to wait on child")
-            .stdout
+            .stdout,
     ) {
         Ok(version) => version,
         Err(e) => e.to_string(),
@@ -322,17 +407,16 @@ async fn who_is_this() -> &'static str {
 
 #[launch]
 fn rocket() -> _ {
-    rocket::build()
-        .attach(CORS)
-        .mount(
-            "/",
-            routes![
-                compile_to_sierra,
-                compile_to_casm,
-                save_code,
-                cairo_version,
-                health, 
-                who_is_this, 
-            ],
-        )
+    rocket::build().attach(CORS).mount(
+        "/",
+        routes![
+            compile_to_sierra,
+            compile_to_casm,
+            scarb_compile,
+            save_code,
+            cairo_version,
+            health,
+            who_is_this,
+        ],
+    )
 }
