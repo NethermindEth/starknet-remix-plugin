@@ -24,7 +24,7 @@ jobs:
           username: ${{ secrets.USERNAME }}
           port: ${{ secrets.PORT }}
           key: ${{ secrets.SSHKEY }}
-          source: “.”
+          source: ./*
           target: ${{ secrets.PATH }}
       - name: Build the lib
         uses: appleboy/ssh-action@master
