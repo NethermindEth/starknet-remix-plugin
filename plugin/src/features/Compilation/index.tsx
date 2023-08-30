@@ -816,7 +816,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     return (
       <Container>
         {activeTomlPath && tomlPaths?.length > 0 && (
-          <div className="project-dropdown-wrapper">
+          <div className="project-dropdown-wrapper d-flex flex-column mb-3">
             <button
               className="btn btn-warning btn-block d-block w-100 text-break mb-1 mt-1 px-0"
               // eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -838,8 +838,8 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
             <D.Root>
               <D.Trigger>
-                <div className="btn btn-primary w-100 text-break remixui_disabled mb-1 mt-1 px-0 trigger-wrapper">
-                  <label className="text-break text-white trigger-label">
+                <div className="btn btn-primary w-100 text-break remixui_disabled mb-1 mt-1 px-0 trigger-wrapper" style={{ padding: '10px 1px' }}>
+                  <label className="text-break text-white trigger-label" style={{fontFamily: 'inherit', fontSize: 'inherit' }}>
                     {activeTomlPath}
                   </label>
                   <BsChevronDown />
@@ -862,6 +862,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
                 </D.Content>
               </D.Portal>
             </D.Root>
+            <div className='mx-auto'>Or compile a single file:</div>
           </div>
         )}
         <button
