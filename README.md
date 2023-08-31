@@ -55,9 +55,6 @@ pnpm run serve;
 ```
 
 ```bash
-```
-
-```bash
 cd api;
 cargo run;
 ```
