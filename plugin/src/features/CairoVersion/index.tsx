@@ -13,7 +13,7 @@ const CairoVersion: React.FC = () => {
   const [versions] = useState<string[]>([
     'v2.1.0-rc2'
   ])
-  const pluginVersion = process.env.REACT_APP_VERSION !== undefined ? process.env.REACT_APP_VERSION : '0.1.0'
+  const pluginVersion = process.env.REACT_APP_VERSION !== undefined ? `v${process.env.REACT_APP_VERSION}` : 'v0.1.0'
 
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
