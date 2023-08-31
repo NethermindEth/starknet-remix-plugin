@@ -1,11 +1,24 @@
 .version-wrapper {
     display: grid;
     padding: 0.5rem 0rem;
-    grid-template-columns: 1fr 200px;
+    grid-template-columns: 1fr 120px;
     justify-items: start;
   }
   
-  .version-wrapper > label:last-child {
+  .version-wrapper > label:nth-last-of-type(-n+2) {
     justify-self: end;
   }
-  
+
+  .version-right {
+    display: flex;
+    flex-direction: column;
+    align-self: end;
+  }
+
+  .nethermind-powered, .plugin-version {
+    align-self: end;
+  }
+
+  .plugin-version {
+    border: none;
+  }

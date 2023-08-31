@@ -13,6 +13,7 @@ const CairoVersion: React.FC = () => {
   const [versions] = useState<string[]>([
     'v2.1.0-rc2'
   ])
+  const pluginVersion = process.env.REACT_APP_VERSION !== undefined ? process.env.REACT_APP_VERSION : '0.1.0'
 
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -48,7 +49,7 @@ const CairoVersion: React.FC = () => {
         <D.Root>
           <D.Trigger>
             <label className="cairo-version-legend">
-              Using {cairoVersion} {/* <BsChevronDown /> */ }
+              Using {cairoVersion} {/* <BsChevronDown /> */}
             </label>
           </D.Trigger>
           <D.Portal>
@@ -69,10 +70,14 @@ const CairoVersion: React.FC = () => {
           </D.Portal>
         </D.Root>
       </div>
-
-      <label className="cairo-version-legend">
-        Powered by <Nethermind size="xs" />
-      </label>
+      <div className="version-right">
+        <label className="nethermind-powered">
+          Powered by <Nethermind size="xs" />
+        </label>
+        <label className="plugin-version">
+          Plugin version: {pluginVersion}
+        </label>
+      </div>
     </div>
   )
 }
