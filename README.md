@@ -42,9 +42,19 @@ pnpm install;
 
 You need to be running both the server and the plugin in order to have a working environment.
 
+For your dev environment:
 ```bash
 cd plugin;
 pnpm run start;
+```
+
+For an optimized build (will not listen to changes):
+```
+pnpm run deploy;
+pnpm run serve;
+```
+
+```bash
 ```
 
 ```bash

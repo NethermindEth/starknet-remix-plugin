@@ -4,7 +4,7 @@ cd starknet-remix-plugin/plugin
 
 pnpm install
 
-screen -S starknet-remix-frontend -d -m pnpm run start
+screen -S starknet-remix-frontend -d -m pnpm run deploy
 
 cd ../api
 
