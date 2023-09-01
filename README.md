@@ -80,6 +80,6 @@ You should be able to activate and see the plugin now.
 
 ### Support and Contributions
 
-Feel free to contribute any [issues](https://github.com/NethermindEth/starknet-remix-plugin/issues) you might find, check our [good first issues](https://github.com/NethermindEth/starknet-remix-plugin/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) and read our [Contribution Guidelines](https://github.com/NethermindEth/starknet-remix-plugin/blob/develop/.github/CONTRIBUTING.md). Join our [Discord channel](https://discord.com/invite/PaCMRFdvWT) and our [community](https://community.nethermind.io/) to connect with other users, share your experiences, and get answers to any questions you might have. Our community is eager to help newcomers.
+Feel free to contribute any [issues](https://github.com/NethermindEth/starknet-remix-plugin/issues) you might find, check our [good first issues](https://github.com/NethermindEth/starknet-remix-plugin/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) and read our [Contribution Guidelines](https://github.com/NethermindEth/starknet-remix-plugin/blob/develop/docs/CONTRIBUTING.md). Join our [Discord channel](https://discord.com/invite/PaCMRFdvWT) and our [community](https://community.nethermind.io/) to connect with other users, share your experiences, and get answers to any questions you might have. Our community is eager to help newcomers.
 
 We hope you enjoy using the Starknet Remix Plugin and look forward to seeing the innovative ways you leverage StarkNet contracts!
