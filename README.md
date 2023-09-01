@@ -1,5 +1,8 @@
 # Starknet Remix Plugin
 
+[![Pull Requests welcome](https://img.shields.io/badge/PRs-welcome-ff69b4.svg?style=flat-square)](https://github.com/NethermindEth/starknet-remix-plugin/issues)
+[![Discord](https://img.shields.io/discord/629004402170134531)](https://discord.com/invite/PaCMRFdvWT)
+
 Welcome to the **Starknet Remix Plugin** repository! 🎉 
 
 This powerful tool seamlessly integrates with the Remix IDE, enabling developers to effortlessly deploy and interact with StarkNet contracts! Whether you're a Cairo and Starknet wizard 🧙‍♂️ or taking your very first steps, this plugin supercharges your journey by providing an effortless way to deploy and interact with StarkNet contracts. Happy coding! 🚀
