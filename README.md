@@ -1,6 +1,27 @@
 # Starknet Remix Plugin
 
-Welcome to the Starknet Remix Plugin repository! This powerful tool seamlessly integrates with the Remix IDE, enabling developers to effortlessly deploy and interact with StarkNet contracts. Whether you're a seasoned blockchain developer or just getting started, our plugin provides a streamlined experience for working with StarkNet's unique capabilities. Dive in to explore detailed installation guides, developer resources, and more. Happy coding!
+Welcome to the **Starknet Remix Plugin** repository! 🎉 
+
+This powerful tool seamlessly integrates with the Remix IDE, enabling developers to effortlessly deploy and interact with StarkNet contracts! Whether you're a Cairo and Starknet wizard 🧙‍♂️ or taking your very first steps, this plugin supercharges your journey by providing an effortless way to deploy and interact with StarkNet contracts. Happy coding! 🚀
+
+<details>
+<summary>Table of Contents</summary>
+
+- [Starknet Remix Plugin](#starknet-remix-plugin)
+  - [For Users](#for-users)
+    - [Getting Started](#getting-started)
+      - Installation
+      - Usage
+      - Feedback
+  - [For Developers](#for-developers)
+    - [Installation](#installation)
+      - [API](#api)
+      - [Plugin](#plugin)
+    - [Running the Development Environment](#running-the-development-environment)
+      - [Connecting the Plugin](#connecting-the-plugin)
+  - [Support and Contributions](#support-and-contributions)
+
+</details>
 
 ## For users
 
@@ -8,11 +29,11 @@ If you're looking to utilize the capabilities of StarkNet contracts within the R
 
 ### Getting Started
 
-1. **Installation**: No additional installation is required for standard users. Simply access the Remix IDE and look for the Starknet Remix Plugin in the plugins section. Or just go to Remix directly from [this link](https://remix.ethereum.org/#activate=Starknet-cairo1-compiler).
+1. **Installation**: Get excited, folks, no complicated installations needed here! If you're a user, all you have to do is head over to the Remix IDE and locate the Starknet Remix Plugin in the plugins section. Want to make it even simpler? Click right through to Remix using [this direct link](https://remix.ethereum.org/#activate=Starknet-cairo1-compiler) and you're good to go! 🎉
 
-2. **Usage**: Once the plugin is activated, you'll find a user-friendly interface that allows you to deploy and interact with StarkNet contracts. Follow the on-screen prompts and tooltips for guidance.
+2. **Usage**: Once the plugin is activated, you'll find a user-friendly interface that allows you to deploy and interact with StarkNet contracts. Follow the on-screen prompts and tooltips for an effortlessly smooth experience!
 
-3. **Feedback**: Your feedback is invaluable to us. If you encounter any issues or have suggestions for improvements, please reach out through our [discord](https://discord.com/invite/PaCMRFdvWT) or our [community](https://community.nethermind.io/).
+3. **Feedback**: Your feedback is invaluable to us 🌟! If you encounter any issues or have game-changing suggestions, don't hesitate to reach out through our [Discord](https://discord.com/invite/PaCMRFdvWT) or our [Community Forum](https://community.nethermind.io/). Let's make something awesome together! 🤝
 
 ## For Developers
 
@@ -20,8 +41,11 @@ If you're looking to utilize the capabilities of StarkNet contracts within the R
 
 #### API
 
-The API is a Rust project that uses [Rocket](https://rocket.rs/). Therefore you'll need to install Rust and Cargo, [see](https://www.rust-lang.org/tools/install).
-Ideally you'll want to want use [rustup](https://rustup.rs/) to install Rust.
+Our API is built with [Rocket](https://rocket.rs/), a web framework for Rust. So, you'll need to get Rust and Cargo on your machine to get started. 🛠️
+
+The easiest way to install Rust and Cargo is by using [rustup](https://rustup.rs/). It's the [recommended tool](https://www.rust-lang.org/tools/install) for managing Rust versions and associated tools for your project.
+
+Then:
 
 ```bash
 cd api;
@@ -31,7 +55,7 @@ cargo build;
 
 #### Plugin
 
-The plugin it self is a React project, you'll need to install [pnpm](https://pnpm.io/).
+The plugin it self is a React project, you'll need to install [pnpm](https://pnpm.io/installation#using-npm).
 
 ```bash
 cd plugin;
@@ -76,10 +100,13 @@ Then, chose a name for the plugin, and in the `URL` field, enter `http://localho
 
 ![Plugin Manager](./docs/images/plugin-import.png)
 
-You should be able to activate and see the plugin now.
+You should be all set to see the magic happen! Activate the plugin and it should now be visible and ready to be hacked with! 🚀
 
-### Support and Contributions
+## Support and Contributions
 
-Feel free to contribute any [issues](https://github.com/NethermindEth/starknet-remix-plugin/issues) you might find, check our [good first issues](https://github.com/NethermindEth/starknet-remix-plugin/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) and read our [Contribution Guidelines](https://github.com/NethermindEth/starknet-remix-plugin/blob/develop/docs/CONTRIBUTING.md). Join our [Discord channel](https://discord.com/invite/PaCMRFdvWT) and our [community](https://community.nethermind.io/) to connect with other users, share your experiences, and get answers to any questions you might have. Our community is eager to help newcomers.
+Feel free to contribute! Spotted any [issues](https://github.com/NethermindEth/starknet-remix-plugin/issues)? Head on over to our [good first issues](https://github.com/NethermindEth/starknet-remix-plugin/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) or read through our [Contribution Guidelines](/docs/CONTRIBUTING.md) to get started. 📝
 
-We hope you enjoy using the Starknet Remix Plugin and look forward to seeing the innovative ways you leverage StarkNet contracts!
+Jump into our [Discord channel](https://discord.com/invite/PaCMRFdvWT) and join our thriving [community](https://community.nethermind.io/)! Connect with other users, share insights, and get all your questions answered. Our community is always eager to help newcomers! 🤝
+
+We're thrilled for you to experience the Starknet Remix Plugin, and we can't wait to see the inventive ways you'll engage with StarkNet contracts! Happy coding! 💡
+
