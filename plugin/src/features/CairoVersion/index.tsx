@@ -72,7 +72,8 @@ const CairoVersion: React.FC = () => {
       </div>
       <div className="version-right">
         <label className="nethermind-powered">
-          Powered by <Nethermind size="xs" />
+          <span style={{ marginRight: '4px' }}>Powered by </span>
+          <Nethermind size="xs" />
         </label>
         <label className="plugin-version">
           Plugin version: {pluginVersion}
