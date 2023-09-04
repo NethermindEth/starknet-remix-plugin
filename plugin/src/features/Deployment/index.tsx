@@ -93,7 +93,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       setDeployStatus('Declaring...')
       try {
         try {
-          await provider.getClassByHash(selectedContract.sierraClassHash)
+          await account.getClassByHash(selectedContract.sierraClassHash)
           await remixClient.call(
             'notification' as any,
             'toast',
@@ -103,7 +103,6 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
           const declareResponse = await account.declare({
             contract: selectedContract.sierra,
             classHash: selectedContract.sierraClassHash,
-            casm: selectedContract.casm,
             compiledClassHash: selectedContract.compiledClassHash
           })
           await remixClient.call('terminal', 'log', {
@@ -130,13 +129,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
             value: error.message,
             type: 'error'
           })
-          if (error.message.includes('is already declared')) {
-            await remixClient.call(
-              'notification' as any,
-              'toast',
-              `ℹ️ Contract with classHash: ${selectedContract.classHash} already has been declared, proceeding to deployment...`
-            )
-          }
+          throw new Error(error.message + '\n Aborting deployment... Couldn\'t get declare infomation')
         }
       }
 
