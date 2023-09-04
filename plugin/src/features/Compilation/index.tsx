@@ -819,6 +819,8 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           <div className="project-dropdown-wrapper d-flex flex-column mb-3">
             <button
               className="btn btn-warning btn-block d-block w-100 text-break mb-1 mt-1 px-0"
+              disabled={isCompiling}
+              aria-disabled={isCompiling}
               // eslint-disable-next-line @typescript-eslint/no-misused-promises
               onClick={async (): Promise<void> => {
                 try {
@@ -872,8 +874,8 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
               !validation || !currentFilename ? 'not-allowed' : 'pointer'
             }`
           }}
-          disabled={!validation || !currentFilename}
-          aria-disabled={!validation || !currentFilename}
+          disabled={!validation || !currentFilename || isCompiling}
+          aria-disabled={!validation || !currentFilename || isCompiling}
           onClick={onClick}
         >
           <div className="d-flex align-items-center justify-content-center">

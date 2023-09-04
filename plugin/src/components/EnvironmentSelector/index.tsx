@@ -22,13 +22,7 @@ const EnvironmentSelector: React.FC<EnvironmentSelectorProps> = (props) => {
       setDevnet(devnets[value - 1])
       if (value === 2) setEnv('remoteDevnet')
       else setEnv('localDevnet')
-      setProvider(
-        new Provider({
-          sequencer: {
-            baseUrl: devnets[value - 1].url
-          }
-        })
-      )
+      setProvider(null)
       return
     }
     setEnv('wallet')
