@@ -42,7 +42,7 @@ jobs:
           REPOSITORY: ${{ env.REPOSITORY }}
           IMAGE_TAG: ${{ github.run_number }}
         run: |
-          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG -f ./IaC/dokcerfile/DockerfileRocket .
+          docker build -t $REGISTRY/$REPOSITORY:rocket-$IMAGE_TAG -f ./DockerfileRocket .
           docker push $REGISTRY/$REPOSITORY:rocket-$IMAGE_TAG
 
   Deploy:
