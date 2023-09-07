@@ -1,0 +1,132 @@
+name: ECS Rocket server
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - 'api/**'
+
+permissions:
+      id-token: write
+      contents: read
+
+env:
+  WORKING_DIR_DEF: "./IaC/ecs/003-task-definition"
+  WORKING_DIR_SERVICE : "./IaC/ecs/004-services"
+  REGISTRY: "599564732950.dkr.ecr.us-east-2.amazonaws.com"
+  REPOSITORY: "starknet-remix-plugin"
+  
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: us-east-2
+          role-to-assume: arn:aws:iam::599564732950:role/Aws-GH-Action-Assume-Role-Starknet
+          role-session-name: GHStarknet
+    
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+        with:
+          mask-password: 'true'
+
+      - name: Build, tag, and push docker image to Amazon ECR
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REPOSITORY: "starknet-remix-plugin"
+          IMAGE_TAG: ${{ github.run_number }}
+        run: |
+          docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG -f ./IaC/dokcerfile/DockerfileRocket .
+          docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
+
+  Task_Def:
+    runs-on: ubuntu-latest
+    needs: Build
+    steps:
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: us-east-2
+          role-to-assume: arn:aws:iam::599564732950:role/Aws-GH-Action-Assume-Role-Starknet
+          role-session-name: GHStarknet
+      
+      - name: Terraform Init
+        id: init
+        working-directory: ${{ env.WORKING_DIR_DEF }}
+        shell: bash
+        run: |
+            terraform init
+      
+      - name: Terraform Plan
+        id: plan
+        working-directory: ${{ env.WORKING_DIR_DEF }}
+        shell: bash
+        env:
+          REGISTRY: ${{ env.REGISTRY }}
+          REPOSITORY: ${{ env.REPOSITORY }}
+        run: |
+          echo 'plan<<EOF' >> $GITHUB_OUTPUT
+          terraform plan -var="rocket_contianer_image=$REGISTRY/$REPOSITORY:rocket-${{ github.run_number }}" -no-color
+          echo 'EOF' >> $GITHUB_OUTPUT
+
+      - name: Terraform apply
+        id: apply
+        working-directory: ${{ env.WORKING_DIR_DEF }}
+        shell: bash
+        env:
+          REGISTRY: ${{ env.REGISTRY }}
+          REPOSITORY: ${{ env.REPOSITORY }}
+        run: |
+          terraform apply -var="rocket_contianer_image=$REGISTRY/$REPOSITORY:rocket-${{ github.run_number }}" -no-color
+
+  Deploy_Service:
+    runs-on: ubuntu-latest
+    needs: Task_Def
+    steps:
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: us-east-2
+          role-to-assume: arn:aws:iam::599564732950:role/Aws-GH-Action-Assume-Role-Starknet
+          role-session-name: GHStarknet
+      
+      - name: Terraform Init
+        id: init
+        working-directory: ${{ env.WORKING_DIR_SERVICE }}
+        shell: bash
+        run: |
+            terraform init
+      
+      - name: Terraform Plan
+        id: plan
+        working-directory: ${{ env.WORKING_DIR_SERVICE }}
+        shell: bash
+        env:
+          REGISTRY: ${{ env.REGISTRY }}
+          REPOSITORY: ${{ env.REPOSITORY }}
+        run: |
+          echo 'plan<<EOF' >> $GITHUB_OUTPUT
+          terraform plan -no-color
+          echo 'EOF' >> $GITHUB_OUTPUT
+
+      - name: Terraform apply
+        id: apply
+        working-directory: ${{ env.WORKING_DIR_SERVICE }}
+        shell: bash
+        env:
+          REGISTRY: ${{ env.REGISTRY }}
+          REPOSITORY: ${{ env.REPOSITORY }}
+        run: |
+          terraform apply -no-color
+
+
+
+
