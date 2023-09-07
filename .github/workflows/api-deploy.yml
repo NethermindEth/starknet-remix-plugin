@@ -1,0 +1,82 @@
+name: ECS Rocket server
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - 'api/**'
+
+permissions:
+      id-token: write
+      contents: read
+
+env:
+  REGISTRY: "599564732950.dkr.ecr.us-east-2.amazonaws.com"
+  REPOSITORY: "starknet-remix-plugin"
+  CLUSTER: "starknet-remix-plugin-ecs-cluster"
+  SERVICE_NAME: "rocket-development-svc"
+  
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: us-east-2
+          role-to-assume: arn:aws:iam::599564732950:role/Aws-GH-Action-Assume-Role-Starknet
+          role-session-name: GHStarknet
+    
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+        with:
+          mask-password: 'true'
+
+      - name: Build, tag, and push docker image to Amazon ECR
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          REPOSITORY: ${{ env.REPOSITORY }}
+          IMAGE_TAG: ${{ github.run_number }}
+        run: |
+          docker build -t $REGISTRY/$REPOSITORY:rocket-$IMAGE_TAG -f ./DockerfileRocket .
+          docker push $REGISTRY/$REPOSITORY:rocket-$IMAGE_TAG
+
+  Deploy:
+    runs-on: ubuntu-latest
+    needs: Build
+    steps:
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: us-east-2
+          role-to-assume: arn:aws:iam::599564732950:role/Aws-GH-Action-Assume-Role-Starknet
+          role-session-name: GHStarknet
+
+      - name: Download task definition
+        run: |
+          aws ecs describe-task-definition --task-definition starknet-remix-development-rocket --query taskDefinition > task-definition.json
+
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        env:
+            REGISTRY: ${{ env.REGISTRY }}
+            REPOSITORY: ${{ env.REPOSITORY }}
+            IMAGE_TAG: ${{ github.run_number }}
+        with:
+          task-definition: task-definition.json
+          container-name: "rocket"
+          image: $REGISTRY/$REPOSITORY:rocket-$IMAGE_TAG
+
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ env.SERVICE_NAME }}
+          cluster: ${{ env.CLUSTER }}
+          wait-for-service-stability: true
