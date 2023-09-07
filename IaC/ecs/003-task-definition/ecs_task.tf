@@ -1,7 +1,7 @@
 module "task_definition" {
   for_each = local.container_def_json
 
-  source                   = "git::ssh://git@github.com/NethermindEth/nm-terraform-modules.git//modules/aws/ecs-task?ref=v0.0.1-rc.1"
+  source                   = "git::ssh://git@github.com/NethermindEth/nm-terraform-modules.git//modules/aws/ecs-task"
   task_defination_family   = "${var.project}-${var.environment}-${each.key}"
   requires_compatibilities = each.value.requires_compatibilities
   network_mode             = "awsvpc"

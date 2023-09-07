@@ -1,5 +1,5 @@
 module "ecs_service" {
-  for_each                      = local.service
+  for_each                      = var.service
   source                        = "git::ssh://git@github.com/NethermindEth/nm-terraform-modules.git//modules/aws/ecs-service?ref=v0.0.1-rc.1"
   ecs_service_name              = each.value.ecs_service_name
   cluster_id                    = data.terraform_remote_state.ecs.outputs.ecs_cluster_id

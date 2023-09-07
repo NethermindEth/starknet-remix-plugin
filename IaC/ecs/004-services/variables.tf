@@ -7,6 +7,9 @@ variable "appautoscaling_target_min_capacity" {
   type    = number
   default = 1
 }
+variable "service" {
+  type = any
+}
 ##################################### Common Project Variables
 variable "project" {
   type        = string

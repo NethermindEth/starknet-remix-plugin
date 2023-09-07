@@ -28,11 +28,11 @@ data "aws_subnets" "public" {
 }
 
 data "aws_ecs_task_definition" "family" {
-  for_each        = local.service
+  for_each        = var.service
   task_definition = "${var.project}-${var.environment}-${each.key}"
 }
 
 data "aws_lb_target_group" "gp" {
-  for_each = local.service
+  for_each = var.service
   name     = "${var.project}-dev-${each.key}-tg"
 }
