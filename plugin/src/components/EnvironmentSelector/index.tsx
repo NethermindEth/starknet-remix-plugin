@@ -2,7 +2,6 @@ import React, { useContext } from 'react'
 import { devnets } from '../../utils/network'
 import { type ConnectOptions, type DisconnectOptions } from 'get-starknet'
 import { ConnectionContext } from '../../contexts/ConnectionContext'
-import { Provider } from 'starknet'
 
 import './styles.css'
 import EnvironmentContext from '../../contexts/EnvironmentContext'
