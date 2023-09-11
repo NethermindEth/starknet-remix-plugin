@@ -437,11 +437,9 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           'Cairo Compilation Failed, logs can be read in the terminal log'
         )
       }
-
       setStatus('Compiling to casm...')
-
       response = await fetch(
-        `${apiUrl}/compile-to-casm/${hashDir}/${currentFilePath.replace(
+        `${apiUrl}/compile-to-casm/${hashDir}/${currentFilePath.replaceAll(
           getFileExtension(currentFilePath),
           'sierra'
         )}`,
@@ -465,7 +463,6 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
       // get Json body from response
       const casm = JSON.parse(await response.text())
-
       if (casm.status !== 'Success') {
         await remixClient.terminal.log(casm.message)
 
