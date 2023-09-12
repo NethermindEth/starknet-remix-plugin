@@ -838,7 +838,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
             <D.Root>
               <D.Trigger>
                 <div className="btn btn-primary w-100 text-break remixui_disabled mb-1 mt-1 px-0 trigger-wrapper" style={{ padding: '10px 1px' }}>
-                  <label className="text-break text-white trigger-label" style={{fontFamily: 'inherit', fontSize: 'inherit' }}>
+                  <label className="text-break text-white" style={{ fontFamily: 'inherit', fontSize: 'inherit' }}>
                     {activeTomlPath}
                   </label>
                   <BsChevronDown />
