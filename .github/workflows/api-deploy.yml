@@ -64,14 +64,10 @@ jobs:
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
-        env:
-            REGISTRY: ${{ env.REGISTRY }}
-            REPOSITORY: ${{ env.REPOSITORY }}
-            IMAGE_TAG: ${{ github.run_number }}
         with:
           task-definition: task-definition.json
           container-name: "rocket"
-          image: $REGISTRY/$REPOSITORY:rocket-$IMAGE_TAG
+          image: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:rocket-${{ github.run_number }}
 
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
