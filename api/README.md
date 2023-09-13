@@ -17,4 +17,4 @@ cargo watch -x run
 
 ## Notes
 
-Currently working for v2.2.0
+Currently working for v2.2.0   
