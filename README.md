@@ -2,7 +2,7 @@
 
 [![Pull Requests welcome](https://img.shields.io/badge/PRs-welcome-ff69b4.svg?style=flat-square)](https://github.com/NethermindEth/starknet-remix-plugin/issues)
 [![Discord](https://img.shields.io/discord/629004402170134531?label=Discord)](https://discord.com/invite/PaCMRFdvWT)
-[![Static Badge](https://img.shields.io/badge/Telegram-2AABEE)](https://t.me/starknetremix)
+[![Static Badge](https://img.shields.io/badge/Telegram-2AABEE)](https://t.me/StarknetRemixPlugin)
 
 Welcome to the **Starknet Remix Plugin** repository! 🎉 
 
