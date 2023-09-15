@@ -33,9 +33,9 @@ FROM ubuntu:20.04 AS final
 
 WORKDIR /opt/app
 
-COPY ./api/target/debug/api.* /opt/app
+COPY ./api/target/debug/api* /opt/app
 
 EXPOSE 8000
 
-ENTRYPOINT [ "api.o" ]
+ENTRYPOINT [ "api" ]
 
