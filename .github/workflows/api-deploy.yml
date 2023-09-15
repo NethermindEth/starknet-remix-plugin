@@ -26,6 +26,7 @@ jobs:
           fetch-depth: 0
 
       - name: Determine version numbers
+        id: determine-version
         uses: paulhatch/semantic-version@v5.2.1
         with:
           # The prefix to use to identify tags
@@ -72,7 +73,7 @@ jobs:
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           REPOSITORY: ${{ env.REPOSITORY }}
-          IMAGE_TAG: ${{ major }}.${{ minor }}.${{ patch }}-prerelease${{ increment }} # ${{ github.run_number }}
+          IMAGE_TAG: ${{ steps.determine_version.outputs.version }} # ${{ github.run_number }}
         run: |
           docker build -t $REGISTRY/$REPOSITORY:rocket-$IMAGE_TAG -f ./DockerfileRocket .
           docker push $REGISTRY/$REPOSITORY:rocket-$IMAGE_TAG
