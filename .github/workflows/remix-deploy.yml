@@ -1,4 +1,4 @@
-name: (develop) React package build & deploy
+name: (develop) Auto React package build & deploy
 on:
   push:
     branches:
