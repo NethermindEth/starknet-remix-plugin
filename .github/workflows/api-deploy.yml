@@ -72,7 +72,7 @@ jobs:
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           REPOSITORY: ${{ env.REPOSITORY }}
-          IMAGE_TAG: "${major}.${minor}.${patch}-prerelease${increment}" # ${{ github.run_number }}
+          IMAGE_TAG: ${{ major }}.${{ minor }}.${{ patch }}-prerelease${{ increment }} # ${{ github.run_number }}
         run: |
           docker build -t $REGISTRY/$REPOSITORY:rocket-$IMAGE_TAG -f ./DockerfileRocket .
           docker push $REGISTRY/$REPOSITORY:rocket-$IMAGE_TAG
