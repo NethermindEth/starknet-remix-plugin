@@ -2,7 +2,7 @@ import React from 'react'
 
 const Notices = [
   'The starknet Remix Plugin is in Alpha',
-  'Cairo contract and Scarb workspaces are compiled on a server hosted by Nethermind.',
+  'Cairo contract and Scarb workspaces are compiled on a server hosted by Nethermind',
   'Declaration of contracts with some wallets will be supported when they update to the latest starknet.js version'
 ]
 
