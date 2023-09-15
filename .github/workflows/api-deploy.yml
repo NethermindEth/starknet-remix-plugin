@@ -26,7 +26,7 @@ jobs:
           fetch-depth: 0
 
       - name: Determine version numbers
-        uses: paulhatch/semantic-version@v5.2.3
+        uses: paulhatch/semantic-version@v5.2.1
         with:
           # The prefix to use to identify tags
           tag_prefix: "v"
