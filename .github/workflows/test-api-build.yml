@@ -90,6 +90,6 @@ jobs:
           REPOSITORY: ${{ env.REPOSITORY }}
           IMAGE_TAG: ${{ steps.determine-version.outputs.version }} # ${{ github.run_number }}
         run: |
-          docker build -t $REGISTRY/$REPOSITORY:rocket-$IMAGE_TAG -f ./DockerfileRocket .
-          docker push $REGISTRY/$REPOSITORY:rocket-$IMAGE_TAG
+          docker build -t $REGISTRY/$REPOSITORY:apiserver-$IMAGE_TAG -f ./DockerfileApiServer .
+          docker push $REGISTRY/$REPOSITORY:apiserver-$IMAGE_TAG
 
