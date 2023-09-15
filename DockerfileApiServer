@@ -1,0 +1,42 @@
+FROM ubuntu:20.04 AS build
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV DEBCONF_NONINTERACTIVE_SEEN=true
+
+RUN apt-get update
+RUN apt-get install -y curl \
+                       git \
+                       cmake \
+                       build-essential \
+                       gcc
+
+WORKDIR /opt/app
+
+COPY . /opt/app
+
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain stable -y
+
+RUN whoami
+
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+RUN git submodule update --init
+
+WORKDIR /opt/app/api
+
+RUN cargo build
+
+
+
+
+FROM ubuntu:20.04 AS build
+
+WORKDIR /opt/app
+
+RUN ls ./api/target/debug/
+COPY ./api/target/debug/api.* /opt/app
+
+EXPOSE 8000
+
+ENTRYPOINT [ "api.o" ]
+
