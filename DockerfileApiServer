@@ -29,11 +29,10 @@ RUN cargo build
 
 
 
-FROM ubuntu:20.04 AS build
+FROM ubuntu:20.04 AS final
 
 WORKDIR /opt/app
 
-RUN ls ./api/target/debug/
 COPY ./api/target/debug/api.* /opt/app
 
 EXPOSE 8000
