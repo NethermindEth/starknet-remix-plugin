@@ -8,7 +8,7 @@ Welcome to the **Starknet Remix Plugin** repository! 🎉
 
 This powerful tool seamlessly integrates with the Remix IDE, enabling developers to effortlessly deploy and interact with StarkNet contracts! Whether you're a Cairo and Starknet wizard 🧙‍♂️ or taking your very first steps, this plugin supercharges your journey by providing an effortless way to deploy and interact with StarkNet contracts. Happy coding! 🚀
 
-<details>
+<details> 
 <summary>Table of Contents</summary>
 
 - [Starknet Remix Plugin](#starknet-remix-plugin)
