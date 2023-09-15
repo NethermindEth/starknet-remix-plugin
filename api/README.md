@@ -5,7 +5,7 @@
 
 ## Run
 
-```bash
+```bash 
 cargo run
 ```
 
