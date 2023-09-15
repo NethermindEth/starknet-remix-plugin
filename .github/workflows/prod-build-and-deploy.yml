@@ -78,6 +78,12 @@ jobs:
     steps:
       - name: Clone repository
         uses: actions/checkout@v2
+        
+      - name: Inject version
+        env:
+          SED_COMMAND: s@v0.2.0@${{ inputs.version }}@g
+        run: |
+          sed -i $SED_COMMAND ./plugin/src/features/CairoVersion/index.tsx
 
       - name: Setup Node ${{ env.NODE_VERSION }} Environment
         uses: actions/setup-node@v1
