@@ -437,11 +437,9 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           'Cairo Compilation Failed, logs can be read in the terminal log'
         )
       }
-
       setStatus('Compiling to casm...')
-
       response = await fetch(
-        `${apiUrl}/compile-to-casm/${hashDir}/${currentFilePath.replace(
+        `${apiUrl}/compile-to-casm/${hashDir}/${currentFilePath.replaceAll(
           getFileExtension(currentFilePath),
           'sierra'
         )}`,
@@ -465,7 +463,6 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
       // get Json body from response
       const casm = JSON.parse(await response.text())
-
       if (casm.status !== 'Success') {
         await remixClient.terminal.log(casm.message)
 
@@ -819,6 +816,8 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           <div className="project-dropdown-wrapper d-flex flex-column mb-3">
             <button
               className="btn btn-warning btn-block d-block w-100 text-break mb-1 mt-1 px-0"
+              disabled={isCompiling}
+              aria-disabled={isCompiling}
               // eslint-disable-next-line @typescript-eslint/no-misused-promises
               onClick={async (): Promise<void> => {
                 try {
@@ -839,7 +838,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
             <D.Root>
               <D.Trigger>
                 <div className="btn btn-primary w-100 text-break remixui_disabled mb-1 mt-1 px-0 trigger-wrapper" style={{ padding: '10px 1px' }}>
-                  <label className="text-break text-white trigger-label" style={{fontFamily: 'inherit', fontSize: 'inherit' }}>
+                  <label className="text-break text-white" style={{ fontFamily: 'inherit', fontSize: 'inherit' }}>
                     {activeTomlPath}
                   </label>
                   <BsChevronDown />
@@ -872,8 +871,8 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
               !validation || !currentFilename ? 'not-allowed' : 'pointer'
             }`
           }}
-          disabled={!validation || !currentFilename}
-          aria-disabled={!validation || !currentFilename}
+          disabled={!validation || !currentFilename || isCompiling}
+          aria-disabled={!validation || !currentFilename || isCompiling}
           onClick={onClick}
         >
           <div className="d-flex align-items-center justify-content-center">

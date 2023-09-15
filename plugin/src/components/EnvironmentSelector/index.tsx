@@ -2,7 +2,6 @@ import React, { useContext } from 'react'
 import { devnets } from '../../utils/network'
 import { type ConnectOptions, type DisconnectOptions } from 'get-starknet'
 import { ConnectionContext } from '../../contexts/ConnectionContext'
-import { Provider } from 'starknet'
 
 import './styles.css'
 import EnvironmentContext from '../../contexts/EnvironmentContext'
@@ -22,13 +21,7 @@ const EnvironmentSelector: React.FC<EnvironmentSelectorProps> = (props) => {
       setDevnet(devnets[value - 1])
       if (value === 2) setEnv('remoteDevnet')
       else setEnv('localDevnet')
-      setProvider(
-        new Provider({
-          sequencer: {
-            baseUrl: devnets[value - 1].url
-          }
-        })
-      )
+      setProvider(null)
       return
     }
     setEnv('wallet')

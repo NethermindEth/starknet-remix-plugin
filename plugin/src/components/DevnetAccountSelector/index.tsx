@@ -118,22 +118,21 @@ const DevnetAccountSelector: React.FC = () => {
   }, [availableDevnetAccounts, devnet])
 
   useEffect(() => {
-    setProvider(
-      new Provider({
-        sequencer: {
-          baseUrl: devnet.url
-        }
-      })
-    )
-    if (provider != null && selectedDevnetAccount != null) {
+    const newProvider = new Provider({
+      sequencer: {
+        baseUrl: devnet.url
+      }
+    })
+    if (selectedDevnetAccount != null) {
       setAccount(
         new Account(
-          provider,
+          newProvider,
           selectedDevnetAccount.address,
           selectedDevnetAccount.private_key
         )
       )
     }
+    setProvider(newProvider)
   }, [devnet, selectedDevnetAccount])
 
   function handleAccountChange (event: any): void {
@@ -155,22 +154,6 @@ const DevnetAccountSelector: React.FC = () => {
         availableDevnetAccounts[event.target.value].private_key
       )
     )
-  }
-
-  function getDefaultValue(): number | undefined {
-    const index = getSelectedAccountIndex(
-      availableDevnetAccounts,
-      selectedDevnetAccount
-    )
-    if (
-      index === -1 ||
-      index === undefined ||
-      index === null ||
-      selectedDevnetAccount === null
-    ) {
-      return 0
-    }
-    return index + 1
   }
 
   const [accountRefreshing, setAccountRefreshing] = useState(false)
@@ -197,7 +180,7 @@ const DevnetAccountSelector: React.FC = () => {
         >
           {isDevnetAlive && availableDevnetAccounts.length > 0
             ? availableDevnetAccounts.map((account, index) => {
-                return (
+              return (
                   <option value={index} key={index}>
                     {`${getShortenedHash(
                       account.address ?? '',
@@ -208,8 +191,8 @@ const DevnetAccountSelector: React.FC = () => {
                       2
                     )} ether)`}
                   </option>
-                )
-              })
+              )
+            })
             : ([
                 <option value={-1} key={-1}>
                   No accounts found
@@ -220,7 +203,7 @@ const DevnetAccountSelector: React.FC = () => {
           <button
             className="btn"
             onClick={() => {
-              copy(account?.address || '')
+              copy(account?.address ?? '')
               setCopied(true)
               setTimeout(() => {
                 setCopied(false)

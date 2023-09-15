@@ -569,6 +569,14 @@ const Interaction: React.FC<InteractionProps> = (props) => {
         const resultOfTx = await provider?.waitForTransaction(
           response.transaction_hash
         )
+        await remixClient.call('terminal', 'log', {
+          value: JSON.stringify({
+            resultOfTx,
+            contract: selectedContract?.name,
+            function: name
+          }),
+          type: 'info'
+        })
         console.log(
           'Transaction:',
           await account?.getTransaction(response.transaction_hash)

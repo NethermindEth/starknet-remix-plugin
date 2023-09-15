@@ -1,6 +1,5 @@
 #[macro_use]
 extern crate rocket;
-use rocket::figment::providers::Format;
 use rocket::serde::{json::Json, Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
@@ -41,7 +40,6 @@ impl Fairing for CORS {
         response.set_header(Header::new(
             "Access-Control-Allow-Origin",
             "https://cairo-remix-test.nethermind.io"
-            // "*",
         ));
         response.set_header(Header::new("Access-Control-Allow-Credentials", "true"));
     }

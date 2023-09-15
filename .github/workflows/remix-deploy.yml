@@ -1,4 +1,4 @@
-name: Deploy to S3 Static Web
+name: (develop) Auto React package build & deploy
 on:
   push:
     branches:
