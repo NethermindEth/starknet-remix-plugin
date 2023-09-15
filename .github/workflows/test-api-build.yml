@@ -82,7 +82,7 @@ jobs:
         run: |
           cd api
           cargo build           
-
+          ls ./target/debug/
 
       - name: Build, tag, and push docker image to Amazon ECR
         env:
