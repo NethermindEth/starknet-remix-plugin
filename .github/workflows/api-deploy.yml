@@ -1,4 +1,4 @@
-name: (develop) API backend build & deploy
+name: (develop) Auto API backend build & deploy
 on:
   push:
     branches:
