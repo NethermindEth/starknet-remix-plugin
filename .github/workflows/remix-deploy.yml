@@ -55,10 +55,10 @@ jobs:
           
       - name: Inject version
         env:
-          SED_COMMAND: s@v0.2.0@${{ steps.determine-version.outputs.version }}@g
+          SED_COMMAND: 's/\"version\"\:[ ]\"0.1.0\"/\"version\": \"0.3.0\"/g'
         run: |
-          sed -i $SED_COMMAND ./plugin/src/features/CairoVersion/index.tsx
-
+          sed -i $SED_COMMAND ./plugin/package.json
+          
       - name: Setup Node ${{ env.NODE_VERSION }} Environment
         uses: actions/setup-node@v1
         with:
