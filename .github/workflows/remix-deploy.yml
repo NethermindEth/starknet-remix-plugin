@@ -19,7 +19,9 @@ jobs:
     steps:
       - name: Clone repository
         uses: actions/checkout@v2
-
+        with:
+          fetch-depth: 0
+          
       - name: Determine version numbers
         id: determine-version
         uses: paulhatch/semantic-version@v5.2.1
