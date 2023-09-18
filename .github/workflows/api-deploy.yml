@@ -96,7 +96,8 @@ jobs:
         run: |
           docker build --target final -t $REGISTRY/$REPOSITORY:apiserver-$IMAGE_TAG -f ./DockerfileApiServer .
           docker push $REGISTRY/$REPOSITORY:apiserver-$IMAGE_TAG
-
+    outputs:
+      image-version: ${{ steps.determine-version.outputs.version }}
   Deploy:
     runs-on: ubuntu-latest
     needs: Build
@@ -119,7 +120,7 @@ jobs:
         with:
           task-definition: task-definition.json
           container-name: "rocket"
-          image: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:apiserver-${{ github.run_number }}
+          image: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:apiserver-${{ jobs.Build.outputs.image-version }}      #${{ github.run_number }}
 
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
