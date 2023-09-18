@@ -93,8 +93,10 @@ jobs:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           REPOSITORY: ${{ env.REPOSITORY }}
           IMAGE_TAG: ${{ steps.determine-version.outputs.version }} # ${{ github.run_number }}
+
+        #           docker build --target final -t $REGISTRY/$REPOSITORY:apiserver-$IMAGE_TAG -f ./DockerfileApiServer .
         run: |
-          docker build --target final -t $REGISTRY/$REPOSITORY:apiserver-$IMAGE_TAG -f ./DockerfileApiServer .
+          docker build --target final -t $REGISTRY/$REPOSITORY:apiserver-$IMAGE_TAG -f ./DockerfileRocket .
           docker push $REGISTRY/$REPOSITORY:apiserver-$IMAGE_TAG
     outputs:
       image-version: ${{ steps.determine-version.outputs.version }}
