@@ -120,7 +120,7 @@ jobs:
         with:
           task-definition: task-definition.json
           container-name: "rocket"
-          image: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:apiserver-${{ jobs.Build.outputs.image-version }}      #${{ github.run_number }}
+          image: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:apiserver-${{ needs.Build.outputs.image-version }}      #${{ github.run_number }}
 
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
