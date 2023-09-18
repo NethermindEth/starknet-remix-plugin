@@ -57,7 +57,7 @@ jobs:
         env:
           SED_COMMAND: 's/\"version\"\:[ ]\"0.1.0\"/\"version\": \"0.3.0\"/g'
         run: |
-          sed -i '$SED_COMMAND' ./plugin/package.json
+          sed -i 's/\"version\"\:[ ]\"0.1.0\"/\"version\": \"${{ steps.determine-version.outputs.version }}\"/g' ./plugin/package.json
           
       - name: Setup Node ${{ env.NODE_VERSION }} Environment
         uses: actions/setup-node@v1
