@@ -33,7 +33,7 @@ FROM ubuntu:20.04 AS final
 
 WORKDIR /opt/app
 
-COPY ./api/target/debug/api* /opt/app
+COPY ./api/target/debug/* /opt/app
 
 EXPOSE 8000
 
