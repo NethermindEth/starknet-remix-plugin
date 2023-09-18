@@ -74,7 +74,10 @@ jobs:
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain stable -y
           rustup update
           rustup component add clippy
-          rustup install nightly          
+          rustup install nightly        
+          sudo apt install musl-tools
+          rustup toolchain install x86_64-unknown-linux-musl
+          
 
       - name: Toolchain info
         run: |
@@ -85,7 +88,7 @@ jobs:
       - name: Build
         run: |
           cd api
-          cargo build           
+          cargo build --target=x86_64-unknown-linux-musl          
           ls ./target/debug/ -al
 
       - name: Build, tag, and push docker image to Amazon ECR
