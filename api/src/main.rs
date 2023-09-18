@@ -11,7 +11,10 @@ use rocket::fs::NamedFile;
 use rocket::http::{Header, Method, Status};
 use rocket::tokio::fs;
 use rocket::{Request, Response};
+use tracing::{error, info};
 
+mod log;
+use log::init_logger;
 mod utils;
 use utils::lib::{get_file_ext, get_file_path, CAIRO_DIR, CASM_ROOT, SIERRA_ROOT};
 
@@ -40,8 +43,7 @@ impl Fairing for CORS {
 
         response.set_header(Header::new(
             "Access-Control-Allow-Origin",
-            "https://cairo-remix-test.nethermind.io"
-            // "*",
+            "https://cairo-remix-test.nethermind.io", // "*",
         ));
         response.set_header(Header::new("Access-Control-Allow-Credentials", "true"));
     }
@@ -407,6 +409,9 @@ async fn who_is_this() -> &'static str {
 
 #[launch]
 fn rocket() -> _ {
+    if let Err(err) = init_logger() {
+        eprintln!("Error initializing logger: {}", err);
+    }
     rocket::build().attach(CORS).mount(
         "/",
         routes![
