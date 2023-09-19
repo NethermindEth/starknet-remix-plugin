@@ -4,6 +4,6 @@
 export PROMTAIL_BASE_DIR=$(pwd)  
 
 
-# grafana-agent --config.expand-env=true --config.file ./configs/grafana-logs.config.yaml
+grafana-agent --config.expand-env=true --config.file ./configs/grafana-logs.config.yaml > /dev/null
 
-./target/release/api
+cargo run 

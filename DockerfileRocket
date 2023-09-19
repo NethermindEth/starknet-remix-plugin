@@ -44,4 +44,4 @@ RUN chmod +x ./docker_run.sh
 
 EXPOSE 8000
 
-ENTRYPOINT [ "./target/release/api" ]
+ENTRYPOINT [ "./docker_run.sh" ]
