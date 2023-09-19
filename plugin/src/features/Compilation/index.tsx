@@ -437,11 +437,9 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           'Cairo Compilation Failed, logs can be read in the terminal log'
         )
       }
-
       setStatus('Compiling to casm...')
-
       response = await fetch(
-        `${apiUrl}/compile-to-casm/${hashDir}/${currentFilePath.replace(
+        `${apiUrl}/compile-to-casm/${hashDir}/${currentFilePath.replaceAll(
           getFileExtension(currentFilePath),
           'sierra'
         )}`,
@@ -465,7 +463,6 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
       // get Json body from response
       const casm = JSON.parse(await response.text())
-
       if (casm.status !== 'Success') {
         await remixClient.terminal.log(casm.message)
 
@@ -841,7 +838,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
             <D.Root>
               <D.Trigger>
                 <div className="btn btn-primary w-100 text-break remixui_disabled mb-1 mt-1 px-0 trigger-wrapper" style={{ padding: '10px 1px' }}>
-                  <label className="text-break text-white trigger-label" style={{fontFamily: 'inherit', fontSize: 'inherit' }}>
+                  <label className="text-break text-white" style={{ fontFamily: 'inherit', fontSize: 'inherit' }}>
                     {activeTomlPath}
                   </label>
                   <BsChevronDown />

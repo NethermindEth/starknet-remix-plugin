@@ -7,13 +7,13 @@ import Nethermind from '../../components/NM'
 import './style.css'
 
 const CairoVersion: React.FC = () => {
-  const [cairoVersion, setCairoVersion] = useState('v2.1.0-rc2')
+  const [cairoVersion, setCairoVersion] = useState('cairo-compile 2.2.0')
   const remixClient = useContext(RemixClientContext)
 
   const [versions] = useState<string[]>([
-    'v2.1.0-rc2'
+    'cairo-compile 2.2.0'
   ])
-  const pluginVersion = process.env.REACT_APP_VERSION !== undefined ? `v${process.env.REACT_APP_VERSION}` : 'v0.1.0'
+  const pluginVersion = process.env.REACT_APP_VERSION !== undefined ? `v${process.env.REACT_APP_VERSION}` : 'v0.2.0'
 
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises

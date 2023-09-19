@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate rocket;
-use rocket::figment::providers::Format;
 use rocket::serde::{json::Json, Deserialize, Serialize};
+use std::env;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
@@ -41,10 +41,23 @@ impl Fairing for CORS {
             response.set_header(Header::new("Access-Control-Allow-Headers", "*"));
         }
 
-        response.set_header(Header::new(
-            "Access-Control-Allow-Origin",
-            "https://cairo-remix-test.nethermind.io", // "*",
-        ));
+        // Take the Plugin App URL from the env variable, if set
+        match env::var("REACT_APP_URL") {
+            Ok(v) => {
+                response.set_header(Header::new(
+                    "Access-Control-Allow-Origin",
+                    v
+                ));
+            },
+            Err(e) => {
+                response.set_header(Header::new(
+                    "Access-Control-Allow-Origin",
+                    "https://cairo-remix-test.nethermind.io"
+                ));
+        
+            }
+        }
+
         response.set_header(Header::new("Access-Control-Allow-Credentials", "true"));
     }
 }
