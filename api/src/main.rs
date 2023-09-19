@@ -11,7 +11,7 @@ use rocket::fs::NamedFile;
 use rocket::http::{Header, Method, Status};
 use rocket::tokio::fs;
 use rocket::{Request, Response};
-use tracing::{error, info};
+use tracing::instrument;
 
 mod log;
 use log::init_logger;
@@ -44,23 +44,20 @@ impl Fairing for CORS {
         // Take the Plugin App URL from the env variable, if set
         match env::var("REACT_APP_URL") {
             Ok(v) => {
-                response.set_header(Header::new(
-                    "Access-Control-Allow-Origin",
-                    v
-                ));
-            },
+                response.set_header(Header::new("Access-Control-Allow-Origin", v));
+            }
             Err(e) => {
                 response.set_header(Header::new(
                     "Access-Control-Allow-Origin",
-                    "https://cairo-remix-test.nethermind.io"
+                    "https://cairo-remix-test.nethermind.io",
                 ));
-        
             }
         }
 
         response.set_header(Header::new("Access-Control-Allow-Credentials", "true"));
     }
 }
+
 
 #[post("/save_code/<remix_file_path..>", data = "<file>")]
 async fn save_code(file: Data<'_>, remix_file_path: PathBuf) -> String {
@@ -340,6 +337,7 @@ fn get_files_recursive(base_path: &Path) -> Vec<FileContentMap> {
     file_content_map_array
 }
 
+#[instrument]
 #[get("/compile-scarb/<remix_file_path..>")]
 async fn scarb_compile(remix_file_path: PathBuf) -> Json<ScarbCompileResponse> {
     let remix_file_path = match remix_file_path.to_str() {
@@ -386,6 +384,7 @@ async fn scarb_compile(remix_file_path: PathBuf) -> Json<ScarbCompileResponse> {
 }
 
 // Read the version from the cairo Cargo.toml file.
+#[instrument]
 #[get("/cairo_version")]
 async fn cairo_version() -> String {
     let mut version_caller = Command::new("cargo");
@@ -410,11 +409,13 @@ async fn cairo_version() -> String {
     }
 }
 
+#[instrument]
 #[get("/health")]
 async fn health() -> &'static str {
     "OK"
 }
 
+#[instrument]
 #[get("/")]
 async fn who_is_this() -> &'static str {
     "Who are you?"
