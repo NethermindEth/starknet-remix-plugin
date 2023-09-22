@@ -4,7 +4,7 @@
 - [Cairo Lang](https://www.cairo-lang.org/docs/quickstart.html#quickstart): for class hash calculation.
 
 ## Run
-
+ 
 ```bash  
 cargo run
 ```  
