@@ -391,7 +391,7 @@ async fn cairo_version() -> String {
         version_caller
             .arg("run")
             .arg("-q")
-            .arg("-release")
+            .arg("--release")
             .arg("--bin")
             .arg("cairo-compile")
             .arg("--")
