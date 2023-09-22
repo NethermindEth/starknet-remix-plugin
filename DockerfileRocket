@@ -28,7 +28,7 @@ RUN cargo build
 
 # Build the cairo compiler
 WORKDIR /opt/app/api/cairo
-RUN cargo run -q --bin cairo-compile -- --version
+RUN cargo run --release -q --bin cairo-compile -- --version
 
 EXPOSE 8000
 
