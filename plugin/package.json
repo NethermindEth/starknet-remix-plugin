@@ -26,8 +26,8 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-icons": "^4.10.1",
-    "react-scripts": "5.0.1",
     "starknet": "5.14.1",
+    "vite-plugin-svgr": "^4.0.0",
     "web-vitals": "^2.1.4",
     "yup": "^1.2.0"
   },
@@ -39,6 +39,7 @@
     "@types/react": "^18.2.15",
     "@types/react-dom": "^18.2.7",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
+    "@vitejs/plugin-react": "^4.1.0",
     "assemblyscript": "^0.27.5",
     "eslint": "^8.45.0",
     "eslint-config-standard-with-typescript": "^35.0.0",
@@ -47,12 +48,13 @@
     "eslint-plugin-n": "^15.7.0",
     "eslint-plugin-promise": "^6.1.1",
     "eslint-plugin-react": "^7.32.2",
-    "typescript": "^4.9.5"
+    "typescript": "^4.9.5",
+    "vite": "^4.4.9"
   },
   "scripts": {
-    "start": "DISABLE_ESLINT_PLUGIN=true react-scripts start",
-    "build": "DISABLE_ESLINT_PLUGIN=true react-scripts build",
-    "serve": "pnpx serve -s build",
+    "start": "vite",
+    "build": "vite build",
+    "serve": "vite preview",
     "deploy": "pnpm run build; pnpm run serve",
     "test": "react-scripts test",
     "eject": "react-scripts eject",

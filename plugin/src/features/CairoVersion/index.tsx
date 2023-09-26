@@ -13,13 +13,14 @@ const CairoVersion: React.FC = () => {
   const [versions] = useState<string[]>([
     'cairo-compile 2.2.0'
   ])
-  const pluginVersion = process.env.REACT_APP_VERSION !== undefined ? `v${process.env.REACT_APP_VERSION}` : 'v0.2.0'
+  const pluginVersion = process.env.VITE_VERSION !== undefined ? `v${process.env.VITE_VERSION}` : 'v0.2.0'
 
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     const id = setTimeout(async () => {
       try {
         if (apiUrl !== undefined) {
+          console.log({apiUrl})
           const response = await fetch(`${apiUrl}/cairo_version`, {
             method: 'GET',
             redirect: 'follow',
