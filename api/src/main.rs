@@ -1,9 +1,19 @@
 #[macro_use]
 extern crate rocket;
+
+use handlers::ApiCommand;
 use rocket::serde::{json::Json, Deserialize, Serialize};
 use std::env;
+use std::thread;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
+use std::sync::Arc;
+
+use futures::executor::block_on;
+
+use uuid::Uuid;
+
+use crossbeam_queue::ArrayQueue;
 
 use rocket::data::{Data, ToByteUnit};
 use rocket::fairing::{Fairing, Info, Kind};
@@ -12,11 +22,15 @@ use rocket::http::{Header, Method, Status};
 use rocket::tokio::fs;
 use rocket::{Request, Response};
 
+mod handlers;
+
+
 mod utils;
 use utils::lib::{get_file_ext, get_file_path, CAIRO_DIR, CASM_ROOT, SIERRA_ROOT};
 
 use log::{debug, error, log_enabled, info, Level};
 use env_logger::Env;
+
 
 #[derive(Default)]
 
@@ -64,353 +78,62 @@ impl Fairing for CORS {
 
 #[post("/save_code/<remix_file_path..>", data = "<file>")]
 async fn save_code(file: Data<'_>, remix_file_path: PathBuf) -> String {
-    let remix_file_path = match remix_file_path.to_str() {
-        Some(path) => path.to_string(),
-        None => {
-            return "".to_string();
-        }
-    };
-
-    let file_path = get_file_path(&remix_file_path);
-
-    // create file directory from file path
-    match file_path.parent() {
-        Some(parent) => match fs::create_dir_all(parent).await {
-            Ok(_) => {
-                println!("LOG: Created directory: {:?}", parent);
-            }
-            Err(e) => {
-                println!("LOG: Error creating directory: {:?}", e);
-            }
-        },
-        None => {
-            println!("LOG: Error creating directory");
-        }
-    }
-
-    // Modify to zip and unpack.
-    let saved_file = file.open(128_i32.gibibytes()).into_file(&file_path).await;
-
-    match saved_file {
-        Ok(_) => {
-            println!("LOG: File saved successfully");
-            match file_path.to_str() {
-                Some(path) => path.to_string(),
-                None => "".to_string(),
-            }
-        }
-        Err(e) => {
-            println!("LOG: Error saving file: {:?}", e);
-            "".to_string()
-            // set the response with not ok code.
-        }
-    }
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-#[serde(crate = "rocket::serde")]
-pub struct CompileResponse {
-    pub status: String,
-    pub message: String,
-    pub file_content: String,
+    handlers::do_save_code(file, remix_file_path).await
 }
 
 #[get("/compile-to-sierra/<remix_file_path..>")]
-async fn compile_to_sierra(remix_file_path: PathBuf) -> Json<CompileResponse> {
-    let remix_file_path = match remix_file_path.to_str() {
-        Some(path) => path.to_string(),
-        None => {
-            return Json(CompileResponse {
-                file_content: "".to_string(),
-                message: "File path not found".to_string(),
-                status: "FileNotFound".to_string(),
-            });
-        }
-    };
-
-    // check if the file has .cairo extension
-    match get_file_ext(&remix_file_path) {
-        ext if ext == "cairo" => {
-            println!("LOG: File extension is cairo");
-        }
-        _ => {
-            println!("LOG: File extension not supported");
-            return Json(CompileResponse {
-                file_content: "".to_string(),
-                message: "File extension not supported".to_string(),
-                status: "FileExtensionNotSupported".to_string(),
-            });
-        }
-    }
-
-    let file_path = get_file_path(&remix_file_path);
-
-    let sierra_remix_path = remix_file_path.replace(&get_file_ext(&remix_file_path), "sierra");
-
-    let mut compile = Command::new("cargo");
-    compile.current_dir(CAIRO_DIR);
-
-    // replace .cairo with
-    let sierra_path = Path::new(SIERRA_ROOT).join(&sierra_remix_path);
-
-    // create directory for sierra file
-    match sierra_path.parent() {
-        Some(parent) => match fs::create_dir_all(parent).await {
-            Ok(_) => {
-                println!("LOG: Created directory: {:?}", parent);
-            }
-            Err(e) => {
-                println!("LOG: Error creating directory: {:?}", e);
-            }
-        },
-        None => {
-            println!("LOG: Error creating directory");
-        }
-    }
-
-    let result = compile
-        .arg("run")
-        .arg("--release")
-        .arg("--bin")
-        .arg("starknet-compile")
-        .arg("--")
-        .arg(&file_path)
-        .arg(&sierra_path)
-        .arg("--single-file")
-        .stderr(Stdio::piped())
-        .spawn()
-        .expect("Failed to execute starknet-compile");
-
-    println!("LOG: ran command:{:?}", compile);
-
-    let output = result.wait_with_output().expect("Failed to wait on child");
-
-    Json(CompileResponse {
-        file_content: match NamedFile::open(&sierra_path).await.ok() {
-            Some(file) => match file.path().to_str() {
-                Some(path) => match fs::read_to_string(path.to_string()).await {
-                    Ok(sierra) => sierra.to_string(),
-                    Err(e) => e.to_string(),
-                },
-                None => "".to_string(),
-            },
-            None => "".to_string(),
-        },
-        message: String::from_utf8(output.stderr)
-            .unwrap()
-            .replace(&file_path.to_str().unwrap().to_string(), &remix_file_path)
-            .replace(
-                &sierra_path.to_str().unwrap().to_string(),
-                &sierra_remix_path,
-            ),
-        status: match output.status.code() {
-            Some(0) => "Success".to_string(),
-            Some(_) => "CompilationFailed".to_string(),
-            None => "UnknownError".to_string(),
-        },
-    })
+async fn compile_to_sierra(remix_file_path: PathBuf) -> Json<handlers::CompileResponse> {
+    handlers::do_compile_to_sierra(remix_file_path).await
 }
 
 #[get("/compile-to-casm/<remix_file_path..>")]
-async fn compile_to_casm(remix_file_path: PathBuf) -> Json<CompileResponse> {
-    let remix_file_path = match remix_file_path.to_str() {
-        Some(path) => path.to_string(),
-        None => {
-            return Json(CompileResponse {
-                file_content: "".to_string(),
-                message: "File path not found".to_string(),
-                status: "FileNotFound".to_string(),
-            });
-        }
-    };
-
-    // check if the file has .sierra extension
-    match get_file_ext(&remix_file_path) {
-        ext if ext == "sierra" => {
-            println!("LOG: File extension is sierra");
-        }
-        _ => {
-            println!("LOG: File extension not supported");
-            return Json(CompileResponse {
-                file_content: "".to_string(),
-                message: "File extension not supported".to_string(),
-                status: "FileExtensionNotSupported".to_string(),
-            });
-        }
-    }
-
-    let file_path = get_file_path(&remix_file_path);
-
-    let casm_remix_path = remix_file_path.replace(&get_file_ext(&remix_file_path), "casm");
-
-    let mut compile = Command::new("cargo");
-    compile.current_dir(CAIRO_DIR);
-
-    let casm_path = Path::new(CASM_ROOT).join(&casm_remix_path);
-
-    // create directory for casm file
-    match casm_path.parent() {
-        Some(parent) => match fs::create_dir_all(parent).await {
-            Ok(_) => {
-                println!("LOG: Created directory: {:?}", parent);
-            }
-            Err(e) => {
-                println!("LOG: Error creating directory: {:?}", e);
-            }
-        },
-        None => {
-            println!("LOG: Error creating directory");
-        }
-    }
-
-    let result = compile
-        .arg("run")
-        .arg("--release")
-        .arg("--bin")
-        .arg("starknet-sierra-compile")
-        .arg("--")
-        .arg(&file_path)
-        .arg(&casm_path)
-        .stderr(Stdio::piped())
-        .spawn()
-        .expect("Failed to execute starknet-sierra-compile");
-
-    println!("LOG: ran command:{:?}", compile);
-
-    let output = result.wait_with_output().expect("Failed to wait on child");
-
-    Json(CompileResponse {
-        file_content: match NamedFile::open(&casm_path).await.ok() {
-            Some(file) => match file.path().to_str() {
-                Some(path) => match fs::read_to_string(path.to_string()).await {
-                    Ok(casm) => casm.to_string(),
-                    Err(e) => e.to_string(),
-                },
-                None => "".to_string(),
-            },
-            None => "".to_string(),
-        },
-        message: String::from_utf8(output.stderr)
-            .unwrap()
-            .replace(&file_path.to_str().unwrap().to_string(), &remix_file_path)
-            .replace(&casm_path.to_str().unwrap().to_string(), &casm_remix_path),
-        status: match output.status.code() {
-            Some(0) => "Success".to_string(),
-            Some(_) => "SierraCompilationFailed".to_string(),
-            None => "UnknownError".to_string(),
-        },
-    })
+async fn compile_to_casm(remix_file_path: PathBuf) -> Json<handlers::CompileResponse> {
+    handlers::do_compile_to_casm(remix_file_path).await
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct FileContentMap {
-    pub file_name: String,
-    pub file_content: String,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct ScarbCompileResponse {
-    pub status: String,
-    pub message: String,
-    pub file_content_map_array: Vec<FileContentMap>,
-}
-
-fn get_files_recursive(base_path: &Path) -> Vec<FileContentMap> {
-    let mut file_content_map_array: Vec<FileContentMap> = Vec::new();
-
-    if base_path.is_dir() {
-        for entry in base_path.read_dir().unwrap() {
-            if let Ok(entry) = entry {
-                let path = entry.path();
-                if path.is_dir() {
-                    file_content_map_array.extend(get_files_recursive(&path));
-                } else {
-                    if let Ok(content) = std::fs::read_to_string(&path) {
-                        let file_name = path.file_name().unwrap().to_string_lossy().to_string();
-                        let file_content = content;
-                        let file_content_map = FileContentMap {
-                            file_name,
-                            file_content,
-                        };
-                        file_content_map_array.push(file_content_map);
-                    }
-                }
-            }
-        }
-    }
-
-    file_content_map_array
-}
 
 #[get("/compile-scarb/<remix_file_path..>")]
-async fn scarb_compile(remix_file_path: PathBuf) -> Json<ScarbCompileResponse> {
-    let remix_file_path = match remix_file_path.to_str() {
-        Some(path) => path.to_string(),
-        None => {
-            return Json(ScarbCompileResponse {
-                file_content_map_array: vec![],
-                message: "File path not found".to_string(),
-                status: "FileNotFound".to_string(),
-            });
-        }
-    };
-
-    let file_path = get_file_path(&remix_file_path);
-
-    let mut compile = Command::new("scarb");
-    compile.current_dir(&file_path);
-
-    let result = compile
-        .arg("build")
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()
-        .expect("Failed to execute scarb build");
-
-    println!("LOG: ran command:{:?}", compile);
-
-    let output = result.wait_with_output().expect("Failed to wait on child");
-
-    Json(ScarbCompileResponse {
-        file_content_map_array: get_files_recursive(&file_path.join("target/dev")),
-        message: String::from_utf8(output.stdout)
-            .unwrap()
-            .replace(&file_path.to_str().unwrap().to_string(), &remix_file_path)
-            + &String::from_utf8(output.stderr)
-                .unwrap()
-                .replace(&file_path.to_str().unwrap().to_string(), &remix_file_path),
-        status: match output.status.code() {
-            Some(0) => "Success".to_string(),
-            Some(_) => "SierraCompilationFailed".to_string(),
-            None => "UnknownError".to_string(),
-        },
-    })
+async fn scarb_compile(remix_file_path: PathBuf) -> Json<handlers::ScarbCompileResponse> {
+    handlers::do_scarb_compile(remix_file_path).await
 }
+
+#[get("/compile-scarb-async/<remix_file_path..>")]
+async fn scarb_compile_async(remix_file_path: PathBuf) -> String {
+    // generate a process ID
+
+    // queue the new Scarb command
+
+    // return the process ID
+    String::from("")
+}
+
+#[get("/compile-scarb-result/<process_id>")]
+async fn get_scarb_compile_result(process_id: String) -> Json<handlers::ScarbCompileResponse> {
+    // verify if process state is Success
+
+    // fetch the process results
+
+    // return process results
+    panic!("asdsad");
+    //Json::from(handlers::ScarbCompileResponse{})
+}
+
+
+
+#[get("/process_status/<process_id>")]
+async fn get_process_status(process_id: String) -> String {
+    // get status of process by ID
+
+    // return the process status
+    String::from("")
+}
+
+
 
 // Read the version from the cairo Cargo.toml file.
 #[get("/cairo_version")]
 async fn cairo_version() -> String {
-    let mut version_caller = Command::new("cargo");
-    version_caller.current_dir(CAIRO_DIR);
-    match String::from_utf8(
-        version_caller
-            .arg("run")
-            .arg("-q")
-            .arg("--release")
-            .arg("--bin")
-            .arg("cairo-compile")
-            .arg("--")
-            .arg("--version")
-            .stdout(Stdio::piped())
-            .spawn()
-            .expect("Failed to execute cairo-compile")
-            .wait_with_output()
-            .expect("Failed to wait on child")
-            .stdout,
-    ) {
-        Ok(version) => version,
-        Err(e) => e.to_string(),
-    }
+    handlers::do_cairo_version()
 }
 
 #[get("/health")]
@@ -423,10 +146,73 @@ async fn who_is_this() -> &'static str {
     "Who are you?"
 }
 
+
+
+
+
+fn start_workers(num_workers: u32) {
+    // TODO create a static' queue instance
+    let queue : ArrayQueue<(Uuid, ApiCommand)> = ArrayQueue::new(5);
+    let arc_queue = Arc::new(queue);
+
+    // TODO create a static' results state map instance (NOTE: how to implement purging from this map???)
+    // TODO create a static' collection of worker threads
+    let mut worker_threads: Vec<thread::JoinHandle<()>> = vec![];
+
+
+    for _ in 0..num_workers {
+        // add to collection
+        let arc_clone = arc_queue.clone();
+        worker_threads.push( 
+            thread::spawn( move || 
+            { 
+                block_on(worker(arc_clone));
+            })
+        );
+        
+    }
+}
+
+// worker function
+async fn worker(queue : Arc<ArrayQueue<(Uuid, ApiCommand)>>) {
+    loop {
+        // read process ID and command from queue
+        match queue.pop() {
+            Some((process_id, command )) => {
+                match command {
+                    handlers::ApiCommand::Shutdown => { 
+                        return; 
+                    },
+                    _ => {
+                        // TODO: update process state
+        
+                        let result = handlers::dispatch_command(command).await;
+                        // TODO store the result in results map
+        
+                        // TODO: update process state
+                    },
+                }
+            },
+            None => {
+                // TODO: should we sleep here?
+            }
+        }
+
+    }
+}
+
+
 #[launch]
 fn rocket() -> _ {
 
     env_logger::init();
+
+    // Launch the worker processes
+    let num_of_workers = 1;
+
+    start_workers(num_of_workers);
+
+
     info!("Starting Rocket webserver...");
 
     rocket::build().attach(CORS).mount(
