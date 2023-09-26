@@ -2,18 +2,20 @@
 extern crate rocket;
 
 use handlers::ApiCommand;
+use handlers::ApiCommandResult;
 use rocket::serde::{json::Json, Deserialize, Serialize};
 use std::env;
-use std::thread;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::sync::Arc;
+use std::thread;
 
 use futures::executor::block_on;
 
-use uuid::Uuid;
+use uuid::{uuid, Uuid};
 
 use crossbeam_queue::ArrayQueue;
+use crossbeam_skiplist::SkipMap;
 
 use rocket::data::{Data, ToByteUnit};
 use rocket::fairing::{Fairing, Info, Kind};
@@ -24,13 +26,11 @@ use rocket::{Request, Response};
 
 mod handlers;
 
-
 mod utils;
 use utils::lib::{get_file_ext, get_file_path, CAIRO_DIR, CASM_ROOT, SIERRA_ROOT};
 
-use log::{debug, error, log_enabled, info, Level};
 use env_logger::Env;
-
+use log::{debug, error, info, log_enabled, Level};
 
 #[derive(Default)]
 
@@ -58,17 +58,13 @@ impl Fairing for CORS {
         // Take the Plugin App URL from the env variable, if set
         match env::var("REACT_APP_URL") {
             Ok(v) => {
-                response.set_header(Header::new(
-                    "Access-Control-Allow-Origin",
-                    v
-                ));
-            },
+                response.set_header(Header::new("Access-Control-Allow-Origin", v));
+            }
             Err(e) => {
                 response.set_header(Header::new(
                     "Access-Control-Allow-Origin",
-                    "https://cairo-remix-test.nethermind.io"
+                    "https://cairo-remix-test.nethermind.io",
                 ));
-        
             }
         }
 
@@ -91,10 +87,9 @@ async fn compile_to_casm(remix_file_path: PathBuf) -> Json<handlers::CompileResp
     handlers::do_compile_to_casm(remix_file_path).await
 }
 
-
 #[get("/compile-scarb/<remix_file_path..>")]
 async fn scarb_compile(remix_file_path: PathBuf) -> Json<handlers::ScarbCompileResponse> {
-    handlers::do_scarb_compile(remix_file_path).await
+    handlers::do_scarb_compile(remix_file_path).await.unwrap()
 }
 
 #[get("/compile-scarb-async/<remix_file_path..>")]
@@ -118,8 +113,6 @@ async fn get_scarb_compile_result(process_id: String) -> Json<handlers::ScarbCom
     //Json::from(handlers::ScarbCompileResponse{})
 }
 
-
-
 #[get("/process_status/<process_id>")]
 async fn get_process_status(process_id: String) -> String {
     // get status of process by ID
@@ -128,12 +121,10 @@ async fn get_process_status(process_id: String) -> String {
     String::from("")
 }
 
-
-
 // Read the version from the cairo Cargo.toml file.
 #[get("/cairo_version")]
 async fn cairo_version() -> String {
-    handlers::do_cairo_version()
+    handlers::do_cairo_version().unwrap_or_else(|e| e)
 }
 
 #[get("/health")]
@@ -146,72 +137,90 @@ async fn who_is_this() -> &'static str {
     "Who are you?"
 }
 
-
-
-
-
 fn start_workers(num_workers: u32) {
-    // TODO create a static' queue instance
-    let queue : ArrayQueue<(Uuid, ApiCommand)> = ArrayQueue::new(5);
+    // Create a queue instance
+    let queue: ArrayQueue<(Uuid, ApiCommand)> = ArrayQueue::new(5);
     let arc_queue = Arc::new(queue);
 
-    // TODO create a static' results state map instance (NOTE: how to implement purging from this map???)
-    // TODO create a static' collection of worker threads
-    let mut worker_threads: Vec<thread::JoinHandle<()>> = vec![];
+    // Create a process state map instance (NOTE: how to implement purging from this map???)
+    let process_states = SkipMap::new();
+    let arc_process_states = Arc::new(process_states);
 
+    // Create a collection of worker threads
+    let mut worker_threads: Vec<thread::JoinHandle<()>> = vec![];
 
     for _ in 0..num_workers {
         // add to collection
         let arc_clone = arc_queue.clone();
-        worker_threads.push( 
-            thread::spawn( move || 
-            { 
-                block_on(worker(arc_clone));
-            })
-        );
-        
+        let arc_states = arc_process_states.clone();
+        worker_threads.push(thread::spawn(move || {
+            block_on(worker(arc_clone, arc_states));
+        }));
+    }
+}
+
+enum ProcessState {
+    New,
+    Running,
+    Completed(ApiCommandResult),
+    Error(String),
+}
+
+fn enqueue_command(
+    command: ApiCommand,
+    queue: Arc<ArrayQueue<(Uuid, ApiCommand)>>,
+    states: Arc<SkipMap<Uuid, ProcessState>>,
+) -> Result<Uuid, String> {
+    let uuid = Uuid::new_v4();
+
+    states.insert(uuid, ProcessState::New);
+
+    match queue.push((uuid, command)) {
+        Ok(()) => Ok(uuid),
+        Err(e) => {
+            Err(String::from("Error enqueueing command {}")) // TODO nice formatting
+        }
     }
 }
 
 // worker function
-async fn worker(queue : Arc<ArrayQueue<(Uuid, ApiCommand)>>) {
+async fn worker(
+    queue: Arc<ArrayQueue<(Uuid, ApiCommand)>>,
+    states: Arc<SkipMap<Uuid, ProcessState>>,
+) {
     loop {
         // read process ID and command from queue
         match queue.pop() {
-            Some((process_id, command )) => {
+            Some((process_id, command)) => {
                 match command {
-                    handlers::ApiCommand::Shutdown => { 
-                        return; 
-                    },
+                    handlers::ApiCommand::Shutdown => {
+                        return;
+                    }
                     _ => {
                         // TODO: update process state
-        
+
                         let result = handlers::dispatch_command(command).await;
                         // TODO store the result in results map
-        
+
                         // TODO: update process state
-                    },
+                    }
                 }
-            },
+            }
             None => {
                 // TODO: should we sleep here?
             }
         }
-
     }
 }
 
-
 #[launch]
 fn rocket() -> _ {
-
     env_logger::init();
 
     // Launch the worker processes
     let num_of_workers = 1;
 
     start_workers(num_of_workers);
-
 
     info!("Starting Rocket webserver...");
 

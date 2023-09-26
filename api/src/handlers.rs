@@ -1,16 +1,13 @@
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
-use rocket::Shutdown;
 use rocket::data::{Data, ToByteUnit};
 use rocket::fs::NamedFile;
 use rocket::serde::{json::Json, Deserialize, Serialize};
 use rocket::tokio::fs;
-
+use rocket::Shutdown;
 
 use crate::utils::lib::{get_file_ext, get_file_path, CAIRO_DIR, CASM_ROOT, SIERRA_ROOT};
-
-
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(crate = "rocket::serde")]
@@ -36,35 +33,33 @@ pub struct ScarbCompileResponse {
 pub enum ApiCommand {
     CairoVersion,
     ScarbCompile(PathBuf),
-    Shutdown, 
+    Shutdown,
 }
 
 pub enum ApiCommandResult {
     CairoVersion(String),
     ScarbCompile(Json<ScarbCompileResponse>),
-    Shutdown 
+    Shutdown,
 }
 
-
-pub async fn dispatch_command(command: ApiCommand) -> ApiCommandResult {
+pub async fn dispatch_command(command: ApiCommand) -> Result<ApiCommandResult, String> {
     match command {
-        ApiCommand::CairoVersion => {
-            ApiCommandResult::CairoVersion(do_cairo_version())
+        ApiCommand::CairoVersion => match do_cairo_version() {
+            Ok(result) => Ok(ApiCommandResult::CairoVersion(result)),
+            Err(e) => Err(e),
         },
         ApiCommand::ScarbCompile(remix_file_path) => {
-            ApiCommandResult::ScarbCompile(do_scarb_compile(remix_file_path).await)
-        }, 
-        ApiCommand::Shutdown => {
-            ApiCommandResult::Shutdown
+            match do_scarb_compile(remix_file_path).await {
+                Ok(result) => Ok(ApiCommandResult::ScarbCompile(result)),
+                Err(e) => Err(e),
+            }
         }
+        ApiCommand::Shutdown => Ok(ApiCommandResult::Shutdown),
     }
 }
 
-
-
-
 /// Upload a data file
-/// 
+///
 pub async fn do_save_code(file: Data<'_>, remix_file_path: PathBuf) -> String {
     let remix_file_path = match remix_file_path.to_str() {
         Some(path) => path.to_string(),
@@ -110,7 +105,7 @@ pub async fn do_save_code(file: Data<'_>, remix_file_path: PathBuf) -> String {
 }
 
 /// Compile a given file to Sierra bytecode
-/// 
+///
 pub async fn do_compile_to_sierra(remix_file_path: PathBuf) -> Json<CompileResponse> {
     let remix_file_path = match remix_file_path.to_str() {
         Some(path) => path.to_string(),
@@ -207,7 +202,7 @@ pub async fn do_compile_to_sierra(remix_file_path: PathBuf) -> Json<CompileRespo
 }
 
 /// Compile source file to CASM
-/// 
+///
 pub async fn do_compile_to_casm(remix_file_path: PathBuf) -> Json<CompileResponse> {
     let remix_file_path = match remix_file_path.to_str() {
         Some(path) => path.to_string(),
@@ -298,8 +293,6 @@ pub async fn do_compile_to_casm(remix_file_path: PathBuf) -> Json<CompileRespons
     })
 }
 
-
-
 fn get_files_recursive(base_path: &Path) -> Vec<FileContentMap> {
     let mut file_content_map_array: Vec<FileContentMap> = Vec::new();
 
@@ -328,16 +321,18 @@ fn get_files_recursive(base_path: &Path) -> Vec<FileContentMap> {
 }
 
 /// Run Scarb to compile a project
-/// 
-pub async fn do_scarb_compile(remix_file_path: PathBuf) -> Json<ScarbCompileResponse> {
+///
+pub async fn do_scarb_compile(
+    remix_file_path: PathBuf,
+) -> Result<Json<ScarbCompileResponse>, String> {
     let remix_file_path = match remix_file_path.to_str() {
         Some(path) => path.to_string(),
         None => {
-            return Json(ScarbCompileResponse {
+            return Ok(Json(ScarbCompileResponse {
                 file_content_map_array: vec![],
                 message: "File path not found".to_string(),
                 status: "FileNotFound".to_string(),
-            });
+            }));
         }
     };
 
@@ -357,7 +352,7 @@ pub async fn do_scarb_compile(remix_file_path: PathBuf) -> Json<ScarbCompileResp
 
     let output = result.wait_with_output().expect("Failed to wait on child");
 
-    Json(ScarbCompileResponse {
+    Ok(Json(ScarbCompileResponse {
         file_content_map_array: get_files_recursive(&file_path.join("target/dev")),
         message: String::from_utf8(output.stdout)
             .unwrap()
@@ -370,13 +365,12 @@ pub async fn do_scarb_compile(remix_file_path: PathBuf) -> Json<ScarbCompileResp
             Some(_) => "SierraCompilationFailed".to_string(),
             None => "UnknownError".to_string(),
         },
-    })
+    }))
 }
 
-
 /// Run Cairo --version to return Cairo version string
-/// 
-pub fn do_cairo_version() -> String {
+///
+pub fn do_cairo_version() -> Result<String, String> {
     let mut version_caller = Command::new("cargo");
     version_caller.current_dir(CAIRO_DIR);
     match String::from_utf8(
@@ -395,7 +389,7 @@ pub fn do_cairo_version() -> String {
             .expect("Failed to wait on child")
             .stdout,
     ) {
-        Ok(version) => version,
-        Err(e) => e.to_string(),
+        Ok(version) => Ok(version),
+        Err(e) => Err(e.to_string()),
     }
 }
