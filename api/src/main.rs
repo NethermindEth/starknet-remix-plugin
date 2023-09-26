@@ -15,6 +15,9 @@ use rocket::{Request, Response};
 mod utils;
 use utils::lib::{get_file_ext, get_file_path, CAIRO_DIR, CASM_ROOT, SIERRA_ROOT};
 
+use log::{debug, error, log_enabled, info, Level};
+use env_logger::Env;
+
 #[derive(Default)]
 
 pub struct CORS;
@@ -167,6 +170,7 @@ async fn compile_to_sierra(remix_file_path: PathBuf) -> Json<CompileResponse> {
 
     let result = compile
         .arg("run")
+        .arg("--release")
         .arg("--bin")
         .arg("starknet-compile")
         .arg("--")
@@ -261,6 +265,7 @@ async fn compile_to_casm(remix_file_path: PathBuf) -> Json<CompileResponse> {
 
     let result = compile
         .arg("run")
+        .arg("--release")
         .arg("--bin")
         .arg("starknet-sierra-compile")
         .arg("--")
@@ -420,6 +425,10 @@ async fn who_is_this() -> &'static str {
 
 #[launch]
 fn rocket() -> _ {
+
+    env_logger::init();
+    info!("Starting Rocket webserver...");
+
     rocket::build().attach(CORS).mount(
         "/",
         routes![

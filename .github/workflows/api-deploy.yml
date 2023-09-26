@@ -126,7 +126,10 @@ jobs:
           task-definition: task-definition.json
           container-name: "rocket"
           image: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:apiserver-${{ needs.Build.outputs.image-version }}      #${{ github.run_number }}
-          environment-variables: "REACT_APP_URL=https://cairo-remix-dev.nethermind.io" # inject the expected React package URL for CORS logic
+          # inject the expected React package URL for CORS logic
+          environment-variables: |
+            RUST_LOG=INFO
+            REACT_APP_URL=https://cairo-remix-dev.nethermind.io
 
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
