@@ -26,6 +26,10 @@ RUN apt-get install grafana-agent
 
 WORKDIR /opt/app
 
+# install Scarb
+RUN curl --proto '=https' --tlsv1.2 -sSf https://docs.swmansion.com/scarb/install.sh | bash
+
+# copy Remix plugin source and install Rust
 COPY . /opt/app
 
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain stable -y
@@ -36,12 +40,18 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 
 RUN git submodule update --init
 
+# Build the API service
 WORKDIR /opt/app/api
 
 RUN cargo build --release
 
 RUN chmod +x ./docker_run.sh
 
+# Build the cairo compiler
+WORKDIR /opt/app/api/cairo
+RUN cargo build --release --workspace
+
 EXPOSE 8000
 
+WORKDIR /opt/app/api
 ENTRYPOINT [ "./docker_run.sh" ]

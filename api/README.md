@@ -4,15 +4,14 @@
 - [Cairo Lang](https://www.cairo-lang.org/docs/quickstart.html#quickstart): for class hash calculation.
 
 ## Run
-  
+
 ```bash  
-cargo run
+cargo run  
 ``` 
- 
 ## To run while watching files
  
-```bash
-cargo watch -x run
+```bash 
+cargo watch -x run 
 ``` 
 
 ## Notes

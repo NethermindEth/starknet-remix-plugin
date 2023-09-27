@@ -69,27 +69,27 @@ jobs:
         with:
           mask-password: 'true'
 
-      - name: Update local Rust toolchain
-        run: |
-          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain stable -y
-          rustup update
-          rustup component add clippy
-          rustup install nightly        
-          sudo apt install musl-tools
-          rustup target add x86_64-unknown-linux-musl
+#      - name: Update local Rust toolchain
+#        run: |
+#          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain stable -y
+#          rustup update
+#          rustup component add clippy
+#          rustup install nightly        
+#          sudo apt install musl-tools
+#          rustup target add x86_64-unknown-linux-musl
           
 
-      - name: Toolchain info
-        run: |
-          cargo --version --verbose
-          rustc --version
-          cargo clippy --version          
+#      - name: Toolchain info
+#        run: |
+#          cargo --version --verbose
+#          rustc --version
+#          cargo clippy --version          
 
-      - name: Build
-        run: |
-          cd api
-          cargo build --target=x86_64-unknown-linux-musl          
-          ls ./target/debug/ -al
+#      - name: Build
+#        run: |
+#          cd api
+#          cargo build --target=x86_64-unknown-linux-musl          
+#          ls ./target/debug/ -al
 
       - name: Build, tag, and push docker image to Amazon ECR
         env:
@@ -126,7 +126,10 @@ jobs:
           task-definition: task-definition.json
           container-name: "rocket"
           image: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:apiserver-${{ needs.Build.outputs.image-version }}      #${{ github.run_number }}
-          environment-variables: "REACT_APP_URL=https://cairo-remix-dev.nethermind.io" # inject the expected React package URL for CORS logic
+          # inject the expected React package URL for CORS logic
+          environment-variables: |
+            RUST_LOG=INFO
+            REACT_APP_URL=https://cairo-remix-dev.nethermind.io
 
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1

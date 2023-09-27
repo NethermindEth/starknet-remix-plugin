@@ -1,17 +1,17 @@
 # Starknet Remix Plugin
 
-[![Pull Requests welcome](https://img.shields.io/badge/PRs-welcome-ff69b4.svg?style=flat-square)](https://github.com/NethermindEth/starknet-remix-plugin/issues)
+[![Pull Requests welcome](https://img.shields.io/badge/PRs-welcome-ff69b4.svg?style=flat-square)](https://github.com/NethermindEth/Starknet-remix-plugin/issues)
 [![Discord](https://img.shields.io/discord/629004402170134531?label=Discord)](https://discord.com/invite/PaCMRFdvWT)
 [![Static Badge](https://img.shields.io/badge/Telegram-2AABEE)](https://t.me/StarknetRemixPlugin)
 
 Welcome to the **Starknet Remix Plugin** repository! 🎉 
 
-This powerful tool seamlessly integrates with the Remix IDE, enabling developers to effortlessly deploy and interact with StarkNet contracts! Whether you're a Cairo and Starknet wizard 🧙‍♂️ or taking your very first steps, this plugin supercharges your journey by providing an effortless way to deploy and interact with StarkNet contracts. Happy coding! 🚀
+This powerful tool seamlessly integrates with the Remix IDE, enabling developers to effortlessly deploy and interact with Starknet contracts! Whether you're a Cairo and Starknet wizard 🧙‍♂️ or taking your very first steps, this plugin supercharges your journey by providing an effortless way to deploy and interact with Starknet contracts. Happy coding! 🚀
 
 <details> 
 <summary>Table of Contents</summary>
 
-- [Starknet Remix Plugin](#starknet-remix-plugin)
+- [Starknet Remix Plugin](#Starknet-remix-plugin)
   - [For Users](#for-users)
     - [Getting Started](#getting-started)
       - Installation
@@ -29,13 +29,13 @@ This powerful tool seamlessly integrates with the Remix IDE, enabling developers
 
 ## For users
 
-If you're looking to utilize the capabilities of StarkNet contracts within the Remix IDE, you've come to the right place. This section provides you with a straightforward guide to get started.
+If you're looking to utilize the capabilities of Starknet contracts within the Remix IDE, you've come to the right place. This section provides you with a straightforward guide to get started.
 
 ### Getting Started
 
-1. **Installation**: Get excited, folks, no complicated installations needed here! If you're a user, all you have to do is head over to the Remix IDE and locate the Starknet Remix Plugin in the plugins section. Want to make it even simpler? Click right through to Remix using [this direct link](https://remix.ethereum.org/#activate=Starknet-cairo1-compiler) and you're good to go! 🎉
+1. **Installation**: Get excited, folks, no complicated installations needed here! If you're a user, all you have to do is head over to the Remix IDE and locate the Starknet Remix Plugin in the plugins section. Want to make it even simpler? Click right through to Remix using [this direct link](https://remix.ethereum.org/#activate=Starknet) and you're good to go! 🎉
 
-2. **Usage**: Once the plugin is activated, you'll find a user-friendly interface that allows you to deploy and interact with StarkNet contracts. Follow the on-screen prompts and tooltips for an effortlessly smooth experience!
+2. **Usage**: Once the plugin is activated, you'll find a user-friendly interface that allows you to deploy and interact with Starknet contracts. Follow the on-screen prompts and tooltips for an effortlessly smooth experience!
 
 3. **Feedback**: Your feedback is invaluable to us 🌟! If you encounter any issues or have game-changing suggestions, don't hesitate to reach out through our [Discord](https://discord.com/invite/PaCMRFdvWT) or our [Community Forum](https://community.nethermind.io/). Let's make something awesome together! 🤝
 
@@ -94,7 +94,7 @@ cargo install cargo-watch;
 cargo watch -x run;
 ```
 
-For devnet interactions, you'll need to use [Starknet Devnet](https://github.com/Shard-Labs/starknet-devnet).
+For devnet interactions, you'll need to use [Starknet Devnet](https://github.com/Shard-Labs/Starknet-devnet).
 
 ##### Connecting the plugin
 
@@ -108,9 +108,9 @@ You should be all set to see the magic happen! Activate the plugin and it should
 
 ## Support and Contributions
 
-Feel free to contribute! Spotted any [issues](https://github.com/NethermindEth/starknet-remix-plugin/issues)? Head on over to our [good first issues](https://github.com/NethermindEth/starknet-remix-plugin/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) or read through our [Contribution Guidelines](/docs/CONTRIBUTING.md) to get started. 📝
+Feel free to contribute! Spotted any [issues](https://github.com/NethermindEth/Starknet-remix-plugin/issues)? Head on over to our [good first issues](https://github.com/NethermindEth/Starknet-remix-plugin/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) or read through our [Contribution Guidelines](/docs/CONTRIBUTING.md) to get started. 📝
 
 Jump into our [Discord channel](https://discord.com/invite/PaCMRFdvWT) and join our thriving [community](https://community.nethermind.io/)! Connect with other users, share insights, and get all your questions answered. Our community is always eager to help newcomers! 🤝
 
-We're thrilled for you to experience the Starknet Remix Plugin, and we can't wait to see the inventive ways you'll engage with StarkNet contracts! Happy coding! 💡
+We're thrilled for you to experience the Starknet Remix Plugin, and we can't wait to see the inventive ways you'll engage with Starknet contracts! Happy coding! 💡
 

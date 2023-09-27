@@ -13,10 +13,13 @@ use rocket::tokio::fs;
 use rocket::{Request, Response};
 use tracing::instrument;
 
-mod log;
-use log::init_logger;
+mod tracing_log;
+use tracing_log::init_logger;
 mod utils;
 use utils::lib::{get_file_ext, get_file_path, CAIRO_DIR, CASM_ROOT, SIERRA_ROOT};
+
+use log::{debug, error, log_enabled, info, Level};
+use env_logger::Env;
 
 #[derive(Default)]
 
@@ -167,6 +170,7 @@ async fn compile_to_sierra(remix_file_path: PathBuf) -> Json<CompileResponse> {
 
     let result = compile
         .arg("run")
+        .arg("--release")
         .arg("--bin")
         .arg("starknet-compile")
         .arg("--")
@@ -261,6 +265,7 @@ async fn compile_to_casm(remix_file_path: PathBuf) -> Json<CompileResponse> {
 
     let result = compile
         .arg("run")
+        .arg("--release")
         .arg("--bin")
         .arg("starknet-sierra-compile")
         .arg("--")
@@ -393,6 +398,7 @@ async fn cairo_version() -> String {
         version_caller
             .arg("run")
             .arg("-q")
+            .arg("--release")
             .arg("--bin")
             .arg("cairo-compile")
             .arg("--")
@@ -426,6 +432,10 @@ fn rocket() -> _ {
     if let Err(err) = init_logger() {
         eprintln!("Error initializing logger: {}", err);
     }
+
+    env_logger::init();
+    info!("Starting Rocket webserver...");
+
     rocket::build().attach(CORS).mount(
         "/",
         routes![
