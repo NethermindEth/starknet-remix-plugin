@@ -19,8 +19,8 @@ SHELL ["/bin/bash", "-c"]
 
 # install asdf to manage all the thingz!!!
 RUN git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.13.1 && \
-    echo ". $HOME/.asdf/asdf.sh" >> /root/.bashrc && \
-    . $HOME/.asdf/asdf.sh
+    echo ". $HOME/.asdf/asdf.sh" >> /root/.bashrc 
+RUN . $HOME/.asdf/asdf.sh
 
 # install Scarb
 RUN asdf plugin add scarb
