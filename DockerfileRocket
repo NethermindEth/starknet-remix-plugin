@@ -12,21 +12,8 @@ RUN apt-get install -y curl \
 
 WORKDIR /opt/app
 
-# ensure we use bash for all RUN commands
-# use -l to use interactive login shell
-# and ensure modifications to bashrc are properly sourced
-SHELL ["/bin/bash", "-c"]
-
-# install asdf to manage all the thingz!!!
-RUN git clone https://github.com/asdf-vm/asdf.git $HOME/.asdf --branch v0.13.1 && \
-    echo ". $HOME/.asdf/asdf.sh" >> /root/.bashrc 
-RUN exec bash;
-
 # install Scarb
-RUN source /root/.bashrc && \
-    /bin/bash -c asdf plugin add scarb && \
-    /bin/bash -c asdf list-all scarb && \
-    /bin/bash -c asdf install scarb latest
+RUN curl --proto '=https' --tlsv1.2 -sSf https://docs.swmansion.com/scarb/install.sh | bash
 
 # copy Remix plugin source and install Rust
 COPY . /opt/app
