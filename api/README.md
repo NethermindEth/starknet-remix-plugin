@@ -10,7 +10,7 @@ cargo run
 ``` 
 ## To run while watching files
  
-```bash
+```bash 
 cargo watch -x run 
 ``` 
 
