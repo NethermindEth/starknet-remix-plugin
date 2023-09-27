@@ -20,11 +20,11 @@ SHELL ["/bin/bash", "-c"]
 # install asdf to manage all the thingz!!!
 RUN git clone https://github.com/asdf-vm/asdf.git $HOME/.asdf --branch v0.13.1 && \
     echo ". $HOME/.asdf/asdf.sh" >> /root/.bashrc 
-RUN source /root/.bashrc && \
-    exec bash;
+RUN exec bash;
 
 # install Scarb
-RUN /bin/bash -c asdf plugin add scarb && \
+RUN source /root/.bashrc && \
+    /bin/bash -c asdf plugin add scarb && \
     /bin/bash -c asdf list-all scarb && \
     /bin/bash -c asdf install scarb latest
 
