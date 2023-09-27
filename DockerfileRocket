@@ -12,8 +12,11 @@ RUN apt-get install -y curl \
 
 WORKDIR /opt/app
 
+SHELL ["/bin/bash", "-lc"]
+
 # install Scarb
-RUN curl --proto '=https' --tlsv1.2 -sSf https://docs.swmansion.com/scarb/install.sh | bash
+RUN curl --proto '=https' --tlsv1.2 -sSf https://docs.swmansion.com/scarb/install.sh | bash 
+ENV PATH="/root/.local/bin:${PATH}"
 
 # copy Remix plugin source and install Rust
 COPY . /opt/app
