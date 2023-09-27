@@ -15,7 +15,7 @@ WORKDIR /opt/app
 # ensure we use bash for all RUN commands
 # use -l to use interactive login shell
 # and ensure modifications to bashrc are properly sourced
-SHELL ["/bin/bash", "-lc"]
+SHELL ["/bin/bash", "-c"]
 
 # install asdf to manage all the thingz!!!
 RUN git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.13.1 && \
