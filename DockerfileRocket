@@ -23,9 +23,9 @@ RUN git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.13.1 && \
 RUN exec bash;
 
 # install Scarb
-RUN asdf plugin add scarb
-RUN asdf list-all scarb
-RUN asdf install scarb latest
+RUN /bin/bash -c asdf plugin add scarb
+RUN /bin/bash -c asdf list-all scarb
+RUN /bin/bash -c asdf install scarb latest
 
 # copy Remix plugin source and install Rust
 COPY . /opt/app
