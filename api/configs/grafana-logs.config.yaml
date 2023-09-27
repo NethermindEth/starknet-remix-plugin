@@ -11,7 +11,7 @@ logs:
                 job: starknet-remix-docker-logs
                 __path__: "${PROMTAIL_BASE_DIR}/logs/*"
       clients:
-        - url: https://logs-prod-006.grafana.net/loki/api/v1/push
+        - url: https://logs-prod-us-central1.grafana.net/loki/api/v1/push
           basic_auth:
             username: ${PROMTAIL_USERNAME}
             password: ${PROMTAIL_PASSWORD}
