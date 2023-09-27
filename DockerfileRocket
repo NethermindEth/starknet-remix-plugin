@@ -18,14 +18,15 @@ WORKDIR /opt/app
 SHELL ["/bin/bash", "-c"]
 
 # install asdf to manage all the thingz!!!
-RUN git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.13.1 && \
+RUN git clone https://github.com/asdf-vm/asdf.git $HOME/.asdf --branch v0.13.1 && \
     echo ". $HOME/.asdf/asdf.sh" >> /root/.bashrc 
-RUN exec bash;
+RUN source /root/.bashrc && /
+    exec bash;
 
 # install Scarb
-RUN /bin/bash -c asdf plugin add scarb
-RUN /bin/bash -c asdf list-all scarb
-RUN /bin/bash -c asdf install scarb latest
+RUN /bin/bash -c asdf plugin add scarb && \
+    /bin/bash -c asdf list-all scarb && \
+    /bin/bash -c asdf install scarb latest
 
 # copy Remix plugin source and install Rust
 COPY . /opt/app
