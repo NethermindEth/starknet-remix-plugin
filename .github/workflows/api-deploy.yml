@@ -130,6 +130,8 @@ jobs:
           environment-variables: |
             RUST_LOG=INFO
             REACT_APP_URL=https://cairo-remix-dev.nethermind.io
+            PROMTAIL_USERNAME=${{secrets.PROMTAIL_USERNAME}}
+            PROMTAIL_PASSWORD=${{secrets.PROMTAIL_PASSWORD}}
 
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1

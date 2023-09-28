@@ -433,7 +433,7 @@ fn rocket() -> _ {
         eprintln!("Error initializing logger: {}", err);
     }
 
-    env_logger::init();
+    // env_logger::init();
     info!("Starting Rocket webserver...");
 
     rocket::build().attach(CORS).mount(
