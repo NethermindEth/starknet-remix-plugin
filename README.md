@@ -43,27 +43,41 @@ If you're looking to utilize the capabilities of Starknet contracts within the R
 
 Most issues with Starknet plugin or Remix itself are caused by connectivity problems (also resulting from restricted networks, web-proxies blocking certain content, etc.) or browser plugin interference. 
 - A user should first attempt to disable any browser components & addons which may impact the connectivity or Javascript execution. 
-- Some networks may restrict connectivity to certain sites or domains. Using a VPN conneciton may resolve problems observed on restricted networks.
+- Some networks may restrict connectivity to certain sites or domains. Using a VPN connection may resolve problems observed on restricted networks.
 
 More specific potential error causes are also described in detail below. 
 
-1. **Problems when searching plugins in Remix UI**  
+<details>
+<summary><strong>1. Problems when searching plugins in Remix UI</strong></summary>  
+<br/>
 Searching for online plugins in Remix IDE may return blank or otherwise incorrect content, such as on screenshot below:
+
 ![Plugin search not working](docs/images/plugin-search-error.png)
 Ensure that the following URL is accessible from a web browser, and that a JSON metadata code is returned -  
 https://raw.githubusercontent.com/ethereum/remix-plugins-directory/master/build/metadata.json :
+
 ![Correct plugin metadata](docs/images/plugin-metadata-connectivity.png)
 
-2. **Problems when launching Starknet plugin in Remix UI**   
+</details>
+
+<details>
+<summary><strong>2. Problems when launching Starknet plugin in Remix UI</strong></summary> 
+<br/>  
 Starknet plugin launch issues may be caused by connectivity errors or plugin components being unavailable. This can be tested from web browser, as indicated below:
+
 - https://cairo-remix-test.nethermind.io should respond with blank page (advanced: viewing page source will reveal a React component entry HTML markup) - no errors should be reported by the browser
 - https://cairo-compile-remix-test.nethermind.io/health should respond with `OK`
 - https://starknet-devnet-dev.nethermind.io/feeder_gateway/get_transaction_status?transactionHash=0xbadfad should respond with `{"tx_status":"NOT_RECEIVED"}`
+</details>
 
-3. **`localStorage` access errors**  
+<details>
+<summary><strong>3. `localStorage` access errors</strong></summary>  
+<br/>
 The following error indicates that the browser is blocking access to `localStorage` element of the webpage:
-![localStorge access error](docs/images/plugin-localStorage-error.png)
-Possible causes:  
+
+![localStorage access error](docs/images/plugin-localStorage-error.png)
+Possible causes:
+  
    - Chrome is launched in incognito mode
    - Chrome setting "Block third-party cookies" is activated (see [chrome://settings/cookies](chrome://settings/cookies)):
 ![Chrome cookies settings](docs/images/plugin-chrome-cookies-settings.png)
@@ -71,6 +85,7 @@ Note: even with "Block third-party cookies" activate, exceptions can be added to
      - https://remix.ethereum.org
      - https://cairo-remix-test.nethermind.io
    - ...also see this [link](https://stackoverflow.com/questions/30481516/iframe-in-chrome-error-failed-to-read-localstorage-from-window-access-deni) for potential hints.
+</details>
 
 ## For Developers
 
