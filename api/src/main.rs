@@ -26,9 +26,12 @@ use rocket::fs::NamedFile;
 use rocket::http::{Header, Method, Status};
 use rocket::tokio::fs;
 use rocket::{Request, Response, State};
+use tracing::instrument;
 
 mod handlers;
 
+mod tracing_log;
+use tracing_log::init_logger;
 mod utils;
 use utils::lib::{get_file_ext, get_file_path, CAIRO_DIR, CASM_ROOT, SIERRA_ROOT};
 
@@ -75,6 +78,7 @@ impl Fairing for CORS {
     }
 }
 
+
 #[post("/save_code/<remix_file_path..>", data = "<file>")]
 async fn save_code(file: Data<'_>, remix_file_path: PathBuf) -> String {
     handlers::do_save_code(file, remix_file_path).await
@@ -90,6 +94,7 @@ async fn compile_to_casm(remix_file_path: PathBuf) -> Json<handlers::CompileResp
     handlers::do_compile_to_casm(remix_file_path).await
 }
 
+#[instrument]
 #[get("/compile-scarb/<remix_file_path..>")]
 async fn scarb_compile(remix_file_path: PathBuf) -> Json<handlers::ScarbCompileResponse> {
     handlers::do_scarb_compile(remix_file_path).await.unwrap()
@@ -144,6 +149,7 @@ async fn get_process_status(
 }
 
 // Read the version from the cairo Cargo.toml file.
+#[instrument]
 #[get("/cairo_version")]
 async fn cairo_version() -> String {
     handlers::do_cairo_version().unwrap_or_else(|e| e)
@@ -231,11 +237,13 @@ fn fetch_process_result<F>(
 } 
 
 
+#[instrument]
 #[get("/health")]
 async fn health() -> &'static str {
     "OK"
 }
 
+#[instrument]
 #[get("/")]
 async fn who_is_this() -> &'static str {
     "Who are you?"
@@ -369,7 +377,10 @@ impl WorkerEngine {
 
 #[launch]
 fn rocket() -> _ {
-    env_logger::init();
+
+    if let Err(err) = init_logger() {
+        eprintln!("Error initializing logger: {}", err);
+    }
 
     // Launch the worker processes
     let mut engine = WorkerEngine::new(1);
