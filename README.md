@@ -67,7 +67,7 @@ Starknet plugin launch issues may be caused by connectivity errors or plugin com
 
 - https://cairo-remix-test.nethermind.io should respond with blank page (advanced: viewing page source will reveal a React component entry HTML markup) - no errors should be reported by the browser
 - https://cairo-compile-remix-test.nethermind.io/health should respond with `OK`
-- https://starknet-devnet-dev.nethermind.io/feeder_gateway/get_transaction_status?transactionHash=0xbadfad should respond with `{"tx_status":"NOT_RECEIVED"}`
+- https://starknet-devnet-dev.nethermind.io/predeployed_accounts should respond with JSON text describing predeployed Starknet accounts
 </details>
 
 <details>
