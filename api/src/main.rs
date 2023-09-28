@@ -3,12 +3,15 @@ extern crate rocket;
 
 use handlers::ApiCommand;
 use handlers::ApiCommandResult;
-use rocket::serde::{json::Json, Deserialize, Serialize};
+use rocket::serde::{json, json::Json, Deserialize, Serialize};
 use std::env;
+use std::fmt;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::sync::Arc;
+use std::time;
 use std::thread;
+
 
 use futures::executor::block_on;
 
@@ -22,7 +25,7 @@ use rocket::fairing::{Fairing, Info, Kind};
 use rocket::fs::NamedFile;
 use rocket::http::{Header, Method, Status};
 use rocket::tokio::fs;
-use rocket::{Request, Response};
+use rocket::{Request, Response, State};
 
 mod handlers;
 
@@ -93,32 +96,51 @@ async fn scarb_compile(remix_file_path: PathBuf) -> Json<handlers::ScarbCompileR
 }
 
 #[get("/compile-scarb-async/<remix_file_path..>")]
-async fn scarb_compile_async(remix_file_path: PathBuf) -> String {
-    // generate a process ID
-
-    // queue the new Scarb command
-
-    // return the process ID
-    String::from("")
+async fn scarb_compile_async(
+        remix_file_path: PathBuf, 
+        engine: &State<WorkerEngine>
+    ) -> String {
+        do_process_command(ApiCommand::ScarbCompile(remix_file_path), engine)
 }
 
 #[get("/compile-scarb-result/<process_id>")]
-async fn get_scarb_compile_result(process_id: String) -> Json<handlers::ScarbCompileResponse> {
-    // verify if process state is Success
-
-    // fetch the process results
-
-    // return process results
-    panic!("asdsad");
-    //Json::from(handlers::ScarbCompileResponse{})
+async fn get_scarb_compile_result(process_id: String, 
+    engine: &State<WorkerEngine>) -> String {
+    fetch_process_result(process_id, engine, |result| {
+        match result {
+            ApiCommandResult::ScarbCompile(scarb_result) => {
+                json::to_string(&scarb_result).unwrap()
+            },
+            _ => {
+                String::from("Result not available")
+            }
+        }
+    })
 }
 
 #[get("/process_status/<process_id>")]
-async fn get_process_status(process_id: String) -> String {
+async fn get_process_status(
+        process_id: String, 
+        engine: &State<WorkerEngine>
+    ) -> String {
     // get status of process by ID
+    match Uuid::parse_str(&process_id) {
+        Ok(process_uuid) => {
+            if engine.arc_process_states.contains_key(&process_uuid) {
+                format!("{:}", engine.arc_process_states.get(&process_uuid).unwrap().value())
+            }
+            else {
+                // TODO can we return HTTP status code here?
+                format!("Process id not found")
+            }
+        },
+        Err(e) => {
+                // TODO can we return HTTP status code here?
+                e.to_string()
+        }
 
-    // return the process status
-    String::from("")
+    }
+
 }
 
 // Read the version from the cairo Cargo.toml file.
@@ -126,6 +148,88 @@ async fn get_process_status(process_id: String) -> String {
 async fn cairo_version() -> String {
     handlers::do_cairo_version().unwrap_or_else(|e| e)
 }
+
+// Read the version from the cairo Cargo.toml file.
+#[get("/cairo_version_async")]
+async fn cairo_version_async(
+        engine: &State<WorkerEngine>
+    ) -> String {   
+    do_process_command(ApiCommand::CairoVersion, engine)
+}
+
+#[get("/cairo_version_result/<process_id>")]
+async fn get_cairo_version_result(
+        process_id: String,
+        engine: &State<WorkerEngine>
+    ) -> String {
+
+    fetch_process_result(process_id, engine, |result| {
+        match result {
+            ApiCommandResult::CairoVersion(version) => {
+                version.to_string()
+            },
+            _ => {
+                String::from("Result not available")
+            }
+        }
+    })
+}
+
+
+fn do_process_command(
+        command: ApiCommand,
+        engine: &State<WorkerEngine>
+    ) -> String {
+
+    // queue the new Scarb command
+    match engine.enqueue_command(command) {
+        Ok(uuid) => {
+            // return the process ID
+            format!("{}", uuid)
+        },
+        Err(e) => {
+            // TODO can we return HTTP status code here?
+            e
+        }
+    }
+
+}
+
+fn fetch_process_result<F>(
+        process_id: String,
+        engine: &State<WorkerEngine>,
+        do_work: F
+    ) -> String 
+    where F: FnOnce(&ApiCommandResult) -> String 
+{
+    // get status of process by ID
+    match Uuid::parse_str(&process_id) {
+        Ok(process_uuid) => {
+            if engine.arc_process_states.contains_key(&process_uuid) {
+                match engine.arc_process_states.get(&process_uuid).unwrap().value() {
+                    ProcessState::Completed(result) => {
+                        do_work(result)
+                    },
+                    _ => {
+                        String::from("Result not available")
+                    }
+                }
+            }
+            else
+            {
+                // TODO can we return HTTP status code here?
+                format!("Process id not found")
+            }
+        },
+        Err(e) => {
+                // TODO can we return HTTP status code here?
+                e.to_string()
+        }
+
+    }
+
+} 
+
 
 #[get("/health")]
 async fn health() -> &'static str {
@@ -137,28 +241,6 @@ async fn who_is_this() -> &'static str {
     "Who are you?"
 }
 
-fn start_workers(num_workers: u32) {
-    // Create a queue instance
-    let queue: ArrayQueue<(Uuid, ApiCommand)> = ArrayQueue::new(5);
-    let arc_queue = Arc::new(queue);
-
-    // Create a process state map instance (NOTE: how to implement purging from this map???)
-    let process_states = SkipMap::new();
-    let arc_process_states = Arc::new(process_states);
-
-    // Create a collection of worker threads
-    let mut worker_threads: Vec<thread::JoinHandle<()>> = vec![];
-
-    for _ in 0..num_workers {
-        // add to collection
-        let arc_clone = arc_queue.clone();
-        let arc_states = arc_process_states.clone();
-        worker_threads.push(thread::spawn(move || {
-            block_on(worker(arc_clone, arc_states));
-        }));
-    }
-}
-
 enum ProcessState {
     New,
     Running,
@@ -166,72 +248,152 @@ enum ProcessState {
     Error(String),
 }
 
-fn enqueue_command(
-    command: ApiCommand,
-    queue: Arc<ArrayQueue<(Uuid, ApiCommand)>>,
-    states: Arc<SkipMap<Uuid, ProcessState>>,
-) -> Result<Uuid, String> {
-    let uuid = Uuid::new_v4();
-
-    states.insert(uuid, ProcessState::New);
-
-    match queue.push((uuid, command)) {
-        Ok(()) => Ok(uuid),
-        Err(e) => {
-            Err(String::from("Error enqueueing command {}")) // TODO nice formatting
-        }
+impl fmt::Display for ProcessState {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+       match self {
+           ProcessState::New => write!(f, "New"),
+           ProcessState::Running => write!(f, "Running"),
+           ProcessState::Completed(_) => write!(f, "Completed"),
+           ProcessState::Error(e) => write!(f, "Error({})", e),
+       }
     }
 }
 
-// worker function
-async fn worker(
-    queue: Arc<ArrayQueue<(Uuid, ApiCommand)>>,
-    states: Arc<SkipMap<Uuid, ProcessState>>,
-) {
-    loop {
-        // read process ID and command from queue
-        match queue.pop() {
-            Some((process_id, command)) => {
-                match command {
-                    handlers::ApiCommand::Shutdown => {
-                        return;
-                    }
-                    _ => {
-                        // TODO: update process state
+struct WorkerEngine {
+    num_workers: u32,
+    worker_threads: Vec<thread::JoinHandle<()>>,
+    arc_command_queue: Arc<ArrayQueue<(Uuid, ApiCommand)>>,
+    arc_process_states: Arc<SkipMap<Uuid, ProcessState>>,
+}
 
-                        let result = handlers::dispatch_command(command).await;
-                        // TODO store the result in results map
+impl WorkerEngine {
 
-                        // TODO: update process state
+    fn new(num_workers: u32) -> Self {
+        // Create a queue instance
+
+        let queue: ArrayQueue<(Uuid, ApiCommand)> = ArrayQueue::new(5);
+        let arc_queue = Arc::new(queue);
+
+        // Create a process state map instance (NOTE: how to implement purging from this map???)
+        let process_states = SkipMap::new();
+        let arc_process_states = Arc::new(process_states);
+    
+        // Create a collection of worker threads
+        let mut worker_threads: Vec<thread::JoinHandle<()>> = vec![];
+
+        let result = WorkerEngine {
+            num_workers: num_workers,
+            arc_command_queue: arc_queue,
+            arc_process_states: arc_process_states,
+            worker_threads: worker_threads
+        };
+
+        result
+    }
+    
+    fn start(self: &mut Self) {
+        for _ in 0..self.num_workers {
+            // add to collection
+            let arc_clone = self.arc_command_queue.clone();
+            let arc_states = self.arc_process_states.clone();
+            self.worker_threads.push(thread::spawn(move || {
+                block_on(WorkerEngine::worker(arc_clone, arc_states));
+            }));
+        }
+
+    }
+
+    fn enqueue_command(
+        self: &Self,
+        command: ApiCommand,
+    ) -> Result<Uuid, String> {
+        let uuid = Uuid::new_v4();
+    
+        self.arc_process_states.insert(uuid, ProcessState::New);
+    
+        match self.arc_command_queue.push((uuid, command)) {
+            Ok(()) => Ok(uuid),
+            Err(e) => {
+                Err(String::from("Error enqueueing command {}")) // TODO nice formatting
+            }
+        }
+    }
+    
+    // worker function
+    async fn worker(
+        arc_command_queue: Arc<ArrayQueue<(Uuid, ApiCommand)>>,
+        arc_process_states: Arc<SkipMap<Uuid, ProcessState>>,
+    ) {
+        info!("Starting worker thread...");
+
+        loop {
+            // read process ID and command from queue
+            match arc_command_queue.pop() {
+                Some((process_id, command)) => {
+                    debug!("Command received: {:?}", command);
+
+                    match command {
+                        handlers::ApiCommand::Shutdown => {
+                            return;
+                        }
+                        _ => {
+                            // update process state
+                            arc_process_states.insert(process_id, ProcessState::Running);
+
+                            match handlers::dispatch_command(command).await {
+                                Ok(result) => {
+                                    arc_process_states.insert(process_id, ProcessState::Completed(result));
+                                },
+                                Err(e) => {
+                                    arc_process_states.insert(process_id, ProcessState::Error(e));
+                                }                                
+                            }
+                        }
                     }
                 }
-            }
-            None => {
-                // TODO: should we sleep here?
+                None => {
+                    debug!("Waiting for commands...");
+                    thread::sleep(time::Duration::from_millis(200));
+                }
             }
         }
+
+        info!("Worker thread finished...");
+
     }
+
 }
+
+
+
 
 #[launch]
 fn rocket() -> _ {
     env_logger::init();
 
     // Launch the worker processes
-    let num_of_workers = 1;
+    let mut engine = WorkerEngine::new(1);
 
-    start_workers(num_of_workers);
+    engine.start();
 
     info!("Starting Rocket webserver...");
 
-    rocket::build().attach(CORS).mount(
+    rocket::build()
+        .manage(engine)
+        .attach(CORS)
+        .mount(
         "/",
         routes![
             compile_to_sierra,
             compile_to_casm,
             scarb_compile,
+            scarb_compile_async,
+            get_scarb_compile_result,
             save_code,
             cairo_version,
+            cairo_version_async,
+            get_cairo_version_result,
+            get_process_status,
             health,
             who_is_this,
         ],

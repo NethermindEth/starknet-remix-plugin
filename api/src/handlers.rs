@@ -30,6 +30,7 @@ pub struct ScarbCompileResponse {
     pub file_content_map_array: Vec<FileContentMap>,
 }
 
+#[derive(Debug)]
 pub enum ApiCommand {
     CairoVersion,
     ScarbCompile(PathBuf),
@@ -38,7 +39,7 @@ pub enum ApiCommand {
 
 pub enum ApiCommandResult {
     CairoVersion(String),
-    ScarbCompile(Json<ScarbCompileResponse>),
+    ScarbCompile(ScarbCompileResponse),
     Shutdown,
 }
 
@@ -50,7 +51,7 @@ pub async fn dispatch_command(command: ApiCommand) -> Result<ApiCommandResult, S
         },
         ApiCommand::ScarbCompile(remix_file_path) => {
             match do_scarb_compile(remix_file_path).await {
-                Ok(result) => Ok(ApiCommandResult::ScarbCompile(result)),
+                Ok(result) => Ok(ApiCommandResult::ScarbCompile(result.into_inner())),
                 Err(e) => Err(e),
             }
         }
