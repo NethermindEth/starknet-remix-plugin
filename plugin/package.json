@@ -54,7 +54,7 @@
   "scripts": {
     "start": "vite",
     "build": "vite build",
-    "serve": "vite preview",
+    "serve": "vite preview --port 3000",
     "deploy": "pnpm run build; pnpm run serve",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
