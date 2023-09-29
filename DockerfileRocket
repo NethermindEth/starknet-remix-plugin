@@ -3,15 +3,36 @@ FROM ubuntu:20.04
 ENV DEBIAN_FRONTEND=noninteractive
 ENV DEBCONF_NONINTERACTIVE_SEEN=true
 
+RUN apt-get clean
+
 RUN apt-get update
 RUN apt-get install -y curl \
-                       git \
-                       cmake \
-                       build-essential \
-                       gcc
+    git \
+    cmake \
+    build-essential \
+    gcc \
+    apt-transport-https \
+    software-properties-common \
+    wget
+
+# Installing grafana agent
+RUN mkdir -p /etc/apt/keyrings/
+RUN wget -q -O - https://apt.grafana.com/gpg.key | gpg --dearmor | tee /etc/apt/keyrings/grafana.gpg > /dev/null
+RUN echo "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main" | tee -a /etc/apt/sources.list.d/grafana.list
+
+RUN apt-get update
+
+RUN apt-get install grafana-agent
 
 WORKDIR /opt/app
 
+SHELL ["/bin/bash", "-lc"]
+
+# install Scarb
+RUN curl --proto '=https' --tlsv1.2 -sSf https://docs.swmansion.com/scarb/install.sh | bash 
+ENV PATH="/root/.local/bin:${PATH}"
+
+# copy Remix plugin source and install Rust
 COPY . /opt/app
 
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain stable -y
@@ -24,7 +45,10 @@ RUN git submodule update --init
 
 # Build the API service
 WORKDIR /opt/app/api
-RUN cargo build
+
+RUN cargo build --release
+
+RUN chmod +x ./docker_run.sh
 
 # Build the cairo compiler
 WORKDIR /opt/app/api/cairo
@@ -33,4 +57,4 @@ RUN cargo build --release --workspace
 EXPOSE 8000
 
 WORKDIR /opt/app/api
-ENTRYPOINT [ "cargo", "run" ]
+ENTRYPOINT [ "./docker_run.sh" ]
