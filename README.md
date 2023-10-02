@@ -1,5 +1,6 @@
 # Starknet Remix Plugin
 
+[![Static Badge](https://img.shields.io/badge/Try_it_out!-2f6df2)](https://remix.ethereum.org/#activate=Starknet)
 [![Pull Requests welcome](https://img.shields.io/badge/PRs-welcome-ff69b4.svg?style=flat-square)](https://github.com/NethermindEth/Starknet-remix-plugin/issues)
 [![Discord](https://img.shields.io/discord/629004402170134531?label=Discord)](https://discord.com/invite/PaCMRFdvWT)
 [![Static Badge](https://img.shields.io/badge/Telegram-2AABEE)](https://t.me/StarknetRemixPlugin)
