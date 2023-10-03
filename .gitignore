@@ -6,6 +6,8 @@ api/casm
 api/casm/*
 
 
+api/*.env
+
 api/upload
 api/upload/*
 

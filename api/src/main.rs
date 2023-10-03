@@ -45,7 +45,7 @@ impl Fairing for CORS {
         }
 
         // Take the Plugin App URL from the env variable, if set
-        match env::var("REACT_APP_URL") {
+        match env::var("VITE_URL") {
             Ok(v) => {
                 response.set_header(Header::new("Access-Control-Allow-Origin", v));
             }

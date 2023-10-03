@@ -129,7 +129,7 @@ jobs:
           # inject the expected React package URL for CORS logic
           environment-variables: |
             RUST_LOG=INFO
-            REACT_APP_URL=https://cairo-remix-dev.nethermind.io
+            VITE_URL=https://cairo-remix-dev.nethermind.io
             PROMTAIL_USERNAME=${{secrets.PROMTAIL_USERNAME}}
             PROMTAIL_PASSWORD=${{secrets.PROMTAIL_PASSWORD}}
 
