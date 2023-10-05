@@ -4,8 +4,8 @@ on:
     branches:
       - develop
       - starknet-production-setup
-    paths:
-      - 'api/**'
+    # paths:
+    #   - 'api/**'
 
 permissions:
       id-token: write
