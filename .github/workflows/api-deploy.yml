@@ -14,9 +14,10 @@ permissions:
 env:
   REGISTRY: "599564732950.dkr.ecr.us-east-2.amazonaws.com"
   REPOSITORY: "starknet-remix-plugin"
-  CLUSTER: "starknet-remix-plugin-ecs-cluster"
-  SERVICE_NAME: "rocket-development-svc"
-  
+  DEV_CLUSTER: "starknet-remix-plugin-ecs-cluster"
+  DEV_SERVICE_NAME: "rocket-development-svc"
+  PROD_CLUSTER: "starknet-remix-plugin-production-ecs-cluster"
+  PROD_SERVICE_NAME: "rocket-production-svc"
 jobs:
   Build:
     runs-on: ubuntu-latest
@@ -138,8 +139,8 @@ jobs:
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
-          service: ${{ env.SERVICE_NAME }}
-          cluster: ${{ env.CLUSTER }}
+          service: ${{ env.DEV_SERVICE_NAME }}
+          cluster: ${{ env.DEV_CLUSTER }}
           wait-for-service-stability: true
   Deploy_Prod:
     if: github.ref == 'refs/heads/starknet-production-setup'
@@ -175,6 +176,6 @@ jobs:
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
-          service: ${{ env.SERVICE_NAME }}
-          cluster: ${{ env.CLUSTER }}
+          service: ${{ env.PROD_SERVICE_NAME }}
+          cluster: ${{ env.PROD_CLUSTER }}
           wait-for-service-stability: true
