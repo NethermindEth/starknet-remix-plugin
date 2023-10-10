@@ -11,6 +11,7 @@ use std::fmt::{Display, Formatter};
 use std::sync::Arc;
 use uuid::Uuid;
 
+#[derive(Debug)]
 pub enum ProcessState {
     New,
     Running,
@@ -29,6 +30,7 @@ impl Display for ProcessState {
     }
 }
 
+#[derive(Debug)]
 pub struct WorkerEngine {
     pub num_workers: u32,
     pub worker_threads: Vec<JoinHandle<()>>,

@@ -5,6 +5,7 @@ import { RemixClientContext } from '../../contexts/RemixClientContext'
 // import { BsChevronDown } from 'react-icons/bs'
 import Nethermind from '../../components/NM'
 import './style.css'
+import {asyncFetch} from "../../utils/async_fetch";
 
 const CairoVersion: React.FC = () => {
   const [cairoVersion, setCairoVersion] = useState('cairo-compile 2.2.0')

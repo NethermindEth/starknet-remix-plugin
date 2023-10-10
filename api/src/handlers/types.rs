@@ -9,13 +9,13 @@ pub struct CompileResponse {
     pub file_content: String,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct FileContentMap {
     pub file_name: String,
     pub file_content: String,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct ScarbCompileResponse {
     pub status: String,
     pub message: String,
@@ -32,6 +32,7 @@ pub enum ApiCommand {
     Shutdown,
 }
 
+#[derive(Debug)]
 pub enum ApiCommandResult {
     CairoVersion(String),
     CasmCompile(CompileResponse),
