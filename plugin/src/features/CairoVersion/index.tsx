@@ -5,6 +5,7 @@ import { RemixClientContext } from '../../contexts/RemixClientContext'
 // import { BsChevronDown } from 'react-icons/bs'
 import Nethermind from '../../components/NM'
 import './style.css'
+import {asyncFetch} from "../../utils/async_fetch";
 
 const CairoVersion: React.FC = () => {
   const [cairoVersion, setCairoVersion] = useState('cairo-compile 2.2.0')
@@ -20,15 +21,8 @@ const CairoVersion: React.FC = () => {
     const id = setTimeout(async () => {
       try {
         if (apiUrl !== undefined) {
-          console.log({apiUrl})
-          const response = await fetch(`${apiUrl}/cairo_version`, {
-            method: 'GET',
-            redirect: 'follow',
-            headers: {
-              'Content-Type': 'application/octet-stream'
-            }
-          })
-          setCairoVersion(await response.text())
+          const version = await asyncFetch('cairo_version_async', 'cairo_version_result')
+          setCairoVersion(version)
         }
       } catch (e) {
         await remixClient.call(
@@ -37,6 +31,7 @@ const CairoVersion: React.FC = () => {
           '🔴 Failed to fetch cairo version from the compilation server'
         )
         console.error(e)
+        await remixClient.terminal.log(`🔴 Failed to fetch cairo version from the compilation server ${e}` as any)
       }
     }, 100)
     return () => {
