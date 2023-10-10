@@ -17,12 +17,10 @@ const CairoVersion: React.FC = () => {
 
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    remixClient.terminal.log(`🔵 Fetching cairo version from the compilation server ${apiUrl}` as any)
     const id = setTimeout(async () => {
       try {
         if (apiUrl !== undefined) {
           const version = await asyncFetch('cairo_version_async', 'cairo_version_result')
-          await remixClient.terminal.log(`🟢 Fetched cairo version from the compilation server: ${version}` as any)
           setCairoVersion(version)
         }
       } catch (e) {
