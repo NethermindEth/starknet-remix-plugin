@@ -2,9 +2,9 @@ import * as D from '../../ui_components/Dropdown'
 import React, { useContext, useEffect, useState } from 'react'
 import { apiUrl } from '../../utils/network'
 import { RemixClientContext } from '../../contexts/RemixClientContext'
+// import { BsChevronDown } from 'react-icons/bs'
 import Nethermind from '../../components/NM'
 import './style.css'
-import { asyncFetch } from '../../utils/async_fetch'
 
 const CairoVersion: React.FC = () => {
   const [cairoVersion, setCairoVersion] = useState('cairo-compile 2.2.0')
@@ -13,7 +13,7 @@ const CairoVersion: React.FC = () => {
   const [versions] = useState<string[]>([
     'cairo-compile 2.2.0'
   ])
-  const pluginVersion = process.env.REACT_APP_VERSION !== undefined ? `v${process.env.REACT_APP_VERSION}` : 'v0.2.0'
+  const pluginVersion = import.meta.env.VITE_VERSION !== undefined ? `v${import.meta.env.VITE_VERSION}` : 'v0.2.0'
 
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
