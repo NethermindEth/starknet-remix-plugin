@@ -3,12 +3,14 @@ use crate::handlers::types::{ApiCommand, ApiCommandResult};
 use crossbeam_queue::ArrayQueue;
 use crossbeam_skiplist::SkipMap;
 use futures::executor::block_on;
+use futures::TryFutureExt;
 use rocket::tokio;
 use rocket::tokio::task::JoinHandle;
 use rocket::tokio::time;
 use rocket::tokio::time::sleep;
 use std::fmt::{Display, Formatter};
 use std::sync::Arc;
+use tracing::error_span;
 use uuid::Uuid;
 
 #[derive(Debug)]
@@ -66,7 +68,7 @@ impl WorkerEngine {
             let arc_clone = self.arc_command_queue.clone();
             let arc_states = self.arc_process_states.clone();
             self.worker_threads.push(tokio::spawn(async move {
-                block_on(WorkerEngine::worker(arc_clone, arc_states));
+                WorkerEngine::worker(arc_clone, arc_states).await;
             }));
         }
     }
