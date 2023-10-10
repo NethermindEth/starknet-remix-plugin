@@ -16,11 +16,13 @@ pub async fn scarb_compile(remix_file_path: PathBuf) -> Json<ScarbCompileRespons
     do_scarb_compile(remix_file_path).await.unwrap()
 }
 
+#[instrument]
 #[get("/compile-scarb-async/<remix_file_path..>")]
 pub async fn scarb_compile_async(remix_file_path: PathBuf, engine: &State<WorkerEngine>) -> String {
     do_process_command(ApiCommand::ScarbCompile(remix_file_path), engine)
 }
 
+#[instrument]
 #[get("/compile-scarb-result/<process_id>")]
 pub async fn get_scarb_compile_result(process_id: String, engine: &State<WorkerEngine>) -> String {
     fetch_process_result(process_id, engine, |result| match result {
