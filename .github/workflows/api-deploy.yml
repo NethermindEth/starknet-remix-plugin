@@ -105,10 +105,10 @@ jobs:
     outputs:
       image-version: ${{ steps.determine-version.outputs.version }}
   Deploy_Dev:
-    if: github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
     needs: Build
     steps:
+    
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -146,6 +146,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: Build
     steps:
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
