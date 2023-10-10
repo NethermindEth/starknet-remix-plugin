@@ -9,14 +9,14 @@ import { BiCopy } from 'react-icons/bi'
 import copy from 'copy-to-clipboard'
 import { MdRefresh } from 'react-icons/md'
 
-type INewTestNetAccount = {
+interface INewTestNetAccount {
   state: [boolean, React.Dispatch<React.SetStateAction<boolean>>]
 }
 
 type AccountCreationState = 'selectNetwork' | 'created' | 'loading'
 type Networks = 'goerli' | 'dev-goerli'
 
-type IStepProps = {
+interface IStepProps {
   changeState: React.Dispatch<React.SetStateAction<AccountCreationState>>
 }
 
@@ -121,7 +121,7 @@ const AccountCreated: React.FC<IAccountCreated> = ({
         </button>
       </div>
       <button
-        onClick={() => changeState('selectNetwork')}
+        onClick={() => { changeState('selectNetwork') }}
         className="btn btn-danger"
       >
         Reset
@@ -168,7 +168,7 @@ const NewTestNetAccount: React.FC<INewTestNetAccount> = ({ state }) => {
         <Dialog.Content>
           <button
             className={'btn btn-danger p-1 rounded-circle close-btn'}
-            onClick={() => setOpen(false)}
+            onClick={() => { setOpen(false) }}
           >
             <AiOutlineClose size={'16px'} />
           </button>
