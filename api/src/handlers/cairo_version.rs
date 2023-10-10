@@ -14,11 +14,13 @@ pub async fn cairo_version() -> String {
 }
 
 // Read the version from the cairo Cargo.toml file.
+#[instrument]
 #[get("/cairo_version_async")]
 pub async fn cairo_version_async(engine: &State<WorkerEngine>) -> String {
     do_process_command(ApiCommand::CairoVersion, engine)
 }
 
+#[instrument]
 #[get("/cairo_version_result/<process_id>")]
 pub async fn get_cairo_version_result(process_id: String, engine: &State<WorkerEngine>) -> String {
     fetch_process_result(process_id, engine, |result| match result {
