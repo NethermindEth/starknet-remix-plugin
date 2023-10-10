@@ -1,24 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState } from 'react'
 
 const JSONView = (data: JSON) => {
-  const [expandedRows, setExpandedRows] = useState<string[]>([]);
+  const [expandedRows, setExpandedRows] = useState<string[]>([])
 
   const toggleRow = (rowId: string) => {
-    const isExpanded = expandedRows.includes(rowId);
+    const isExpanded = expandedRows.includes(rowId)
     if (isExpanded) {
-      setExpandedRows(expandedRows.filter((id) => id !== rowId));
+      setExpandedRows(expandedRows.filter((id) => id !== rowId))
     } else {
-      setExpandedRows([...expandedRows, rowId]);
+      setExpandedRows([...expandedRows, rowId])
     }
-  };
+  }
 
   const renderRow = (row: any, level = 0) => {
-    const rowId = `${level}-${row.key}`;
+    const rowId = `${level}-${row.key}`
 
     return (
       <React.Fragment key={rowId}>
         <tr>
-          <td onClick={() => toggleRow(rowId)}>
+          <td onClick={() => { toggleRow(rowId) }}>
             {row?.children && (
               <span>{expandedRows.includes(rowId) ? '-' : '+'}</span>
             )}
@@ -36,8 +36,8 @@ const JSONView = (data: JSON) => {
             </tr>
           ))} */}
       </React.Fragment>
-    );
-  };
+    )
+  }
 
   return (
     <table>
@@ -50,7 +50,7 @@ const JSONView = (data: JSON) => {
       </thead>
       <tbody>{Object.entries(data).map(([key, value]) => renderRow({ key, value }))}</tbody>
     </table>
-  );
-};
+  )
+}
 
-export default JSONView;
+export default JSONView

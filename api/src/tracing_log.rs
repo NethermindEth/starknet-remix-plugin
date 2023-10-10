@@ -1,5 +1,4 @@
 use tracing_appender::rolling;
-use tracing_subscriber;
 use tracing_subscriber::filter::LevelFilter;
 use tracing_subscriber::fmt::writer::MakeWriterExt;
 use tracing_subscriber::prelude::*;

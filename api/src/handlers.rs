@@ -5,7 +5,6 @@ use rocket::data::{Data, ToByteUnit};
 use rocket::fs::NamedFile;
 use rocket::serde::{json::Json, Deserialize, Serialize};
 use rocket::tokio::fs;
-use rocket::Shutdown;
 
 use crate::utils::lib::{get_file_ext, get_file_path, CAIRO_DIR, CASM_ROOT, SIERRA_ROOT};
 
@@ -33,13 +32,19 @@ pub struct ScarbCompileResponse {
 #[derive(Debug)]
 pub enum ApiCommand {
     CairoVersion,
+    SierraCompile(PathBuf),
+    CasmCompile(PathBuf),
     ScarbCompile(PathBuf),
+    #[allow(dead_code)]
     Shutdown,
 }
 
 pub enum ApiCommandResult {
     CairoVersion(String),
+    CasmCompile(CompileResponse),
+    SierraCompile(CompileResponse),
     ScarbCompile(ScarbCompileResponse),
+    #[allow(dead_code)]
     Shutdown,
 }
 
@@ -53,6 +58,19 @@ pub async fn dispatch_command(command: ApiCommand) -> Result<ApiCommandResult, S
             match do_scarb_compile(remix_file_path).await {
                 Ok(result) => Ok(ApiCommandResult::ScarbCompile(result.into_inner())),
                 Err(e) => Err(e),
+            }
+        }
+        ApiCommand::SierraCompile(remix_file_path) => {
+            match do_compile_to_sierra(remix_file_path).await {
+                Ok(compile_response) => Ok(ApiCommandResult::SierraCompile(
+                    compile_response.into_inner(),
+                )),
+                Err(e) => Err(e),
+            }
+        }
+        ApiCommand::CasmCompile(remix_file_path) => {
+            match do_compile_to_casm(remix_file_path).await {
+                Json(compile_response) => Ok(ApiCommandResult::CasmCompile(compile_response)),
             }
         }
         ApiCommand::Shutdown => Ok(ApiCommandResult::Shutdown),
@@ -107,15 +125,17 @@ pub async fn do_save_code(file: Data<'_>, remix_file_path: PathBuf) -> String {
 
 /// Compile a given file to Sierra bytecode
 ///
-pub async fn do_compile_to_sierra(remix_file_path: PathBuf) -> Json<CompileResponse> {
+pub async fn do_compile_to_sierra(
+    remix_file_path: PathBuf,
+) -> Result<Json<CompileResponse>, String> {
     let remix_file_path = match remix_file_path.to_str() {
         Some(path) => path.to_string(),
         None => {
-            return Json(CompileResponse {
+            return Ok(Json(CompileResponse {
                 file_content: "".to_string(),
                 message: "File path not found".to_string(),
                 status: "FileNotFound".to_string(),
-            });
+            }));
         }
     };
 
@@ -126,11 +146,11 @@ pub async fn do_compile_to_sierra(remix_file_path: PathBuf) -> Json<CompileRespo
         }
         _ => {
             println!("LOG: File extension not supported");
-            return Json(CompileResponse {
+            return Ok(Json(CompileResponse {
                 file_content: "".to_string(),
                 message: "File extension not supported".to_string(),
                 status: "FileExtensionNotSupported".to_string(),
-            });
+            }));
         }
     }
 
@@ -169,6 +189,7 @@ pub async fn do_compile_to_sierra(remix_file_path: PathBuf) -> Json<CompileRespo
         .arg(&sierra_path)
         .arg("--single-file")
         .stderr(Stdio::piped())
+        .stdout(Stdio::piped())
         .spawn()
         .expect("Failed to execute starknet-compile");
 
@@ -176,7 +197,7 @@ pub async fn do_compile_to_sierra(remix_file_path: PathBuf) -> Json<CompileRespo
 
     let output = result.wait_with_output().expect("Failed to wait on child");
 
-    Json(CompileResponse {
+    Ok(Json(CompileResponse {
         file_content: match NamedFile::open(&sierra_path).await.ok() {
             Some(file) => match file.path().to_str() {
                 Some(path) => match fs::read_to_string(path.to_string()).await {
@@ -199,7 +220,7 @@ pub async fn do_compile_to_sierra(remix_file_path: PathBuf) -> Json<CompileRespo
             Some(_) => "CompilationFailed".to_string(),
             None => "UnknownError".to_string(),
         },
-    })
+    }))
 }
 
 /// Compile source file to CASM
@@ -298,22 +319,18 @@ fn get_files_recursive(base_path: &Path) -> Vec<FileContentMap> {
     let mut file_content_map_array: Vec<FileContentMap> = Vec::new();
 
     if base_path.is_dir() {
-        for entry in base_path.read_dir().unwrap() {
-            if let Ok(entry) = entry {
-                let path = entry.path();
-                if path.is_dir() {
-                    file_content_map_array.extend(get_files_recursive(&path));
-                } else {
-                    if let Ok(content) = std::fs::read_to_string(&path) {
-                        let file_name = path.file_name().unwrap().to_string_lossy().to_string();
-                        let file_content = content;
-                        let file_content_map = FileContentMap {
-                            file_name,
-                            file_content,
-                        };
-                        file_content_map_array.push(file_content_map);
-                    }
-                }
+        for entry in base_path.read_dir().unwrap().flatten() {
+            let path = entry.path();
+            if path.is_dir() {
+                file_content_map_array.extend(get_files_recursive(&path));
+            } else if let Ok(content) = std::fs::read_to_string(&path) {
+                let file_name = path.file_name().unwrap().to_string_lossy().to_string();
+                let file_content = content;
+                let file_content_map = FileContentMap {
+                    file_name,
+                    file_content,
+                };
+                file_content_map_array.push(file_content_map);
             }
         }
     }

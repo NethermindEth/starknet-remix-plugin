@@ -5,10 +5,11 @@ pub const SIERRA_ROOT: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/", "sierra/t
 pub const CASM_ROOT: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/", "casm/temp/");
 
 pub const CAIRO_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/", "cairo/");
+#[allow(dead_code)]
 pub const TEMP_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/", "temp/");
 
-pub fn get_file_ext(file_path: &String) -> String {
-    match file_path.split(".").last() {
+pub fn get_file_ext(file_path: &str) -> String {
+    match file_path.split('.').last() {
         Some(ext) => ext.to_string(),
         None => {
             println!("LOG: File extension not found");
