@@ -20,6 +20,8 @@ env:
   PROD_BUCKET_NAME: 'starknet-remix-plugin-prod-web'
   PROD_CLUSTER: "starknet-remix-plugin-production-ecs-cluster"
   PROD_SERVICE_NAME: "rocket-production-svc"
+  API_SERVICE_URL: "https://cairo-remix-api.nethermind.io"
+  STARKNET_DEVNET_URL: "https://starknet-remix-devnet.nethermind.io"
   
 jobs:
   BuildAPI:
@@ -88,9 +90,10 @@ jobs:
         
       - name: Inject version
         env:
-          SED_COMMAND: 's/\"version\"\:[ ]\"0.1.0\"/\"version\": \"0.3.0\"/g'
+          VERSION: ${{inputs.version}}
         run: |
-          sed -i 's/\"version\"\:[ ]\"0.1.0\"/\"version\": \"${{ inputs.version }}\"/g' ./plugin/package.json
+          export STRIPPED_VERSION=${VERSION/v/}
+          sed -i 's/\"version\"\:[ ]\"0.1.0\"/\"version\": \"$STRIPPED_VERSION\"/g' ./plugin/package.json
 
       - name: Setup Node ${{ env.NODE_VERSION }} Environment
         uses: actions/setup-node@v1
@@ -174,6 +177,7 @@ jobs:
           role-session-name: GHStarknet
 
       - name: Deploy to S3
-        run: aws s3 sync . s3://${{ env.PROD_BUCKET_NAME }} --acl public-read
+        run: |
+          aws s3 sync . s3://${{ env.PROD_BUCKET_NAME }} --acl public-read
         working-directory: artifact
         
