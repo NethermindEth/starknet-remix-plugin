@@ -12,6 +12,7 @@ permissions:
       contents: read
 
 env:
+  NODE_VERSION: '20.x'
   REGISTRY: "599564732950.dkr.ecr.us-east-2.amazonaws.com"
   REPOSITORY: "starknet-remix-plugin"
   CLUSTER: "starknet-remix-plugin-ecs-cluster"
@@ -117,7 +118,7 @@ jobs:
 
   DeployAPI_Prod:
     runs-on: ubuntu-latest
-    needs: BuildAPI
+    needs: [BuildReact, BuildAPI]
     steps:
 
       - name: Configure AWS credentials
@@ -156,7 +157,7 @@ jobs:
 
   DeployReact_Prod:
     runs-on: ubuntu-latest
-    needs: BuildReact
+    needs: [BuildReact, BuildAPI]
     steps:
 
       - name: Get artifact
