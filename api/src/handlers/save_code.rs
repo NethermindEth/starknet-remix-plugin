@@ -2,10 +2,12 @@ use crate::utils::lib::get_file_path;
 use rocket::data::ToByteUnit;
 use rocket::tokio::fs;
 use rocket::Data;
+use tracing::info;
 use std::path::PathBuf;
 
 #[post("/save_code/<remix_file_path..>", data = "<file>")]
 pub async fn save_code(file: Data<'_>, remix_file_path: PathBuf) -> String {
+    info!("/save_code/{:?}", remix_file_path);
     do_save_code(file, remix_file_path).await
 }
 
@@ -25,14 +27,14 @@ pub async fn do_save_code(file: Data<'_>, remix_file_path: PathBuf) -> String {
     match file_path.parent() {
         Some(parent) => match fs::create_dir_all(parent).await {
             Ok(_) => {
-                println!("LOG: Created directory: {:?}", parent);
+                debug!("LOG: Created directory: {:?}", parent);
             }
             Err(e) => {
-                println!("LOG: Error creating directory: {:?}", e);
+                debug!("LOG: Error creating directory: {:?}", e);
             }
         },
         None => {
-            println!("LOG: Error creating directory");
+            debug!("LOG: Error creating directory");
         }
     }
 
@@ -41,14 +43,14 @@ pub async fn do_save_code(file: Data<'_>, remix_file_path: PathBuf) -> String {
 
     match saved_file {
         Ok(_) => {
-            println!("LOG: File saved successfully");
+            debug!("LOG: File saved successfully");
             match file_path.to_str() {
                 Some(path) => path.to_string(),
                 None => "".to_string(),
             }
         }
         Err(e) => {
-            println!("LOG: Error saving file: {:?}", e);
+            debug!("LOG: Error saving file: {:?}", e);
             "".to_string()
             // set the response with not ok code.
         }

@@ -2,15 +2,12 @@ use crate::handlers;
 use crate::handlers::types::{ApiCommand, ApiCommandResult};
 use crossbeam_queue::ArrayQueue;
 use crossbeam_skiplist::SkipMap;
-use futures::executor::block_on;
-use futures::TryFutureExt;
 use rocket::tokio;
 use rocket::tokio::task::JoinHandle;
 use rocket::tokio::time;
 use rocket::tokio::time::sleep;
 use std::fmt::{Display, Formatter};
 use std::sync::Arc;
-use tracing::error_span;
 use uuid::Uuid;
 
 #[derive(Debug)]

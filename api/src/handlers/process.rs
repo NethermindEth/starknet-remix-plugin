@@ -1,10 +1,13 @@
 use crate::handlers::types::{ApiCommand, ApiCommandResult};
 use crate::worker::{ProcessState, WorkerEngine};
 use rocket::State;
+use tracing::{info, instrument};
 use uuid::Uuid;
 
+#[instrument]
 #[get("/process_status/<process_id>")]
 pub async fn get_process_status(process_id: String, engine: &State<WorkerEngine>) -> String {
+    info!("/process_status/{:?}", process_id);
     // get status of process by ID
     match Uuid::parse_str(&process_id) {
         Ok(process_uuid) => {

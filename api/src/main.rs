@@ -18,7 +18,7 @@ use handlers::process::get_process_status;
 use handlers::save_code::save_code;
 use handlers::scarb_compile::{get_scarb_compile_result, scarb_compile, scarb_compile_async};
 use handlers::{health, who_is_this};
-use log::info;
+use tracing::info;
 use tracing_log::init_logger;
 
 #[launch]
