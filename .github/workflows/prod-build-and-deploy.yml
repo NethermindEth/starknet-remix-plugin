@@ -16,6 +16,9 @@ env:
   REPOSITORY: "starknet-remix-plugin"
   CLUSTER: "starknet-remix-plugin-ecs-cluster"
   SERVICE_NAME: "rocket-development-svc"
+  PROD_BUCKET_NAME: 'starknet-remix-plugin-prod-web'
+  PROD_CLUSTER: "starknet-remix-plugin-production-ecs-cluster"
+  PROD_SERVICE_NAME: "rocket-production-svc"
   
 jobs:
   BuildAPI:
@@ -45,24 +48,24 @@ jobs:
         with:
           mask-password: 'true'
 
-      - name: Update local Rust toolchain
-        run: |
-          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain stable -y
-          rustup update
-          rustup component add clippy
-          rustup install nightly          
+      # - name: Update local Rust toolchain
+      #   run: |
+      #     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain stable -y
+      #     rustup update
+      #     rustup component add clippy
+      #     rustup install nightly          
 
-      - name: Toolchain info
-        run: |
-          cargo --version --verbose
-          rustc --version
-          cargo clippy --version          
+      # - name: Toolchain info
+      #   run: |
+      #     cargo --version --verbose
+      #     rustc --version
+      #     cargo clippy --version          
 
-      - name: Build
-        run: |
-          cd api
-          cargo build           
-          ls ./target/debug/ -al
+      # - name: Build
+      #   run: |
+      #     cd api
+      #     cargo build           
+      #     ls ./target/debug/ -al
 
       - name: Build, tag, and push docker image to Amazon ECR
         env:
