@@ -7,24 +7,32 @@ use rocket::serde::json;
 use rocket::serde::json::Json;
 use rocket::tokio::fs;
 use rocket::State;
+use tracing::info;
+use tracing::instrument;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
+#[instrument]
 #[get("/compile-to-casm/<remix_file_path..>")]
 pub async fn compile_to_casm(remix_file_path: PathBuf) -> Json<CompileResponse> {
+    info!("/compile-to-casm/{:?}", remix_file_path);
     do_compile_to_casm(remix_file_path).await
 }
 
+#[instrument]
 #[get("/compile-to-casm-async/<remix_file_path..>")]
 pub async fn compile_to_casm_async(
     remix_file_path: PathBuf,
     engine: &State<WorkerEngine>,
 ) -> String {
+    info!("/compile-to-casm-async/{:?}", remix_file_path);
     do_process_command(ApiCommand::CasmCompile(remix_file_path), engine)
 }
 
+#[instrument]
 #[get("/compile-to-casm-result/<process_id>")]
 pub async fn copmile_to_casm_result(process_id: String, engine: &State<WorkerEngine>) -> String {
+    info!("/compile-to-casm-result/{:?}", process_id);
     fetch_process_result(process_id, engine, |result| match result {
         ApiCommandResult::CasmCompile(casm_result) => json::to_string(&casm_result).unwrap(),
         _ => String::from("Result not available"),
@@ -48,10 +56,10 @@ pub async fn do_compile_to_casm(remix_file_path: PathBuf) -> Json<CompileRespons
     // check if the file has .sierra extension
     match get_file_ext(&remix_file_path) {
         ext if ext == "sierra" => {
-            println!("LOG: File extension is sierra");
+            debug!("LOG: File extension is sierra");
         }
         _ => {
-            println!("LOG: File extension not supported");
+            debug!("LOG: File extension not supported");
             return Json(CompileResponse {
                 file_content: "".to_string(),
                 message: "File extension not supported".to_string(),
@@ -73,14 +81,14 @@ pub async fn do_compile_to_casm(remix_file_path: PathBuf) -> Json<CompileRespons
     match casm_path.parent() {
         Some(parent) => match fs::create_dir_all(parent).await {
             Ok(_) => {
-                println!("LOG: Created directory: {:?}", parent);
+                debug!("LOG: Created directory: {:?}", parent);
             }
             Err(e) => {
-                println!("LOG: Error creating directory: {:?}", e);
+                debug!("LOG: Error creating directory: {:?}", e);
             }
         },
         None => {
-            println!("LOG: Error creating directory");
+            debug!("LOG: Error creating directory");
         }
     }
 
@@ -96,7 +104,7 @@ pub async fn do_compile_to_casm(remix_file_path: PathBuf) -> Json<CompileRespons
         .spawn()
         .expect("Failed to execute starknet-sierra-compile");
 
-    println!("LOG: ran command:{:?}", compile);
+    debug!("LOG: ran command:{:?}", compile);
 
     let output = result.wait_with_output().expect("Failed to wait on child");
 
