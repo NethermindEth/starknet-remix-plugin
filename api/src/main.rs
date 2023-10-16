@@ -11,7 +11,7 @@ use crate::cors::CORS;
 use crate::tracing_log::init_logger;
 use crate::worker::WorkerEngine;
 use handlers::cairo_version::{cairo_version, cairo_version_async, get_cairo_version_result};
-use handlers::compile_casm::{compile_to_casm, compile_to_casm_async, copmile_to_casm_result};
+use handlers::compile_casm::{compile_to_casm, compile_to_casm_async, compile_to_casm_result};
 use handlers::compile_sierra::{
     compile_to_siera_async, compile_to_sierra, get_siera_compile_result,
 };
@@ -61,7 +61,7 @@ async fn rocket() -> _ {
             get_siera_compile_result,
             compile_to_casm,
             compile_to_casm_async,
-            copmile_to_casm_result,
+            compile_to_casm_result,
             scarb_compile,
             scarb_compile_async,
             get_scarb_compile_result,

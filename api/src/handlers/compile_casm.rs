@@ -31,7 +31,7 @@ pub async fn compile_to_casm_async(
 
 #[instrument]
 #[get("/compile-to-casm-result/<process_id>")]
-pub async fn copmile_to_casm_result(process_id: String, engine: &State<WorkerEngine>) -> String {
+pub async fn compile_to_casm_result(process_id: String, engine: &State<WorkerEngine>) -> String {
     info!("/compile-to-casm-result/{:?}", process_id);
     fetch_process_result(process_id, engine, |result| match result {
         ApiCommandResult::CasmCompile(casm_result) => json::to_string(&casm_result).unwrap(),
