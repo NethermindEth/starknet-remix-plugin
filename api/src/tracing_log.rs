@@ -1,4 +1,3 @@
-
 use tracing_appender::rolling;
 
 use tracing_subscriber::fmt::writer::MakeWriterExt;
@@ -7,10 +6,8 @@ use tracing_subscriber::{prelude::*, EnvFilter};
 
 use tracing_subscriber::field::MakeExt;
 
-
-
+use rocket::yansi::Paint;
 use tracing_subscriber::Layer;
-use yansi::Paint;
 
 pub enum LogType {
     Formatted,
@@ -81,14 +78,14 @@ pub enum LogLevel {
 
 impl From<&str> for LogLevel {
     fn from(s: &str) -> Self {
-        return match &*s.to_ascii_lowercase() {
+        match &*s.to_ascii_lowercase() {
             "critical" => LogLevel::Critical,
             "support" => LogLevel::Support,
             "normal" => LogLevel::Normal,
             "debug" => LogLevel::Debug,
             "off" => LogLevel::Off,
             _ => panic!("a log level (off, debug, normal, support, critical)"),
-        };
+        }
     }
 }
 

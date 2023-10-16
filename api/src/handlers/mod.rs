@@ -13,8 +13,8 @@ use crate::handlers::compile_sierra::do_compile_to_sierra;
 use crate::handlers::scarb_compile::do_scarb_compile;
 use crate::handlers::types::{ApiCommand, ApiCommandResult, FileContentMap};
 use rocket::serde::json::Json;
-use tracing::info;
 use std::path::Path;
+use tracing::info;
 use tracing::instrument;
 
 #[instrument]

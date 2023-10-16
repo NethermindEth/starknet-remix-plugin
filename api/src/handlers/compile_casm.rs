@@ -131,6 +131,7 @@ pub async fn do_compile_to_casm(
             file_content: "".to_string(),
             message: "Failed to execute starknet-sierra-compile".to_string(),
             status: "SierraCompilationFailed".to_string(),
+            cairo_version: version,
         });
     }
 

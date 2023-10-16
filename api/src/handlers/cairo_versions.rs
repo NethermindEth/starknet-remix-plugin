@@ -1,4 +1,4 @@
-use crate::utils::lib::{CAIRO_COMPILERS_DIR, DEFAULT_CAIRO_DIR};
+use crate::utils::lib::CAIRO_COMPILERS_DIR;
 use rocket::tokio::fs::read_dir;
 use std::path::Path;
 use tracing::instrument;

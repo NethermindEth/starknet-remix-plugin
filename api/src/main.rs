@@ -29,18 +29,12 @@ async fn rocket() -> _ {
     }
 
     let number_of_workers = match std::env::var("WORKER_THREADS") {
-        Ok(v) => match v.parse::<u32>() {
-            Ok(v) => v,
-            Err(_) => 2u32,
-        },
+        Ok(v) => v.parse::<u32>().unwrap_or(2u32),
         Err(_) => 2u32,
     };
 
     let queue_size = match std::env::var("QUEUE_SIZE") {
-        Ok(v) => match v.parse::<usize>() {
-            Ok(v) => v,
-            Err(_) => 1_000,
-        },
+        Ok(v) => v.parse::<usize>().unwrap_or(1_000),
         Err(_) => 1_000,
     };
 
