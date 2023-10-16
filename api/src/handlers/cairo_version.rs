@@ -50,7 +50,7 @@ pub fn do_cairo_version() -> Result<String, String> {
             .spawn()
             .expect("Failed to execute cairo-compile")
             .wait_with_output()
-            .expect("Failed to wait on child")
+            .map_err(|e| format!("Failed to get cairo version: {:?}", e))?
             .stdout,
     ) {
         Ok(version) => Ok(version),
