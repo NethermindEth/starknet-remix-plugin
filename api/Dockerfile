@@ -38,7 +38,9 @@ COPY . .
 # RUN cd cairo; git checkout v1.0.0-alpha.6
 # Or if you chose to copy the whole repo
 # RUN git submodule update --init
-RUN cd cairo; cargo build --bin starknet-compile; cargo build --bin starknet-sierra-compile
+
+#RUN cd cairo; cargo build --bin starknet-compile; cargo build --bin starknet-sierra-compile
+RUN cd cairo_compilers; chmod +x build.sh; ./build.sh
 RUN cargo build --release
 
 EXPOSE 8000:80
