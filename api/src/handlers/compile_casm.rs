@@ -7,10 +7,10 @@ use rocket::serde::json;
 use rocket::serde::json::Json;
 use rocket::tokio::fs;
 use rocket::State;
-use tracing::info;
-use tracing::instrument;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
+use tracing::info;
+use tracing::instrument;
 
 #[instrument]
 #[get("/compile-to-casm/<remix_file_path..>")]
@@ -31,7 +31,7 @@ pub async fn compile_to_casm_async(
 
 #[instrument]
 #[get("/compile-to-casm-result/<process_id>")]
-pub async fn copmile_to_casm_result(process_id: String, engine: &State<WorkerEngine>) -> String {
+pub async fn compile_to_casm_result(process_id: String, engine: &State<WorkerEngine>) -> String {
     info!("/compile-to-casm-result/{:?}", process_id);
     fetch_process_result(process_id, engine, |result| match result {
         ApiCommandResult::CasmCompile(casm_result) => json::to_string(&casm_result).unwrap(),
@@ -101,8 +101,17 @@ pub async fn do_compile_to_casm(remix_file_path: PathBuf) -> Json<CompileRespons
         .arg(&file_path)
         .arg(&casm_path)
         .stderr(Stdio::piped())
-        .spawn()
-        .expect("Failed to execute starknet-sierra-compile");
+        .spawn();
+
+    if result.is_err() {
+        return Json(CompileResponse {
+            file_content: "".to_string(),
+            message: "Failed to execute starknet-sierra-compile".to_string(),
+            status: "SierraCompilationFailed".to_string(),
+        });
+    }
+
+    let result = result.unwrap();
 
     debug!("LOG: ran command:{:?}", compile);
 

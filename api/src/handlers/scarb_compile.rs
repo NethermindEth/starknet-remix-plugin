@@ -8,7 +8,7 @@ use rocket::serde::json::Json;
 use rocket::State;
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
-use tracing::{instrument, info};
+use tracing::{info, instrument};
 
 #[instrument]
 #[get("/compile-scarb/<remix_file_path..>")]
@@ -60,7 +60,7 @@ pub async fn do_scarb_compile(
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
-        .expect("Failed to execute scarb build");
+        .map_err(|e| format!("Failed to execute scarb build: {:?}", e))?;
 
     debug!("LOG: ran command:{:?}", compile);
 

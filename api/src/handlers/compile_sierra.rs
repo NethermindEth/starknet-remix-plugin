@@ -7,9 +7,9 @@ use rocket::serde::json;
 use rocket::serde::json::Json;
 use rocket::tokio::fs;
 use rocket::State;
-use tracing::{debug, instrument};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
+use tracing::{debug, instrument};
 
 #[instrument]
 #[get("/compile-to-sierra/<remix_file_path..>")]
@@ -112,7 +112,7 @@ pub async fn do_compile_to_sierra(
         .stderr(Stdio::piped())
         .stdout(Stdio::piped())
         .spawn()
-        .expect("Failed to execute starknet-compile");
+        .map_err(|e| format!("Failed to execute starknet-compile: {:?}", e))?;
 
     debug!("LOG: ran command:{:?}", compile);
 
