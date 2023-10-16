@@ -13,18 +13,21 @@ use crate::handlers::compile_sierra::do_compile_to_sierra;
 use crate::handlers::scarb_compile::do_scarb_compile;
 use crate::handlers::types::{ApiCommand, ApiCommandResult, FileContentMap};
 use rocket::serde::json::Json;
+use tracing::info;
 use std::path::Path;
 use tracing::instrument;
 
 #[instrument]
 #[get("/health")]
 pub async fn health() -> &'static str {
+    info!("/health");
     "OK"
 }
 
 #[instrument]
 #[get("/")]
 pub async fn who_is_this() -> &'static str {
+    info!("/who_is_this");
     "Who are you?"
 }
 

@@ -12,10 +12,16 @@ permissions:
       contents: read
 
 env:
+  NODE_VERSION: '20.x'
   REGISTRY: "599564732950.dkr.ecr.us-east-2.amazonaws.com"
   REPOSITORY: "starknet-remix-plugin"
   CLUSTER: "starknet-remix-plugin-ecs-cluster"
   SERVICE_NAME: "rocket-development-svc"
+  PROD_BUCKET_NAME: 'starknet-remix-plugin-prod-web'
+  PROD_CLUSTER: "starknet-remix-plugin-production-ecs-cluster"
+  PROD_SERVICE_NAME: "rocket-production-svc"
+  API_SERVICE_URL: "https://cairo-remix-api.nethermind.io"
+  STARKNET_DEVNET_URL: "https://starknet-remix-devnet.nethermind.io"
   
 jobs:
   BuildAPI:
@@ -45,24 +51,24 @@ jobs:
         with:
           mask-password: 'true'
 
-      - name: Update local Rust toolchain
-        run: |
-          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain stable -y
-          rustup update
-          rustup component add clippy
-          rustup install nightly          
+      # - name: Update local Rust toolchain
+      #   run: |
+      #     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain stable -y
+      #     rustup update
+      #     rustup component add clippy
+      #     rustup install nightly          
 
-      - name: Toolchain info
-        run: |
-          cargo --version --verbose
-          rustc --version
-          cargo clippy --version          
+      # - name: Toolchain info
+      #   run: |
+      #     cargo --version --verbose
+      #     rustc --version
+      #     cargo clippy --version          
 
-      - name: Build
-        run: |
-          cd api
-          cargo build           
-          ls ./target/debug/ -al
+      # - name: Build
+      #   run: |
+      #     cd api
+      #     cargo build           
+      #     ls ./target/debug/ -al
 
       - name: Build, tag, and push docker image to Amazon ECR
         env:
@@ -70,8 +76,11 @@ jobs:
           REPOSITORY: ${{ env.REPOSITORY }}
           IMAGE_TAG: ${{ inputs.version }}
         run: |
-          docker build --target final -t $REGISTRY/$REPOSITORY:apiserver-$IMAGE_TAG -f ./DockerfileApiServer .
+          docker build -t $REGISTRY/$REPOSITORY:apiserver-$IMAGE_TAG -f ./DockerfileRocket .
           docker push $REGISTRY/$REPOSITORY:apiserver-$IMAGE_TAG
+    outputs:
+      image-version: ${{ inputs.version }}
+            
 
   BuildReact:
     runs-on: ubuntu-latest
@@ -81,9 +90,10 @@ jobs:
         
       - name: Inject version
         env:
-          SED_COMMAND: 's/\"version\"\:[ ]\"0.1.0\"/\"version\": \"0.3.0\"/g'
+          VERSION: ${{inputs.version}}
         run: |
-          sed -i $SED_COMMAND ./plugin/package.json
+          export STRIPPED_VERSION=${VERSION/v/}
+          sed -i "s/\"version\"\:[ ]\"0.1.0\"/\"version\": \"$STRIPPED_VERSION\"/g" ./plugin/package.json
 
       - name: Setup Node ${{ env.NODE_VERSION }} Environment
         uses: actions/setup-node@v1
@@ -107,3 +117,67 @@ jobs:
           name: react-github-actions-build
           path: ./plugin/build/**/*
 
+
+
+  DeployAPI_Prod:
+    runs-on: ubuntu-latest
+    needs: [BuildReact, BuildAPI]
+    steps:
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: us-east-2
+          role-to-assume: arn:aws:iam::228016254426:role/Aws-GH-Action-Assume-Role-Starknet-Production
+          role-session-name: GHStarknet
+
+      - name: Download task definition
+        run: |
+          aws ecs describe-task-definition --task-definition starknet-remix-production-rocket --query taskDefinition > task-definition.json
+
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: "rocket"
+          image: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:apiserver-${{ needs.BuildAPI.outputs.image-version }}      #${{ github.run_number }}
+          # inject the expected React package URL for CORS logic
+          environment-variables: |
+            RUST_LOG=INFO
+            VITE_URL=https://cairo-remix.nethermind.io
+            PROMTAIL_USERNAME=${{secrets.PROMTAIL_USERNAME}}
+            PROMTAIL_PASSWORD=${{secrets.PROMTAIL_PASSWORD}}
+
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ env.PROD_SERVICE_NAME }}
+          cluster: ${{ env.PROD_CLUSTER }}
+          wait-for-service-stability: true
+        
+
+  DeployReact_Prod:
+    runs-on: ubuntu-latest
+    needs: [BuildReact, BuildAPI]
+    steps:
+
+      - name: Get artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: react-github-actions-build
+          path: artifact
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: us-east-2
+          role-to-assume: arn:aws:iam::228016254426:role/Aws-GH-Action-Assume-Role-Starknet-Production
+          role-session-name: GHStarknet
+
+      - name: Deploy to S3
+        run: |
+          aws s3 sync . s3://${{ env.PROD_BUCKET_NAME }} --acl public-read
+        working-directory: artifact
+        

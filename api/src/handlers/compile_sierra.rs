@@ -9,9 +9,13 @@ use rocket::tokio::fs;
 use rocket::State;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
+use tracing::{debug, instrument};
 
+#[instrument]
 #[get("/compile-to-sierra/<version>/<remix_file_path..>")]
 pub async fn compile_to_sierra(version: String, remix_file_path: PathBuf) -> Json<CompileResponse> {
+    info!("/compile-to-sierra");
+
     let res = do_compile_to_sierra(version.clone(), remix_file_path).await;
 
     match res {
@@ -25,12 +29,14 @@ pub async fn compile_to_sierra(version: String, remix_file_path: PathBuf) -> Jso
     }
 }
 
+#[instrument]
 #[get("/compile-to-sierra-async/<version>/<remix_file_path..>")]
 pub async fn compile_to_siera_async(
     version: String,
     remix_file_path: PathBuf,
     engine: &State<WorkerEngine>,
 ) -> String {
+    info!("/compile-to-sierra-async");
     do_process_command(
         ApiCommand::SierraCompile {
             version,
@@ -40,8 +46,10 @@ pub async fn compile_to_siera_async(
     )
 }
 
+#[instrument]
 #[get("/compile-to-sierra-result/<process_id>")]
 pub async fn get_siera_compile_result(process_id: String, engine: &State<WorkerEngine>) -> String {
+    info!("/compile-to-sierra-result");
     fetch_process_result(process_id, engine, |result| match result {
         ApiCommandResult::SierraCompile(sierra_result) => json::to_string(&sierra_result).unwrap(),
         _ => String::from("Result not available"),
@@ -69,10 +77,10 @@ pub async fn do_compile_to_sierra(
     // check if the file has .cairo extension
     match get_file_ext(&remix_file_path) {
         ext if ext == "cairo" => {
-            println!("LOG: File extension is cairo");
+            debug!("LOG: File extension is cairo");
         }
         _ => {
-            println!("LOG: File extension not supported");
+            debug!("LOG: File extension not supported");
             return Ok(Json(CompileResponse {
                 file_content: "".to_string(),
                 message: "File extension not supported".to_string(),
@@ -102,14 +110,14 @@ pub async fn do_compile_to_sierra(
     match sierra_path.parent() {
         Some(parent) => match fs::create_dir_all(parent).await {
             Ok(_) => {
-                println!("LOG: Created directory: {:?}", parent);
+                debug!("LOG: Created directory: {:?}", parent);
             }
             Err(e) => {
-                println!("LOG: Error creating directory: {:?}", e);
+                debug!("LOG: Error creating directory: {:?}", e);
             }
         },
         None => {
-            println!("LOG: Error creating directory");
+            debug!("LOG: Error creating directory");
         }
     }
 
@@ -124,15 +132,10 @@ pub async fn do_compile_to_sierra(
         .arg("--single-file")
         .stderr(Stdio::piped())
         .stdout(Stdio::piped())
-        .spawn();
+        .spawn()
+        .map_err(|e| format!("Failed to execute starknet-compile: {:?}", e))?;
 
-    if result.is_err() {
-        return Err(format!("Failed to execute starknet-compile"));
-    }
-
-    let result = result.unwrap();
-
-    println!("LOG: ran command:{:?}", compile);
+    debug!("LOG: ran command:{:?}", compile);
 
     let output = result.wait_with_output().expect("Failed to wait on child");
 

@@ -38,10 +38,10 @@ pub struct WorkerEngine {
 }
 
 impl WorkerEngine {
-    pub fn new(num_workers: u32) -> Self {
+    pub fn new(num_workers: u32, queue_capacity: usize) -> Self {
         // Create a queue instance
 
-        let queue: ArrayQueue<(Uuid, ApiCommand)> = ArrayQueue::new(1_000);
+        let queue: ArrayQueue<(Uuid, ApiCommand)> = ArrayQueue::new(queue_capacity);
         let arc_command_queue = Arc::new(queue);
 
         // Create a process state map instance (NOTE: how to implement purging from this map???)

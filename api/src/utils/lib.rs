@@ -20,7 +20,7 @@ pub fn get_file_ext(file_path: &str) -> String {
     match file_path.split('.').last() {
         Some(ext) => ext.to_string(),
         None => {
-            println!("LOG: File extension not found");
+            debug!("LOG: File extension not found");
             "".to_string()
         }
     }

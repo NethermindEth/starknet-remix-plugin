@@ -8,23 +8,26 @@ use rocket::serde::json::Json;
 use rocket::State;
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
-use tracing::instrument;
+use tracing::{info, instrument};
 
 #[instrument]
 #[get("/compile-scarb/<remix_file_path..>")]
 pub async fn scarb_compile(remix_file_path: PathBuf) -> Json<ScarbCompileResponse> {
+    info!("/compile-scarb/{:?}", remix_file_path);
     do_scarb_compile(remix_file_path).await.unwrap()
 }
 
 #[instrument]
 #[get("/compile-scarb-async/<remix_file_path..>")]
 pub async fn scarb_compile_async(remix_file_path: PathBuf, engine: &State<WorkerEngine>) -> String {
+    info!("/compile-scarb-async/{:?}", remix_file_path);
     do_process_command(ApiCommand::ScarbCompile { remix_file_path }, engine)
 }
 
 #[instrument]
 #[get("/compile-scarb-result/<process_id>")]
 pub async fn get_scarb_compile_result(process_id: String, engine: &State<WorkerEngine>) -> String {
+    info!("/compile-scarb-result/{:?}", process_id);
     fetch_process_result(process_id, engine, |result| match result {
         ApiCommandResult::ScarbCompile(scarb_result) => json::to_string(&scarb_result).unwrap(),
         _ => String::from("Result not available"),
@@ -56,19 +59,10 @@ pub async fn do_scarb_compile(
         .arg("build")
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
-        .spawn();
+        .spawn()
+        .map_err(|e| format!("Failed to execute scarb build: {:?}", e))?;
 
-    if result.is_err() {
-        return Ok(Json(ScarbCompileResponse {
-            file_content_map_array: vec![],
-            message: "Failed to execute scarb".to_string(),
-            status: "CompilationFailed".to_string(),
-        }));
-    }
-
-    let result = result.unwrap();
-
-    println!("LOG: ran command:{:?}", compile);
+    debug!("LOG: ran command:{:?}", compile);
 
     let output = result.wait_with_output().expect("Failed to wait on child");
 

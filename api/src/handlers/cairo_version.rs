@@ -4,12 +4,13 @@ use crate::utils::lib::DEFAULT_CAIRO_DIR;
 use crate::worker::WorkerEngine;
 use rocket::State;
 use std::process::{Command, Stdio};
-use tracing::instrument;
+use tracing::{error, info, instrument};
 
 // Read the version from the cairo Cargo.toml file.
 #[instrument]
 #[get("/cairo_version")]
 pub async fn cairo_version() -> String {
+    info!("/cairo_version");
     do_cairo_version().unwrap_or_else(|e| e)
 }
 
@@ -17,12 +18,14 @@ pub async fn cairo_version() -> String {
 #[instrument]
 #[get("/cairo_version_async")]
 pub async fn cairo_version_async(engine: &State<WorkerEngine>) -> String {
+    info!("/cairo_version_async");
     do_process_command(ApiCommand::CairoVersion, engine)
 }
 
 #[instrument]
 #[get("/cairo_version_result/<process_id>")]
 pub async fn get_cairo_version_result(process_id: String, engine: &State<WorkerEngine>) -> String {
+    info!("/cairo_version_result/{:?}", process_id);
     fetch_process_result(process_id, engine, |result| match result {
         ApiCommandResult::CairoVersion(version) => version.to_string(),
         _ => String::from("Result not available"),
@@ -49,10 +52,13 @@ pub fn do_cairo_version() -> Result<String, String> {
             .spawn()
             .expect("Failed to execute cairo-compile")
             .wait_with_output()
-            .expect("Failed to wait on child")
+            .map_err(|e| format!("Failed to get cairo version: {:?}", e))?
             .stdout,
     ) {
         Ok(version) => Ok(version),
-        Err(e) => Err(e.to_string()),
+        Err(e) => {
+            error!("{:?}", e.to_string());
+            Err(e.to_string())
+        }
     }
 }

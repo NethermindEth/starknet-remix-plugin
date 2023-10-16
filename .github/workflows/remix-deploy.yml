@@ -10,7 +10,9 @@ env:
   NODE_VERSION: '20.x'
   BUCKET_NAME: 'starknet-remix-plugin-web'
   PROD_BUCKET_NAME: 'starknet-remix-plugin-prod-web'
-
+  API_SERVICE_URL: "https://cairo-remix-api-dev.nethermind.io"
+  STARKNET_DEVNET_URL: "https://starknet-remix-devnet.nethermind.io"
+  
 
 permissions:
       id-token: write
