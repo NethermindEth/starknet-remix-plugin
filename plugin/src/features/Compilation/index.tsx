@@ -21,6 +21,7 @@ import * as D from '../../ui_components/Dropdown'
 import { BsChevronDown } from 'react-icons/bs'
 import { type Contract } from '../../types/contracts'
 import { asyncFetch } from '../../utils/async_fetch'
+import CairoVersionContext from "../../contexts/CairoVersion";
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface CompilationProps {
@@ -29,6 +30,7 @@ interface CompilationProps {
 
 const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
   const remixClient = useContext(RemixClientContext)
+  const { version: cairoVersion, setVersion: setCairoVersion } = useContext(CairoVersionContext);
 
   const { contracts, selectedContract, setContracts, setSelectedContract } = useContext(
     CompiledContractsContext
@@ -361,7 +363,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       setStatus('Compiling to sierra...')
 
       const compileToSierraResponse = await asyncFetch(
-          `compile-to-sierra-async/${hashDir}/${currentFilePath}`,
+          `compile-to-sierra-async/${cairoVersion}/${hashDir}/${currentFilePath}`,
           'compile-to-sierra-result'
       )
 
@@ -427,7 +429,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       setStatus('Compiling to casm...')
 
       const compileToCasmResponse = await asyncFetch(
-          `compile-to-casm-async/${hashDir}/${currentFilePath.replaceAll(getFileExtension(currentFilePath), 'sierra')}`,
+          `compile-to-casm-async/${cairoVersion}/${hashDir}/${currentFilePath.replaceAll(getFileExtension(currentFilePath), 'sierra')}`,
           'compile-to-casm-result'
       )
 

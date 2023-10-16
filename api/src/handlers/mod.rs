@@ -1,4 +1,5 @@
 pub mod cairo_version;
+pub mod cairo_versions;
 pub mod compile_casm;
 pub mod compile_sierra;
 pub mod process;
@@ -33,25 +34,27 @@ pub async fn dispatch_command(command: ApiCommand) -> Result<ApiCommandResult, S
             Ok(result) => Ok(ApiCommandResult::CairoVersion(result)),
             Err(e) => Err(e),
         },
-        ApiCommand::ScarbCompile(remix_file_path) => {
+        ApiCommand::ScarbCompile { remix_file_path } => {
             match do_scarb_compile(remix_file_path).await {
                 Ok(result) => Ok(ApiCommandResult::ScarbCompile(result.into_inner())),
                 Err(e) => Err(e),
             }
         }
-        ApiCommand::SierraCompile(remix_file_path) => {
-            match do_compile_to_sierra(remix_file_path).await {
-                Ok(compile_response) => Ok(ApiCommandResult::SierraCompile(
-                    compile_response.into_inner(),
-                )),
-                Err(e) => Err(e),
-            }
-        }
-        ApiCommand::CasmCompile(remix_file_path) => {
-            match do_compile_to_casm(remix_file_path).await {
-                Json(compile_response) => Ok(ApiCommandResult::CasmCompile(compile_response)),
-            }
-        }
+        ApiCommand::SierraCompile {
+            remix_file_path,
+            version,
+        } => match do_compile_to_sierra(version, remix_file_path).await {
+            Ok(compile_response) => Ok(ApiCommandResult::SierraCompile(
+                compile_response.into_inner(),
+            )),
+            Err(e) => Err(e),
+        },
+        ApiCommand::CasmCompile {
+            remix_file_path,
+            version,
+        } => match do_compile_to_casm(version, remix_file_path).await {
+            Json(compile_response) => Ok(ApiCommandResult::CasmCompile(compile_response)),
+        },
         ApiCommand::Shutdown => Ok(ApiCommandResult::Shutdown),
     }
 }

@@ -1,6 +1,6 @@
 use crate::handlers::process::{do_process_command, fetch_process_result};
 use crate::handlers::types::{ApiCommand, ApiCommandResult, CompileResponse};
-use crate::utils::lib::{get_file_ext, get_file_path, CAIRO_DIR, SIERRA_ROOT};
+use crate::utils::lib::{get_file_ext, get_file_path, CAIRO_COMPILERS_DIR, SIERRA_ROOT};
 use crate::worker::WorkerEngine;
 use rocket::fs::NamedFile;
 use rocket::serde::json;
@@ -10,23 +10,34 @@ use rocket::State;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
-#[get("/compile-to-sierra/<remix_file_path..>")]
-pub async fn compile_to_sierra(remix_file_path: PathBuf) -> Json<CompileResponse> {
-    do_compile_to_sierra(remix_file_path)
-        .await
-        .unwrap_or(Json::from(CompileResponse {
-            message: "Error compiling to sierra".to_string(),
-            status: "error".to_string(),
+#[get("/compile-to-sierra/<version>/<remix_file_path..>")]
+pub async fn compile_to_sierra(version: String, remix_file_path: PathBuf) -> Json<CompileResponse> {
+    let res = do_compile_to_sierra(version.clone(), remix_file_path).await;
+
+    match res {
+        Ok(res) => res,
+        Err(e) => Json(CompileResponse {
             file_content: "".to_string(),
-        }))
+            message: e,
+            status: "CompilationFailed".to_string(),
+            cairo_version: version,
+        }),
+    }
 }
 
-#[get("/compile-to-sierra-async/<remix_file_path..>")]
+#[get("/compile-to-sierra-async/<version>/<remix_file_path..>")]
 pub async fn compile_to_siera_async(
+    version: String,
     remix_file_path: PathBuf,
     engine: &State<WorkerEngine>,
 ) -> String {
-    do_process_command(ApiCommand::SierraCompile(remix_file_path), engine)
+    do_process_command(
+        ApiCommand::SierraCompile {
+            version,
+            remix_file_path,
+        },
+        engine,
+    )
 }
 
 #[get("/compile-to-sierra-result/<process_id>")]
@@ -40,6 +51,7 @@ pub async fn get_siera_compile_result(process_id: String, engine: &State<WorkerE
 /// Compile a given file to Sierra bytecode
 ///
 pub async fn do_compile_to_sierra(
+    version: String,
     remix_file_path: PathBuf,
 ) -> Result<Json<CompileResponse>, String> {
     let remix_file_path = match remix_file_path.to_str() {
@@ -49,6 +61,7 @@ pub async fn do_compile_to_sierra(
                 file_content: "".to_string(),
                 message: "File path not found".to_string(),
                 status: "FileNotFound".to_string(),
+                cairo_version: version,
             }));
         }
     };
@@ -64,6 +77,7 @@ pub async fn do_compile_to_sierra(
                 file_content: "".to_string(),
                 message: "File extension not supported".to_string(),
                 status: "FileExtensionNotSupported".to_string(),
+                cairo_version: version,
             }));
         }
     }
@@ -73,7 +87,13 @@ pub async fn do_compile_to_sierra(
     let sierra_remix_path = remix_file_path.replace(&get_file_ext(&remix_file_path), "sierra");
 
     let mut compile = Command::new("cargo");
-    compile.current_dir(CAIRO_DIR);
+
+    let path_to_cairo_compiler = Path::new(CAIRO_COMPILERS_DIR).join(&version);
+    if path_to_cairo_compiler.exists() {
+        compile.current_dir(path_to_cairo_compiler);
+    } else {
+        return Err(format!("Cairo compiler with version {} not found", version));
+    }
 
     // replace .cairo with
     let sierra_path = Path::new(SIERRA_ROOT).join(&sierra_remix_path);
@@ -104,8 +124,13 @@ pub async fn do_compile_to_sierra(
         .arg("--single-file")
         .stderr(Stdio::piped())
         .stdout(Stdio::piped())
-        .spawn()
-        .expect("Failed to execute starknet-compile");
+        .spawn();
+
+    if result.is_err() {
+        return Err(format!("Failed to execute starknet-compile"));
+    }
+
+    let result = result.unwrap();
 
     println!("LOG: ran command:{:?}", compile);
 
@@ -134,5 +159,6 @@ pub async fn do_compile_to_sierra(
             Some(_) => "CompilationFailed".to_string(),
             None => "UnknownError".to_string(),
         },
+        cairo_version: version,
     }))
 }

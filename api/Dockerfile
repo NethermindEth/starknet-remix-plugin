@@ -19,7 +19,7 @@ RUN rustup install stable
 
 # Create and activate a Python virtual environment
 RUN python -m venv ~/cairo_venv
-RUN source ~/cairo_venv/bin/activate
+RUN . ~/cairo_venv/bin/activate
 ENV PATH="/root/cairo_venv/bin:${PATH}"
 
 # Install cairo-lang

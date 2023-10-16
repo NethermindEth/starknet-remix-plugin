@@ -10,6 +10,7 @@ pub mod worker;
 use crate::cors::CORS;
 use crate::worker::WorkerEngine;
 use handlers::cairo_version::{cairo_version, cairo_version_async, get_cairo_version_result};
+use handlers::cairo_versions::cairo_versions;
 use handlers::compile_casm::{compile_to_casm, compile_to_casm_async, copmile_to_casm_result};
 use handlers::compile_sierra::{
     compile_to_siera_async, compile_to_sierra, get_siera_compile_result,
@@ -47,6 +48,7 @@ async fn rocket() -> _ {
             scarb_compile_async,
             get_scarb_compile_result,
             save_code,
+            cairo_versions,
             cairo_version,
             cairo_version_async,
             get_cairo_version_result,

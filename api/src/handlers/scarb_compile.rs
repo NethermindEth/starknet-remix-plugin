@@ -19,7 +19,7 @@ pub async fn scarb_compile(remix_file_path: PathBuf) -> Json<ScarbCompileRespons
 #[instrument]
 #[get("/compile-scarb-async/<remix_file_path..>")]
 pub async fn scarb_compile_async(remix_file_path: PathBuf, engine: &State<WorkerEngine>) -> String {
-    do_process_command(ApiCommand::ScarbCompile(remix_file_path), engine)
+    do_process_command(ApiCommand::ScarbCompile { remix_file_path }, engine)
 }
 
 #[instrument]
@@ -56,8 +56,17 @@ pub async fn do_scarb_compile(
         .arg("build")
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
-        .spawn()
-        .expect("Failed to execute scarb build");
+        .spawn();
+
+    if result.is_err() {
+        return Ok(Json(ScarbCompileResponse {
+            file_content_map_array: vec![],
+            message: "Failed to execute scarb".to_string(),
+            status: "CompilationFailed".to_string(),
+        }));
+    }
+
+    let result = result.unwrap();
 
     println!("LOG: ran command:{:?}", compile);
 

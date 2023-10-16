@@ -1,6 +1,6 @@
 use crate::handlers::process::{do_process_command, fetch_process_result};
 use crate::handlers::types::{ApiCommand, ApiCommandResult};
-use crate::utils::lib::CAIRO_DIR;
+use crate::utils::lib::DEFAULT_CAIRO_DIR;
 use crate::worker::WorkerEngine;
 use rocket::State;
 use std::process::{Command, Stdio};
@@ -31,9 +31,11 @@ pub async fn get_cairo_version_result(process_id: String, engine: &State<WorkerE
 
 /// Run Cairo --version to return Cairo version string
 ///
+/// ## Note
+/// (default Cairo version will be used)
 pub fn do_cairo_version() -> Result<String, String> {
     let mut version_caller = Command::new("cargo");
-    version_caller.current_dir(CAIRO_DIR);
+    version_caller.current_dir(DEFAULT_CAIRO_DIR);
     match String::from_utf8(
         version_caller
             .arg("run")
