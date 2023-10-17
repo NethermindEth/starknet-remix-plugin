@@ -130,6 +130,7 @@ jobs:
           # inject the expected React package URL for CORS logic
           environment-variables: |
             RUST_LOG=INFO
+            LOG_LEVEL=normal
             VITE_URL=https://cairo-remix-dev.nethermind.io
             PROMTAIL_USERNAME=${{secrets.PROMTAIL_USERNAME}}
             PROMTAIL_PASSWORD=${{secrets.PROMTAIL_PASSWORD}}
@@ -168,6 +169,7 @@ jobs:
           # inject the expected React package URL for CORS logic
           environment-variables: |
             RUST_LOG=INFO
+            LOG_LEVEL=normal
             VITE_URL=https://cairo-remix-dev.nethermind.io
             PROMTAIL_USERNAME=${{secrets.PROMTAIL_USERNAME}}
             PROMTAIL_PASSWORD=${{secrets.PROMTAIL_PASSWORD}}
