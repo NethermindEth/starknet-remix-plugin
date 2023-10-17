@@ -51,8 +51,8 @@ RUN cargo build --release
 RUN chmod +x ./docker_run.sh
 
 # Build the cairo compiler
-WORKDIR /opt/app/api/cairo
-RUN cargo build --release --workspace
+WORKDIR /opt/app/api/cairo_compilers
+RUN chmod +x ./build.sh; ./build.sh
 
 EXPOSE 8000
 

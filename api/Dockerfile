@@ -25,6 +25,10 @@ ENV PATH="/root/cairo_venv/bin:${PATH}"
 # Install cairo-lang
 RUN pip install cairo-lang
 
+# install Scarb
+RUN curl --proto '=https' --tlsv1.2 -sSf https://docs.swmansion.com/scarb/install.sh | bash
+ENV PATH="/root/.local/bin:${PATH}"
+
 # Set the working directory
 WORKDIR /app
 
