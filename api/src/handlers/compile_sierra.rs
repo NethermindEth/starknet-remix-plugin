@@ -51,7 +51,9 @@ pub async fn compile_to_siera_async(
 pub async fn get_siera_compile_result(process_id: String, engine: &State<WorkerEngine>) -> String {
     info!("/compile-to-sierra-result");
     fetch_process_result(process_id, engine, |result| match result {
-        ApiCommandResult::SierraCompile(sierra_result) => json::to_string(&sierra_result).unwrap(),
+        ApiCommandResult::SierraCompile(sierra_result) => {
+            json::to_string(&sierra_result).unwrap_or("Failed to fetch result".to_string())
+        }
         _ => String::from("Result not available"),
     })
 }
@@ -137,7 +139,9 @@ pub async fn do_compile_to_sierra(
 
     debug!("LOG: ran command:{:?}", compile);
 
-    let output = result.wait_with_output().expect("Failed to wait on child");
+    let output = result
+        .wait_with_output()
+        .map_err(|e| format!("Failed to wait on child: {:?}", e))?;
 
     Ok(Json(CompileResponse {
         file_content: match NamedFile::open(&sierra_path).await.ok() {
@@ -151,10 +155,19 @@ pub async fn do_compile_to_sierra(
             None => "".to_string(),
         },
         message: String::from_utf8(output.stderr)
-            .unwrap()
-            .replace(&file_path.to_str().unwrap().to_string(), &remix_file_path)
+            .map_err(|e| format!("Failed to read stderr: {:?}", e))?
             .replace(
-                &sierra_path.to_str().unwrap().to_string(),
+                &file_path
+                    .to_str()
+                    .ok_or(format!("Formation of filepath failed"))?
+                    .to_string(),
+                &remix_file_path,
+            )
+            .replace(
+                &sierra_path
+                    .to_str()
+                    .ok_or(format!("Formation of filepath failed"))?
+                    .to_string(),
                 &sierra_remix_path,
             ),
         status: match output.status.code() {

@@ -50,7 +50,7 @@ pub fn do_cairo_version() -> Result<String, String> {
             .arg("--version")
             .stdout(Stdio::piped())
             .spawn()
-            .expect("Failed to execute cairo-compile")
+            .map_err(|e| format!("Failed to get cairo version: {:?}", e))?
             .wait_with_output()
             .map_err(|e| format!("Failed to get cairo version: {:?}", e))?
             .stdout,

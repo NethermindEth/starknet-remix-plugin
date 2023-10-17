@@ -56,22 +56,31 @@ pub async fn dispatch_command(command: ApiCommand) -> Result<ApiCommandResult, S
             remix_file_path,
             version,
         } => match do_compile_to_casm(version, remix_file_path).await {
-            Json(compile_response) => Ok(ApiCommandResult::CasmCompile(compile_response)),
+            Ok(Json(compile_response)) => Ok(ApiCommandResult::CasmCompile(compile_response)),
+            Err(e) => Err(e),
         },
         ApiCommand::Shutdown => Ok(ApiCommandResult::Shutdown),
     }
 }
 
-fn get_files_recursive(base_path: &Path) -> Vec<FileContentMap> {
+fn get_files_recursive(base_path: &Path) -> Result<Vec<FileContentMap>, String> {
     let mut file_content_map_array: Vec<FileContentMap> = Vec::new();
 
     if base_path.is_dir() {
-        for entry in base_path.read_dir().unwrap().flatten() {
+        for entry in base_path
+            .read_dir()
+            .map_err(|e| format!("Error while reading dir {:?}", e))?
+            .flatten()
+        {
             let path = entry.path();
             if path.is_dir() {
-                file_content_map_array.extend(get_files_recursive(&path));
+                file_content_map_array.extend(get_files_recursive(&path)?);
             } else if let Ok(content) = std::fs::read_to_string(&path) {
-                let file_name = path.file_name().unwrap().to_string_lossy().to_string();
+                let file_name = path
+                    .file_name()
+                    .ok_or(format!("Error while reading file name"))?
+                    .to_string_lossy()
+                    .to_string();
                 let file_content = content;
                 let file_content_map = FileContentMap {
                     file_name,
@@ -82,5 +91,5 @@ fn get_files_recursive(base_path: &Path) -> Vec<FileContentMap> {
         }
     }
 
-    file_content_map_array
+    Ok(file_content_map_array)
 }
