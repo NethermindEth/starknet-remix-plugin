@@ -14,7 +14,7 @@ const CairoVersion: React.FC = () => {
   const pluginVersion = import.meta.env.VITE_VERSION !== undefined ? `v${import.meta.env.VITE_VERSION}` : 'v0.2.0';
 
   // Hard-coded versions for the example
-  const [getVersions, setVersions] = useState(['2.2.0', '2.1.0', '2.0.0']);
+  const [getVersions, setVersions] = useState([]);
 
   useEffect(() => {
     const fetchCairoVersions = async () => {
