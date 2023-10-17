@@ -49,6 +49,12 @@ const CairoVersion: React.FC = () => {
     }, 10000);
   }, [remixClient]);
 
+  useEffect(() => {
+    if (getVersions.length > 0) {
+      setCairoVersion(getVersions[0])
+    }
+  }, [getVersions]);
+
   return (
       <div className="version-wrapper">
         <div>
