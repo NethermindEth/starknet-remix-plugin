@@ -1,5 +1,6 @@
 use crate::handlers;
 use crate::handlers::types::{ApiCommand, ApiCommandResult};
+use crate::types::ApiError;
 use crossbeam_queue::ArrayQueue;
 use crossbeam_skiplist::SkipMap;
 use rocket::tokio;
@@ -15,7 +16,7 @@ pub enum ProcessState {
     New,
     Running,
     Completed(ApiCommandResult),
-    Error(String),
+    Error(ApiError),
 }
 
 impl Display for ProcessState {
@@ -24,7 +25,7 @@ impl Display for ProcessState {
             ProcessState::New => write!(f, "New"),
             ProcessState::Running => write!(f, "Running"),
             ProcessState::Completed(_) => write!(f, "Completed"),
-            ProcessState::Error(e) => write!(f, "Error({})", e),
+            ProcessState::Error(e) => write!(f, "Error({:?})", e),
         }
     }
 }
