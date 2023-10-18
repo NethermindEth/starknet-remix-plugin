@@ -21,7 +21,7 @@ pub async fn scarb_compile(remix_file_path: PathBuf) -> Json<ScarbCompileRespons
 #[get("/compile-scarb-async/<remix_file_path..>")]
 pub async fn scarb_compile_async(remix_file_path: PathBuf, engine: &State<WorkerEngine>) -> String {
     info!("/compile-scarb-async/{:?}", remix_file_path);
-    do_process_command(ApiCommand::ScarbCompile(remix_file_path), engine)
+    do_process_command(ApiCommand::ScarbCompile { remix_file_path }, engine)
 }
 
 #[instrument]
@@ -64,15 +64,17 @@ pub async fn do_scarb_compile(
 
     debug!("LOG: ran command:{:?}", compile);
 
-    let output = result.wait_with_output().expect("Failed to wait on child");
+    let output = result
+        .wait_with_output()
+        .map_err(|e| format!("Failed to wait: {:?}", e))?;
 
     Ok(Json(ScarbCompileResponse {
-        file_content_map_array: get_files_recursive(&file_path.join("target/dev")),
+        file_content_map_array: get_files_recursive(&file_path.join("target/dev"))?,
         message: String::from_utf8(output.stdout)
-            .unwrap()
+            .map_err(|e| format!("Failed to read stdout: {:?}", e))?
             .replace(&file_path.to_str().unwrap().to_string(), &remix_file_path)
             + &String::from_utf8(output.stderr)
-                .unwrap()
+                .map_err(|e| format!("Failed to read stderr: {:?}", e))?
                 .replace(&file_path.to_str().unwrap().to_string(), &remix_file_path),
         status: match output.status.code() {
             Some(0) => "Success".to_string(),

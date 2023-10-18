@@ -1,6 +1,6 @@
 use crate::handlers::process::{do_process_command, fetch_process_result};
 use crate::handlers::types::{ApiCommand, ApiCommandResult, CompileResponse};
-use crate::utils::lib::{get_file_ext, get_file_path, CAIRO_DIR, SIERRA_ROOT};
+use crate::utils::lib::{get_file_ext, get_file_path, CAIRO_COMPILERS_DIR, SIERRA_ROOT};
 use crate::worker::WorkerEngine;
 use rocket::fs::NamedFile;
 use rocket::serde::json;
@@ -12,26 +12,38 @@ use std::process::{Command, Stdio};
 use tracing::{debug, instrument};
 
 #[instrument]
-#[get("/compile-to-sierra/<remix_file_path..>")]
-pub async fn compile_to_sierra(remix_file_path: PathBuf) -> Json<CompileResponse> {
+#[get("/compile-to-sierra/<version>/<remix_file_path..>")]
+pub async fn compile_to_sierra(version: String, remix_file_path: PathBuf) -> Json<CompileResponse> {
     info!("/compile-to-sierra");
-    do_compile_to_sierra(remix_file_path)
-        .await
-        .unwrap_or(Json::from(CompileResponse {
-            message: "Error compiling to sierra".to_string(),
-            status: "error".to_string(),
+
+    let res = do_compile_to_sierra(version.clone(), remix_file_path).await;
+
+    match res {
+        Ok(res) => res,
+        Err(e) => Json(CompileResponse {
             file_content: "".to_string(),
-        }))
+            message: e,
+            status: "CompilationFailed".to_string(),
+            cairo_version: version,
+        }),
+    }
 }
 
 #[instrument]
-#[get("/compile-to-sierra-async/<remix_file_path..>")]
+#[get("/compile-to-sierra-async/<version>/<remix_file_path..>")]
 pub async fn compile_to_siera_async(
+    version: String,
     remix_file_path: PathBuf,
     engine: &State<WorkerEngine>,
 ) -> String {
     info!("/compile-to-sierra-async");
-    do_process_command(ApiCommand::SierraCompile(remix_file_path), engine)
+    do_process_command(
+        ApiCommand::SierraCompile {
+            version,
+            remix_file_path,
+        },
+        engine,
+    )
 }
 
 #[instrument]
@@ -39,7 +51,9 @@ pub async fn compile_to_siera_async(
 pub async fn get_siera_compile_result(process_id: String, engine: &State<WorkerEngine>) -> String {
     info!("/compile-to-sierra-result");
     fetch_process_result(process_id, engine, |result| match result {
-        ApiCommandResult::SierraCompile(sierra_result) => json::to_string(&sierra_result).unwrap(),
+        ApiCommandResult::SierraCompile(sierra_result) => {
+            json::to_string(&sierra_result).unwrap_or("Failed to fetch result".to_string())
+        }
         _ => String::from("Result not available"),
     })
 }
@@ -47,6 +61,7 @@ pub async fn get_siera_compile_result(process_id: String, engine: &State<WorkerE
 /// Compile a given file to Sierra bytecode
 ///
 pub async fn do_compile_to_sierra(
+    version: String,
     remix_file_path: PathBuf,
 ) -> Result<Json<CompileResponse>, String> {
     let remix_file_path = match remix_file_path.to_str() {
@@ -56,6 +71,7 @@ pub async fn do_compile_to_sierra(
                 file_content: "".to_string(),
                 message: "File path not found".to_string(),
                 status: "FileNotFound".to_string(),
+                cairo_version: version,
             }));
         }
     };
@@ -71,6 +87,7 @@ pub async fn do_compile_to_sierra(
                 file_content: "".to_string(),
                 message: "File extension not supported".to_string(),
                 status: "FileExtensionNotSupported".to_string(),
+                cairo_version: version,
             }));
         }
     }
@@ -80,7 +97,13 @@ pub async fn do_compile_to_sierra(
     let sierra_remix_path = remix_file_path.replace(&get_file_ext(&remix_file_path), "sierra");
 
     let mut compile = Command::new("cargo");
-    compile.current_dir(CAIRO_DIR);
+
+    let path_to_cairo_compiler = Path::new(CAIRO_COMPILERS_DIR).join(&version);
+    if path_to_cairo_compiler.exists() {
+        compile.current_dir(path_to_cairo_compiler);
+    } else {
+        return Err(format!("Cairo compiler with version {} not found", version));
+    }
 
     // replace .cairo with
     let sierra_path = Path::new(SIERRA_ROOT).join(&sierra_remix_path);
@@ -116,7 +139,9 @@ pub async fn do_compile_to_sierra(
 
     debug!("LOG: ran command:{:?}", compile);
 
-    let output = result.wait_with_output().expect("Failed to wait on child");
+    let output = result
+        .wait_with_output()
+        .map_err(|e| format!("Failed to wait on child: {:?}", e))?;
 
     Ok(Json(CompileResponse {
         file_content: match NamedFile::open(&sierra_path).await.ok() {
@@ -130,10 +155,19 @@ pub async fn do_compile_to_sierra(
             None => "".to_string(),
         },
         message: String::from_utf8(output.stderr)
-            .unwrap()
-            .replace(&file_path.to_str().unwrap().to_string(), &remix_file_path)
+            .map_err(|e| format!("Failed to read stderr: {:?}", e))?
             .replace(
-                &sierra_path.to_str().unwrap().to_string(),
+                &file_path
+                    .to_str()
+                    .ok_or(format!("Formation of filepath failed"))?
+                    .to_string(),
+                &remix_file_path,
+            )
+            .replace(
+                &sierra_path
+                    .to_str()
+                    .ok_or(format!("Formation of filepath failed"))?
+                    .to_string(),
                 &sierra_remix_path,
             ),
         status: match output.status.code() {
@@ -141,5 +175,6 @@ pub async fn do_compile_to_sierra(
             Some(_) => "CompilationFailed".to_string(),
             None => "UnknownError".to_string(),
         },
+        cairo_version: version,
     }))
 }
