@@ -1,5 +1,6 @@
 use crate::handlers::process::{do_process_command, fetch_process_result};
 use crate::handlers::types::{ApiCommand, ApiCommandResult, CompileResponse};
+use crate::types::{ApiError, Result};
 use crate::utils::lib::{get_file_ext, get_file_path, CAIRO_COMPILERS_DIR, CASM_ROOT};
 use crate::worker::WorkerEngine;
 use rocket::fs::NamedFile;
@@ -20,7 +21,7 @@ pub async fn compile_to_casm(version: String, remix_file_path: PathBuf) -> Json<
         .unwrap_or_else(|e| {
             Json(CompileResponse {
                 file_content: "".to_string(),
-                message: e,
+                message: format!("Failed to compile to casm: {:?}", e),
                 status: "CompilationFailed".to_string(),
                 cairo_version: version,
             })
@@ -59,34 +60,22 @@ pub async fn compile_to_casm_result(process_id: String, engine: &State<WorkerEng
 /// Compile source file to CASM
 ///
 pub async fn do_compile_to_casm(
-    version: String,
+    cairo_version: String,
     remix_file_path: PathBuf,
-) -> Result<Json<CompileResponse>, String> {
-    let remix_file_path = match remix_file_path.to_str() {
-        Some(path) => path.to_string(),
-        None => {
-            return Ok(Json(CompileResponse {
-                file_content: "".to_string(),
-                message: "File path not found".to_string(),
-                status: "FileNotFound".to_string(),
-                cairo_version: version,
-            }));
-        }
-    };
+) -> Result<Json<CompileResponse>> {
+    let remix_file_path = remix_file_path
+        .to_str()
+        .ok_or(ApiError::FailedToParseString)?
+        .to_string();
 
     // check if the file has .sierra extension
     match get_file_ext(&remix_file_path) {
         ext if ext == "sierra" => {
             debug!("LOG: File extension is sierra");
         }
-        _ => {
+        ext => {
             debug!("LOG: File extension not supported");
-            return Ok(Json(CompileResponse {
-                file_content: "".to_string(),
-                message: "File extension not supported".to_string(),
-                status: "FileExtensionNotSupported".to_string(),
-                cairo_version: version,
-            }));
+            return Err(ApiError::FileExtensionNotSupported(ext));
         }
     }
 
@@ -96,17 +85,12 @@ pub async fn do_compile_to_casm(
 
     let mut compile = Command::new("cargo");
 
-    let path_to_cairo_compiler = Path::new(CAIRO_COMPILERS_DIR).join(&version);
+    let path_to_cairo_compiler = Path::new(CAIRO_COMPILERS_DIR).join(&cairo_version);
 
     if path_to_cairo_compiler.exists() {
         compile.current_dir(path_to_cairo_compiler);
     } else {
-        return Ok(Json(CompileResponse {
-            file_content: "".to_string(),
-            message: "Cairo compiler not found".to_string(),
-            status: "CairoCompilerNotFound".to_string(),
-            cairo_version: version,
-        }));
+        return Err(ApiError::CairoVersionNotFound(cairo_version));
     }
 
     let casm_path = Path::new(CASM_ROOT).join(&casm_remix_path);
@@ -135,66 +119,55 @@ pub async fn do_compile_to_casm(
         .arg(&file_path)
         .arg(&casm_path)
         .stderr(Stdio::piped())
-        .spawn();
-
-    if result.is_err() {
-        return Ok(Json(CompileResponse {
-            file_content: "".to_string(),
-            message: "Failed to execute starknet-sierra-compile".to_string(),
-            status: "SierraCompilationFailed".to_string(),
-            cairo_version: version,
-        }));
-    }
-
-    let result = result.unwrap();
+        .spawn()
+        .map_err(|e| ApiError::FailedToExecuteCommand(e))?;
 
     debug!("LOG: ran command:{:?}", compile);
 
-    let output = result.wait_with_output();
+    let output = result
+        .wait_with_output()
+        .map_err(|e| ApiError::FailedToReadOutput(e))?;
 
-    if output.is_err() {
-        return Ok(Json(CompileResponse {
-            file_content: "".to_string(),
-            message: "Failed to wait on child".to_string(),
-            status: "SierraCompilationFailed".to_string(),
-            cairo_version: version,
-        }));
+    let file_content = fs::read_to_string(
+        NamedFile::open(&casm_path)
+            .await
+            .map_err(|e| ApiError::FailedToReadFile(e))?
+            .path()
+            .to_str()
+            .ok_or(ApiError::FailedToParseString)?
+            .to_string(),
+    )
+    .await
+    .map_err(|e| ApiError::FailedToReadFile(e))?;
+
+    let message = String::from_utf8(output.stderr)
+        .map_err(|e| ApiError::UTF8Error(e))?
+        .replace(
+            &file_path
+                .to_str()
+                .ok_or(ApiError::FailedToParseString)?
+                .to_string(),
+            &remix_file_path,
+        )
+        .replace(
+            &casm_path
+                .to_str()
+                .ok_or(ApiError::FailedToParseString)?
+                .to_string(),
+            &casm_remix_path,
+        );
+
+    let status = match output.status.code() {
+        Some(0) => "Success",
+        Some(_) => "SierraCompilationFailed",
+        None => "UnknownError",
     }
-
-    let output = output.unwrap();
+    .to_string();
 
     Ok(Json(CompileResponse {
-        file_content: match NamedFile::open(&casm_path).await.ok() {
-            Some(file) => match file.path().to_str() {
-                Some(path) => match fs::read_to_string(path.to_string()).await {
-                    Ok(casm) => casm.to_string(),
-                    Err(e) => e.to_string(),
-                },
-                None => "".to_string(),
-            },
-            None => "".to_string(),
-        },
-        message: String::from_utf8(output.stderr)
-            .map_err(|e| format!("Failed to read stderr: {:?}", e))?
-            .replace(
-                &file_path
-                    .to_str()
-                    .ok_or("Failed to parse string".to_string())?
-                    .to_string(),
-                &remix_file_path,
-            )
-            .replace(
-                &casm_path
-                    .to_str()
-                    .ok_or("Failed to parse string".to_string())?
-                    .to_string(),
-                &casm_remix_path,
-            ),
-        status: match output.status.code() {
-            Some(0) => "Success".to_string(),
-            Some(_) => "SierraCompilationFailed".to_string(),
-            None => "UnknownError".to_string(),
-        },
-        cairo_version: version,
+        file_content,
+        message,
+        status,
+        cairo_version,
     }))
 }

@@ -12,6 +12,7 @@ use crate::handlers::compile_casm::do_compile_to_casm;
 use crate::handlers::compile_sierra::do_compile_to_sierra;
 use crate::handlers::scarb_compile::do_scarb_compile;
 use crate::handlers::types::{ApiCommand, ApiCommandResult, FileContentMap};
+use crate::types::{ApiError, Result};
 use rocket::serde::json::Json;
 use std::path::Path;
 use tracing::info;
@@ -31,7 +32,7 @@ pub async fn who_is_this() -> &'static str {
     "Who are you?"
 }
 
-pub async fn dispatch_command(command: ApiCommand) -> Result<ApiCommandResult, String> {
+pub async fn dispatch_command(command: ApiCommand) -> Result<ApiCommandResult> {
     match command {
         ApiCommand::CairoVersion => match do_cairo_version() {
             Ok(result) => Ok(ApiCommandResult::CairoVersion(result)),
@@ -63,13 +64,13 @@ pub async fn dispatch_command(command: ApiCommand) -> Result<ApiCommandResult, S
     }
 }
 
-fn get_files_recursive(base_path: &Path) -> Result<Vec<FileContentMap>, String> {
+fn get_files_recursive(base_path: &Path) -> Result<Vec<FileContentMap>> {
     let mut file_content_map_array: Vec<FileContentMap> = Vec::new();
 
     if base_path.is_dir() {
         for entry in base_path
             .read_dir()
-            .map_err(|e| format!("Error while reading dir {:?}", e))?
+            .map_err(|e| ApiError::FailedToReadDir(e))?
             .flatten()
         {
             let path = entry.path();
@@ -78,7 +79,7 @@ fn get_files_recursive(base_path: &Path) -> Result<Vec<FileContentMap>, String> 
             } else if let Ok(content) = std::fs::read_to_string(&path) {
                 let file_name = path
                     .file_name()
-                    .ok_or(format!("Error while reading file name"))?
+                    .ok_or(ApiError::FailedToReadFilename)?
                     .to_string_lossy()
                     .to_string();
                 let file_content = content;

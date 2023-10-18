@@ -4,6 +4,7 @@ extern crate rocket;
 pub mod cors;
 pub mod handlers;
 pub mod tracing_log;
+pub mod types;
 pub mod utils;
 pub mod worker;
 
