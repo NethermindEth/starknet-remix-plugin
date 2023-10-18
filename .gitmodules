@@ -4,8 +4,8 @@
 
 [submodule "api/cairo_compilers/v2.1.1"]
     path = api/cairo_compilers/v2.1.1
-    url = https://github.com/starkware-libs/cairo-compiler.git
+    url = https://github.com/starkware-libs/cairo.git
 
-[submodule "api/cairo_compilers/v2.1.2"]
-    path = api/cairo_compilers/v2.1.2
-    url = https://github.com/starkware-libs/cairo-compiler.git
+[submodule "api/cairo_compilers/v2.2.0"]
+    path = api/cairo_compilers/v2.2.0
+    url = https://github.com/starkware-libs/cairo.git
