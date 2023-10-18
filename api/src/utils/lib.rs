@@ -16,6 +16,8 @@ pub const TEMP_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/", "temp/");
 
 pub const DEFAULT_CAIRO_VERSION: &str = "v2.2.0";
 
+pub const DURATION_TO_PURGE: u64 = 5; // 5 seconds
+
 pub fn get_file_ext(file_path: &str) -> String {
     match file_path.split('.').last() {
         Some(ext) => ext.to_string(),
