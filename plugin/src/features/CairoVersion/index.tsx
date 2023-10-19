@@ -11,7 +11,7 @@ const CairoVersion: React.FC = () => {
   const remixClient = useContext(RemixClientContext)
 
   const [versions] = useState<string[]>([
-    'cairo-compile 2.2.0'
+    'cairo-compile 2.3.0-rc0'
   ])
   const pluginVersion = process.env.REACT_APP_VERSION !== undefined ? `v${process.env.REACT_APP_VERSION}` : 'v0.2.0'
 
