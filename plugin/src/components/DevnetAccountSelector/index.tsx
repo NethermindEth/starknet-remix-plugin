@@ -11,23 +11,19 @@ import { Account, Provider } from 'starknet'
 import { RemixClientContext } from '../../contexts/RemixClientContext'
 import { MdCopyAll, MdRefresh } from 'react-icons/md'
 import './devnetAccountSelector.css'
-import EnvironmentContext from '../../contexts/EnvironmentContext'
 import copy from 'copy-to-clipboard'
+import { useAtom, useAtomValue } from 'jotai'
+import { availableDevnetAccountsAtom, devnetAtom, envAtom, isDevnetAliveAtom, selectedDevnetAccountAtom } from '../../atoms/environment'
 
 const DevnetAccountSelector: React.FC = () => {
   const { account, setAccount, provider, setProvider } =
     useContext(ConnectionContext)
   const remixClient = useContext(RemixClientContext)
-  const {
-    env,
-    devnet,
-    isDevnetAlive,
-    setIsDevnetAlive,
-    selectedDevnetAccount,
-    setSelectedDevnetAccount,
-    availableDevnetAccounts,
-    setAvailableDevnetAccounts
-  } = useContext(EnvironmentContext)
+  const env = useAtomValue(envAtom)
+  const devnet = useAtomValue(devnetAtom)
+  const [isDevnetAlive, setIsDevnetAlive] = useAtom(isDevnetAliveAtom)
+  const [selectedDevnetAccount, setSelectedDevnetAccount] = useAtom(selectedDevnetAccountAtom)
+  const [availableDevnetAccounts, setAvailableDevnetAccounts] = useAtom(availableDevnetAccountsAtom)
 
   // devnet live status
   useEffect(() => {

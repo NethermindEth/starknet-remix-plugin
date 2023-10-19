@@ -4,7 +4,9 @@ import { type ConnectOptions, type DisconnectOptions } from 'get-starknet'
 import { ConnectionContext } from '../../contexts/ConnectionContext'
 
 import './styles.css'
-import EnvironmentContext from '../../contexts/EnvironmentContext'
+import { devnetAtom, envAtom } from '../../atoms/environment'
+import { useAtom, useSetAtom } from 'jotai'
+import useStarknetWindow from '../../hooks/starknetWindow'
 
 interface EnvironmentSelectorProps {
   connectWalletHandler: (options?: ConnectOptions) => Promise<void>
@@ -13,7 +15,9 @@ interface EnvironmentSelectorProps {
 
 const EnvironmentSelector: React.FC<EnvironmentSelectorProps> = (props) => {
   const { setProvider } = useContext(ConnectionContext)
-  const { env, setEnv, setDevnet, starknetWindowObject } = useContext(EnvironmentContext)
+  const [env, setEnv] = useAtom(envAtom)
+  const setDevnet = useSetAtom(devnetAtom)
+  const { starknetWindowObject } = useStarknetWindow()
 
   async function handleEnvironmentChange (event: any): Promise<void> {
     const value = parseInt(event.target.value)

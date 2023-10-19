@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
 
-const JSONView = (data: JSON) => {
+const JSONView = (data: JSON): JSX.Element => {
   const [expandedRows, setExpandedRows] = useState<string[]>([])
 
-  const toggleRow = (rowId: string) => {
+  const toggleRow = (rowId: string): void => {
     const isExpanded = expandedRows.includes(rowId)
     if (isExpanded) {
       setExpandedRows(expandedRows.filter((id) => id !== rowId))
@@ -12,7 +12,7 @@ const JSONView = (data: JSON) => {
     }
   }
 
-  const renderRow = (row: any, level = 0) => {
+  const renderRow = (row: any, level = 0): JSX.Element => {
     const rowId = `${level}-${row.key}`
 
     return (

@@ -10,11 +10,8 @@ import {
 import { ConnectionContext } from '../../contexts/ConnectionContext'
 import { ethers } from 'ethers'
 
-import ManualAccountContext from '../../contexts/ManualAccountContext'
 import storage from '../../utils/storage'
 import { RemixClientContext } from '../../contexts/RemixClientContext'
-import TransactionContext from '../../contexts/TransactionContext'
-import EnvironmentContext from '../../contexts/EnvironmentContext'
 
 import './index.css'
 import { BiCopy, BiPlus } from 'react-icons/bi'
@@ -22,6 +19,11 @@ import { getExplorerUrl, trimStr } from '../../utils/utils'
 import { MdRefresh, MdCheckCircleOutline } from 'react-icons/md'
 import copy from 'copy-to-clipboard'
 import ExplorerSelector, { useCurrentExplorer } from '../ExplorerSelector'
+import { useAtom } from 'jotai'
+
+import transactionsAtom from '../../atoms/transactions'
+import { accountAtom, networkAtom, selectedAccountAtom } from '../../atoms/manualAccount'
+import { envAtom } from '../../atoms/environment'
 
 // TODOS: move state parts to contexts
 // Account address selection
@@ -43,18 +45,13 @@ const ManualAccount: React.FC<{
 
   const remixClient = useContext(RemixClientContext)
 
-  const { transactions, setTransactions } = useContext(TransactionContext)
+  const [transactions, setTransactions] = useAtom(transactionsAtom)
 
-  const { env, setEnv } = useContext(EnvironmentContext)
+  const [env, setEnv] = useAtom(envAtom)
 
-  const {
-    accounts,
-    setAccounts,
-    selectedAccount,
-    setSelectedAccount,
-    networkName,
-    setNetworkName
-  } = useContext(ManualAccountContext)
+  const [accounts, setAccounts] = useAtom(accountAtom)
+  const [selectedAccount, setSelectedAccount] = useAtom(selectedAccountAtom)
+  const [networkName, setNetworkName] = useAtom(networkAtom)
 
   useEffect(() => {
     setNetworkName(networkConstants[0].value)
@@ -318,16 +315,16 @@ const ManualAccount: React.FC<{
             ? (
                 accounts.map((account, index) => {
                   return (
-                <option value={index} key={index}>
-                  {trimStr(account.address, 6)}
-                </option>
+                  <option value={index} key={index}>
+                    {trimStr(account.address, 6)}
+                  </option>
                   )
                 })
               )
             : (
-            <option value={-1} key={-1}>
-              No account created yet
-            </option>
+              <option value={-1} key={-1}>
+                No account created yet
+              </option>
               )}
         </select>
         <button
@@ -438,13 +435,12 @@ const ManualAccount: React.FC<{
       <button
         className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled"
         style={{
-          cursor: `${
-            (selectedAccount?.deployed_networks.includes(networkName) ??
+          cursor: `${(selectedAccount?.deployed_networks.includes(networkName) ??
               false) ||
-            accountDeploying
+              accountDeploying
               ? 'not-allowed'
               : 'pointer'
-          }`
+            }`
         }}
         disabled={
           (selectedAccount?.deployed_networks.includes(networkName) ?? false) ||
@@ -461,22 +457,22 @@ const ManualAccount: React.FC<{
       >
         {accountDeploying
           ? (
-          <>
-            <span
-              className="spinner-border spinner-border-sm"
-              role="status"
-              aria-hidden="true"
-            />
-            <span style={{ paddingLeft: '0.5rem' }}>Deploying Account...</span>
-          </>
+            <>
+              <span
+                className="spinner-border spinner-border-sm"
+                role="status"
+                aria-hidden="true"
+              />
+              <span style={{ paddingLeft: '0.5rem' }}>Deploying Account...</span>
+            </>
             )
           : selectedAccount?.deployed_networks.includes(networkName) ??
-          false
+            false
             ? (
               <>
-              <MdCheckCircleOutline color="#0fd543" size={18} />
-              <span style={{ paddingLeft: '0.5rem' }}>Account Deployed</span>
-            </>
+                <MdCheckCircleOutline color="#0fd543" size={18} />
+                <span style={{ paddingLeft: '0.5rem' }}>Account Deployed</span>
+              </>
               )
             : (
                 'Deploy Account'

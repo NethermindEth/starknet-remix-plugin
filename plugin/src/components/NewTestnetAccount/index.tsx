@@ -23,7 +23,7 @@ interface IStepProps {
 const SelectNetworkState: React.FC<IStepProps> = ({ changeState }) => {
   const [selectedNetwork, setSelectedNetwork] = useState<Networks>('goerli')
   const networks: Networks[] = ['goerli', 'dev-goerli']
-  const handleCreateAccount = () => {
+  const handleCreateAccount = (): void => {
     changeState('loading')
     // DUMMY LOAD BELOW
     setTimeout(() => {
@@ -79,7 +79,7 @@ const AccountCreated: React.FC<IAccountCreated> = ({
   const [showCopied, setShowCopied] = useState(false)
 
   const [balanceRefreshing, setBalanceRefreshing] = useState(false)
-  const [balance, setBalance] = useState('0.005')
+  const [balance] = useState('0.005')
   return (
     <div>
       <div className="account-address-wrapper">
@@ -138,7 +138,7 @@ const NewTestNetAccount: React.FC<INewTestNetAccount> = ({ state }) => {
   const getCurrentStateView = (
     state: AccountCreationState,
     setCurrentState: React.Dispatch<React.SetStateAction<AccountCreationState>>
-  ) => {
+  ): JSX.Element => {
     switch (state) {
       case 'created':
         return (

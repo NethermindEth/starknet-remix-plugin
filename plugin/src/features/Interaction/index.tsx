@@ -16,7 +16,6 @@ import {
   constants
 } from 'starknet'
 import CompiledContracts from '../../components/CompiledContracts'
-import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
 import { type CallDataObj, type Input } from '../../utils/types/contracts'
 import {
   getParameterType,
@@ -25,29 +24,33 @@ import {
 } from '../../utils/utils'
 import Container from '../../components/ui_components/Container'
 import { ConnectionContext } from '../../contexts/ConnectionContext'
-import TransactionContext from '../../contexts/TransactionContext'
 import { RemixClientContext } from '../../contexts/RemixClientContext'
 import storage from '../../utils/storage'
 import './index.css'
-import { useAtom } from 'jotai'
+import { useAtom, useAtomValue } from 'jotai'
 import { type EnhancedAbiElement, interactAtom } from '../../atoms'
 import { Formik } from 'formik'
 import Yup, { transformInputs } from '../../utils/yup'
 
 import { BiReset } from 'react-icons/bi'
-import EnvironmentContext from '../../contexts/EnvironmentContext'
+import transactionsAtom from '../../atoms/transactions'
+import { compiledContractsAtom, selectedCompiledContract } from '../../atoms/compiledContracts'
+import { envAtom } from '../../atoms/environment'
 
 interface InteractionProps {
   setInteractionStatus: React.Dispatch<React.SetStateAction<'loading' | 'error' | 'success' | ''>>
 }
 
 const Interaction: React.FC<InteractionProps> = (props) => {
-  const { contracts, selectedContract } = useContext(CompiledContractsContext)
+  const contracts = useAtomValue(compiledContractsAtom)
+  const selectedContract = useAtomValue(selectedCompiledContract)
+
   const { account, provider } = useContext(ConnectionContext)
 
-  const { transactions, setTransactions } = useContext(TransactionContext)
+  const [transactions, setTransactions] = useAtom(transactionsAtom)
+
   const remixClient = useContext(RemixClientContext)
-  const { env } = useContext(EnvironmentContext)
+  const env = useAtomValue(envAtom)
 
   const [contractsState, setContractsState] = useAtom(interactAtom)
 

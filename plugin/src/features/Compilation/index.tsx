@@ -1,5 +1,4 @@
 import React, { useContext, useEffect } from 'react'
-import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
 import { RemixClientContext } from '../../contexts/RemixClientContext'
 import { apiUrl } from '../../utils/network'
 import {
@@ -19,7 +18,11 @@ import * as D from '../../components/ui_components/Dropdown'
 import { BsChevronDown } from 'react-icons/bs'
 import { type Contract } from '../../utils/types/contracts'
 import { asyncFetch } from '../../utils/async_fetch'
-import CairoVersionContext from '../../contexts/CairoVersion'
+import { useAtom, useAtomValue } from 'jotai'
+
+// Imported Atoms
+import cairoVersionAtom from '../../atoms/cairoVersion'
+import { compiledContractsAtom, selectedCompiledContract } from '../../atoms/compiledContracts'
 
 interface CompilationProps {
   setAccordian: React.Dispatch<React.SetStateAction<AccordianTabs>>
@@ -27,11 +30,10 @@ interface CompilationProps {
 
 const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
   const remixClient = useContext(RemixClientContext)
-  const { version: cairoVersion } = useContext(CairoVersionContext)
+  const cairoVersion = useAtomValue(cairoVersionAtom)
 
-  const { contracts, selectedContract, setContracts, setSelectedContract } = useContext(
-    CompiledContractsContext
-  )
+  const [contracts, setContracts] = useAtom(compiledContractsAtom)
+  const [selectedContract, setSelectedContract] = useAtom(selectedCompiledContract)
 
   const {
     status,
@@ -749,7 +751,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         (contract) =>
           contract.classHash === classHash &&
             contract.compiledClassHash === compiledClassHash
-      )
+      ) != null
     ) {
       return null
     }

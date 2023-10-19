@@ -2,13 +2,14 @@ import * as D from '../../components/ui_components/Dropdown'
 import React, { useContext, useEffect, useState } from 'react'
 import { apiUrl } from '../../utils/network'
 import { RemixClientContext } from '../../contexts/RemixClientContext'
-import CairoVersionContext from '../../contexts/CairoVersion'
 import { BsChevronDown } from 'react-icons/bs'
 import Nethermind from '../../components/NM'
+import cairoVersionAtom from '../../atoms/cairoVersion'
 import './style.css'
+import { useAtom } from 'jotai'
 
 const CairoVersion: React.FC = () => {
-  const { version: cairoVersion, setVersion: setCairoVersion } = useContext(CairoVersionContext)
+  const [cairoVersion, setCairoVersion] = useAtom(cairoVersionAtom)
   const remixClient = useContext(RemixClientContext)
 
   const pluginVersion = import.meta.env.VITE_VERSION !== undefined ? `v${import.meta.env.VITE_VERSION}` : 'v0.2.0'
