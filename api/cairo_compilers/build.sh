@@ -8,7 +8,7 @@ for dir in $directories
 do
   echo "Building $dir"
 
-  if [[ ! -f "$dir/Cargo.toml" ]] || [[ ! "$dir" =~ ^v[0-9]+\.[0-9]+\.[0-9]+/$ ]]; then
+  if [[ ! -f "$dir/Cargo.toml" ]]; then
     echo "Invalid cairo version provided $dir"
     exit 1
   fi
