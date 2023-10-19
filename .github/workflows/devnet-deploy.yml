@@ -18,92 +18,92 @@ env:
   PROD_CLUSTER: "starknet-remix-plugin-production-ecs-cluster"
   PROD_SERVICE_NAME: "devnet-production-svc"
 jobs:
-  Build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Clone repository
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-
-      - name: Determine version numbers
-        id: determine-version
-        uses: paulhatch/semantic-version@v5.2.1
-        with:
-          # The prefix to use to identify tags
-          tag_prefix: "v"
-          # A string which, if present in a git commit, indicates that a change represents a
-          # major (breaking) change, supports regular expressions wrapped with '/'
-          major_pattern: "(MAJOR)"
-          # A string which indicates the flags used by the `major_pattern` regular expression. Supported flags: idgs
-          major_regexp_flags: ""
-          # Same as above except indicating a minor change, supports regular expressions wrapped with '/'
-          minor_pattern: "(MINOR)"
-          # A string which indicates the flags used by the `minor_pattern` regular expression. Supported flags: idgs
-          minor_regexp_flags: ""
-          # A string to determine the format of the version output
-          version_format: "${major}.${minor}.${patch}-dev${increment}"
-          # If this is set to true, *every* commit will be treated as a new version.
-          bump_each_commit: false
-          # If bump_each_commit is also set to true, setting this value will cause the version to increment only if the pattern specified is matched.
-          bump_each_commit_patch_pattern: ""
-          # If true, the body of commits will also be searched for major/minor patterns to determine the version type.
-          search_commit_body: false
-          # The output method used to generate list of users, 'csv' or 'json'.
-          user_format_type: "csv"
-          # Prevents pre-v1.0.0 version from automatically incrementing the major version.
-          # If enabled, when the major version is 0, major releases will be treated as minor and minor as patch. Note that the version_type output is unchanged.
-          enable_prerelease_mode: true
-          # If enabled, diagnostic information will be added to the action output.
-          debug: false
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-region: us-east-2
-          role-to-assume: arn:aws:iam::599564732950:role/Aws-GH-Action-Assume-Role-Starknet
-          # role-session-name: GHStarknet
-    
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
-        with:
-          mask-password: 'true'
-
-#      - name: Update local Rust toolchains
+#  Build:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Clone repository
+#        uses: actions/checkout@v2
+#        with:
+#          fetch-depth: 0
+#
+#      - name: Determine version numbers
+#        id: determine-version
+#        uses: paulhatch/semantic-version@v5.2.1
+#        with:
+#          # The prefix to use to identify tags
+#          tag_prefix: "v"
+#          # A string which, if present in a git commit, indicates that a change represents a
+#          # major (breaking) change, supports regular expressions wrapped with '/'
+#          major_pattern: "(MAJOR)"
+#          # A string which indicates the flags used by the `major_pattern` regular expression. Supported flags: idgs
+#          major_regexp_flags: ""
+#          # Same as above except indicating a minor change, supports regular expressions wrapped with '/'
+#          minor_pattern: "(MINOR)"
+#          # A string which indicates the flags used by the `minor_pattern` regular expression. Supported flags: idgs
+#          minor_regexp_flags: ""
+#          # A string to determine the format of the version output
+#          version_format: "${major}.${minor}.${patch}-dev${increment}"
+#          # If this is set to true, *every* commit will be treated as a new version.
+#          bump_each_commit: false
+#          # If bump_each_commit is also set to true, setting this value will cause the version to increment only if the pattern specified is matched.
+#          bump_each_commit_patch_pattern: ""
+#          # If true, the body of commits will also be searched for major/minor patterns to determine the version type.
+#          search_commit_body: false
+#          # The output method used to generate list of users, 'csv' or 'json'.
+#          user_format_type: "csv"
+#          # Prevents pre-v1.0.0 version from automatically incrementing the major version.
+#          # If enabled, when the major version is 0, major releases will be treated as minor and minor as patch. Note that the version_type output is unchanged.
+#          enable_prerelease_mode: true
+#          # If enabled, diagnostic information will be added to the action output.
+#          debug: false
+#
+#      - name: Configure AWS credentials
+#        uses: aws-actions/configure-aws-credentials@v1
+#        with:
+#          aws-region: us-east-2
+#          role-to-assume: arn:aws:iam::599564732950:role/Aws-GH-Action-Assume-Role-Starknet
+#          # role-session-name: GHStarknet
+#
+#      - name: Login to Amazon ECR
+#        id: login-ecr
+#        uses: aws-actions/amazon-ecr-login@v1
+#        with:
+#          mask-password: 'true'
+#
+##      - name: Update local Rust toolchains
+##        run: |
+##          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain stable -y
+##          rustup update
+##          rustup component add clippy
+##          rustup install nightly
+##          sudo apt install musl-tools
+##          rustup target add x86_64-unknown-linux-musl
+#
+#
+##      - name: Toolchains info
+##        run: |
+##          cargo --version --verbose
+##          rustc --version
+##          cargo clippy --version
+#
+##      - name: Build
+##        run: |
+##          cd api
+##          cargo build --target=x86_64-unknown-linux-musl
+##          ls ./target/debug/ -al
+#
+#      - name: Build, tag, and push docker image to Amazon ECR
+#        env:
+#          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+#          REPOSITORY: ${{ env.REPOSITORY }}
+#          IMAGE_TAG: ${{ steps.determine-version.outputs.version }} # ${{ github.run_number }}
+#
+#        #           docker build --target final -t $REGISTRY/$REPOSITORY:apiserver-$IMAGE_TAG -f ./DockerfileApiServer .
 #        run: |
-#          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain stable -y
-#          rustup update
-#          rustup component add clippy
-#          rustup install nightly        
-#          sudo apt install musl-tools
-#          rustup target add x86_64-unknown-linux-musl
-          
-
-#      - name: Toolchains info
-#        run: |
-#          cargo --version --verbose
-#          rustc --version
-#          cargo clippy --version          
-
-#      - name: Build
-#        run: |
-#          cd api
-#          cargo build --target=x86_64-unknown-linux-musl          
-#          ls ./target/debug/ -al
-
-      - name: Build, tag, and push docker image to Amazon ECR
-        env:
-          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          REPOSITORY: ${{ env.REPOSITORY }}
-          IMAGE_TAG: ${{ steps.determine-version.outputs.version }} # ${{ github.run_number }}
-
-        #           docker build --target final -t $REGISTRY/$REPOSITORY:apiserver-$IMAGE_TAG -f ./DockerfileApiServer .
-        run: |
-          docker build -t $REGISTRY/$REPOSITORY:devnet-$IMAGE_TAG -f ./DockerfileDevnet .
-          docker push $REGISTRY/$REPOSITORY:devnet-$IMAGE_TAG
-    outputs:
-      image-version: ${{ steps.determine-version.outputs.version }}
+#          docker build -t $REGISTRY/$REPOSITORY:devnet-$IMAGE_TAG -f ./DockerfileDevnet .
+#          docker push $REGISTRY/$REPOSITORY:devnet-$IMAGE_TAG
+#    outputs:
+#      image-version: ${{ steps.determine-version.outputs.version }}
   Deploy_Dev:
     runs-on: ubuntu-latest
     needs: Build
@@ -120,19 +120,13 @@ jobs:
         run: |
           aws ecs describe-task-definition --task-definition starknet-remix-development-devnet --query taskDefinition > task-definition.json
 
-      - name: Fill in the new image ID in the Amazon ECS task definition
+      - name: Update the task definition to use the image from Docker Hub
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
           task-definition: task-definition.json
           container-name: "devnet"
-          image: ${{ env.REGISTRY }}/${{ env.REPOSITORY }}:devnet-${{ needs.Build.outputs.image-version }}      #${{ github.run_number }}
-          # inject the expected React package URL for CORS logic
-#          environment-variables: |
-#            RUST_LOG=INFO
-#            VITE_URL=https://cairo-remix-dev.nethermind.io
-#            PROMTAIL_USERNAME=${{secrets.PROMTAIL_USERNAME}}
-#            PROMTAIL_PASSWORD=${{secrets.PROMTAIL_PASSWORD}}
+          image: shardlabs/starknet-devnet-rs:latest
 
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
