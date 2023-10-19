@@ -52,8 +52,6 @@ const App: React.FC = () => {
 
                 let fileContent: string = file?.content ?? ''
 
-                console.log('kljkljl', file?.fileName)
-
                 if (file != null && file.fileName === 'Scarb.toml') {
                   fileContent = fileContent.concat('\ncasm = true')
                 }

@@ -763,11 +763,12 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           title: 'Failed to save artifacts'
         })
       }
+      setStatus('done')
     } catch (e) {
       console.log('error: ', e)
+      setStatus('failed')
     }
     setIsCompiling(false)
-    setStatus('done')
   }
 
   async function genContractData (
