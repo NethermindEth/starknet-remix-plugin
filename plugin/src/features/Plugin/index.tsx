@@ -5,7 +5,7 @@ import {
   type CallDataObject,
   type Input,
   type Contract
-} from '../../types/contracts'
+} from '../../utils/types/contracts'
 import { Environment } from '../Environment'
 import './styles.css'
 import {
@@ -21,7 +21,7 @@ import Accordian, {
   AccordianItem,
   AccordionContent,
   AccordionTrigger
-} from '../../ui_components/Accordian'
+} from '../../components/ui_components/Accordian'
 import TransactionHistory from '../TransactionHistory'
 import CairoVersion from '../CairoVersion'
 import CompilationContext from '../../contexts/CompilationContext'
@@ -30,10 +30,10 @@ import { type Devnet, devnets, type DevnetAccount } from '../../utils/network'
 import { type StarknetWindowObject } from 'get-starknet'
 import EnvironmentContext from '../../contexts/EnvironmentContext'
 import ManualAccountContext from '../../contexts/ManualAccountContext'
-import { type Transaction } from '../../types/transaction'
+import { type Transaction } from '../../utils/types/transaction'
 import TransactionContext from '../../contexts/TransactionContext'
 import StateAction from '../../components/StateAction'
-import type { ManualAccount } from '../../types/accounts'
+import type { ManualAccount } from '../../utils/types/accounts'
 import { networks } from '../../utils/constants'
 import BackgroundNotices from '../../components/BackgroundNotices'
 import ExplorerSelector, {

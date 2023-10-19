@@ -7,10 +7,10 @@ import {
   type CallDataObj,
   type CallDataObject,
   type Contract
-} from '../../types/contracts'
+} from '../../utils/types/contracts'
 import { getConstructor, getParameterType } from '../../utils/utils'
 import './styles.css'
-import Container from '../../ui_components/Container'
+import Container from '../../components/ui_components/Container'
 
 import { ConnectionContext } from '../../contexts/ConnectionContext'
 import { RemixClientContext } from '../../contexts/RemixClientContext'

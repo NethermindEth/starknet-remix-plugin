@@ -18,7 +18,7 @@ import Accordian, {
   AccordianItem,
   AccordionContent,
   AccordionTrigger
-} from '../../ui_components/Accordian'
+} from '../../components/ui_components/Accordian'
 import ManualAccount from '../../components/ManualAccount'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface

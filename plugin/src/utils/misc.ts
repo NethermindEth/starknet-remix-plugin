@@ -4,7 +4,7 @@
 import { Provider } from 'starknet'
 import { devnetUrl } from './constants'
 
-const getProvider = (network: string) => {
+const getProvider = (network: string): Provider => {
   switch (network) {
     case 'mainnet-alpha':
       return new Provider({

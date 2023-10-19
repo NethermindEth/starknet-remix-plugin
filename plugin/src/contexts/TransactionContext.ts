@@ -1,5 +1,5 @@
 import { createContext } from 'react'
-import { type Transaction } from '../types/transaction'
+import { type Transaction } from '../utils/types/transaction'
 
 const TransactionContext = createContext({
   transactions: [] as Transaction[],

@@ -1,5 +1,5 @@
 import { createContext } from 'react'
-import { type ManualAccount } from '../types/accounts'
+import { type ManualAccount } from '../utils/types/accounts'
 import { networks } from '../utils/constants'
 
 const TransactionContext = createContext({

@@ -1,6 +1,6 @@
 import { apiUrl } from './network'
 
-export async function asyncFetch (method: string, getterMethod: string) {
+export async function asyncFetch (method: string, getterMethod: string): Promise<string> {
   const response = await fetch(`${apiUrl}/${method}`, {
     method: 'GET',
     redirect: 'follow',

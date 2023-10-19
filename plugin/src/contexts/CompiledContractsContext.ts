@@ -1,5 +1,5 @@
 import { createContext } from 'react'
-import { type Contract } from '../types/contracts'
+import { type Contract } from '../utils/types/contracts'
 
 const CompiledContractsContext = createContext({
   contracts: [] as Contract[],

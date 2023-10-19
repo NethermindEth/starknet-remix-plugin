@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import * as D from '../../ui_components/Dropdown'
+import * as D from '../ui_components/Dropdown'
 import { networkExplorerUrls as EXPLORERS } from '../../utils/constants'
 
 import './index.css'

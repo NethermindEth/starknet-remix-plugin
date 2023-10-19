@@ -5,8 +5,8 @@ import { createClient } from '@remixproject/plugin-webview'
 import './App.css'
 import Plugin from './features/Plugin'
 import { RemixClientContext } from './contexts/RemixClientContext'
-import Loader from './ui_components/CircularLoader'
-import FullScreenOverlay from './ui_components/FullScreenOverlay'
+import Loader from './components/ui_components/CircularLoader'
+import FullScreenOverlay from './components/ui_components/FullScreenOverlay'
 import { fetchGitHubFilesRecursively } from './utils/initial_scarb_codes'
 
 const remixClient = createClient(new PluginClient())

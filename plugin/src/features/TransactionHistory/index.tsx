@@ -1,5 +1,5 @@
 import React, { useContext } from 'react'
-import Container from '../../ui_components/Container'
+import Container from '../../components/ui_components/Container'
 import TransactionContext from '../../contexts/TransactionContext'
 import TransactionCard from './TransactionCard'
 import { type IExplorerSelector } from '../../utils/misc'

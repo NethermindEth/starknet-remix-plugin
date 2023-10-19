@@ -1,6 +1,6 @@
 import type React from 'react'
 import { createContext } from 'react'
-import { type Input, type CallDataObject } from '../types/contracts'
+import { type Input, type CallDataObject } from '../utils/types/contracts'
 
 const DeploymentContext = createContext({
   isDeploying: false as boolean,

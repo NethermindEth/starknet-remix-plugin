@@ -17,13 +17,13 @@ import {
 } from 'starknet'
 import CompiledContracts from '../../components/CompiledContracts'
 import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
-import { type CallDataObj, type Input } from '../../types/contracts'
+import { type CallDataObj, type Input } from '../../utils/types/contracts'
 import {
   getParameterType,
   getReadFunctions,
   getWriteFunctions
 } from '../../utils/utils'
-import Container from '../../ui_components/Container'
+import Container from '../../components/ui_components/Container'
 import { ConnectionContext } from '../../contexts/ConnectionContext'
 import TransactionContext from '../../contexts/TransactionContext'
 import { RemixClientContext } from '../../contexts/RemixClientContext'
@@ -37,7 +37,6 @@ import Yup, { transformInputs } from '../../utils/yup'
 import { BiReset } from 'react-icons/bi'
 import EnvironmentContext from '../../contexts/EnvironmentContext'
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface InteractionProps {
   setInteractionStatus: React.Dispatch<React.SetStateAction<'loading' | 'error' | 'success' | ''>>
 }
@@ -641,7 +640,7 @@ const Interaction: React.FC<InteractionProps> = (props) => {
             {selectedContract &&
               contractsState[selectedContract.address]?.readState?.map(
                 (func, _index) => {
-                  const init: any = func.inputs.reduce((p, c) => {
+                  const init: Record<string, string> = func.inputs.reduce((p, c) => {
                     return {
                       ...p,
                       // Check if already has a rawInput in storage

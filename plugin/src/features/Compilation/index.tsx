@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/restrict-plus-operands */
-/* eslint-disable @typescript-eslint/strict-boolean-expressions */
 import React, { useContext, useEffect } from 'react'
 import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
 import { RemixClientContext } from '../../contexts/RemixClientContext'
@@ -12,25 +10,24 @@ import {
 } from '../../utils/utils'
 import './styles.css'
 import { hash } from 'starknet'
-import Container from '../../ui_components/Container'
+import Container from '../../components/ui_components/Container'
 import storage from '../../utils/storage'
 import { ethers } from 'ethers'
 import CompilationContext from '../../contexts/CompilationContext'
 import { type AccordianTabs } from '../Plugin'
-import * as D from '../../ui_components/Dropdown'
+import * as D from '../../components/ui_components/Dropdown'
 import { BsChevronDown } from 'react-icons/bs'
-import { type Contract } from '../../types/contracts'
+import { type Contract } from '../../utils/types/contracts'
 import { asyncFetch } from '../../utils/async_fetch'
-import CairoVersionContext from "../../contexts/CairoVersion";
+import CairoVersionContext from '../../contexts/CairoVersion'
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface CompilationProps {
   setAccordian: React.Dispatch<React.SetStateAction<AccordianTabs>>
 }
 
 const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
   const remixClient = useContext(RemixClientContext)
-  const { version: cairoVersion, setVersion: setCairoVersion } = useContext(CairoVersionContext);
+  const { version: cairoVersion } = useContext(CairoVersionContext)
 
   const { contracts, selectedContract, setContracts, setSelectedContract } = useContext(
     CompiledContractsContext
@@ -657,7 +654,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
       for (const file of scarbCompile.file_content_map_array) {
         if (file.file_name.endsWith('.sierra.json')) {
-          const contractName = file.file_name.replace('.sierra.json', '')
+          const contractName: string = file.file_name.replace('.sierra.json', '')
           const sierra = JSON.parse(file.file_content)
           if (
             !scarbCompile.file_content_map_array.find(
