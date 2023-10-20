@@ -1,4 +1,4 @@
-name: (develop) Manual devnet build & deploy
+name: (develop) Manual devnet deploy
 on:
   workflow_dispatch:
     inputs:
@@ -127,7 +127,8 @@ jobs:
         with:
           task-definition: task-definition.json
           container-name: "devnet"
-          image: shardlabs/starknet-devnet-rs:${{ inputs.version }}
+          # image: shardlabs/starknet-devnet-rs:${{ inputs.version }}
+          image: shardlabs/starknet-devnet:${{ inputs.version }}
 
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
