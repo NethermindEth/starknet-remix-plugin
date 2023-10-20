@@ -3,9 +3,10 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version tag'
+        description: 'Devnet image tag'
         required: true
         type: string
+        default: 'latest'
 permissions:
       id-token: write
       contents: read
@@ -106,7 +107,7 @@ jobs:
 #      image-version: ${{ steps.determine-version.outputs.version }}
   Deploy_Dev:
     runs-on: ubuntu-latest
-    needs: Build
+#    needs: Build
     steps:
     
       - name: Configure AWS credentials
@@ -126,7 +127,7 @@ jobs:
         with:
           task-definition: task-definition.json
           container-name: "devnet"
-          image: shardlabs/starknet-devnet-rs:latest
+          image: shardlabs/starknet-devnet-rs:${{ inputs.version }}
 
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
