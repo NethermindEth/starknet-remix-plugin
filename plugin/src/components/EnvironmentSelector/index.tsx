@@ -1,12 +1,12 @@
-import React, { useContext } from 'react'
+import React from 'react'
 import { devnets } from '../../utils/network'
 import { type ConnectOptions, type DisconnectOptions } from 'get-starknet'
-import { ConnectionContext } from '../../contexts/ConnectionContext'
 
 import './styles.css'
 import { devnetAtom, envAtom } from '../../atoms/environment'
 import { useAtom, useSetAtom } from 'jotai'
 import useStarknetWindow from '../../hooks/starknetWindow'
+import useProvider from '../../hooks/useProvider'
 
 interface EnvironmentSelectorProps {
   connectWalletHandler: (options?: ConnectOptions) => Promise<void>
@@ -14,7 +14,7 @@ interface EnvironmentSelectorProps {
 }
 
 const EnvironmentSelector: React.FC<EnvironmentSelectorProps> = (props) => {
-  const { setProvider } = useContext(ConnectionContext)
+  const { setProvider } = useProvider()
   const [env, setEnv] = useAtom(envAtom)
   const setDevnet = useSetAtom(devnetAtom)
   const { starknetWindowObject } = useStarknetWindow()

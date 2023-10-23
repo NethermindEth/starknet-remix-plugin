@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Account, CallData, Provider, ec, hash, stark } from 'starknet'
 import {
   type Network,
@@ -7,11 +7,9 @@ import {
   networkEquivalents,
   networkNameEquivalents
 } from '../../utils/constants'
-import { ConnectionContext } from '../../contexts/ConnectionContext'
 import { ethers } from 'ethers'
 
 import storage from '../../utils/storage'
-import { RemixClientContext } from '../../contexts/RemixClientContext'
 
 import './index.css'
 import { BiCopy, BiPlus } from 'react-icons/bi'
@@ -24,6 +22,9 @@ import { useAtom } from 'jotai'
 import transactionsAtom from '../../atoms/transactions'
 import { accountAtom, networkAtom, selectedAccountAtom } from '../../atoms/manualAccount'
 import { envAtom } from '../../atoms/environment'
+import useAccount from '../../hooks/useAccount'
+import useProvider from '../../hooks/useProvider'
+import useRemixClient from '../../hooks/useRemixClient'
 
 // TODOS: move state parts to contexts
 // Account address selection
@@ -38,12 +39,12 @@ const ManualAccount: React.FC<{
   const balanceContractAddress =
     '0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7'
 
-  const { account, provider, setAccount, setProvider } =
-    useContext(ConnectionContext)
+  const { account, setAccount } = useAccount()
+  const { provider, setProvider } = useProvider()
 
   const [accountDeploying, setAccountDeploying] = useState(false)
 
-  const remixClient = useContext(RemixClientContext)
+  const { remixClient } = useRemixClient()
 
   const [transactions, setTransactions] = useAtom(transactionsAtom)
 
@@ -436,10 +437,10 @@ const ManualAccount: React.FC<{
         className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled"
         style={{
           cursor: `${(selectedAccount?.deployed_networks.includes(networkName) ??
-              false) ||
-              accountDeploying
-              ? 'not-allowed'
-              : 'pointer'
+            false) ||
+            accountDeploying
+            ? 'not-allowed'
+            : 'pointer'
             }`
         }}
         disabled={

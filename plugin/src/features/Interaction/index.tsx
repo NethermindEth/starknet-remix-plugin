@@ -23,8 +23,6 @@ import {
   getWriteFunctions
 } from '../../utils/utils'
 import Container from '../../components/ui_components/Container'
-import { ConnectionContext } from '../../contexts/ConnectionContext'
-import { RemixClientContext } from '../../contexts/RemixClientContext'
 import storage from '../../utils/storage'
 import './index.css'
 import { useAtom, useAtomValue } from 'jotai'
@@ -36,6 +34,9 @@ import { BiReset } from 'react-icons/bi'
 import transactionsAtom from '../../atoms/transactions'
 import { compiledContractsAtom, selectedCompiledContract } from '../../atoms/compiledContracts'
 import { envAtom } from '../../atoms/environment'
+import useAccount from '../../hooks/useAccount'
+import useProvider from '../../hooks/useProvider'
+import useRemixClient from '../../hooks/useRemixClient'
 
 interface InteractionProps {
   setInteractionStatus: React.Dispatch<React.SetStateAction<'loading' | 'error' | 'success' | ''>>
@@ -45,11 +46,12 @@ const Interaction: React.FC<InteractionProps> = (props) => {
   const contracts = useAtomValue(compiledContractsAtom)
   const selectedContract = useAtomValue(selectedCompiledContract)
 
-  const { account, provider } = useContext(ConnectionContext)
+  const { account } = useAccount()
+  const { provider } = useProvider()
 
   const [transactions, setTransactions] = useAtom(transactionsAtom)
 
-  const remixClient = useContext(RemixClientContext)
+  const { remixClient } = useRemixClient()
   const env = useAtomValue(envAtom)
 
   const [contractsState, setContractsState] = useAtom(interactAtom)
@@ -632,11 +634,11 @@ const Interaction: React.FC<InteractionProps> = (props) => {
         </div>
       )}
 
-      { (contracts.length > 0 && selectedContract != null) && ((account != null &&
-      selectedContract != null) &&
-      selectedContract.deployedInfo.some(
-        (info) => info.address === account.address && info.chainId === chainId
-      ) ? (
+      {(contracts.length > 0 && selectedContract != null) && ((account != null &&
+        selectedContract != null) &&
+        selectedContract.deployedInfo.some(
+          (info) => info.address === account.address && info.chainId === chainId
+        ) ? (
         // eslint-disable-next-line multiline-ternary
         <>
           <div className="read-functions-wrapper">
@@ -738,14 +740,13 @@ const Interaction: React.FC<InteractionProps> = (props) => {
                                           value={values[input.name]}
                                           data-datatype={input.type}
                                           // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                                          placeholder={`${
-                                            input.name
-                                          } (${getParameterType(input.type) ?? ''})`}
+                                          placeholder={`${input.name
+                                            } (${getParameterType(input.type) ?? ''})`}
                                           onBlur={handleBlur}
                                           disabled={isSubmitting}
                                           className={
                                             errors[input.name] &&
-                                            touched[input.name]
+                                              touched[input.name]
                                               ? 'form-control function-input function-error text-danger'
                                               : 'form-control function-input'
                                           }
@@ -879,14 +880,13 @@ const Interaction: React.FC<InteractionProps> = (props) => {
                                           value={values[input.name]}
                                           data-datatype={input.type}
                                           // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                                          placeholder={`${
-                                            input.name
-                                          } (${getParameterType(input.type)})`}
+                                          placeholder={`${input.name
+                                            } (${getParameterType(input.type)})`}
                                           onBlur={handleBlur}
                                           disabled={isSubmitting}
                                           className={
                                             errors[input.name] &&
-                                            touched[input.name]
+                                              touched[input.name]
                                               ? 'form-control function-input function-error text-danger'
                                               : 'form-control function-input'
                                           }

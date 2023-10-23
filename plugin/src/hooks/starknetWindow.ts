@@ -5,9 +5,10 @@ import {
   connect,
   disconnect
 } from 'get-starknet'
-import { useContext, useState } from 'react'
-import { ConnectionContext } from '../contexts/ConnectionContext'
-import { RemixClientContext } from '../contexts/RemixClientContext'
+import { useState } from 'react'
+import useAccount from './useAccount'
+import useProvider from './useProvider'
+import useRemixClient from './useRemixClient'
 
 const useStarknetWindow = (): {
   starknetWindowObject: StarknetWindowObject | null
@@ -15,10 +16,9 @@ const useStarknetWindow = (): {
   connectWalletHandler: (options?: ConnectOptions) => Promise<void>
   disconnectWalletHandler: (options?: DisconnectOptions) => Promise<void>
 } => {
-  // Recfactor Context
-  const remixClient = useContext(RemixClientContext)
-  const { setAccount, setProvider } =
-        useContext(ConnectionContext)
+  const { remixClient } = useRemixClient()
+  const { setAccount } = useAccount()
+  const { setProvider } = useProvider()
 
   const [starknetWindowObject, setStarknetWindowObject] = useState<StarknetWindowObject | null>(null)
 

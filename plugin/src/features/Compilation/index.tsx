@@ -1,5 +1,4 @@
-import React, { useContext, useEffect } from 'react'
-import { RemixClientContext } from '../../contexts/RemixClientContext'
+import React, { useEffect } from 'react'
 import { apiUrl } from '../../utils/network'
 import {
   artifactFilename,
@@ -12,24 +11,25 @@ import { hash } from 'starknet'
 import Container from '../../components/ui_components/Container'
 import storage from '../../utils/storage'
 import { ethers } from 'ethers'
-import CompilationContext from '../../contexts/CompilationContext'
 import { type AccordianTabs } from '../Plugin'
 import * as D from '../../components/ui_components/Dropdown'
 import { BsChevronDown } from 'react-icons/bs'
 import { type Contract } from '../../utils/types/contracts'
 import { asyncFetch } from '../../utils/async_fetch'
-import { useAtom, useAtomValue } from 'jotai'
+import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 
 // Imported Atoms
 import cairoVersionAtom from '../../atoms/cairoVersion'
 import { compiledContractsAtom, selectedCompiledContract } from '../../atoms/compiledContracts'
+import { activeTomlPathAtom, compilationAtom, currentFilenameAtom, hashDirAtom, isCompilingAtom, isValidCairoAtom, noFileSelectedAtom, statusAtom, tomlPathsAtom } from '../../atoms/compilation'
+import useRemixClient from '../../hooks/useRemixClient'
 
 interface CompilationProps {
   setAccordian: React.Dispatch<React.SetStateAction<AccordianTabs>>
 }
 
 const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
-  const remixClient = useContext(RemixClientContext)
+  const { remixClient } = useRemixClient()
   const cairoVersion = useAtomValue(cairoVersionAtom)
 
   const [contracts, setContracts] = useAtom(compiledContractsAtom)
@@ -37,22 +37,23 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
   const {
     status,
-    setStatus,
     currentFilename,
-    setCurrentFilename,
     isCompiling,
-    setIsCompiling,
     isValidCairo,
-    setIsValidCairo,
     noFileSelected,
-    setNoFileSelected,
     hashDir,
-    setHashDir,
     tomlPaths,
-    setTomlPaths,
-    activeTomlPath,
-    setActiveTomlPath
-  } = useContext(CompilationContext)
+    activeTomlPath
+  } = useAtomValue(compilationAtom)
+
+  const setStatus = useSetAtom(statusAtom)
+  const setHashDir = useSetAtom(hashDirAtom)
+  const setNoFileSelected = useSetAtom(noFileSelectedAtom)
+  const setIsValidCairo = useSetAtom(isValidCairoAtom)
+  const setIsCompiling = useSetAtom(isCompilingAtom)
+  const setCurrentFilename = useSetAtom(currentFilenameAtom)
+  const setTomlPaths = useSetAtom(tomlPathsAtom)
+  const setActiveTomlPath = useSetAtom(activeTomlPathAtom)
 
   const [currWorkspacePath, setCurrWorkspacePath] = React.useState<string>('')
 
@@ -362,8 +363,8 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       setStatus('Compiling to sierra...')
 
       const compileToSierraResponse = await asyncFetch(
-          `compile-to-sierra-async/${cairoVersion}/${hashDir}/${currentFilePath}`,
-          'compile-to-sierra-result'
+        `compile-to-sierra-async/${cairoVersion}/${hashDir}/${currentFilePath}`,
+        'compile-to-sierra-result'
       )
 
       // get Json body from response
@@ -428,8 +429,8 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       setStatus('Compiling to casm...')
 
       const compileToCasmResponse = await asyncFetch(
-          `compile-to-casm-async/${cairoVersion}/${hashDir}/${currentFilePath.replaceAll(getFileExtension(currentFilePath), 'sierra')}`,
-          'compile-to-casm-result'
+        `compile-to-casm-async/${cairoVersion}/${hashDir}/${currentFilePath.replaceAll(getFileExtension(currentFilePath), 'sierra')}`,
+        'compile-to-casm-result'
       )
 
       // get Json body from response
@@ -501,10 +502,10 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
             'notification' as any,
             'toast',
             e.message +
-              ' try deleting the files: ' +
-              sierraPath +
-              ' and ' +
-              casmPath
+            ' try deleting the files: ' +
+            sierraPath +
+            ' and ' +
+            casmPath
           )
         }
         remixClient.emit('statusChanged', {
@@ -566,8 +567,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           )
           setStatus(`Saving ${allFilesKeys[i]}...`)
           const response = await fetch(
-            `${apiUrl}/save_code/${hashDir}/${
-              workspacePath.replace('.', '') + '/' + allFilesKeys[i]
+            `${apiUrl}/save_code/${hashDir}/${workspacePath.replace('.', '') + '/' + allFilesKeys[i]
             }`,
             {
               method: 'POST',
@@ -609,8 +609,8 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       let result: string
       try {
         result = await asyncFetch(`compile-scarb-async/${hashDir}/${workspacePath.replace(
-            '.',
-            ''
+          '.',
+          ''
         )}/${scarbPath}`, 'compile-scarb-result')
       } catch (e) {
         await remixClient.call(
@@ -750,7 +750,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       contracts.find(
         (contract) =>
           contract.classHash === classHash &&
-            contract.compiledClassHash === compiledClassHash
+          contract.compiledClassHash === compiledClassHash
       ) != null
     ) {
       return null
@@ -832,9 +832,8 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         <button
           className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-1 px-0"
           style={{
-            cursor: `${
-              !validation || !currentFilename ? 'not-allowed' : 'pointer'
-            }`
+            cursor: `${!validation || !currentFilename ? 'not-allowed' : 'pointer'
+              }`
           }}
           disabled={!validation || !currentFilename || isCompiling}
           aria-disabled={!validation || !currentFilename || isCompiling}
@@ -844,34 +843,34 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
             <div className="text-truncate overflow-hidden text-nowrap">
               {!validation
                 ? (
-                <span>Select a valid cairo file</span>
+                  <span>Select a valid cairo file</span>
                   )
                 : (
-                <>
-                  <div className="d-flex align-items-center justify-content-center">
-                    {isLoading
-                      ? (
-                      <>
-                        <span
-                          className="spinner-border spinner-border-sm"
-                          role="status"
-                          aria-hidden="true"
-                        >
-                          {' '}
-                        </span>
-                        <span style={{ paddingLeft: '0.5rem' }}>{status}</span>
-                      </>
-                        )
-                      : (
-                      <div className="text-truncate overflow-hidden text-nowrap">
-                        <span>Compile</span>
-                        <span className="ml-1 text-nowrap">
-                          {currentFilename}
-                        </span>
-                      </div>
-                        )}
-                  </div>
-                </>
+                  <>
+                    <div className="d-flex align-items-center justify-content-center">
+                      {isLoading
+                        ? (
+                          <>
+                            <span
+                              className="spinner-border spinner-border-sm"
+                              role="status"
+                              aria-hidden="true"
+                            >
+                              {' '}
+                            </span>
+                            <span style={{ paddingLeft: '0.5rem' }}>{status}</span>
+                          </>
+                          )
+                        : (
+                          <div className="text-truncate overflow-hidden text-nowrap">
+                            <span>Compile</span>
+                            <span className="ml-1 text-nowrap">
+                              {currentFilename}
+                            </span>
+                          </div>
+                          )}
+                    </div>
+                  </>
                   )}
             </div>
           </div>

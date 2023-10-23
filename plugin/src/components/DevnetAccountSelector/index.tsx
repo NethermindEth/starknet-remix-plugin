@@ -5,20 +5,21 @@ import {
   weiToEth
 } from '../../utils/utils'
 import { getAccounts } from '../../utils/network'
-import React, { useContext, useEffect, useState } from 'react'
-import { ConnectionContext } from '../../contexts/ConnectionContext'
+import React, { useEffect, useState } from 'react'
 import { Account, Provider } from 'starknet'
-import { RemixClientContext } from '../../contexts/RemixClientContext'
 import { MdCopyAll, MdRefresh } from 'react-icons/md'
 import './devnetAccountSelector.css'
 import copy from 'copy-to-clipboard'
 import { useAtom, useAtomValue } from 'jotai'
 import { availableDevnetAccountsAtom, devnetAtom, envAtom, isDevnetAliveAtom, selectedDevnetAccountAtom } from '../../atoms/environment'
+import useAccount from '../../hooks/useAccount'
+import useProvider from '../../hooks/useProvider'
+import useRemixClient from '../../hooks/useRemixClient'
 
 const DevnetAccountSelector: React.FC = () => {
-  const { account, setAccount, provider, setProvider } =
-    useContext(ConnectionContext)
-  const remixClient = useContext(RemixClientContext)
+  const { account, setAccount } = useAccount()
+  const { provider, setProvider } = useProvider()
+  const { remixClient } = useRemixClient()
   const env = useAtomValue(envAtom)
   const devnet = useAtomValue(devnetAtom)
   const [isDevnetAlive, setIsDevnetAlive] = useAtom(isDevnetAliveAtom)
@@ -177,22 +178,22 @@ const DevnetAccountSelector: React.FC = () => {
           {isDevnetAlive && availableDevnetAccounts.length > 0
             ? availableDevnetAccounts.map((account, index) => {
               return (
-                  <option value={index} key={index}>
-                    {`${getShortenedHash(
-                      account.address ?? '',
-                      6,
-                      4
-                    )} (${getRoundedNumber(
-                      weiToEth(account.initial_balance),
-                      2
-                    )} ether)`}
-                  </option>
+                <option value={index} key={index}>
+                  {`${getShortenedHash(
+                    account.address ?? '',
+                    6,
+                    4
+                  )} (${getRoundedNumber(
+                    weiToEth(account.initial_balance),
+                    2
+                  )} ether)`}
+                </option>
               )
             })
             : ([
-                <option value={-1} key={-1}>
-                  No accounts found
-                </option>
+              <option value={-1} key={-1}>
+                No accounts found
+              </option>
               ] as JSX.Element[])}
         </select>
         <div className="position-relative">

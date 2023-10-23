@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import { type BigNumberish } from 'ethers'
 import CompiledContracts from '../../components/CompiledContracts'
@@ -10,24 +10,26 @@ import {
 import { getConstructor, getParameterType } from '../../utils/utils'
 import Container from '../../components/ui_components/Container'
 
-import { ConnectionContext } from '../../contexts/ConnectionContext'
-import { RemixClientContext } from '../../contexts/RemixClientContext'
 import { type AccordianTabs } from '../Plugin'
-import DeploymentContext from '../../contexts/DeploymentContext'
 import { constants } from 'starknet'
-import { useAtom, useAtomValue } from 'jotai'
+import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import transactionsAtom from '../../atoms/transactions'
 
 import './styles.css'
 import { compiledContractsAtom, selectedCompiledContract } from '../../atoms/compiledContracts'
 import { envAtom } from '../../atoms/environment'
+import useAccount from '../../hooks/useAccount'
+import useProvider from '../../hooks/useProvider'
+import useRemixClient from '../../hooks/useRemixClient'
+import { constructorInputsAtom, deployStatusAtom, deploymentAtom, isDeployingAtom, notEnoughInputsAtom } from '../../atoms/deployment'
 interface DeploymentProps {
   setActiveTab: (tab: AccordianTabs) => void
 }
 
 const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
-  const remixClient = useContext(RemixClientContext)
-  const { account, provider } = useContext(ConnectionContext)
+  const { remixClient } = useRemixClient()
+  const { account } = useAccount()
+  const { provider } = useProvider()
 
   const [contracts, setContracts] = useAtom(compiledContractsAtom)
   const [selectedContract, setSelectedContract] = useAtom(selectedCompiledContract)
@@ -37,14 +39,15 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 
   const {
     isDeploying,
-    setIsDeploying,
     deployStatus,
-    setDeployStatus,
     constructorInputs,
-    setConstructorInputs,
-    notEnoughInputs,
-    setNotEnoughInputs
-  } = useContext(DeploymentContext)
+    notEnoughInputs
+  } = useAtomValue(deploymentAtom)
+
+  const setIsDeploying = useSetAtom(isDeployingAtom)
+  const setDeployStatus = useSetAtom(deployStatusAtom)
+  const setConstructorInputs = useSetAtom(constructorInputsAtom)
+  const setNotEnoughInputs = useSetAtom(notEnoughInputsAtom)
 
   const [transactions, setTransactions] = useAtom(transactionsAtom)
   const env = useAtomValue(envAtom)
@@ -303,14 +306,14 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
                   className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3 px-0"
                   style={{
                     cursor: `${isDeploying ||
-                        account == null ||
-                        selectedContract.deployedInfo.some(
-                          (info) =>
-                            info.address === account.address &&
-                            info.chainId === chainId
-                        )
-                        ? 'not-allowed'
-                        : 'pointer'
+                      account == null ||
+                      selectedContract.deployedInfo.some(
+                        (info) =>
+                          info.address === account.address &&
+                          info.chainId === chainId
+                      )
+                      ? 'not-allowed'
+                      : 'pointer'
                       }`
                   }}
                   disabled={

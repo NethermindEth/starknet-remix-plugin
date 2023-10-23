@@ -17,9 +17,9 @@ import {
   networkEquivalentsRev,
   networkNameEquivalents
 } from '../../utils/constants'
-import { ConnectionContext } from '../../contexts/ConnectionContext'
 import ExplorerSelector, { useCurrentExplorer } from '../ExplorerSelector'
 import { getExplorerUrl, trimStr } from '../../utils/utils'
+import useProvider from '../../hooks/useProvider'
 
 interface WalletProps {
   starknetWindowObject: StarknetWindowObject | null
@@ -31,7 +31,7 @@ interface WalletProps {
 const Wallet: React.FC<WalletProps> = (props) => {
   const [showCopied, setCopied] = useState(false)
 
-  const { setProvider } = useContext(ConnectionContext)
+  const { setProvider } = useProvider()
 
   const refreshWalletConnection = (e: any): void => {
     e.preventDefault()
