@@ -12,7 +12,7 @@
     url = https://github.com/starkware-libs/cairo.git
     branch = v2.2.0
 
-[submodule "api/cairo_compilers/v2.3.0-rc0"]
-    path = api/cairo_compilers/v2.3.0-rc0
+[submodule "api/cairo_compilers/v2.3.0"]
+    path = api/cairo_compilers/v2.3.0
     url = https://github.com/starkware-libs/cairo.git
-    branch = v2.3.0-rc0
+    branch = v2.3.0
