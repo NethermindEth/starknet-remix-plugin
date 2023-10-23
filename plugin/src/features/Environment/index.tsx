@@ -19,7 +19,6 @@ import useStarknetWindow from '../../hooks/starknetWindow'
 const Environment: React.FC = () => {
   const [env, setEnv] = useAtom(envAtom)
   const isDevnetAlive = useAtomValue(isDevnetAliveAtom)
-  const { starknetWindowObject, connectWalletHandler, disconnectWalletHandler } = useStarknetWindow()
 
   const [prevEnv, setPrevEnv] = useState<string>(env)
 
@@ -56,10 +55,7 @@ const Environment: React.FC = () => {
                     <div className="flex">
                       <label className="">Environment selection</label>
                       <div className="flex_dot">
-                        <EnvironmentSelector
-                          connectWalletHandler={connectWalletHandler}
-                          disconnectWalletHandler={disconnectWalletHandler}
-                        />
+                        <EnvironmentSelector />
                         {env === 'wallet'
                           ? (
                             <RxDotFilled
@@ -90,11 +86,6 @@ const Environment: React.FC = () => {
                         <DevnetAccountSelector />
                       ) : (
                         <Wallet
-                          starknetWindowObject={starknetWindowObject}
-                          // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                          connectWalletHandler={connectWalletHandler}
-                          // eslint-disable-next-line @typescript-eslint/no-misused-promises
-                          disconnectWalletHandler={disconnectWalletHandler}
                           setPrevEnv={setPrevEnv}
                         />
                       )}

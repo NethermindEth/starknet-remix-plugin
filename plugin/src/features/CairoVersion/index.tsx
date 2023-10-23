@@ -18,7 +18,7 @@ const CairoVersion: React.FC = () => {
   const [getVersions, setVersions] = useState([])
 
   useEffect(() => {
-    const fetchCairoVersions = async () => {
+    const fetchCairoVersions = async (): Promise<void> => {
       try {
         if (apiUrl !== undefined) {
           const response = await fetch(

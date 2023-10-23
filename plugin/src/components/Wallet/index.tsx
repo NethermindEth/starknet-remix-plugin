@@ -1,94 +1,53 @@
-/* eslint-disable multiline-ternary */
-/* eslint-disable @typescript-eslint/no-misused-promises */
-import React, { useContext, useEffect, useState } from 'react'
-import {
-  type ConnectOptions,
-  type DisconnectOptions,
-  type StarknetWindowObject
-} from 'get-starknet'
-
+import React, { useEffect, useState } from 'react'
 import copy from 'copy-to-clipboard'
 import './wallet.css'
 import { MdCopyAll } from 'react-icons/md'
-import { Provider } from 'starknet'
 import {
   type Network,
-  networkEquivalents,
-  networkEquivalentsRev,
-  networkNameEquivalents
+  networkEquivalentsRev
 } from '../../utils/constants'
 import ExplorerSelector, { useCurrentExplorer } from '../ExplorerSelector'
 import { getExplorerUrl, trimStr } from '../../utils/utils'
-import useProvider from '../../hooks/useProvider'
+import useStarknetWindow from '../../hooks/starknetWindow'
 
 interface WalletProps {
-  starknetWindowObject: StarknetWindowObject | null
-  connectWalletHandler: (options?: ConnectOptions) => void
-  disconnectWalletHandler: (options?: DisconnectOptions) => void
   setPrevEnv: (newEnv: string) => void
 }
 
 const Wallet: React.FC<WalletProps> = (props) => {
   const [showCopied, setCopied] = useState(false)
 
-  const { setProvider } = useProvider()
+  const {
+    starknetWindowObject,
+    connectWalletHandler,
+    disconnectWalletHandler
+  } = useStarknetWindow()
 
-  const refreshWalletConnection = (e: any): void => {
+  const refreshWalletConnection = async (e: any): Promise<void> => {
     e.preventDefault()
-    console.log('refreshWalletConnection')
-    if (props.starknetWindowObject !== null) props.disconnectWalletHandler()
-    props.connectWalletHandler()
+    if (starknetWindowObject !== null) disconnectWalletHandler()
+    await connectWalletHandler()
   }
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [availableNetworks] = useState<string[]>(
-    Array.from(networkEquivalents.keys())
-  )
 
   const [currentChain, setCurrentChain] = useState<string>(
     'goerli-alpha'
   )
 
   useEffect(() => {
-    props.starknetWindowObject?.on('accountsChanged', (accounts: string[]) => {
+    starknetWindowObject?.on('accountsChanged', (accounts: string[]) => {
       console.log('accountsChanged', accounts)
     })
-    props.starknetWindowObject?.on('networkChanged', (network?: string) => {
+    starknetWindowObject?.on('networkChanged', (network?: string) => {
       console.log('networkChanged', network)
     })
-  }, [props.starknetWindowObject])
-
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleNetworkChange = async (
-    event: any,
-    chainName: string
-  ): Promise<void> => {
-    event.preventDefault()
-    const networkName = networkNameEquivalents.get(chainName)
-    const chainId = networkEquivalents.get(chainName)
-    if (chainName.length > 0 && chainId && networkName) {
-      const resp = await props.starknetWindowObject?.request({
-        type: 'wallet_switchStarknetChain',
-        params: { chainId }
-      })
-      console.log('wallet_switchStarknetChain', resp)
-      setProvider(
-        new Provider({
-          sequencer: {
-            network: networkName,
-            chainId
-          }
-        })
-      )
-    }
-  }
+  }, [starknetWindowObject])
 
   useEffect(() => {
     setTimeout(async () => {
-      const currChainId = await props.starknetWindowObject?.provider?.getChainId()
+      const currChainId = await starknetWindowObject?.provider?.getChainId()
       if (currChainId !== undefined) setCurrentChain(networkEquivalentsRev.get(currChainId) ?? 'goerli-alpha')
     }, 100)
-  }, [props.starknetWindowObject])
+  }, [starknetWindowObject])
 
   const explorerHook = useCurrentExplorer()
 
@@ -112,18 +71,19 @@ const Wallet: React.FC<WalletProps> = (props) => {
           Reconnect
         </button>
       </div>
-      {props.starknetWindowObject != null ? (
+      {starknetWindowObject != null
+        ? (
         <>
           <div className="wallet-row-wrapper">
             <div className="wallet-wrapper">
-              <img src={props.starknetWindowObject?.icon} alt="wallet icon" />
-              <p className="text"> {props.starknetWindowObject?.id}</p>
+              <img src={starknetWindowObject?.icon} alt="wallet icon" />
+              <p className="text"> {starknetWindowObject?.id}</p>
               <p className="text text-right text-secondary"> {currentChain}</p>
             </div>
             <div className="account-network-wrapper">
               <ExplorerSelector
-                path={`/contract/${props.starknetWindowObject?.account?.address ?? ''}`}
-                title={props.starknetWindowObject?.account?.address}
+                path={`/contract/${starknetWindowObject?.account?.address ?? ''}`}
+                title={starknetWindowObject?.account?.address}
                 text="View"
                 isInline
                 isTextVisible={false}
@@ -134,15 +94,15 @@ const Wallet: React.FC<WalletProps> = (props) => {
           <div className="wallet-account-wrapper">
             <p
               className="text account"
-              title={props.starknetWindowObject?.account?.address}
+              title={starknetWindowObject?.account?.address}
             >
               <a
-                href={`${getExplorerUrl(explorerHook.explorer, currentChain as Network)}/contract/${props.starknetWindowObject?.account?.address ?? ''}`}
+                href={`${getExplorerUrl(explorerHook.explorer, currentChain as Network)}/contract/${starknetWindowObject?.account?.address ?? ''}`}
                 target="_blank"
                 rel="noreferer noopener noreferrer"
               >
                 {trimStr(
-                  props.starknetWindowObject?.account?.address ?? '',
+                  starknetWindowObject?.account?.address ?? '',
                   10
                 )}
               </a>
@@ -151,7 +111,7 @@ const Wallet: React.FC<WalletProps> = (props) => {
               <button
                 className="btn p-0"
                 onClick={() => {
-                  copy(props.starknetWindowObject?.account?.address ?? '')
+                  copy(starknetWindowObject?.account?.address ?? '')
                   setCopied(true)
                   setTimeout(() => {
                     setCopied(false)
@@ -168,9 +128,10 @@ const Wallet: React.FC<WalletProps> = (props) => {
             </span>
           </div>
         </>
-      ) : (
+          )
+        : (
         <p> Wallet not connected</p>
-      )}
+          )}
     </div>
   )
 }

@@ -400,11 +400,11 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         errorLetsArray.forEach(async (errorLet: any) => {
           const errorType = errorLet[0].split(':')[0].trim()
-          const errorTitle = errorLet[0].split(':').slice(1).join(':').trim()
+          const errorTitle: string = errorLet[0].split(':').slice(1).join(':').trim()
           const errorLine = errorLet[1].split(':')[1].trim()
           const errorColumn = errorLet[1].split(':')[2].trim()
           // join the rest of the array
-          const errorMsg = errorLet.slice(2).join('\n')
+          const errorMsg: string = errorLet.slice(2).join('\n')
 
           await remixClient.editor.addAnnotation({
             row: Number(errorLine) - 1,
