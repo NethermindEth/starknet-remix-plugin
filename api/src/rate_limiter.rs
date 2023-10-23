@@ -82,8 +82,6 @@ impl RateLimiter {
             .push(current_time)
             .map_err(|_| ApiError::QueueIsFull)?;
 
-        println!("Len : {}", queue.len());
-
         Ok(())
     }
 
