@@ -1,6 +1,7 @@
 use crate::handlers::get_files_recursive;
 use crate::handlers::process::{do_process_command, fetch_process_result};
 use crate::handlers::types::{ApiCommand, ApiCommandResult, ScarbCompileResponse};
+use crate::rate_limiter::RateLimited;
 use crate::types::{ApiError, Result};
 use crate::utils::lib::get_file_path;
 use crate::worker::WorkerEngine;
@@ -13,7 +14,10 @@ use tracing::{info, instrument};
 
 #[instrument]
 #[get("/compile-scarb/<remix_file_path..>")]
-pub async fn scarb_compile(remix_file_path: PathBuf) -> Json<ScarbCompileResponse> {
+pub async fn scarb_compile(
+    remix_file_path: PathBuf,
+    _rate_limited: RateLimited,
+) -> Json<ScarbCompileResponse> {
     info!("/compile-scarb/{:?}", remix_file_path);
     do_scarb_compile(remix_file_path).await.unwrap_or_else(|e| {
         Json(ScarbCompileResponse {
@@ -26,7 +30,11 @@ pub async fn scarb_compile(remix_file_path: PathBuf) -> Json<ScarbCompileRespons
 
 #[instrument]
 #[get("/compile-scarb-async/<remix_file_path..>")]
-pub async fn scarb_compile_async(remix_file_path: PathBuf, engine: &State<WorkerEngine>) -> String {
+pub async fn scarb_compile_async(
+    remix_file_path: PathBuf,
+    engine: &State<WorkerEngine>,
+    _rate_limited: RateLimited,
+) -> String {
     info!("/compile-scarb-async/{:?}", remix_file_path);
     do_process_command(ApiCommand::ScarbCompile { remix_file_path }, engine)
 }
@@ -60,18 +68,18 @@ pub async fn do_scarb_compile(remix_file_path: PathBuf) -> Result<Json<ScarbComp
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
-        .map_err(|e| ApiError::FailedToExecuteCommand(e))?;
+        .map_err(ApiError::FailedToExecuteCommand)?;
 
     debug!("LOG: ran command:{:?}", compile);
 
     let output = result
         .wait_with_output()
-        .map_err(|e| ApiError::FailedToReadOutput(e))?;
+        .map_err(ApiError::FailedToReadOutput)?;
 
     let file_content_map_array = get_files_recursive(&file_path.join("target/dev"))?;
 
     let message = String::from_utf8(output.stdout)
-        .map_err(|e| ApiError::UTF8Error(e))?
+        .map_err(ApiError::UTF8Error)?
         .replace(
             &file_path
                 .to_str()
@@ -80,7 +88,7 @@ pub async fn do_scarb_compile(remix_file_path: PathBuf) -> Result<Json<ScarbComp
             &remix_file_path,
         )
         + &String::from_utf8(output.stderr)
-            .map_err(|e| ApiError::UTF8Error(e))?
+            .map_err(ApiError::UTF8Error)?
             .replace(
                 &file_path
                     .to_str()

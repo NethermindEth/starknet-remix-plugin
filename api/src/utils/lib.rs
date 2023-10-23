@@ -39,3 +39,7 @@ pub fn get_file_path(file_path: &String) -> PathBuf {
         _ => Path::new(CAIRO_ROOT).join(file_path),
     }
 }
+
+pub fn timestamp() -> u64 {
+    chrono::Utc::now().timestamp() as u64
+}

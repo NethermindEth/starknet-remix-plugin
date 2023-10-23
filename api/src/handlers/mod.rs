@@ -70,7 +70,7 @@ fn get_files_recursive(base_path: &Path) -> Result<Vec<FileContentMap>> {
     if base_path.is_dir() {
         for entry in base_path
             .read_dir()
-            .map_err(|e| ApiError::FailedToReadDir(e))?
+            .map_err(ApiError::FailedToReadDir)?
             .flatten()
         {
             let path = entry.path();
