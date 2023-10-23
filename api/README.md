@@ -15,5 +15,4 @@ cargo watch -x run
 ``` 
 
 ## Notes
-
 Currently working for v2.1.0, v2.2.0 & v2.3.0-rc0   
