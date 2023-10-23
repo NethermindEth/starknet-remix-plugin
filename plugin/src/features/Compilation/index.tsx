@@ -185,7 +185,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         workspacePath + '/' + currPath
       )
       // get keys of allFiles object
-      const allFilesKeys = Object.keys(allFiles)
+      const allFilesKeys: string[] = Object.keys(allFiles)
       // const get all values of allFiles object
       const allFilesValues = Object.values(allFiles)
 
@@ -193,7 +193,8 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         if (allFilesKeys[i].endsWith('Scarb.toml')) {
           resTomlPaths.push(currPath)
         }
-        if (Object.values(allFilesValues[i])[0]) {
+
+        if (Object.values(allFilesValues[i])[0] as unknown as boolean) {
           const recTomlPaths = await getTomlPaths(
             workspacePath,
             allFilesKeys[i]
@@ -374,7 +375,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         setStatus('Reporting Errors...')
         await remixClient.terminal.log(sierra.message)
 
-        const errorLets = sierra.message.trim().split('\n')
+        const errorLets: string[] = sierra.message.trim().split('\n')
 
         // remove last element if it's starts with `Error:`
         if (errorLets[errorLets.length - 1].startsWith('Error:')) {
@@ -383,7 +384,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
         // break the errorLets in array of arrays with first element contains the string `Plugin diagnostic`
         const errorLetsArray = errorLets.reduce(
-          (acc: any, curr: any) => {
+          (acc: string[][], curr: string) => {
             if (curr.startsWith('error:') || curr.startsWith('warning:')) {
               acc.push([curr])
             } else {

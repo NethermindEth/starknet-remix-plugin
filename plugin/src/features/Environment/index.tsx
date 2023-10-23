@@ -14,7 +14,6 @@ import Accordian, {
 import ManualAccount from '../../components/ManualAccount'
 import { useAtom, useAtomValue } from 'jotai'
 import { envAtom, isDevnetAliveAtom } from '../../atoms/environment'
-import useStarknetWindow from '../../hooks/starknetWindow'
 
 const Environment: React.FC = () => {
   const [env, setEnv] = useAtom(envAtom)

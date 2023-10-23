@@ -28,7 +28,6 @@ const DevnetAccountSelector: React.FC = () => {
 
   // devnet live status
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     const interval = setInterval(async () => {
       try {
         const response = await fetch(`${devnet.url}/is_alive`, {
@@ -48,7 +47,7 @@ const DevnetAccountSelector: React.FC = () => {
       } catch (error) {
         setIsDevnetAlive(() => false)
       }
-    }, 1000)
+    }, 3000)
     return () => {
       clearInterval(interval)
     }
@@ -62,14 +61,14 @@ const DevnetAccountSelector: React.FC = () => {
         `❗️ Server ${devnet.name} - ${devnet.url} is not healthy or not reachable at the moment`
       )
     } catch (e) {
-      console.log(e)
+      console.error(e)
     }
   }
 
   useEffect(() => {
     if (!isDevnetAlive) {
       notifyDevnetStatus().catch((e) => {
-        console.log(e)
+        console.error(e)
       })
     }
   }, [isDevnetAlive])
@@ -93,7 +92,6 @@ const DevnetAccountSelector: React.FC = () => {
   }
 
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     setTimeout(async () => {
       if (!isDevnetAlive) {
         return

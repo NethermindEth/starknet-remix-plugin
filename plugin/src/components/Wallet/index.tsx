@@ -25,22 +25,13 @@ const Wallet: React.FC<WalletProps> = (props) => {
 
   const refreshWalletConnection = async (e: any): Promise<void> => {
     e.preventDefault()
-    if (starknetWindowObject !== null) disconnectWalletHandler()
+    if (starknetWindowObject !== null) await disconnectWalletHandler()
     await connectWalletHandler()
   }
 
   const [currentChain, setCurrentChain] = useState<string>(
     'goerli-alpha'
   )
-
-  useEffect(() => {
-    starknetWindowObject?.on('accountsChanged', (accounts: string[]) => {
-      console.log('accountsChanged', accounts)
-    })
-    starknetWindowObject?.on('networkChanged', (network?: string) => {
-      console.log('networkChanged', network)
-    })
-  }, [starknetWindowObject])
 
   useEffect(() => {
     setTimeout(async () => {

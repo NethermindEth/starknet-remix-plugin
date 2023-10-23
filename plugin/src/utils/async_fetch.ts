@@ -24,7 +24,7 @@ export async function asyncFetch (method: string, getterMethod: string): Promise
 
     return await response.text()
   } catch (e) {
-    throw new Error(`Error while running process with id ${pid}, error: ${e}`)
+    throw new Error(`Error while running process with id ${pid}, error: ${e as string}`)
   }
 }
 

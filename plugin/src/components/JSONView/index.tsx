@@ -13,6 +13,7 @@ const JSONView = (data: JSON): JSX.Element => {
   }
 
   const renderRow = (row: any, level = 0): JSX.Element => {
+    console.log(row)
     const rowId = `${level}-${row.key}`
 
     return (
@@ -26,15 +27,6 @@ const JSONView = (data: JSON): JSX.Element => {
           <td>{row.key}</td>
           <td>{row.value}</td>
         </tr>
-        {/* {row.children &&
-          expandedRows.includes(rowId) &&
-          Object.entries(row.value).map(([childKey, childValue]) => (
-            <tr key={`${rowId}-${childKey}`}>
-              <td></td>
-              <td>{childKey}</td>
-              <td>{childValue}</td>
-            </tr>
-          ))} */}
       </React.Fragment>
     )
   }

@@ -1,4 +1,3 @@
-/* eslint-disable react/jsx-key */
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
 /* eslint-disable @typescript-eslint/explicit-function-return-type */
 /* eslint-disable no-case-declarations */

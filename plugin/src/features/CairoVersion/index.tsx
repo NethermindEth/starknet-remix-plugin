@@ -12,7 +12,8 @@ const CairoVersion: React.FC = () => {
   const [cairoVersion, setCairoVersion] = useAtom(cairoVersionAtom)
   const { remixClient } = useRemixClient()
 
-  const pluginVersion = import.meta.env.VITE_VERSION !== undefined ? `v${import.meta.env.VITE_VERSION}` : 'v0.2.0'
+  const envViteVersion: string | undefined = import.meta.env.VITE_VERSION
+  const pluginVersion = envViteVersion !== undefined ? `v${envViteVersion}` : 'v0.2.0'
 
   // Hard-coded versions for the example
   const [getVersions, setVersions] = useState([])
@@ -37,16 +38,19 @@ const CairoVersion: React.FC = () => {
       } catch (e) {
         await remixClient.call('notification' as any, 'toast', '🔴 Failed to fetch cairo versions from the compilation server')
         console.error(e)
-        await remixClient.terminal.log(`🔴 Failed to fetch cairo versions from the compilation server ${e}` as any)
+        await remixClient.terminal.log(`🔴 Failed to fetch cairo versions from the compilation server ${e as string}` as any)
       }
     }
 
-    setTimeout(async () => {
-      await fetchCairoVersions()
+    setTimeout(() => {
+      const fetchCairo = async (): Promise<void> => {
+        await fetchCairoVersions()
 
-      if (getVersions.length > 0) {
-        setCairoVersion(getVersions[0])
+        if (getVersions.length > 0) {
+          setCairoVersion(getVersions[0])
+        }
       }
+      fetchCairo().catch(e => { console.error(e) })
     }, 10000)
   }, [remixClient])
 
