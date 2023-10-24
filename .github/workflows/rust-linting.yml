@@ -14,6 +14,7 @@ jobs:
         with:
           toolchain: nightly
           override: true
+      - run: rustup component add rustfmt --toolchain nightly
       - run: cd api && cargo +nightly fmt --all -- --check
 
   clippy:
@@ -26,4 +27,5 @@ jobs:
         with:
           toolchain: nightly
           override: true
+      - run: rustup component add rustfmt --toolchain nightly
       - run: cd api && cargo +nightly clippy --all -- -D warnings
