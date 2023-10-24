@@ -26,27 +26,33 @@ const DevnetAccountSelector: React.FC = () => {
   const [selectedDevnetAccount, setSelectedDevnetAccount] = useAtom(selectedDevnetAccountAtom)
   const [availableDevnetAccounts, setAvailableDevnetAccounts] = useAtom(availableDevnetAccountsAtom)
 
+  const checkDevnetUrl = async (): Promise<void> => {
+    try {
+      const response = await fetch(`${devnet.url}/is_alive`, {
+        method: 'GET',
+        redirect: 'follow',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      const status = await response.text()
+
+      if (status !== 'Alive!!!' || response.status !== 200) {
+        setIsDevnetAlive(false)
+      } else {
+        setIsDevnetAlive(true)
+      }
+    } catch (error) {
+      setIsDevnetAlive(false)
+    }
+  }
+
   // devnet live status
   useEffect(() => {
-    const interval = setInterval(async () => {
-      try {
-        const response = await fetch(`${devnet.url}/is_alive`, {
-          method: 'GET',
-          redirect: 'follow',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        })
-        const status = await response.text()
-
-        if (status !== 'Alive!!!' || response.status !== 200) {
-          setIsDevnetAlive(() => false)
-        } else {
-          setIsDevnetAlive(() => true)
-        }
-      } catch (error) {
-        setIsDevnetAlive(() => false)
-      }
+    const interval = setInterval(() => {
+      checkDevnetUrl().catch(e => {
+        console.error(e)
+      })
     }, 3000)
     return () => {
       clearInterval(interval)
@@ -92,11 +98,13 @@ const DevnetAccountSelector: React.FC = () => {
   }
 
   useEffect(() => {
-    setTimeout(async () => {
+    setTimeout(() => {
       if (!isDevnetAlive) {
         return
       }
-      await refreshDevnetAccounts()
+      refreshDevnetAccounts().catch(e => {
+        console.error(e)
+      })
     }, 1)
   }, [devnet, isDevnetAlive])
 
@@ -159,6 +167,7 @@ const DevnetAccountSelector: React.FC = () => {
   useEffect(() => {
     setAccountIdx(0)
   }, [env])
+
   return (
     <>
       <label className="">Devnet account selection</label>

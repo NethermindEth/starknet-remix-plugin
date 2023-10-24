@@ -5,7 +5,7 @@ import {
   connect,
   disconnect
 } from 'get-starknet'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import useAccount from './useAccount'
 import useProvider from './useProvider'
 import useRemixClient from './useRemixClient'
@@ -13,14 +13,31 @@ import useRemixClient from './useRemixClient'
 const useStarknetWindow = (): {
   starknetWindowObject: StarknetWindowObject | null
   setStarknetWindowObject: React.Dispatch<React.SetStateAction<StarknetWindowObject | null>>
+  currentChainId: string | undefined
   connectWalletHandler: (options?: ConnectOptions) => Promise<void>
   disconnectWalletHandler: (options?: DisconnectOptions) => Promise<void>
+  refreshWalletConnection: () => Promise<void>
 } => {
   const { remixClient } = useRemixClient()
   const { setAccount } = useAccount()
   const { setProvider } = useProvider()
 
   const [starknetWindowObject, setStarknetWindowObject] = useState<StarknetWindowObject | null>(null)
+  const [currentChainId, setCurrentChainId] = useState<string | undefined>(undefined)
+  const getChainId = async (): Promise<void> => {
+    if (starknetWindowObject != null) {
+      const value: string | undefined = await starknetWindowObject?.provider?.getChainId()
+      setCurrentChainId(value)
+    }
+  }
+
+  useEffect((): void => {
+    if (starknetWindowObject != null) {
+      getChainId().catch(e => {
+        console.error(e)
+      })
+    }
+  }, [starknetWindowObject])
 
   const connectWalletHandler = async (
     options: ConnectOptions = {
@@ -83,7 +100,19 @@ const useStarknetWindow = (): {
     setProvider(null)
   }
 
-  return { starknetWindowObject, setStarknetWindowObject, connectWalletHandler, disconnectWalletHandler }
+  const refreshWalletConnection = async (): Promise<void> => {
+    if (starknetWindowObject !== null) await disconnectWalletHandler()
+    await connectWalletHandler()
+  }
+
+  return {
+    starknetWindowObject,
+    currentChainId,
+    setStarknetWindowObject,
+    connectWalletHandler,
+    disconnectWalletHandler,
+    refreshWalletConnection
+  }
 }
 
 export default useStarknetWindow

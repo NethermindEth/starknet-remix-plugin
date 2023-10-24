@@ -24,11 +24,10 @@ import { compiledContractsAtom, selectedCompiledContract } from '../../atoms/com
 import { activeTomlPathAtom, compilationAtom, currentFilenameAtom, hashDirAtom, isCompilingAtom, isValidCairoAtom, noFileSelectedAtom, statusAtom, tomlPathsAtom } from '../../atoms/compilation'
 import useRemixClient from '../../hooks/useRemixClient'
 
-
 const CompilationCard: React.FC<{
-  validation: boolean,
-  isLoading: boolean,
-  onClick: () => unknown,
+  validation: boolean
+  isLoading: boolean
+  onClick: () => unknown
   compileScarb: (workspacePath: string, scarbPath: string) => Promise<void>
   currentWorkspacePath: string
 }> = (
@@ -40,21 +39,20 @@ const CompilationCard: React.FC<{
     currentWorkspacePath
   }
 ): React.ReactElement => {
+  const { remixClient } = useRemixClient()
 
-    const { remixClient } = useRemixClient();
+  const {
+    activeTomlPath,
+    tomlPaths,
+    isCompiling,
+    currentFilename
+  } = useAtomValue(compilationAtom)
 
-    const {
-      activeTomlPath,
-      tomlPaths,
-      isCompiling,
-      currentFilename
-    } = useAtomValue(compilationAtom)
+  const setActiveTomlPath = useSetAtom(activeTomlPathAtom)
 
-    const setActiveTomlPath = useSetAtom(activeTomlPathAtom);
-
-    return (
+  return (
       <Container>
-        {activeTomlPath && tomlPaths?.length > 0 && (
+        {activeTomlPath !== undefined && tomlPaths?.length > 0 && (
           <div className="project-dropdown-wrapper d-flex flex-column mb-3">
             <button
               className="btn btn-warning btn-block d-block w-100 text-break mb-1 mt-1 px-0"
@@ -119,7 +117,7 @@ const CompilationCard: React.FC<{
               {!validation
                 ? (
                   <span>Select a valid cairo file</span>
-                )
+                  )
                 : (
                   <>
                     <div className="d-flex align-items-center justify-content-center">
@@ -135,7 +133,7 @@ const CompilationCard: React.FC<{
                             </span>
                             <span style={{ paddingLeft: '0.5rem' }}>{status}</span>
                           </>
-                        )
+                          )
                         : (
                           <div className="text-truncate overflow-hidden text-nowrap">
                             <span>Compile</span>
@@ -143,16 +141,16 @@ const CompilationCard: React.FC<{
                               {currentFilename}
                             </span>
                           </div>
-                        )}
+                          )}
                     </div>
                   </>
-                )}
+                  )}
             </div>
           </div>
         </button>
       </Container>
-    )
-  }
+  )
+}
 
 interface CompilationProps {
   setAccordian: React.Dispatch<React.SetStateAction<AccordianTabs>>
@@ -303,7 +301,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     }, 100)
   }, [currentFilename, remixClient])
 
-  async function getTomlPaths(
+  async function getTomlPaths (
     workspacePath: string,
     currPath: string
   ): Promise<string[]> {
@@ -449,7 +447,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     }
   ]
 
-  async function compile(): Promise<void> {
+  async function compile (): Promise<void> {
     setIsCompiling(true)
     setStatus('Compiling...')
     // clear current file annotations: inline syntax error reporting
@@ -670,7 +668,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     setIsCompiling(false)
   }
 
-  async function saveScarbWorkspace(
+  async function saveScarbWorkspace (
     workspacePath: string,
     currPath: string
   ): Promise<string[]> {
@@ -727,7 +725,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     return resTomlPaths
   }
 
-  async function compileScarb(
+  async function compileScarb (
     workspacePath: string,
     scarbPath: string
   ): Promise<void> {
@@ -752,6 +750,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       }
 
       const scarbCompile = JSON.parse(await result)
+      console.log(scarbCompile)
 
       if (scarbCompile.status !== 'Success') {
         await remixClient.call(
@@ -865,7 +864,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     setStatus('done')
   }
 
-  async function genContractData(
+  async function genContractData (
     contractName: string,
     path: string,
     sierraFile: string,
@@ -899,8 +898,6 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     }
     return contract
   }
-
-
 
   return (
     <div>

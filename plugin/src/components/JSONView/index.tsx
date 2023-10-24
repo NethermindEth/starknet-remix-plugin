@@ -12,7 +12,7 @@ const JSONView = (data: JSON): JSX.Element => {
     }
   }
 
-  const renderRow = (row: any, level = 0): JSX.Element => {
+  const renderRow = (row: { key: string, value: any }, level = 0): JSX.Element => {
     console.log(row)
     const rowId = `${level}-${row.key}`
 
@@ -20,9 +20,7 @@ const JSONView = (data: JSON): JSX.Element => {
       <React.Fragment key={rowId}>
         <tr>
           <td onClick={() => { toggleRow(rowId) }}>
-            {row?.children && (
-              <span>{expandedRows.includes(rowId) ? '-' : '+'}</span>
-            )}
+            <span>{expandedRows.includes(rowId) ? '-' : '+'}</span>
           </td>
           <td>{row.key}</td>
           <td>{row.value}</td>

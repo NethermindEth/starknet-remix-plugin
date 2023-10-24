@@ -4,6 +4,8 @@ const apiUrl: string = import.meta.env.VITE_API_URL ?? 'cairo-compile-remix-test
 const devnetUrl: string = import.meta.env.VITE_DEVNET_URL ?? 'http://localhost:5050'
 const remoteDevnetUrl: string = import.meta.env.VITE_REMOTE_DEVNET_URL ?? 'https://starknet-devnet-dev.nethermind.io'
 
+console.log(apiUrl)
+
 interface Devnet {
   name: string
   url: string

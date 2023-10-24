@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-misused-promises */
 import React, { useEffect, useState } from 'react'
 import { Account, CallData, Provider, ec, hash, stark } from 'starknet'
 import {
@@ -226,24 +225,23 @@ const ManualAccount: React.FC<{
         publicKey: await account.signer.getPubKey()
       })
 
-      // eslint-disable-next-line @typescript-eslint/naming-convention
-      const { transaction_hash, contract_address } =
+      const { transaction_hash: transactionHash, contract_address: contractAddress } =
         await account.deployAccount({
           classHash: OZaccountClassHash,
           constructorCalldata: OZaccountConstructorCallData,
           addressSalt: await account.signer.getPubKey()
         })
 
-      console.log('transaction_hash=', transaction_hash)
+      console.log('transaction_hash=', transactionHash)
 
-      await provider.waitForTransaction(transaction_hash)
+      await provider.waitForTransaction(transactionHash)
 
       setTransactions([
         {
           type: 'deployAccount',
           account,
           provider,
-          txId: transaction_hash,
+          txId: transactionHash,
           env
         },
         ...transactions
@@ -264,7 +262,7 @@ const ManualAccount: React.FC<{
       storage.set('manualAccounts', JSON.stringify(newAccounts))
       console.log(
         '✅ New OpenZeppelin account created.\n   address =',
-        contract_address
+        contractAddress
       )
     } catch (e) {
       console.error(e)
