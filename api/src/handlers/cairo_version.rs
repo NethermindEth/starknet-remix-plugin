@@ -1,5 +1,6 @@
 use crate::handlers::process::{do_process_command, fetch_process_result};
 use crate::handlers::types::{ApiCommand, ApiCommandResult};
+use crate::rate_limiter::RateLimited;
 use crate::types::{ApiError, Result};
 use crate::utils::lib::DEFAULT_CAIRO_DIR;
 use crate::worker::WorkerEngine;
@@ -10,7 +11,7 @@ use tracing::{error, info, instrument};
 // Read the version from the cairo Cargo.toml file.
 #[instrument]
 #[get("/cairo_version")]
-pub async fn cairo_version() -> String {
+pub async fn cairo_version(_rate_limited: RateLimited) -> String {
     info!("/cairo_version");
     do_cairo_version().unwrap_or_else(|e| format!("Failed to get cairo version: {:?}", e))
 }
@@ -18,7 +19,10 @@ pub async fn cairo_version() -> String {
 // Read the version from the cairo Cargo.toml file.
 #[instrument]
 #[get("/cairo_version_async")]
-pub async fn cairo_version_async(engine: &State<WorkerEngine>) -> String {
+pub async fn cairo_version_async(
+    engine: &State<WorkerEngine>,
+    _rate_limited: RateLimited,
+) -> String {
     info!("/cairo_version_async");
     do_process_command(ApiCommand::CairoVersion, engine)
 }
@@ -51,9 +55,9 @@ pub fn do_cairo_version() -> Result<String> {
             .arg("--version")
             .stdout(Stdio::piped())
             .spawn()
-            .map_err(|e| ApiError::FailedToExecuteCommand(e))?
+            .map_err(ApiError::FailedToExecuteCommand)?
             .wait_with_output()
-            .map_err(|e| ApiError::FailedToReadOutput(e))?
+            .map_err(ApiError::FailedToReadOutput)?
             .stdout,
     ) {
         Ok(version) => Ok(version),

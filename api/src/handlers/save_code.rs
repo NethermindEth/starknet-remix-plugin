@@ -44,7 +44,7 @@ pub async fn do_save_code(file: Data<'_>, remix_file_path: PathBuf) -> Result<St
         .open(128_i32.gibibytes())
         .into_file(&file_path)
         .await
-        .map_err(|e| ApiError::FailedToSaveFile(e))?;
+        .map_err(ApiError::FailedToSaveFile)?;
 
     Ok(file_path
         .to_str()

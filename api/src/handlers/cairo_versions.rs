@@ -16,16 +16,13 @@ pub async fn cairo_versions() -> String {
 pub async fn do_cairo_versions() -> Result<String> {
     let path = Path::new(CAIRO_COMPILERS_DIR);
 
-    let mut dir = read_dir(path)
-        .await
-        .map_err(|e| ApiError::FailedToReadDir(e))?;
+    let mut dir = read_dir(path).await.map_err(ApiError::FailedToReadDir)?;
     let mut result = vec![];
 
     while let Ok(Some(entry)) = dir.next_entry().await {
         let entry = entry;
         let path = entry.path();
         if path.is_dir() {
-            println!("{:?}", entry.file_name());
             result.push(entry.file_name().to_string_lossy().to_string());
         }
     }
