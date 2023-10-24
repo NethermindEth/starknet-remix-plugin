@@ -5,12 +5,14 @@ pub mod compile_sierra;
 pub mod process;
 pub mod save_code;
 pub mod scarb_compile;
+pub mod scarb_test;
 pub mod types;
 
 use crate::handlers::cairo_version::do_cairo_version;
 use crate::handlers::compile_casm::do_compile_to_casm;
 use crate::handlers::compile_sierra::do_compile_to_sierra;
 use crate::handlers::scarb_compile::do_scarb_compile;
+use crate::handlers::scarb_test::do_scarb_test;
 use crate::handlers::types::{ApiCommand, ApiCommandResult, FileContentMap};
 use crate::types::{ApiError, Result};
 use rocket::serde::json::Json;
@@ -61,6 +63,10 @@ pub async fn dispatch_command(command: ApiCommand) -> Result<ApiCommandResult> {
             Err(e) => Err(e),
         },
         ApiCommand::Shutdown => Ok(ApiCommandResult::Shutdown),
+        ApiCommand::ScarbTest { remix_file_path } => match do_scarb_test(remix_file_path).await {
+            Ok(result) => Ok(ApiCommandResult::ScarbTest(result.into_inner())),
+            Err(e) => Err(e),
+        },
     }
 }
 

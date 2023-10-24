@@ -30,7 +30,6 @@ pub async fn cairo_version_async(
 #[instrument]
 #[get("/cairo_version_result/<process_id>")]
 pub async fn get_cairo_version_result(process_id: String, engine: &State<WorkerEngine>) -> String {
-    info!("/cairo_version_result/{:?}", process_id);
     fetch_process_result(process_id, engine, |result| match result {
         ApiCommandResult::CairoVersion(version) => version.to_string(),
         _ => String::from("Result not available"),

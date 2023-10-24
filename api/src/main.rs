@@ -22,6 +22,7 @@ use handlers::compile_sierra::{
 use handlers::process::get_process_status;
 use handlers::save_code::save_code;
 use handlers::scarb_compile::{get_scarb_compile_result, scarb_compile, scarb_compile_async};
+use handlers::scarb_test::{get_scarb_test_result, scarb_test_async};
 use handlers::{health, who_is_this};
 use tracing::info;
 
@@ -75,6 +76,8 @@ async fn rocket() -> _ {
                 get_process_status,
                 health,
                 who_is_this,
+                get_scarb_test_result,
+                scarb_test_async,
             ],
         )
 }
