@@ -220,15 +220,16 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       value,
       dataset: { type, index }
     } = event.target
-    setConstructorCalldata((prevCalldata) => ({
-      ...prevCalldata,
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      [index!]: {
-        name,
-        value,
-        type
-      }
-    }))
+    if (index != null) {
+      setConstructorCalldata((prevCalldata) => ({
+        ...prevCalldata,
+        [index]: {
+          name,
+          value,
+          type
+        }
+      }))
+    }
   }
 
   const getFormattedCalldata = (): BigNumberish[] => {

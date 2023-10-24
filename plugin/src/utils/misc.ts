@@ -46,3 +46,9 @@ interface IUseCurrentExplorer {
 }
 
 export { getProvider, type IExplorerSelector, type IUseCurrentExplorer }
+
+function isEmpty (str: string | undefined): boolean {
+  return str === '' || str === null || str === undefined
+}
+
+export { isEmpty }

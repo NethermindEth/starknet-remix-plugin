@@ -23,6 +23,18 @@ import cairoVersionAtom from '../../atoms/cairoVersion'
 import { compiledContractsAtom, selectedCompiledContract } from '../../atoms/compiledContracts'
 import { activeTomlPathAtom, compilationAtom, currentFilenameAtom, hashDirAtom, isCompilingAtom, isValidCairoAtom, noFileSelectedAtom, statusAtom, tomlPathsAtom } from '../../atoms/compilation'
 import useRemixClient from '../../hooks/useRemixClient'
+import { isEmpty } from '../../utils/misc'
+
+interface FileContentMap {
+  file_name: string
+  file_content: string
+}
+
+interface ScarbCompileResponse {
+  status: string
+  message: string
+  file_content_map_array: FileContentMap[]
+}
 
 const CompilationCard: React.FC<{
   validation: boolean
@@ -49,6 +61,8 @@ const CompilationCard: React.FC<{
   } = useAtomValue(compilationAtom)
 
   const setActiveTomlPath = useSetAtom(activeTomlPathAtom)
+
+  const isCurrentFileName = isEmpty(currentFilename)
 
   return (
       <Container>
@@ -87,7 +101,7 @@ const CompilationCard: React.FC<{
                   {tomlPaths.map((tomlPath, i) => {
                     return (
                       <D.Item
-                        key={i + tomlPath}
+                        key={i.toString() + tomlPath}
                         onClick={() => {
                           setActiveTomlPath(tomlPath)
                         }}
@@ -105,11 +119,11 @@ const CompilationCard: React.FC<{
         <button
           className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-1 px-0"
           style={{
-            cursor: `${!validation || !currentFilename ? 'not-allowed' : 'pointer'
+            cursor: `${!validation || !isCurrentFileName ? 'not-allowed' : 'pointer'
               }`
           }}
-          disabled={!validation || !currentFilename || isCompiling}
-          aria-disabled={!validation || !currentFilename || isCompiling}
+          disabled={!validation || !isCurrentFileName || isCompiling}
+          aria-disabled={!validation || !isCurrentFileName || isCompiling}
           onClick={onClick}
         >
           <div className="d-flex align-items-center justify-content-center">
@@ -543,12 +557,12 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         })
 
         // trim sierra message to get last line
-        const lastLine = sierra.message.trim().split('\n').pop().trim()
+        const lastLine: string = sierra.message.trim().split('\n').pop().trim()
 
         remixClient.emit('statusChanged', {
           key: 'failed',
           type: 'error',
-          title: lastLine.startsWith('Error') ? lastLine : 'Compilation Failed'
+          title: lastLine?.startsWith('Error') ? lastLine : 'Compilation Failed'
         })
         throw new Error(
           'Cairo Compilation Failed, logs can be read in the terminal log'
@@ -715,7 +729,8 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
             throw new Error('Cairo Compilation Request Failed')
           }
         }
-        if (Object.values(allFilesValues[i])[0]) {
+        const checkVal = Object.values(allFilesValues[i])[0]
+        if (!isEmpty(checkVal)) {
           await saveScarbWorkspace(workspacePath, allFilesKeys[i])
         }
       }
@@ -748,9 +763,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         )
         throw new Error('Cairo Compilation Request Failed')
       }
-
-      const scarbCompile = JSON.parse(await result)
-      console.log(scarbCompile)
+      const scarbCompile: ScarbCompileResponse = JSON.parse(result)
 
       if (scarbCompile.status !== 'Success') {
         await remixClient.call(
@@ -784,14 +797,14 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       const contractsToStore: Contract[] = []
 
       for (const file of scarbCompile.file_content_map_array) {
-        if (file.file_name.endsWith('.sierra.json')) {
+        if (file.file_name?.endsWith('.sierra.json')) {
           const contractName: string = file.file_name.replace('.sierra.json', '')
           const sierra = JSON.parse(file.file_content)
           if (
-            !scarbCompile.file_content_map_array.find(
+            (scarbCompile.file_content_map_array?.find(
               (file: { file_name: string }) =>
                 file.file_name === contractName + '.casm.json'
-            )
+            )) == null
           ) {
             notifyCasmInclusion = true
             continue
@@ -901,8 +914,9 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
   return (
     <div>
-      {compilations.map((compilation) => {
+      {compilations.map((compilation, idx) => {
         return <CompilationCard
+          key={`${JSON.stringify(compilation)}${idx}`}
           validation={compilation.validation}
           isLoading={compilation.isLoading}
           onClick={compilation.onClick}

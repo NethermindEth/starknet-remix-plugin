@@ -35,7 +35,7 @@ const ExplorerSelector: React.FC<IExplorerSelector> = ({
   const { explorer, setExplorer } = controlHook
   return (
     <div
-      className={`${(isInline === true) ? 'inline-root-wrapper' : ''}`}
+      className={`${isInline !== undefined && isInline ? 'inline-root-wrapper' : ''}`}
       onClick={(e) => {
         e.stopPropagation()
       }}

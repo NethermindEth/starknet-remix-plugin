@@ -4,7 +4,9 @@ import { type Devnet, devnets, type DevnetAccount } from '../utils/network'
 
 const devnetAtom = atom<Devnet>(devnets[0])
 
-const envAtom = atom<'remoteDevnet' | 'wallet' | 'manual' | 'localDevnet'>('remoteDevnet')
+export type Env = 'remoteDevnet' | 'wallet' | 'manual' | 'localDevnet'
+
+const envAtom = atom<Env>('remoteDevnet')
 
 const isDevnetAliveAtom = atom<boolean>(true)
 

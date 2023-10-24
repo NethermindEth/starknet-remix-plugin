@@ -13,13 +13,13 @@ import Accordian, {
 } from '../../components/ui_components/Accordian'
 import ManualAccount from '../../components/ManualAccount'
 import { useAtom, useAtomValue } from 'jotai'
-import { envAtom, isDevnetAliveAtom } from '../../atoms/environment'
+import { type Env, envAtom, isDevnetAliveAtom } from '../../atoms/environment'
 
 const Environment: React.FC = () => {
   const [env, setEnv] = useAtom(envAtom)
   const isDevnetAlive = useAtomValue(isDevnetAliveAtom)
 
-  const [prevEnv, setPrevEnv] = useState<string>(env)
+  const [prevEnv, setPrevEnv] = useState<Env>(env)
 
   const [currentPane, setCurrentPane] = useState('environment')
 

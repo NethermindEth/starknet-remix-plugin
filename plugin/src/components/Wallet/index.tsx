@@ -10,9 +10,10 @@ import ExplorerSelector, { useCurrentExplorer } from '../ExplorerSelector'
 import { getExplorerUrl, trimStr } from '../../utils/utils'
 import useStarknetWindow from '../../hooks/starknetWindow'
 import { type StarknetChainId } from '../../utils/starknet'
+import type { Env } from '../../atoms/environment'
 
 interface WalletProps {
-  setPrevEnv: (newEnv: string) => void
+  setPrevEnv: (newEnv: Env) => void
 }
 
 const Wallet: React.FC<WalletProps> = (props) => {

@@ -20,7 +20,7 @@ import { useAtom } from 'jotai'
 
 import transactionsAtom from '../../atoms/transactions'
 import { accountAtom, networkAtom, selectedAccountAtom } from '../../atoms/manualAccount'
-import { envAtom } from '../../atoms/environment'
+import { type Env, envAtom } from '../../atoms/environment'
 import useAccount from '../../hooks/useAccount'
 import useProvider from '../../hooks/useProvider'
 import useRemixClient from '../../hooks/useRemixClient'
@@ -30,7 +30,7 @@ import useRemixClient from '../../hooks/useRemixClient'
 // network selection drop down
 
 const ManualAccount: React.FC<{
-  prevEnv: string
+  prevEnv: Env
 }> = ({ prevEnv }) => {
   const OZaccountClassHash =
     '0x2794ce20e5f2ff0d40e632cb53845b9f4e526ebd8471983f7dbd355b721d5a'
