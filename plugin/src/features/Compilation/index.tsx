@@ -20,6 +20,8 @@ import { type AccordianTabs } from '../Plugin'
 import * as D from '../../ui_components/Dropdown'
 import { BsChevronDown } from 'react-icons/bs'
 import { type Contract } from '../../types/contracts'
+import { asyncFetch } from '../../utils/async_fetch'
+import CairoVersionContext from "../../contexts/CairoVersion";
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface CompilationProps {
@@ -28,6 +30,7 @@ interface CompilationProps {
 
 const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
   const remixClient = useContext(RemixClientContext)
+  const { version: cairoVersion, setVersion: setCairoVersion } = useContext(CairoVersionContext);
 
   const { contracts, selectedContract, setContracts, setSelectedContract } = useContext(
     CompiledContractsContext
@@ -336,7 +339,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       )
 
       setStatus('Parsing cairo code...')
-      let response = await fetch(
+      const saveCodeResponse = await fetch(
         `${apiUrl}/save_code/${hashDir}/${currentFilePath}`,
         {
           method: 'POST',
@@ -348,7 +351,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         }
       )
 
-      if (!response.ok) {
+      if (!saveCodeResponse.ok) {
         await remixClient.call(
           'notification' as any,
           'toast',
@@ -358,28 +361,14 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       }
 
       setStatus('Compiling to sierra...')
-      response = await fetch(
-        `${apiUrl}/compile-to-sierra/${hashDir}/${currentFilePath}`,
-        {
-          method: 'GET',
-          redirect: 'follow',
-          headers: {
-            'Content-Type': 'text/plain'
-          }
-        }
+
+      const compileToSierraResponse = await asyncFetch(
+          `compile-to-sierra-async/${cairoVersion}/${hashDir}/${currentFilePath}`,
+          'compile-to-sierra-result'
       )
 
-      if (!response.ok) {
-        await remixClient.call(
-          'notification' as any,
-          'toast',
-          'Could not reach cairo compilation server'
-        )
-        throw new Error('Cairo Compilation Request Failed')
-      }
-
       // get Json body from response
-      const sierra = JSON.parse(await response.text())
+      const sierra = JSON.parse(compileToSierraResponse)
 
       if (sierra.status !== 'Success') {
         setStatus('Reporting Errors...')
@@ -438,31 +427,14 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         )
       }
       setStatus('Compiling to casm...')
-      response = await fetch(
-        `${apiUrl}/compile-to-casm/${hashDir}/${currentFilePath.replaceAll(
-          getFileExtension(currentFilePath),
-          'sierra'
-        )}`,
-        {
-          method: 'GET',
-          redirect: 'follow',
-          headers: {
-            'Content-Type': 'text/plain'
-          }
-        }
+
+      const compileToCasmResponse = await asyncFetch(
+          `compile-to-casm-async/${cairoVersion}/${hashDir}/${currentFilePath.replaceAll(getFileExtension(currentFilePath), 'sierra')}`,
+          'compile-to-casm-result'
       )
 
-      if (!response.ok) {
-        await remixClient.call(
-          'notification' as any,
-          'toast',
-          'Could not reach cairo compilation server'
-        )
-        throw new Error('Cairo Compilation Request Failed')
-      }
-
       // get Json body from response
-      const casm = JSON.parse(await response.text())
+      const casm = JSON.parse(compileToCasmResponse)
       if (casm.status !== 'Success') {
         await remixClient.terminal.log(casm.message)
 
@@ -634,29 +606,23 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     try {
       setStatus('Saving scarb workspace...')
       await saveScarbWorkspace(workspacePath, scarbPath)
-      const response = await fetch(
-        `${apiUrl}/compile-scarb/${hashDir}/${workspacePath.replace(
-          '.',
-          ''
-        )}/${scarbPath}`,
-        {
-          method: 'GET',
-          redirect: 'follow',
-          headers: {
-            'Content-Type': 'text/plain'
-          }
-        }
-      )
-      if (!response.ok) {
+
+      let result: string
+      try {
+        result = await asyncFetch(`compile-scarb-async/${hashDir}/${workspacePath.replace(
+            '.',
+            ''
+        )}/${scarbPath}`, 'compile-scarb-result')
+      } catch (e) {
         await remixClient.call(
           'notification' as any,
           'toast',
-          'Scarb compilation failed!'
+          'Could not reach cairo compilation server'
         )
         throw new Error('Cairo Compilation Request Failed')
       }
 
-      const scarbCompile = JSON.parse(await response.text())
+      const scarbCompile = JSON.parse(await result)
 
       if (scarbCompile.status !== 'Success') {
         await remixClient.call(

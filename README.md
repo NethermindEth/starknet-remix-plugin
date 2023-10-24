@@ -1,17 +1,18 @@
 # Starknet Remix Plugin
 
-[![Pull Requests welcome](https://img.shields.io/badge/PRs-welcome-ff69b4.svg?style=flat-square)](https://github.com/NethermindEth/starknet-remix-plugin/issues)
+[![Static Badge](https://img.shields.io/badge/Try_it_out!-2f6df2)](https://remix.ethereum.org/#activate=Starknet)
+[![Pull Requests welcome](https://img.shields.io/badge/PRs-welcome-ff69b4.svg?style=flat-square)](https://github.com/NethermindEth/Starknet-remix-plugin/issues)
 [![Discord](https://img.shields.io/discord/629004402170134531?label=Discord)](https://discord.com/invite/PaCMRFdvWT)
 [![Static Badge](https://img.shields.io/badge/Telegram-2AABEE)](https://t.me/StarknetRemixPlugin)
 
 Welcome to the **Starknet Remix Plugin** repository! 🎉 
 
-This powerful tool seamlessly integrates with the Remix IDE, enabling developers to effortlessly deploy and interact with StarkNet contracts! Whether you're a Cairo and Starknet wizard 🧙‍♂️ or taking your very first steps, this plugin supercharges your journey by providing an effortless way to deploy and interact with StarkNet contracts. Happy coding! 🚀
+This powerful tool seamlessly integrates with the Remix IDE, enabling developers to effortlessly deploy and interact with Starknet contracts! Whether you're a Cairo and Starknet wizard 🧙‍♂️ or taking your very first steps, this plugin supercharges your journey by providing an effortless way to deploy and interact with Starknet contracts. Happy coding! 🚀
 
 <details> 
 <summary>Table of Contents</summary>
 
-- [Starknet Remix Plugin](#starknet-remix-plugin)
+- [Starknet Remix Plugin](#Starknet-remix-plugin)
   - [For Users](#for-users)
     - [Getting Started](#getting-started)
       - Installation
@@ -29,15 +30,63 @@ This powerful tool seamlessly integrates with the Remix IDE, enabling developers
 
 ## For users
 
-If you're looking to utilize the capabilities of StarkNet contracts within the Remix IDE, you've come to the right place. This section provides you with a straightforward guide to get started.
+If you're looking to utilize the capabilities of Starknet contracts within the Remix IDE, you've come to the right place. This section provides you with a straightforward guide to get started.
 
 ### Getting Started
 
-1. **Installation**: Get excited, folks, no complicated installations needed here! If you're a user, all you have to do is head over to the Remix IDE and locate the Starknet Remix Plugin in the plugins section. Want to make it even simpler? Click right through to Remix using [this direct link](https://remix.ethereum.org/#activate=Starknet-cairo1-compiler) and you're good to go! 🎉
+1. **Installation**: Get excited, folks, no complicated installations needed here! If you're a user, all you have to do is head over to the Remix IDE and locate the Starknet Remix Plugin in the plugins section. Want to make it even simpler? Click right through to Remix using [this direct link](https://remix.ethereum.org/#activate=Starknet) and you're good to go! 🎉
 
-2. **Usage**: Once the plugin is activated, you'll find a user-friendly interface that allows you to deploy and interact with StarkNet contracts. Follow the on-screen prompts and tooltips for an effortlessly smooth experience!
+2. **Usage**: Once the plugin is activated, you'll find a user-friendly interface that allows you to deploy and interact with Starknet contracts. Follow the on-screen prompts and tooltips for an effortlessly smooth experience!
 
 3. **Feedback**: Your feedback is invaluable to us 🌟! If you encounter any issues or have game-changing suggestions, don't hesitate to reach out through our [Discord](https://discord.com/invite/PaCMRFdvWT) or our [Community Forum](https://community.nethermind.io/). Let's make something awesome together! 🤝
+
+### Troubleshooting
+
+Most issues with Starknet plugin or Remix itself are caused by connectivity problems (also resulting from restricted networks, web-proxies blocking certain content, etc.) or browser plugin interference. 
+- A user should first attempt to disable any browser components & addons which may impact the connectivity or Javascript execution. 
+- Some networks may restrict connectivity to certain sites or domains. Using a VPN connection may resolve problems observed on restricted networks.
+
+More specific potential error causes are also described in detail below. 
+
+<details>
+<summary><strong>1. Problems when searching plugins in Remix UI</strong></summary>  
+<br/>
+Searching for online plugins in Remix IDE may return blank or otherwise incorrect content, such as on screenshot below:
+
+![Plugin search not working](docs/images/plugin-search-error.png)
+Ensure that the following URL is accessible from a web browser, and that a JSON metadata code is returned -  
+https://raw.githubusercontent.com/ethereum/remix-plugins-directory/master/build/metadata.json :
+
+![Correct plugin metadata](docs/images/plugin-metadata-connectivity.png)
+
+</details>
+
+<details>
+<summary><strong>2. Problems when launching Starknet plugin in Remix UI</strong></summary> 
+<br/>  
+Starknet plugin launch issues may be caused by connectivity errors or plugin components being unavailable. This can be tested from web browser, as indicated below:
+
+- https://cairo-remix-test.nethermind.io should respond with blank page (advanced: viewing page source will reveal a React component entry HTML markup) - no errors should be reported by the browser
+- https://cairo-compile-remix-test.nethermind.io/health should respond with `OK`
+- https://starknet-devnet-dev.nethermind.io/predeployed_accounts should respond with JSON text describing predeployed Starknet accounts
+</details>
+
+<details>
+<summary><strong>3. `localStorage` access errors</strong></summary>  
+<br/>
+The following error indicates that the browser is blocking access to `localStorage` element of the webpage:
+
+![localStorage access error](docs/images/plugin-localStorage-error.png)
+Possible causes:
+  
+   - Chrome is launched in incognito mode
+   - Chrome setting "Block third-party cookies" is activated (see [chrome://settings/cookies](chrome://settings/cookies)):
+![Chrome cookies settings](docs/images/plugin-chrome-cookies-settings.png)
+Note: even with "Block third-party cookies" activate, exceptions can be added to a whitelist - the whitelist must include:
+     - https://remix.ethereum.org
+     - https://cairo-remix-test.nethermind.io
+   - ...also see this [link](https://stackoverflow.com/questions/30481516/iframe-in-chrome-error-failed-to-read-localstorage-from-window-access-deni) for potential hints.
+</details>
 
 ## For Developers
 
@@ -94,7 +143,7 @@ cargo install cargo-watch;
 cargo watch -x run;
 ```
 
-For devnet interactions, you'll need to use [Starknet Devnet](https://github.com/Shard-Labs/starknet-devnet).
+For devnet interactions, you'll need to use [Starknet Devnet](https://github.com/Shard-Labs/Starknet-devnet).
 
 ##### Connecting the plugin
 
@@ -108,9 +157,9 @@ You should be all set to see the magic happen! Activate the plugin and it should
 
 ## Support and Contributions
 
-Feel free to contribute! Spotted any [issues](https://github.com/NethermindEth/starknet-remix-plugin/issues)? Head on over to our [good first issues](https://github.com/NethermindEth/starknet-remix-plugin/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) or read through our [Contribution Guidelines](/docs/CONTRIBUTING.md) to get started. 📝
+Feel free to contribute! Spotted any [issues](https://github.com/NethermindEth/Starknet-remix-plugin/issues)? Head on over to our [good first issues](https://github.com/NethermindEth/Starknet-remix-plugin/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) or read through our [Contribution Guidelines](/docs/CONTRIBUTING.md) to get started. 📝
 
 Jump into our [Discord channel](https://discord.com/invite/PaCMRFdvWT) and join our thriving [community](https://community.nethermind.io/)! Connect with other users, share insights, and get all your questions answered. Our community is always eager to help newcomers! 🤝
 
-We're thrilled for you to experience the Starknet Remix Plugin, and we can't wait to see the inventive ways you'll engage with StarkNet contracts! Happy coding! 💡
+We're thrilled for you to experience the Starknet Remix Plugin, and we can't wait to see the inventive ways you'll engage with Starknet contracts! Happy coding! 💡
 

@@ -19,11 +19,15 @@ RUN rustup install stable
 
 # Create and activate a Python virtual environment
 RUN python -m venv ~/cairo_venv
-RUN source ~/cairo_venv/bin/activate
+RUN . ~/cairo_venv/bin/activate
 ENV PATH="/root/cairo_venv/bin:${PATH}"
 
 # Install cairo-lang
 RUN pip install cairo-lang
+
+# install Scarb
+RUN curl --proto '=https' --tlsv1.2 -sSf https://docs.swmansion.com/scarb/install.sh | bash
+ENV PATH="/root/.local/bin:${PATH}"
 
 # Set the working directory
 WORKDIR /app
@@ -38,7 +42,9 @@ COPY . .
 # RUN cd cairo; git checkout v1.0.0-alpha.6
 # Or if you chose to copy the whole repo
 # RUN git submodule update --init
-RUN cd cairo; cargo build --bin starknet-compile; cargo build --bin starknet-sierra-compile
+
+#RUN cd cairo; cargo build --bin starknet-compile; cargo build --bin starknet-sierra-compile
+RUN cd cairo_compilers; chmod +x build.sh; ./build.sh
 RUN cargo build --release
 
 EXPOSE 8000:80
