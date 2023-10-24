@@ -14,6 +14,7 @@ use std::process::{Command, Stdio};
 use tracing::info;
 use tracing::instrument;
 
+#[instrument]
 #[get("/compile-to-casm/<version>/<remix_file_path..>")]
 pub async fn compile_to_casm(
     version: String,
