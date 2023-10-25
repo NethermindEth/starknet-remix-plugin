@@ -44,14 +44,14 @@ const CairoVersion: React.FC = () => {
       await fetchCairoVersions();
 
       if (getVersions.length > 0) {
-        setCairoVersion(getVersions[0])
+        setCairoVersion(getVersions[getVersions.length - 1])
       }
     }, 10000);
   }, [remixClient]);
 
   useEffect(() => {
     if (getVersions.length > 0) {
-      setCairoVersion(getVersions[0])
+      setCairoVersion(getVersions[getVersions.length - 1])
     }
   }, [remixClient, getVersions]);
 
