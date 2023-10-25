@@ -1,7 +1,7 @@
 use crate::handlers::types::{ApiCommand, ApiCommandResult};
 use crate::worker::{ProcessState, WorkerEngine};
 use rocket::State;
-use tracing::{info, instrument};
+use tracing::instrument;
 use uuid::Uuid;
 
 #[instrument]
@@ -22,7 +22,7 @@ pub async fn get_process_status(process_id: String, engine: &State<WorkerEngine>
                 )
             } else {
                 // TODO can we return HTTP status code here?
-                format!("Process id not found")
+                format!("Process with id={} not found", process_id)
             }
         }
         Err(e) => {

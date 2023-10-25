@@ -24,4 +24,14 @@ pub enum ApiError {
     FailedToSaveFile(IoError),
     #[error("Failed to read filename")]
     FailedToReadFilename,
+    #[error("Task queue is full")]
+    QueueIsFull,
+    #[error("Rate limiter is not in the Rocket state")]
+    RateLimiterNotInState,
+    #[error("Failed to fetch client IP from the request")]
+    FailedToGetClientIp,
+    #[error("Too many requests")]
+    TooManyRequests,
+    #[error("Error while trying to unlock mutex")]
+    MutexUnlockError,
 }

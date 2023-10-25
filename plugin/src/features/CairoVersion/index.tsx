@@ -47,7 +47,7 @@ const CairoVersion: React.FC = () => {
         await fetchCairoVersions()
 
         if (getVersions.length > 0) {
-          setCairoVersion(getVersions[0])
+          setCairoVersion(getVersions[getVersions.length - 1])
         }
       }
       fetchCairo().catch(e => { console.error(e) })
@@ -56,7 +56,7 @@ const CairoVersion: React.FC = () => {
 
   useEffect(() => {
     if (getVersions.length > 0) {
-      setCairoVersion(getVersions[0])
+      setCairoVersion(getVersions[getVersions.length - 1])
     }
   }, [remixClient, getVersions])
 

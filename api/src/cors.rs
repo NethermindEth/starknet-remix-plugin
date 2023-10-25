@@ -34,7 +34,7 @@ impl Fairing for CORS {
             Err(_) => {
                 response.set_header(Header::new(
                     "Access-Control-Allow-Origin",
-                    "https://cairo-remix-test.nethermind.io",
+                    "https://cairo-remix-dev.nethermind.io",
                 ));
             }
         }

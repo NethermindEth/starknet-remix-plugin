@@ -1,5 +1,6 @@
 use crate::handlers::process::{do_process_command, fetch_process_result};
 use crate::handlers::types::{ApiCommand, ApiCommandResult, CompileResponse};
+use crate::rate_limiter::RateLimited;
 use crate::types::{ApiError, Result};
 use crate::utils::lib::{get_file_ext, get_file_path, CAIRO_COMPILERS_DIR, SIERRA_ROOT};
 use crate::worker::WorkerEngine;
@@ -14,7 +15,11 @@ use tracing::{debug, instrument};
 
 #[instrument]
 #[get("/compile-to-sierra/<version>/<remix_file_path..>")]
-pub async fn compile_to_sierra(version: String, remix_file_path: PathBuf) -> Json<CompileResponse> {
+pub async fn compile_to_sierra(
+    version: String,
+    remix_file_path: PathBuf,
+    _rate_limited: RateLimited,
+) -> Json<CompileResponse> {
     info!("/compile-to-sierra");
 
     let res = do_compile_to_sierra(version.clone(), remix_file_path).await;
@@ -36,6 +41,7 @@ pub async fn compile_to_siera_async(
     version: String,
     remix_file_path: PathBuf,
     engine: &State<WorkerEngine>,
+    _rate_limited: RateLimited,
 ) -> String {
     info!("/compile-to-sierra-async");
     do_process_command(
@@ -124,27 +130,27 @@ pub async fn do_compile_to_sierra(
         .stderr(Stdio::piped())
         .stdout(Stdio::piped())
         .spawn()
-        .map_err(|e| ApiError::FailedToExecuteCommand(e))?;
+        .map_err(ApiError::FailedToExecuteCommand)?;
 
     debug!("LOG: ran command:{:?}", compile);
 
     let output = result
         .wait_with_output()
-        .map_err(|e| ApiError::FailedToReadOutput(e))?;
+        .map_err(ApiError::FailedToReadOutput)?;
 
     let file_content = fs::read_to_string(
         NamedFile::open(&sierra_path)
             .await
-            .map_err(|e| ApiError::FailedToReadFile(e))?
+            .map_err(ApiError::FailedToReadFile)?
             .path()
             .to_str()
             .ok_or(ApiError::FailedToParseString)?,
     )
     .await
-    .map_err(|e| ApiError::FailedToReadFile(e))?;
+    .map_err(ApiError::FailedToReadFile)?;
 
     let message = String::from_utf8(output.stderr)
-        .map_err(|e| ApiError::UTF8Error(e))?
+        .map_err(ApiError::UTF8Error)?
         .replace(
             &file_path
                 .to_str()
