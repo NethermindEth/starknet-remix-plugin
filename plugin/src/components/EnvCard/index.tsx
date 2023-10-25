@@ -1,9 +1,10 @@
 /* eslint-disable react/prop-types */
 import { type DisconnectOptions } from 'get-starknet'
-import { useContext, type ReactNode, useState } from 'react'
+import { type ReactNode, useState } from 'react'
 import React from 'react'
 import './envCard.css'
-import EnvironmentContext from '../../contexts/EnvironmentContext'
+import { useAtomValue } from 'jotai'
+import { envAtom } from '../../atoms/environment'
 
 interface EnvCardProps {
   header: string
@@ -18,7 +19,7 @@ export const EnvCard: React.FC<EnvCardProps> = ({
   disconnectWalletHandler,
   children
 }) => {
-  const { env } = useContext(EnvironmentContext)
+  const env = useAtomValue(envAtom)
   const [prevEnv, setPrevEnv] = useState<string>(env)
 
   return (

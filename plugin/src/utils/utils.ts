@@ -1,9 +1,9 @@
-import { type DevnetAccount } from '../types/accounts'
-import { type AbiElement, type Abi, type Contract } from '../types/contracts'
+import { type DevnetAccount } from './types/accounts'
+import { type AbiElement, type Abi, type Contract } from './types/contracts'
 import { type Network, networkExplorerUrls } from './constants'
 
 function isValidCairo (filename: string): boolean {
-  return filename.endsWith('.cairo')
+  return filename?.endsWith('.cairo') ?? false
 }
 
 const getFileExtension = (filename: string): string =>
@@ -73,7 +73,6 @@ const getReadFunctions = (abi: Abi): AbiElement[] => {
 }
 
 const getWriteFunctions = (abi: Abi): AbiElement[] => {
-  console.log('abi', abi)
   const writeFunctions = abi.filter(
     (item) =>
       item.type === 'function' &&
@@ -96,10 +95,10 @@ const getWriteFunctions = (abi: Abi): AbiElement[] => {
   return writeFunctions
 }
 
-const getParameterType = (parameter: string): string | undefined => {
+const getParameterType = (parameter: string): string => {
   const type = parameter.split('::').pop()
   if (type === 'u256') return 'u256 (low, high)'
-  return type
+  return type ?? ''
 }
 
 const getSelectedContractIndex = (
@@ -137,11 +136,12 @@ const weiToEth = (wei: number): number => {
 const getExplorerUrl = (explorer: keyof typeof networkExplorerUrls, chain: Network): string => networkExplorerUrls[explorer][chain]
 
 const trimStr = (str?: string, strip?: number): string => {
-  if (!str) {
+  if (str === undefined || str === null) {
     return ''
   }
+  const lStrip = strip ?? 6
   const length = str.length
-  return `${str?.slice(0, strip || 6)}...${str?.slice(length - (strip || 6))}`
+  return `${str?.slice(0, lStrip)}...${str?.slice(length - lStrip)}`
 }
 
 export {

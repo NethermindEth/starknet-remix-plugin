@@ -1,26 +1,22 @@
-// A component that reads the compiled contracts from the context and displays them in a select
-
-import React, { useContext } from 'react'
-import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
+import React from 'react'
 import {
   getContractNameFromFullName,
   getSelectedContractIndex,
   getShortenedHash
 } from '../../utils/utils'
-
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
+import { useAtom } from 'jotai'
+import { compiledContractsAtom, selectedCompiledContract } from '../../atoms/compiledContracts'
 interface CompiledContractsProps {
   show: 'class' | 'contract'
 }
 
 const CompiledContracts: React.FC<CompiledContractsProps> = (props) => {
-  const { contracts, selectedContract, setSelectedContract } = useContext(
-    CompiledContractsContext
-  )
+  const [contracts] = useAtom(compiledContractsAtom)
+  const [selectedContract, setSelectedContract] = useAtom(selectedCompiledContract)
 
-  function handleCompiledContractSelectionChange (event: any): void {
+  const handleCompiledContractSelectionChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
     event.preventDefault()
-    setSelectedContract(contracts[event.target.value])
+    if (!isNaN(parseInt(event?.target?.value))) { setSelectedContract(contracts[event.target.value as unknown as number]) }
   }
 
   return (

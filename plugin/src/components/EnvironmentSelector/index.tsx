@@ -1,19 +1,17 @@
-import React, { useContext } from 'react'
+import React from 'react'
 import { devnets } from '../../utils/network'
-import { type ConnectOptions, type DisconnectOptions } from 'get-starknet'
-import { ConnectionContext } from '../../contexts/ConnectionContext'
 
 import './styles.css'
-import EnvironmentContext from '../../contexts/EnvironmentContext'
+import { devnetAtom, envAtom } from '../../atoms/environment'
+import { useAtom, useSetAtom } from 'jotai'
+import useStarknetWindow from '../../hooks/starknetWindow'
+import useProvider from '../../hooks/useProvider'
 
-interface EnvironmentSelectorProps {
-  connectWalletHandler: (options?: ConnectOptions) => Promise<void>
-  disconnectWalletHandler: (options?: DisconnectOptions) => Promise<void>
-}
-
-const EnvironmentSelector: React.FC<EnvironmentSelectorProps> = (props) => {
-  const { setProvider } = useContext(ConnectionContext)
-  const { env, setEnv, setDevnet, starknetWindowObject } = useContext(EnvironmentContext)
+const EnvironmentSelector: React.FC = () => {
+  const { setProvider } = useProvider()
+  const [env, setEnv] = useAtom(envAtom)
+  const setDevnet = useSetAtom(devnetAtom)
+  const { starknetWindowObject, connectWalletHandler } = useStarknetWindow()
 
   async function handleEnvironmentChange (event: any): Promise<void> {
     const value = parseInt(event.target.value)
@@ -25,7 +23,7 @@ const EnvironmentSelector: React.FC<EnvironmentSelectorProps> = (props) => {
       return
     }
     setEnv('wallet')
-    if (starknetWindowObject === null) await props.connectWalletHandler()
+    if (starknetWindowObject === null) await connectWalletHandler()
   }
 
   const getDefualtIndex = (): number => {

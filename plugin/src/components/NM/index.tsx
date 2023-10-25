@@ -2,7 +2,10 @@ import React from 'react'
 
 import './styles.css'
 
-const sizeToDimenstions = (size: 'lg' | 'sm' | 'xs' | 'md' | 'xl') => {
+const sizeToDimenstions = (size: 'lg' | 'sm' | 'xs' | 'md' | 'xl'): {
+  h: number
+  w: number
+} => {
   const baseW = 126
   const baseH = 63
   switch (size) {

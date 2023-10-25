@@ -5,53 +5,55 @@ import {
   weiToEth
 } from '../../utils/utils'
 import { getAccounts } from '../../utils/network'
-import React, { useContext, useEffect, useState } from 'react'
-import { ConnectionContext } from '../../contexts/ConnectionContext'
+import React, { useEffect, useState } from 'react'
 import { Account, Provider } from 'starknet'
-import { RemixClientContext } from '../../contexts/RemixClientContext'
 import { MdCopyAll, MdRefresh } from 'react-icons/md'
 import './devnetAccountSelector.css'
-import EnvironmentContext from '../../contexts/EnvironmentContext'
 import copy from 'copy-to-clipboard'
+import { useAtom, useAtomValue } from 'jotai'
+import { availableDevnetAccountsAtom, devnetAtom, envAtom, isDevnetAliveAtom, selectedDevnetAccountAtom } from '../../atoms/environment'
+import useAccount from '../../hooks/useAccount'
+import useProvider from '../../hooks/useProvider'
+import useRemixClient from '../../hooks/useRemixClient'
 
 const DevnetAccountSelector: React.FC = () => {
-  const { account, setAccount, provider, setProvider } =
-    useContext(ConnectionContext)
-  const remixClient = useContext(RemixClientContext)
-  const {
-    env,
-    devnet,
-    isDevnetAlive,
-    setIsDevnetAlive,
-    selectedDevnetAccount,
-    setSelectedDevnetAccount,
-    availableDevnetAccounts,
-    setAvailableDevnetAccounts
-  } = useContext(EnvironmentContext)
+  const { account, setAccount } = useAccount()
+  const { provider, setProvider } = useProvider()
+  const { remixClient } = useRemixClient()
+  const env = useAtomValue(envAtom)
+  const devnet = useAtomValue(devnetAtom)
+  const [isDevnetAlive, setIsDevnetAlive] = useAtom(isDevnetAliveAtom)
+  const [selectedDevnetAccount, setSelectedDevnetAccount] = useAtom(selectedDevnetAccountAtom)
+  const [availableDevnetAccounts, setAvailableDevnetAccounts] = useAtom(availableDevnetAccountsAtom)
+
+  const checkDevnetUrl = async (): Promise<void> => {
+    try {
+      const response = await fetch(`${devnet.url}/is_alive`, {
+        method: 'GET',
+        redirect: 'follow',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      const status = await response.text()
+
+      if (status !== 'Alive!!!' || response.status !== 200) {
+        setIsDevnetAlive(false)
+      } else {
+        setIsDevnetAlive(true)
+      }
+    } catch (error) {
+      setIsDevnetAlive(false)
+    }
+  }
 
   // devnet live status
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    const interval = setInterval(async () => {
-      try {
-        const response = await fetch(`${devnet.url}/is_alive`, {
-          method: 'GET',
-          redirect: 'follow',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        })
-        const status = await response.text()
-
-        if (status !== 'Alive!!!' || response.status !== 200) {
-          setIsDevnetAlive(() => false)
-        } else {
-          setIsDevnetAlive(() => true)
-        }
-      } catch (error) {
-        setIsDevnetAlive(() => false)
-      }
-    }, 1000)
+    const interval = setInterval(() => {
+      checkDevnetUrl().catch(e => {
+        console.error(e)
+      })
+    }, 3000)
     return () => {
       clearInterval(interval)
     }
@@ -65,14 +67,14 @@ const DevnetAccountSelector: React.FC = () => {
         `❗️ Server ${devnet.name} - ${devnet.url} is not healthy or not reachable at the moment`
       )
     } catch (e) {
-      console.log(e)
+      console.error(e)
     }
   }
 
   useEffect(() => {
     if (!isDevnetAlive) {
       notifyDevnetStatus().catch((e) => {
-        console.log(e)
+        console.error(e)
       })
     }
   }, [isDevnetAlive])
@@ -96,12 +98,13 @@ const DevnetAccountSelector: React.FC = () => {
   }
 
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    setTimeout(async () => {
+    setTimeout(() => {
       if (!isDevnetAlive) {
         return
       }
-      await refreshDevnetAccounts()
+      refreshDevnetAccounts().catch(e => {
+        console.error(e)
+      })
     }, 1)
   }, [devnet, isDevnetAlive])
 
@@ -164,6 +167,7 @@ const DevnetAccountSelector: React.FC = () => {
   useEffect(() => {
     setAccountIdx(0)
   }, [env])
+
   return (
     <>
       <label className="">Devnet account selection</label>
@@ -181,22 +185,22 @@ const DevnetAccountSelector: React.FC = () => {
           {isDevnetAlive && availableDevnetAccounts.length > 0
             ? availableDevnetAccounts.map((account, index) => {
               return (
-                  <option value={index} key={index}>
-                    {`${getShortenedHash(
-                      account.address ?? '',
-                      6,
-                      4
-                    )} (${getRoundedNumber(
-                      weiToEth(account.initial_balance),
-                      2
-                    )} ether)`}
-                  </option>
+                <option value={index} key={index}>
+                  {`${getShortenedHash(
+                    account.address ?? '',
+                    6,
+                    4
+                  )} (${getRoundedNumber(
+                    weiToEth(account.initial_balance),
+                    2
+                  )} ether)`}
+                </option>
               )
             })
             : ([
-                <option value={-1} key={-1}>
-                  No accounts found
-                </option>
+              <option value={-1} key={-1}>
+                No accounts found
+              </option>
               ] as JSX.Element[])}
         </select>
         <div className="position-relative">

@@ -4,49 +4,41 @@ const devnetUrl = 'http://127.0.0.1:5050'
 
 type Network =
   | 'goerli-alpha'
-  | 'goerli-alpha-2'
   | 'mainnet-alpha'
 
 const networks = [
   { name: 'Testnet', value: 'goerli-alpha' },
-  { name: 'Testnet 2', value: 'goerli-alpha-2' },
   { name: 'Mainnet', value: 'mainnet-alpha' }
 ]
 
 const networkExplorerUrls = {
   voyager: {
     'goerli-alpha': 'https://goerli.voyager.online',
-    'goerli-alpha-2': 'https://goerli-2.voyager.online',
     'mainnet-alpha': 'https://voyager.online'
   },
   starkscan: {
     'goerli-alpha': 'https://testnet.starkscan.co',
-    'goerli-alpha-2': 'https://testnet-2.starkscan.co',
     'mainnet-alpha': 'https://starkscan.co'
   }
 }
 
 const networkEquivalents = new Map([
   ['goerli-alpha', constants.StarknetChainId.SN_GOERLI],
-  ['goerli-alpha-2', constants.StarknetChainId.SN_GOERLI2],
   ['mainnet-alpha', constants.StarknetChainId.SN_MAIN]
 ])
 
 const networkEquivalentsRev = new Map([
   [constants.StarknetChainId.SN_GOERLI, 'goerli-alpha'],
-  [constants.StarknetChainId.SN_GOERLI2, 'goerli-alpha-2'],
   [constants.StarknetChainId.SN_MAIN, 'mainnet-alpha']
 ])
 
 const networkNameEquivalents = new Map([
   ['goerli-alpha', constants.NetworkName.SN_GOERLI],
-  ['goerli-alpha-2', constants.NetworkName.SN_GOERLI2],
   ['mainnet-alpha', constants.NetworkName.SN_MAIN]
 ])
 
 const networkNameEquivalentsRev = new Map([
   [constants.NetworkName.SN_GOERLI, 'goerli-alpha'],
-  [constants.NetworkName.SN_GOERLI2, 'goerli-alpha-2'],
   [constants.NetworkName.SN_MAIN, 'mainnet-alpha']
 ])
 

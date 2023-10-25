@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react'
-import { type Transaction } from '../../types/transaction'
+import { type Transaction } from '../../utils/types/transaction'
 import './transactioncard.css'
 import { type Network, networkEquivalentsRev, type networkExplorerUrls } from '../../utils/constants'
 import { getExplorerUrl } from '../../utils/utils'
