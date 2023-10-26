@@ -1,0 +1,17 @@
+:root {
+    /* Font Size */
+    --font-xs: 0.5rem;
+    --font-sm: 1rem;
+    --font-md: 1.5rem;
+    --font-lg: 2rem;
+    --font-xl: 2.5rem;
+    --font-2xl: 3rem;
+
+    /* Spacing */
+    --space-xs: 0.3rem;
+    --space-sm: 0.5rem;
+    --space-md: 1rem;
+    --space-lg: 2rem;
+    --space-xl: 2.5rem;
+    --space-2xl: 3rem;
+}

@@ -1,0 +1,36 @@
+:root {
+
+    /* Texts */
+    .text-primary {
+        border-color: var(--primary-color);
+    }
+
+    .text-secondary {
+        color: var(--secondary-color);
+    }
+
+    .text-success {
+        color: var(--success-color);
+    }
+
+    .text-information {
+        color: var(--information-color);
+    }
+
+    .text-warning {
+        color: var(--warning-color);
+    }
+
+    .text-error {
+        color: var(--error-color);
+    }
+
+    .text-dark {
+        color: var(--dark);
+    }
+
+    .text-light {
+        background: var(--light);
+    }
+
+}

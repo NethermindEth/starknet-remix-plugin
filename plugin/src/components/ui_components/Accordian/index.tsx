@@ -51,7 +51,7 @@ const Accordian: React.FC<IAccordian> = ({
   value
 }) => (
   <AccordionPrimitive.Root
-    className="AccordionRoot"
+    className="AccordionRoot bg-primary"
     type={type}
     value={value}
     defaultValue={defaultValue}

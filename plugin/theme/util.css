@@ -1,0 +1,16 @@
+:root {
+
+    /* Reset */
+    .reset {
+        all: unset;
+    }
+
+    /* Visibility */
+    .visible {
+        visibility: visible;
+    }
+
+    .invisible {
+        visibility: hidden;
+    }
+}

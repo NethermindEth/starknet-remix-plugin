@@ -1,0 +1,36 @@
+ :root {
+
+    /* Classes Definitions */
+    /* Backgrounds */
+    .bg-primary {
+        background: var(--primary-color);
+    }
+
+    .bg-secondary {
+        background: var(--secondary-color);
+    }
+
+    .bg-success {
+        background: var(--success-color);
+    }
+
+    .bg-information {
+        background: var(--information-color);
+    }
+
+    .bg-warning {
+        background: var(--warning-color);
+    }
+
+    .bg-error {
+        background: var(--error-color);
+    }
+
+    .bg-dark {
+        background: var(--dark);
+    }
+
+    .bg-light {
+        background: var(--light);
+    }
+ }
