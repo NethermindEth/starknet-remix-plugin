@@ -88,7 +88,7 @@ impl RateLimiter {
     fn purge(&self) -> Result<()> {
         let now = timestamp();
 
-        let last_purge = self
+        let mut last_purge = self
             .last_purge
             .lock()
             .map_err(|_| ApiError::MutexUnlockError)?;
@@ -97,11 +97,6 @@ impl RateLimiter {
             info!("Purging call queue in the rate limiter");
 
             self.call_queue.clear();
-
-            let mut last_purge = self
-                .last_purge
-                .lock()
-                .map_err(|_| ApiError::MutexUnlockError)?;
 
             *last_purge = now;
         }
