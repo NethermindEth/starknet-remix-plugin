@@ -1,0 +1,46 @@
+:root {
+    .badge {
+
+    }
+
+    .badge-rounded {
+        border-radius: 50%;
+    }
+
+    .badge-pilled {
+        border-top-left-radius: 50%;
+        border-top-right-radius: 50%;
+        border-bottom-left-radius: 50%;
+        border-bottom-right-radius: 50%;
+    }
+
+    .badge-primary {
+        color: var(--light) !important;
+        background: var(--primary-color) !important;
+    }
+
+    .badge-secondary {
+        color: var(--light) !important;
+        background: var(--secondary-color) !important;
+    }
+
+    .badge-information {
+        color: var(--light) !important;
+        background: var(--information-color) !important;
+    }
+
+    .badge-error {
+        color: var(--light) !important;
+        background: var(--error-color) !important;
+    }
+
+    .badge-success {
+        color: var(--light) !important;
+        background: var(--success-color) !important;
+    }
+
+    .badge-warning {
+        color: var(--light) !important;
+        background: var(--warning-color) !important;
+    }
+}

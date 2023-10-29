@@ -153,6 +153,19 @@
         border-width: var(--space-2xl);
     }
 
+    /* Border Styles */
+    .b-solid {
+        border-style: solid;
+    }
+
+    .b-dashed {
+        border-style: dashed;
+    }
+
+    .b-dotted {
+        border-style: dotted;
+    }
+
     /* Border Colors */
     .border-primary {
         border-color: var(--primary-color);

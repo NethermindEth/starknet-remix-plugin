@@ -7,6 +7,35 @@
     --font-xl: 2.5rem;
     --font-2xl: 3rem;
 
+    .text-xs {
+        font-size: var(--font-xs);
+    }
+
+    .text-sm {
+        font-size: var(--font-sm);
+    }
+
+    .text-md {
+        font-size: var(--font-md);
+    }
+
+    .text-lg {
+        font-size: var(--font-lg);
+    }
+
+    .text-xl {
+        font-size: var(--font-xl);
+    }
+
+    .text-2xl {
+        font-size: var(--font-2xl);
+    }
+
+    .text-xs {
+        font-size: var(--font-xs);
+    }
+    
+
     /* Spacing */
     --space-xs: 0.3rem;
     --space-sm: 0.5rem;

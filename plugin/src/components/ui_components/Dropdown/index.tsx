@@ -28,7 +28,7 @@ interface IContent {
   children?: React.ReactNode
 }
 const Content: React.FC<IContent> = ({ children, ...props }) => (
-  <DropdownMenuPrimitive.Content className="DropdownMenuContent" {...props}>
+  <DropdownMenuPrimitive.Content className="DropdownMenuContent bg-primary" {...props}>
     {children}
   </DropdownMenuPrimitive.Content>
 )
@@ -40,7 +40,7 @@ const Item: React.FC<IItem & DropdownMenuPrimitive.DropdownMenuItemProps> = ({
   children,
   ...props
 }) => (
-  <DropdownMenuPrimitive.Item className="DropdownMenuItem" {...props}>
+  <DropdownMenuPrimitive.Item className="DropdownMenuItem bg-primary" {...props}>
     {children}
   </DropdownMenuPrimitive.Item>
 )
@@ -52,7 +52,7 @@ interface ISubContent {
 }
 const SubContent: React.FC<ISubContent> = ({ children, ...props }) => (
   <DropdownMenuPrimitive.SubContent
-    className="DropdownMenuSubContent"
+    className="DropdownMenuSubContent bg-primary"
     {...props}
   >
     {children}
@@ -64,7 +64,7 @@ interface ISubTrigger {
 }
 const SubTrigger: React.FC<ISubTrigger> = ({ children, ...props }) => (
   <DropdownMenuPrimitive.SubTrigger
-    className="DropdownMenuSubTrigger"
+    className="DropdownMenuSubTrigger bg-primary"
     {...props}
   >
     {children}
@@ -72,7 +72,7 @@ const SubTrigger: React.FC<ISubTrigger> = ({ children, ...props }) => (
 )
 
 const SubDivider: React.FC = () => (
-  <DropdownMenuPrimitive.Separator className="DropdownMenuSeparator" />
+  <DropdownMenuPrimitive.Separator className="DropdownMenuSeparator bg-secondary" />
 )
 
 export {

@@ -12,12 +12,12 @@ export const AccordionTrigger = React.forwardRef<any, any>(
   ({ children, className, ...props }, forwardedRef) => (
     <AccordionPrimitive.Header className="AccordionHeader">
       <AccordionPrimitive.Trigger
-        className={'AccordionTrigger'}
+        className={'AccordionTrigger bg-primary'}
         {...props}
         ref={forwardedRef}
       >
         {children}
-        <BsChevronDown className="AccordionChevron" aria-hidden />
+        <BsChevronDown className="AccordionChevron light" aria-hidden />
       </AccordionPrimitive.Trigger>
     </AccordionPrimitive.Header>
   )
@@ -27,7 +27,7 @@ export const AccordionTrigger = React.forwardRef<any, any>(
 export const AccordionContent = React.forwardRef<any, any>(
   ({ children, className, ...props }, forwardedRef) => (
     <AccordionPrimitive.Content
-      className={'AccordionContent'}
+      className={'AccordionContent bg-primary'}
       {...props}
       ref={forwardedRef}
     >
@@ -51,7 +51,7 @@ const Accordian: React.FC<IAccordian> = ({
   value
 }) => (
   <AccordionPrimitive.Root
-    className="AccordionRoot bg-primary"
+    className="AccordionRoot"
     type={type}
     value={value}
     defaultValue={defaultValue}

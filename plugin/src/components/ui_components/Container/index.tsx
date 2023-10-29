@@ -7,7 +7,7 @@ interface IContainer {
 }
 
 const Container: React.FC<IContainer> = ({ children }) => {
-  return <div className="Container">{children}</div>
+  return <div className="p-2">{children}</div>
 }
 
 export default Container

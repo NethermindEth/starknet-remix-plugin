@@ -3,11 +3,11 @@
     /* Classes Definitions */
     /* Backgrounds */
     .bg-primary {
-        background: var(--primary-color);
+        background: var(--primary-color-900) !important;
     }
 
     .bg-secondary {
-        background: var(--secondary-color);
+        background: var(--secondary-color-900) !important;
     }
 
     .bg-success {
@@ -32,5 +32,9 @@
 
     .bg-light {
         background: var(--light);
+    }
+    
+    .bg-transparent {
+        background: transparent !important;
     }
  }

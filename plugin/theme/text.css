@@ -2,35 +2,52 @@
 
     /* Texts */
     .text-primary {
-        border-color: var(--primary-color);
+        border-color: var(--primary-color) !important;
     }
 
     .text-secondary {
-        color: var(--secondary-color);
+        color: var(--secondary-color) !important;
     }
 
     .text-success {
-        color: var(--success-color);
+        color: var(--success-color) !important;
     }
 
     .text-information {
-        color: var(--information-color);
+        color: var(--information-color) !important;
     }
 
     .text-warning {
-        color: var(--warning-color);
+        color: var(--warning-color) !important;
     }
 
     .text-error {
-        color: var(--error-color);
+        color: var(--error-color) !important;
     }
 
     .text-dark {
-        color: var(--dark);
+        color: var(--dark) !important;
     }
 
     .text-light {
-        background: var(--light);
+        color: var(--light) !important;
+    }
+
+    .text-disabled {
+        color: var(--dark-300) !important;
+    }
+
+    /* Text Alignment */
+    .text-center {
+        text-align: center !important;
+    }
+
+    .text-start {
+        text-align: start !important;
+    }
+
+    .text-end {
+        text-align: end !important;
     }
 
 }

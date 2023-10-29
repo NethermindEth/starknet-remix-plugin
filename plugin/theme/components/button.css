@@ -1,0 +1,7 @@
+:root {
+    .btn {
+        color: var(--light);
+        padding: var(--space-sm)
+    }
+
+}
