@@ -1,7 +1,110 @@
 :root {
     .btn {
+        all: unset;
+        padding: var(--space-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.1s ease-in-out;
+    }
+
+    .btn:hover {
+        cursor: pointer;
+    }
+
+    .btn label {
+        padding: 0px;
+        margin: 0px;
+    }
+
+    .btn-primary {
         color: var(--light);
-        padding: var(--space-sm)
+        background-color: var(--primary-color-600);
+    }
+
+    .btn-primary.disabled,
+    .btn-primary.disabled:hover {
+        color: var(--light-200);
+        background-color: var(--primary-color-700);
+    }
+
+    .btn-primary:hover {
+        background-color: var(--primary-color-800);
+    }
+
+    .btn-secondary {
+        color: var(--light);
+        background-color: var(--secondary-color-700);
+    }
+
+    .btn-secondary.disabled,
+    .btn-secondary.disabled:hover {
+        color: var(--light-200);
+        background-color: var(--secondary-color-700);
+    }
+
+    .btn-secondary:hover {
+        background-color: var(--secondary-color-800);
+    }
+
+    .btn-success {
+        color: var(--light);
+        background-color: var(--success-color-700);
+    }
+
+    .btn-success.disabled,
+    .btn-success.disabled:hover {
+        color: var(--light-200);
+        background-color: var(--success-color-700);
+    }
+
+    .btn-success:hover {
+        background-color: var(--success-color-800);
+    }
+
+    .btn-information {
+        color: var(--light);
+        background-color: var(--information-color-700);
+    }
+
+    .btn-information.disabled,
+    .btn-information.disabled:hover {
+        color: var(--light-200);
+        background-color: var(--information-color-700);
+    }
+
+    .btn-information:hover {
+        background-color: var(--information-color-800);
+    }
+
+    .btn-warning {
+        color: var(--light);
+        background-color: var(--warning-color-700);
+    }
+
+    .btn-warning.disabled,
+    .btn-warning.disabled:hover {
+        color: var(--light-200);
+        background-color: var(--warning-color-700);
+    }
+
+    .btn-warning:hover {
+        background-color: var(--warning-color-800);
+    }
+
+    .btn-error {
+        color: var(--light);
+        background-color: var(--error-color-700);
+    }
+
+    .btn-error.disabled,
+    .btn-error.disabled:hover {
+        color: var(--light-200);
+        background-color: var(--error-color-700);
+    }
+
+    .btn-error:hover {
+        background-color: var(--error-color-800);
     }
 
 }

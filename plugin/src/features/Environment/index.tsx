@@ -35,7 +35,7 @@ const Environment: React.FC = () => {
               <p>Environment</p>
               <button
                 type="button"
-                className="mb-0 btn btn-sm btn-outline-secondary float-right rounded-pill env-testnet-btn"
+                className="mb-0 btn float-right rounded-pill env-testnet-btn"
                 onClick={(e) => {
                   e.stopPropagation()
                   if (env !== 'manual') setPrevEnv(env)

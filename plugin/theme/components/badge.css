@@ -1,6 +1,8 @@
 :root {
     .badge {
-
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .badge-rounded {
