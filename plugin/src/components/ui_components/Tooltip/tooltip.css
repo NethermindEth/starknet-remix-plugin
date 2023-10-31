@@ -8,11 +8,11 @@ button {
   padding: 10px 15px;
   font-size: 15px;
   line-height: 1;
-  color: var(--textPrimary);
-  background-color: var(--bgPrimary);
-  border: 1px solid var(--borderPrimary);
-  box-shadow: hsl(206 22% 7% / 35%) 0px 10px 38px -10px,
-    hsl(206 22% 7% / 20%) 0px 10px 20px -15px;
+  color: var(--text);
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow) 0px 10px 38px -10px,
+    var(--shadow) 0px 10px 20px -15px;
   user-select: none;
   animation-duration: 400ms;
   animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
@@ -43,8 +43,8 @@ button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: var(--textPrimary);
-  background-color: transparent;
+  color: var(--text);
+  background-color: var(--background);
 }
 .TooltipIconButton:hover {
   background-color: rgba(0, 0, 0, 0.5);
@@ -96,3 +96,31 @@ button {
     transform: translateX(0);
   }
 }
++:root {
++  --light-background: #ffffff;
++  --dark-background: #000000;
++  --light-text: #000000;
++  --dark-text: #ffffff;
++  --light-border: #000000;
++  --dark-border: #ffffff;
++  --light-shadow: rgba(22, 23, 24, 0.35);
++  --dark-shadow: rgba(255, 255, 255, 0.35);
++}
++
++@media (prefers-color-scheme: dark) {
++  :root {
++    --background: var(--dark-background);
++    --text: var(--dark-text);
++    --border: var(--dark-border);
++    --shadow: var(--dark-shadow);
++  }
++}
++
++@media (prefers-color-scheme: light) {
++  :root {
++    --background: var(--light-background);
++    --text: var(--light-text);
++    --border: var(--light-border);
++    --shadow: var(--light-shadow);
++  }
++}
