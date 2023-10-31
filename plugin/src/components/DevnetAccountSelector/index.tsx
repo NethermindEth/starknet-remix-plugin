@@ -15,6 +15,7 @@ import { availableDevnetAccountsAtom, devnetAtom, envAtom, isDevnetAliveAtom, se
 import useAccount from '../../hooks/useAccount'
 import useProvider from '../../hooks/useProvider'
 import useRemixClient from '../../hooks/useRemixClient'
+import '../../styles/theme.css'
 
 const DevnetAccountSelector: React.FC = () => {
   const { account, setAccount } = useAccount()
