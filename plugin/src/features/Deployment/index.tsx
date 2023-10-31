@@ -23,7 +23,7 @@ import useProvider from '../../hooks/useProvider'
 import useRemixClient from '../../hooks/useRemixClient'
 import { type Address } from 'starknet'
 
-const [preDeployedAddress, setPreDeployedAddress] = useState<Address | null>(null)
+const [preDeployedAddress, setPreDeployedAddress] = useState<string | null>(null)
 =======
 ```
 ```
@@ -112,15 +112,21 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       type: 'info',
       title: `Deploying ${selectedContract?.name ?? ''} ...`
     })
-    let classHash = selectedContract?.sierraClassHash
-    let updatedTransactions = transactions
+    let classHash;
+    let updatedTransactions = transactions;
     try {
       if (account === null || provider === null) {
-        throw new Error('No account or provider selected!')
+        throw new Error('No account or provider selected!');
       }
 
-      if (selectedContract === null) {
-        throw new Error('No contract selected for deployment!')
+      if (preDeployedAddress !== null) {
+        const classHashResponse = await fetch(`https://starknet.io/${preDeployedAddress}`);
+        const classHashData = await classHashResponse.json();
+        classHash = classHashData.result;
+      } else if (selectedContract === null) {
+        throw new Error('No contract selected for deployment!');
+      } else {
+        classHash = selectedContract?.sierraClassHash;
       }
 
       setDeployStatus('Declaring...')
