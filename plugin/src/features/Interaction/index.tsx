@@ -64,6 +64,124 @@ const Interaction: React.FC<InteractionProps> = (props) => {
         }
       })
     }
++  const [preDeployedAddress, setPreDeployedAddress] = useState<string | null>(null)
+=======
+```
+```
+<<<<<<< APPEND (index=0)
++                <div className="udapp_multiArg constructor-label-wrapper">
++                  <label className="constructor-label">
++                    {"Pre-deployed Address: "}
++                  </label>
++                  <input
++                    className="form-control constructor-input"
++                    name="preDeployedAddress"
++                    value={preDeployedAddress ?? ''}
++                    onChange={(event) => setPreDeployedAddress(event.target.value)}
++                  />
++                </div>
+=======
+```
+```
+<<<<<<< REPLACE (index=3)
+  const getInvocation = (
+    contractAddress: string,
+    entrypoint: string,
+    calldata: BigNumberish[] = []
+  ): ((
+      account: Account | AccountInterface
+    ) => Promise<InvokeFunctionResponse>) => {
+    const invocation = async (
+      account: Account | AccountInterface
+    ): Promise<InvokeFunctionResponse> => {
+      const response = await account.execute({
+        contractAddress,
+        entrypoint,
+        calldata: calldata as RawCalldata
+      })
+      setTransactions([
+        {
+          type: 'invoke',
+          account,
+          provider,
+          txId: response.transaction_hash,
+          env
+        },
+        ...transactions
+      ])
+      await remixClient.call('terminal', 'log', {
+        value: {
+          response,
+          contract: selectedContract?.name,
+          function: entrypoint
+        },
+        type: 'info'
+      })
+      const currNotifCount = storage.get('notifCount')
+      if (currNotifCount !== undefined) {
+        const notifCount = parseInt(currNotifCount)
+        if (notifCount === 0) {
+          await remixClient.call(
+            'notification' as any,
+            'toast',
+            'ℹ️ Responses are written to the terminal log'
+          )
+        }
+        storage.set('notifCount', (notifCount + 1) % 7)
+      }
+      return response
+    }
+    return invocation
+  }
+=======
+  const getInvocation = (
+    contractAddress: string,
+    entrypoint: string,
+    calldata: BigNumberish[] = []
+  ): ((
+      account: Account | AccountInterface
+    ) => Promise<InvokeFunctionResponse>) => {
+    const invocation = async (
+      account: Account | AccountInterface
+    ): Promise<InvokeFunctionResponse> => {
+      const response = await account.execute({
+        contractAddress: preDeployedAddress ?? contractAddress,
+        entrypoint,
+        calldata: calldata as RawCalldata
+      })
+      setTransactions([
+        {
+          type: 'invoke',
+          account,
+          provider,
+          txId: response.transaction_hash,
+          env
+        },
+        ...transactions
+      ])
+      await remixClient.call('terminal', 'log', {
+        value: {
+          response,
+          contract: selectedContract?.name,
+          function: entrypoint
+        },
+        type: 'info'
+      })
+      const currNotifCount = storage.get('notifCount')
+      if (currNotifCount !== undefined) {
+        const notifCount = parseInt(currNotifCount)
+        if (notifCount === 0) {
+          await remixClient.call(
+            'notification' as any,
+            'toast',
+            'ℹ️ Responses are written to the terminal log'
+          )
+        }
+        storage.set('notifCount', (notifCount + 1) % 7)
+      }
+      return response
+    }
+    return invocation
   }
   const setWriteState = (writeState: EnhancedAbiElement[]): void => {
     if (selectedContract != null) {
@@ -258,7 +376,7 @@ const Interaction: React.FC<InteractionProps> = (props) => {
       account: Account | AccountInterface
     ): Promise<InvokeFunctionResponse> => {
       const response = await account.execute({
-        contractAddress,
+        contractAddress: preDeployedAddress ?? contractAddress,
         entrypoint,
         calldata: calldata as RawCalldata
       })
@@ -574,7 +692,7 @@ const Interaction: React.FC<InteractionProps> = (props) => {
         })
       } else {
         const invocation = getInvocation(
-          selectedContract?.address,
+          preDeployedAddress ?? selectedContract?.address,
           name,
           (callData?.flat() as BigNumberish[]) ?? []
         )
@@ -909,5 +1027,39 @@ const Interaction: React.FC<InteractionProps> = (props) => {
     </Container>
   )
 }
+
++  const [preDeployedAddress, setPreDeployedAddress] = useState<string | null>(null)
+=======
+```
+```
+<<<<<<< APPEND (index=2)
++                <div className="udapp_multiArg constructor-label-wrapper">
++                  <label className="constructor-label">
++                    {"Pre-deployed Address: "}
++                  </label>
++                  <input
++                    className="form-control constructor-input"
++                    name="preDeployedAddress"
++                    value={preDeployedAddress ?? ''}
++                    onChange={(event) => setPreDeployedAddress(event.target.value)}
++                  />
++                </div>
+=======
+```
+```
+<<<<<<< REPLACE (index=1)
+        const invocation = getInvocation(
+          selectedContract?.address,
+          name,
+          (callData?.flat() as BigNumberish[]) ?? []
+        )
+        const response = await invocation(account)
+=======
+        const invocation = getInvocation(
+          preDeployedAddress ?? selectedContract?.address,
+          name,
+          (callData?.flat() as BigNumberish[]) ?? []
+        )
+        const response = await invocation(account)
 
 export default Interaction
