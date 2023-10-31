@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { CSSProperties } from 'react'
 import {
   getContractNameFromFullName,
   getSelectedContractIndex,
@@ -27,6 +27,7 @@ const CompiledContracts: React.FC<CompiledContractsProps> = (props) => {
         handleCompiledContractSelectionChange(e)
       }}
       defaultValue={getSelectedContractIndex(contracts, selectedContract)}
+      style={{backgroundColor: 'var(--background)', color: 'var(--text)'}}
     >
       {contracts.map((contract, index) => {
         return (
