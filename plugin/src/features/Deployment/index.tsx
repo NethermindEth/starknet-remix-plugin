@@ -22,6 +22,8 @@ import useAccount from '../../hooks/useAccount'
 import useProvider from '../../hooks/useProvider'
 import useRemixClient from '../../hooks/useRemixClient'
 import { type Address } from 'starknet'
+
+const [preDeployedAddress, setPreDeployedAddress] = useState<Address | null>(null)
 =======
 ```
 ```
