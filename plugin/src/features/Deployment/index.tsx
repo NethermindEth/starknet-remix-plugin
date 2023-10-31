@@ -442,11 +442,10 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       const classHash = await fetchAddress(inputValue)
       const classData = await fetchClass(classHash)
       // handle class data
-    } else {
-      const classHash = await getClassHashAt(inputValue)
-      const classData = await getClassByHash(classHash)
-      // handle class data
     }
+    const classHash = await getClassHashAt(inputValue)
+    const classData = await getClassByHash(classHash)
+    // handle class data
     handleCloseModal()
   }
 
