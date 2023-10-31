@@ -1,23 +1,4 @@
-:root {
-  --light-background: #ffffff;
-  --dark-background: #000000;
-  --light-text: #000000;
-  --dark-text: #ffffff;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: var(--dark-background);
-    --text: var(--dark-text);
-  }
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    --background: var(--light-background);
-    --text: var(--light-text);
-  }
-}
+@import '../../styles/theme.css';
 
 .Container {
   padding: 0.5rem;
