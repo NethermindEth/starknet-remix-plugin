@@ -1,31 +1,4 @@
-:root {
-  --light-background: #ffffff;
-  --dark-background: #000000;
-  --light-text: #000000;
-  --dark-text: #ffffff;
-  --light-border: #000000;
-  --dark-border: #ffffff;
-  --light-shadow: rgba(22, 23, 24, 0.35);
-  --dark-shadow: rgba(255, 255, 255, 0.35);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: var(--dark-background);
-    --text: var(--dark-text);
-    --border: var(--dark-border);
-    --shadow: var(--dark-shadow);
-  }
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    --background: var(--light-background);
-    --text: var(--light-text);
-    --border: var(--light-border);
-    --shadow: var(--light-shadow);
-  }
-}
+@import '../../styles/theme.css';
 
 /* reset */
 button,
