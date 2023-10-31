@@ -171,7 +171,7 @@ const DevnetAccountSelector: React.FC = () => {
   return (
     <>
       <label className="">Devnet account selection</label>
-      <div className="devnet-account-selector-wrapper">
+      <div className="devnet-account-selector-wrapper" style={{backgroundColor: 'var(--background)', color: 'var(--text)'}}>
         <select
           className="custom-select"
           aria-label=".form-select-sm example"
@@ -181,6 +181,7 @@ const DevnetAccountSelector: React.FC = () => {
             availableDevnetAccounts,
             selectedDevnetAccount
           )}
+          style={{backgroundColor: 'var(--background)', color: 'var(--text)'}}
         >
           {isDevnetAlive && availableDevnetAccounts.length > 0
             ? availableDevnetAccounts.map((account, index) => {
@@ -213,11 +214,12 @@ const DevnetAccountSelector: React.FC = () => {
                 setCopied(false)
               }, 1000)
             }}
+            style={{backgroundColor: 'var(--background)', color: 'var(--text)'}}
           >
             <MdCopyAll />
           </button>
           {showCopied && (
-            <p className="position-absolute text-copied">Copied</p>
+            <p className="position-absolute text-copied" style={{backgroundColor: 'var(--background)'}}>Copied</p>
           )}
         </div>
         <button
