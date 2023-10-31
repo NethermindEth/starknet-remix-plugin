@@ -9,6 +9,7 @@ import {
   compiledContractsAtom,
   selectedCompiledContract
 } from '../../atoms/compiledContracts'
+import '../../styles/theme.css'
 interface CompiledContractsProps {
   show: 'class' | 'contract'
 }
