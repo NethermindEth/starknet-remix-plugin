@@ -1,6 +1,7 @@
 import { type ReactNode } from 'react'
 import React from 'react'
 import './card.css'
+import '../../styles/theme.css'
 
 export interface CardProps {
   header?: string
