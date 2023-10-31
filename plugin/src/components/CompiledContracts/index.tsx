@@ -5,18 +5,27 @@ import {
   getShortenedHash
 } from '../../utils/utils'
 import { useAtom } from 'jotai'
-import { compiledContractsAtom, selectedCompiledContract } from '../../atoms/compiledContracts'
+import {
+  compiledContractsAtom,
+  selectedCompiledContract
+} from '../../atoms/compiledContracts'
 interface CompiledContractsProps {
   show: 'class' | 'contract'
 }
 
 const CompiledContracts: React.FC<CompiledContractsProps> = (props) => {
   const [contracts] = useAtom(compiledContractsAtom)
-  const [selectedContract, setSelectedContract] = useAtom(selectedCompiledContract)
+  const [selectedContract, setSelectedContract] = useAtom(
+    selectedCompiledContract
+  )
 
-  const handleCompiledContractSelectionChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
+  const handleCompiledContractSelectionChange = (
+    event: React.ChangeEvent<HTMLSelectElement>
+  ): void => {
     event.preventDefault()
-    if (!isNaN(parseInt(event?.target?.value))) { setSelectedContract(contracts[event.target.value as unknown as number]) }
+    if (!isNaN(parseInt(event?.target?.value))) {
+      setSelectedContract(contracts[event.target.value as unknown as number])
+    }
   }
 
   return (
@@ -27,7 +36,7 @@ const CompiledContracts: React.FC<CompiledContractsProps> = (props) => {
         handleCompiledContractSelectionChange(e)
       }}
       defaultValue={getSelectedContractIndex(contracts, selectedContract)}
-      style={{backgroundColor: 'var(--background)', color: 'var(--text)'}}
+      style={{ backgroundColor: 'var(--background)', color: 'var(--text)' }}
     >
       {contracts.map((contract, index) => {
         return (
