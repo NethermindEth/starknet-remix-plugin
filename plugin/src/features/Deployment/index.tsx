@@ -26,7 +26,7 @@ import useProvider from '../../hooks/useProvider'
 import useRemixClient from '../../hooks/useRemixClient'
 import { Modal } from 'react-bootstrap'
 import { FELT } from '../../utils/types'
-import { getClassByHash, getClassHashAt } from '../../utils/rpc'
+import { fetchClass, fetchAddress } from '../../utils/fetchContract'
 import {
   constructorInputsAtom,
   deployStatusAtom,
@@ -108,8 +108,8 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       setDeployStatus('Declaring...')
       try {
         try {
-          await account.getClassByHash(selectedContract.sierraClassHash)
-          await remixClient.call(
+          const classData = await fetchClass(selectedContract.sierraClassHash)
+          // handle class data
             'notification' as any,
             'toast',
             `ℹ️ Contract with classHash: ${selectedContract.sierraClassHash} already has been declared, proceeding to deployment...`
@@ -436,7 +436,11 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   const handleInputSubmit = async () => {
     const isClassHash = FELT.test(inputValue)
     if (isClassHash) {
-      const classData = await getClassByHash(inputValue)
+      const classData = await fetchClass(inputValue)
+      // handle class data
+    } else {
+      const classHash = await fetchAddress(inputValue)
+      const classData = await fetchClass(classHash)
       // handle class data
     } else {
       const classHash = await getClassHashAt(inputValue)
