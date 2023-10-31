@@ -21,6 +21,9 @@ import { envAtom } from '../../atoms/environment'
 import useAccount from '../../hooks/useAccount'
 import useProvider from '../../hooks/useProvider'
 import useRemixClient from '../../hooks/useRemixClient'
+import { Modal } from 'react-bootstrap';
+import { FELT } from '../../utils/types';
+import { getClassByHash, getClassHashAt } from '../../utils/rpc';
 import { constructorInputsAtom, deployStatusAtom, deploymentAtom, isDeployingAtom, notEnoughInputsAtom } from '../../atoms/deployment'
 interface DeploymentProps {
   setActiveTab: (tab: AccordianTabs) => void
@@ -277,6 +280,183 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   return (
     <>
       <Container>
+        {contracts.length > 0 && selectedContract != null
+          ? (
+            <div className="">
+              <CompiledContracts show={'class'} />
+              <form onSubmit={handleDeploySubmit}>
+                {constructorInputs.map((input, index) => {
+                  return (
+                    <div
+                      className="udapp_multiArg constructor-label-wrapper"
+                      key={index}
+                    >
+                      <label key={index} className="constructor-label">
+                        {`${input.name} (${getParameterType(input.type) ?? ''
+                          }): `}
+                      </label>
+                      <input
+                        className="form-control constructor-input"
+                        name={input.name}
+                        data-type={input.type}
+                        data-index={index}
+                        value={constructorCalldata[index]?.value ?? ''}
+                        onChange={handleConstructorCalldataChange}
+                      />
+                    </div>
+                  )
+                })}
+                <button
+                  className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3 px-0"
+                  style={{
+                    cursor: `${isDeploying ||
+                      account == null ||
+                      selectedContract.deployedInfo.some(
+                        (info) =>
+                          info.address === account.address &&
+                          info.chainId === chainId
+                      )
+                      ? 'not-allowed'
+                      : 'pointer'
+                      }`
+                  }}
+                  disabled={
+                    isDeploying ||
+                    account == null ||
+                    selectedContract.deployedInfo.some(
+                      (info) =>
+                        info.address === account.address &&
+                        info.chainId === chainId
+                    )
+                  }
+                  aria-disabled={
+                    isDeploying ||
+                    account == null ||
+                    selectedContract.deployedInfo.some(
+                      (info) =>
+                        info.address === account.address &&
+                        info.chainId === chainId
+                    )
+                  }
+                  type="submit"
+                >
+                  <div className="d-flex align-items-center justify-content-center">
+                    <div className="text-truncate overflow-hidden text-nowrap">
+                      {isDeploying
+                        ? (
+                          <>
+                            <span
+                              className="spinner-border spinner-border-sm"
+                              role="status"
+                              aria-hidden="true"
+                            >
+                              {' '}
+                            </span>
+                            <span style={{ paddingLeft: '0.5rem' }}>
+                              {deployStatus}
+                            </span>
+                          </>
+                          )
+                        : (
+                          <div className="text-truncate overflow-hidden text-nowrap">
+                            {account != null &&
+                              selectedContract.deployedInfo.some(
+                                (info) =>
+                                  info.address === account.address &&
+                                  info.chainId === chainId
+                              )
+                              ? (
+                                <span>
+                                  {' '}
+                                  Deployed <i className="bi bi-check"></i>{' '}
+                                  {selectedContract.name}
+                                </span>
+                                )
+                              : (
+                                <span> Deploy {selectedContract.name}</span>
+                                )}
+                          </div>
+                          )}
+                    </div>
+                  </div>
+                </button>
+              </form>
+              {account != null &&
+                selectedContract.deployedInfo.some(
+                  (info) =>
+                    info.address === account.address && info.chainId === chainId
+                ) && (
+                  <div className="mt-3">
+                    <label style={{ display: 'block' }}>
+                      Contract deployed! See{' '}
+                      <a
+                        href="/"
+                        className="text-info"
+                        onClick={(e) => {
+                          e.preventDefault()
+                          setActiveTab('interaction')
+                        }}
+                      >
+                        Interact
+                      </a>{' '}
+                      for more!
+                    </label>
+                  </div>
+              )}
+              {notEnoughInputs && (
+                <label>Please fill out all constructor fields!</label>
+              )}
+            </div>
+            )
+          : (
+            <p>No contracts ready for deployment yet, compile a cairo contract</p>
+            )}
+      </Container>
+    </>
+  )
+  const [showModal, setShowModal] = useState(false);
+  const [inputValue, setInputValue] = useState('');
+  
+  const handleOpenModal = () => {
+    setShowModal(true);
+  };
+  
+  const handleCloseModal = () => {
+    setShowModal(false);
+  };
+  
+  const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(event.target.value);
+  };
+  
+  const handleInputSubmit = async () => {
+    const isClassHash = FELT.test(inputValue);
+    if (isClassHash) {
+      const classData = await getClassByHash(inputValue);
+      // handle class data
+    } else {
+      const classHash = await getClassHashAt(inputValue);
+      const classData = await getClassByHash(classHash);
+      // handle class data
+    }
+    handleCloseModal();
+  };
+  
+  return (
+    <>
+      <Container>
+        <button onClick={handleOpenModal}>+</button>
+        <Modal show={showModal} onHide={handleCloseModal}>
+          <Modal.Header closeButton>
+            <Modal.Title>Enter Class Hash or Contract Address</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <input type="text" value={inputValue} onChange={handleInputChange} />
+          </Modal.Body>
+          <Modal.Footer>
+            <button onClick={handleInputSubmit}>Submit</button>
+          </Modal.Footer>
+        </Modal>
         {contracts.length > 0 && selectedContract != null
           ? (
             <div className="">
