@@ -11,7 +11,13 @@ import { MdCopyAll, MdRefresh } from 'react-icons/md'
 import './devnetAccountSelector.css'
 import copy from 'copy-to-clipboard'
 import { useAtom, useAtomValue } from 'jotai'
-import { availableDevnetAccountsAtom, devnetAtom, envAtom, isDevnetAliveAtom, selectedDevnetAccountAtom } from '../../atoms/environment'
+import {
+  availableDevnetAccountsAtom,
+  devnetAtom,
+  envAtom,
+  isDevnetAliveAtom,
+  selectedDevnetAccountAtom
+} from '../../atoms/environment'
 import useAccount from '../../hooks/useAccount'
 import useProvider from '../../hooks/useProvider'
 import useRemixClient from '../../hooks/useRemixClient'
@@ -24,8 +30,12 @@ const DevnetAccountSelector: React.FC = () => {
   const env = useAtomValue(envAtom)
   const devnet = useAtomValue(devnetAtom)
   const [isDevnetAlive, setIsDevnetAlive] = useAtom(isDevnetAliveAtom)
-  const [selectedDevnetAccount, setSelectedDevnetAccount] = useAtom(selectedDevnetAccountAtom)
-  const [availableDevnetAccounts, setAvailableDevnetAccounts] = useAtom(availableDevnetAccountsAtom)
+  const [selectedDevnetAccount, setSelectedDevnetAccount] = useAtom(
+    selectedDevnetAccountAtom
+  )
+  const [availableDevnetAccounts, setAvailableDevnetAccounts] = useAtom(
+    availableDevnetAccountsAtom
+  )
 
   const checkDevnetUrl = async (): Promise<void> => {
     try {
@@ -51,7 +61,7 @@ const DevnetAccountSelector: React.FC = () => {
   // devnet live status
   useEffect(() => {
     const interval = setInterval(() => {
-      checkDevnetUrl().catch(e => {
+      checkDevnetUrl().catch((e) => {
         console.error(e)
       })
     }, 3000)
@@ -103,7 +113,7 @@ const DevnetAccountSelector: React.FC = () => {
       if (!isDevnetAlive) {
         return
       }
-      refreshDevnetAccounts().catch(e => {
+      refreshDevnetAccounts().catch((e) => {
         console.error(e)
       })
     }, 1)
@@ -139,7 +149,7 @@ const DevnetAccountSelector: React.FC = () => {
     setProvider(newProvider)
   }, [devnet, selectedDevnetAccount])
 
-  function handleAccountChange (event: any): void {
+  function handleAccountChange(event: any): void {
     if (event.target.value === -1) {
       return
     }
@@ -172,7 +182,10 @@ const DevnetAccountSelector: React.FC = () => {
   return (
     <>
       <label className="">Devnet account selection</label>
-      <div className="devnet-account-selector-wrapper" style={{backgroundColor: 'var(--background)', color: 'var(--text)'}}>
+      <div
+        className="devnet-account-selector-wrapper"
+        style={{ backgroundColor: 'var(--background)', color: 'var(--text)' }}
+      >
         <select
           className="custom-select"
           aria-label=".form-select-sm example"
@@ -182,27 +195,27 @@ const DevnetAccountSelector: React.FC = () => {
             availableDevnetAccounts,
             selectedDevnetAccount
           )}
-          style={{backgroundColor: 'var(--background)', color: 'var(--text)'}}
+          style={{ backgroundColor: 'var(--background)', color: 'var(--text)' }}
         >
           {isDevnetAlive && availableDevnetAccounts.length > 0
             ? availableDevnetAccounts.map((account, index) => {
-              return (
-                <option value={index} key={index}>
-                  {`${getShortenedHash(
-                    account.address ?? '',
-                    6,
-                    4
-                  )} (${getRoundedNumber(
-                    weiToEth(account.initial_balance),
-                    2
-                  )} ether)`}
-                </option>
-              )
-            })
+                return (
+                  <option value={index} key={index}>
+                    {`${getShortenedHash(
+                      account.address ?? '',
+                      6,
+                      4
+                    )} (${getRoundedNumber(
+                      weiToEth(account.initial_balance),
+                      2
+                    )} ether)`}
+                  </option>
+                )
+              })
             : ([
-              <option value={-1} key={-1}>
-                No accounts found
-              </option>
+                <option value={-1} key={-1}>
+                  No accounts found
+                </option>
               ] as JSX.Element[])}
         </select>
         <div className="position-relative">
@@ -215,12 +228,20 @@ const DevnetAccountSelector: React.FC = () => {
                 setCopied(false)
               }, 1000)
             }}
-            style={{backgroundColor: 'var(--background)', color: 'var(--text)'}}
+            style={{
+              backgroundColor: 'var(--background)',
+              color: 'var(--text)'
+            }}
           >
             <MdCopyAll />
           </button>
           {showCopied && (
-            <p className="position-absolute text-copied" style={{backgroundColor: 'var(--background)'}}>Copied</p>
+            <p
+              className="position-absolute text-copied"
+              style={{ backgroundColor: 'var(--background)' }}
+            >
+              Copied
+            </p>
           )}
         </div>
         <button
