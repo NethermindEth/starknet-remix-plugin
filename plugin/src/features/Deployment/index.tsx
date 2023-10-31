@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from 'react'
 
-import { type BigNumberish } from 'ethers'
+import { BigNumberish } from 'ethers'
 import CompiledContracts from '../../components/CompiledContracts'
 import {
-  type CallDataObj,
-  type CallDataObject,
-  type Contract
+  CallDataObj,
+  CallDataObject,
+  Contract
 } from '../../utils/types/contracts'
 import { getConstructor, getParameterType } from '../../utils/utils'
 import Container from '../../components/ui_components/Container'
 
-import { type AccordianTabs } from '../Plugin'
+import { AccordianTabs } from '../Plugin'
 import { constants } from 'starknet'
 import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import transactionsAtom from '../../atoms/transactions'
@@ -21,9 +21,67 @@ import { envAtom } from '../../atoms/environment'
 import useAccount from '../../hooks/useAccount'
 import useProvider from '../../hooks/useProvider'
 import useRemixClient from '../../hooks/useRemixClient'
-import { type Address } from 'starknet'
+import { Address } from 'starknet'
 
 const [preDeployedAddress, setPreDeployedAddress] = useState<string | null>(null)
+```
+```
+<<<<<<< APPEND (index=0)
+  const [preDeployedAddress, setPreDeployedAddress] = useState<string | null>(null)
+```
+```
+<<<<<<< APPEND (index=0)
+                <div className="udapp_multiArg constructor-label-wrapper">
+                  <label className="constructor-label">
+                    {"Pre-deployed Address: "}
+                  </label>
+                  <input
+                    className="form-control constructor-input"
+                    name="preDeployedAddress"
+                    value={preDeployedAddress ?? ''}
+                    onChange={(event) => setPreDeployedAddress(event.target.value)}
+                  />
+                </div>
+```
+```
+<<<<<<< REPLACE (index=1)
+    let classHash;
+    let updatedTransactions = transactions;
+    try {
+      if (account === null || provider === null) {
+        throw new Error('No account or provider selected!');
+      }
+
+      if (preDeployedAddress !== null) {
+        const classHashResponse = await fetch(`https://starknet.io/${preDeployedAddress}`);
+        const classHashData = await classHashResponse.json();
+        classHash = classHashData.result;
+      } else if (selectedContract === null) {
+        throw new Error('No contract selected for deployment!');
+      } else {
+        classHash = selectedContract?.sierraClassHash;
+      }
+
+      setDeployStatus('Declaring...')
+=======
+    let classHash;
+    let updatedTransactions = transactions;
+    try {
+      if (account === null || provider === null) {
+        throw new Error('No account or provider selected!');
+      }
+
+      if (preDeployedAddress !== null) {
+        const classHashResponse = await fetch(`https://starknet.io/getClassHashAt/${preDeployedAddress}`);
+        const classHashData = await classHashResponse.json();
+        classHash = classHashData.result;
+      } else if (selectedContract === null) {
+        throw new Error('No contract selected for deployment!');
+      } else {
+        classHash = selectedContract?.sierraClassHash;
+      }
+
+      setDeployStatus('Declaring...')
 =======
 ```
 ```
@@ -49,6 +107,61 @@ const [preDeployedAddress, setPreDeployedAddress] = useState<string | null>(null
                     onChange={(event) => setPreDeployedAddress(event.target.value)}
                   />
                 </div>
+  const [preDeployedAddress, setPreDeployedAddress] = useState<string | null>(null)
+```
+```
+<<<<<<< APPEND (index=0)
+                <div className="udapp_multiArg constructor-label-wrapper">
+                  <label className="constructor-label">
+                    {"Pre-deployed Address: "}
+                  </label>
+                  <input
+                    className="form-control constructor-input"
+                    name="preDeployedAddress"
+                    value={preDeployedAddress ?? ''}
+                    onChange={(event) => setPreDeployedAddress(event.target.value)}
+                  />
+                </div>
+```
+```
+<<<<<<< REPLACE (index=1)
+    let classHash;
+    let updatedTransactions = transactions;
+    try {
+      if (account === null || provider === null) {
+        throw new Error('No account or provider selected!');
+      }
+
+      if (preDeployedAddress !== null) {
+        const classHashResponse = await fetch(`https://starknet.io/${preDeployedAddress}`);
+        const classHashData = await classHashResponse.json();
+        classHash = classHashData.result;
+      } else if (selectedContract === null) {
+        throw new Error('No contract selected for deployment!');
+      } else {
+        classHash = selectedContract?.sierraClassHash;
+      }
+
+      setDeployStatus('Declaring...')
+=======
+    let classHash;
+    let updatedTransactions = transactions;
+    try {
+      if (account === null || provider === null) {
+        throw new Error('No account or provider selected!');
+      }
+
+      if (preDeployedAddress !== null) {
+        const classHashResponse = await fetch(`https://starknet.io/getClassHashAt/${preDeployedAddress}`);
+        const classHashData = await classHashResponse.json();
+        classHash = classHashData.result;
+      } else if (selectedContract === null) {
+        throw new Error('No contract selected for deployment!');
+      } else {
+        classHash = selectedContract?.sierraClassHash;
+      }
+
+      setDeployStatus('Declaring...')
 import { constructorInputsAtom, deployStatusAtom, deploymentAtom, isDeployingAtom, notEnoughInputsAtom } from '../../atoms/deployment'
 interface DeploymentProps {
   setActiveTab: (tab: AccordianTabs) => void
