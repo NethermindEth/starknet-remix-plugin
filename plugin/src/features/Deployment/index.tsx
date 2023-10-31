@@ -21,6 +21,32 @@ import { envAtom } from '../../atoms/environment'
 import useAccount from '../../hooks/useAccount'
 import useProvider from '../../hooks/useProvider'
 import useRemixClient from '../../hooks/useRemixClient'
+import { type Address } from 'starknet'
+=======
+```
+```
+<<<<<<< APPEND (index=1)
+  const [preDeployedAddress, setPreDeployedAddress] = useState<Address | null>(null)
+=======
+```
+```
+<<<<<<< APPEND (index=2)
+  const [preDeployedAddress, setPreDeployedAddress] = useState<Address | null>(null)
+=======
+```
+```
+<<<<<<< APPEND (index=3)
+                <div className="udapp_multiArg constructor-label-wrapper">
+                  <label className="constructor-label">
+                    {"Pre-deployed Address: "}
+                  </label>
+                  <input
+                    className="form-control constructor-input"
+                    name="preDeployedAddress"
+                    value={preDeployedAddress ?? ''}
+                    onChange={(event) => setPreDeployedAddress(event.target.value)}
+                  />
+                </div>
 import { constructorInputsAtom, deployStatusAtom, deploymentAtom, isDeployingAtom, notEnoughInputsAtom } from '../../atoms/deployment'
 interface DeploymentProps {
   setActiveTab: (tab: AccordianTabs) => void
