@@ -39,7 +39,8 @@ button {
   border: 1px solid var(--border);
   border-radius: 6px;
   padding: 5px;
-  box-shadow: 0px 10px 38px -10px var(--shadow),
+  box-shadow:
+    0px 10px 38px -10px var(--shadow),
     0px 10px 20px -15px var(--shadow);
   animation-duration: 400ms;
   animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
@@ -104,7 +105,7 @@ button {
   color: var(--text);
 }
 
-.DropdownMenuItem:hover { 
+.DropdownMenuItem:hover {
   background: var(--accentColor);
 }
 
