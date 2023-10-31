@@ -1,40 +1,13 @@
+@import '../../styles/theme.css';
+
 button,
 fieldset,
 input {
   all: unset;
 }
 
-:root {
-  --light-overlay-background: #ffffff;
-  --dark-overlay-background: #000000;
-  --light-content-background: #ffffff;
-  --dark-content-background: #000000;
-  --light-border-color: #000000;
-  --dark-border-color: #ffffff;
-  --light-text-color: #000000;
-  --dark-text-color: #ffffff;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --overlay-background: var(--dark-overlay-background);
-    --content-background: var(--dark-content-background);
-    --border-color: var(--dark-border-color);
-    --text-color: var(--dark-text-color);
-  }
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    --overlay-background: var(--light-overlay-background);
-    --content-background: var(--light-content-background);
-    --border-color: var(--light-border-color);
-    --text-color: var(--light-text-color);
-  }
-}
-
 .DialogOverlay {
-  background-color: var(--overlay-background);
+  background-color: var(--background);
   position: fixed;
   opacity: 0.5;
   inset: 0;
