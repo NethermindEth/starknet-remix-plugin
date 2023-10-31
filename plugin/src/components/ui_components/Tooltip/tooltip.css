@@ -11,7 +11,8 @@ button {
   color: var(--text);
   background-color: var(--background);
   border: 1px solid var(--border);
-  box-shadow: var(--shadow) 0px 10px 38px -10px,
+  box-shadow:
+    var(--shadow) 0px 10px 38px -10px,
     var(--shadow) 0px 10px 20px -15px;
   user-select: none;
   animation-duration: 400ms;
