@@ -9,14 +9,27 @@ const Notices = [
 
 const BackgroundNotices: React.FC = () => {
   return (
-    <div style={{backgroundColor: 'var(--background)', color: 'var(--text)'}}>
+    <div style={{ backgroundColor: 'var(--background)', color: 'var(--text)' }}>
       <p className="text-center">Notices</p>
       {
         <ul className="list-group">
           {Notices.map((notice, index) => {
             return (
-              <li key={nanoid()} className="list-group-item d-flex justify-content-left align-items-center disabled" style={{backgroundColor: 'var(--background)', color: 'var(--text)'}}>
-                <span className="badge badge-primary badge-pill mr-2" style={{backgroundColor: 'var(--background)', color: 'var(--text)'}}>
+              <li
+                key={nanoid()}
+                className="list-group-item d-flex justify-content-left align-items-center disabled"
+                style={{
+                  backgroundColor: 'var(--background)',
+                  color: 'var(--text)'
+                }}
+              >
+                <span
+                  className="badge badge-primary badge-pill mr-2"
+                  style={{
+                    backgroundColor: 'var(--background)',
+                    color: 'var(--text)'
+                  }}
+                >
                   {index + 1}
                 </span>
                 {notice}
