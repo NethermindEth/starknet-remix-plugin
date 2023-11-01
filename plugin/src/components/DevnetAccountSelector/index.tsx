@@ -29,16 +29,16 @@ const DevnetAccountSelector: React.FC = () => {
 
   const checkDevnetUrl = async (): Promise<void> => {
     try {
-      const response = await fetch(`${devnet.url}/is_alive`, {
+      const response = await fetch(`${devnet.url}/version`, {
         method: 'GET',
         redirect: 'follow',
         headers: {
           'Content-Type': 'application/json'
         }
       })
-      const status = await response.text()
-
-      if (status !== 'Alive!!!' || response.status !== 200) {
+      const status = await response.json()
+      
+      if (!status.version || response.status !== 200) {
         setIsDevnetAlive(false)
       } else {
         setIsDevnetAlive(true)
