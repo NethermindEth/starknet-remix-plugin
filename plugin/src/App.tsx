@@ -10,7 +10,7 @@ const App: React.FC = () => {
   const { isPluginLoaded } = useRemixClient()
 
   return (
-    <div className="shell">
+    <div className="shell bg-primary">
       {isPluginLoaded
         ? (
           <Plugin />

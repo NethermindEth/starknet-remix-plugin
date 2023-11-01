@@ -69,7 +69,7 @@
   margin: auto;
   width: 8px;
   height: 8px;
-  background: #fff;
+  background: var(--light);
   border-radius: 50%;
   -webkit-animation: loader-3 2s cubic-bezier(0.77, 0, 0.175, 1) infinite;
   animation: loader-3 2s cubic-bezier(0.77, 0, 0.175, 1) infinite;
