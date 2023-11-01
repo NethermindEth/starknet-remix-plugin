@@ -1,6 +1,5 @@
 import {
   getRoundedNumber,
-  getSelectedAccountIndex,
   getShortenedHash,
   weiToEth
 } from '../../utils/utils'
@@ -15,6 +14,8 @@ import { availableDevnetAccountsAtom, devnetAtom, envAtom, isDevnetAliveAtom, se
 import useAccount from '../../hooks/useAccount'
 import useProvider from '../../hooks/useProvider'
 import useRemixClient from '../../hooks/useRemixClient'
+import * as D from '../../components/ui_components/Dropdown'
+import { BsCheck, BsChevronDown } from 'react-icons/bs'
 
 const DevnetAccountSelector: React.FC = () => {
   const { account, setAccount } = useAccount()
@@ -138,12 +139,12 @@ const DevnetAccountSelector: React.FC = () => {
     setProvider(newProvider)
   }, [devnet, selectedDevnetAccount])
 
-  function handleAccountChange (event: any): void {
-    if (event.target.value === -1) {
+  function handleAccountChange (value: number): void {
+    if (value === -1) {
       return
     }
-    setAccountIdx(event.target.value)
-    setSelectedDevnetAccount(availableDevnetAccounts[event.target.value])
+    setAccountIdx(value)
+    setSelectedDevnetAccount(availableDevnetAccounts[value])
     const newProvider = new Provider({
       sequencer: {
         baseUrl: devnet.url
@@ -153,8 +154,8 @@ const DevnetAccountSelector: React.FC = () => {
     setAccount(
       new Account(
         provider ?? newProvider,
-        availableDevnetAccounts[event.target.value].address,
-        availableDevnetAccounts[event.target.value].private_key
+        availableDevnetAccounts[value].address,
+        availableDevnetAccounts[value].private_key
       )
     )
   }
@@ -168,11 +169,52 @@ const DevnetAccountSelector: React.FC = () => {
     setAccountIdx(0)
   }, [env])
 
+  const [dropdownControl, setDropdownControl] = useState(false)
+
   return (
-    <>
+    <div className='mt-2'>
       <label className="">Devnet account selection</label>
       <div className="devnet-account-selector-wrapper">
-        <select
+        <D.Root open={dropdownControl} onOpenChange={(e) => { setDropdownControl(e) }}>
+          <D.Trigger >
+            <div className='flex flex-row justify-content-space-between align-items-center p-2 br-1 devnet-account-selector-trigger'>
+              <label className='text-light text-sm m-0'>{getShortenedHash(
+                availableDevnetAccounts[accountIdx]?.address ?? '',
+                6,
+                4
+              )}</label>
+              <BsChevronDown style={{
+                transform: dropdownControl ? 'rotate(180deg)' : 'none',
+                transition: 'all 0.3s ease'
+              }} />            </div>
+          </D.Trigger>
+          <D.Portal>
+            <D.Content>
+              {isDevnetAlive && availableDevnetAccounts.length > 0
+                ? availableDevnetAccounts.map((account, index) => {
+                  return (
+                    <D.Item onClick={() => { handleAccountChange(index) }} key={index}>
+                      {accountIdx === index && <BsCheck size={18} />}
+                      {`${getShortenedHash(
+                        account.address ?? '',
+                        6,
+                        4
+                      )} (${getRoundedNumber(
+                        weiToEth(account.initial_balance),
+                        2
+                      )} ether)`}
+                    </D.Item>
+                  )
+                })
+                : ([
+                  <D.Item onClick={() => { handleAccountChange(-1) }} key={-1}>
+                    No accounts found
+                  </D.Item>
+                  ] as JSX.Element[])}
+            </D.Content>
+          </D.Portal>
+        </D.Root>
+        {/* <select
           className="custom-select"
           aria-label=".form-select-sm example"
           onChange={handleAccountChange}
@@ -201,8 +243,8 @@ const DevnetAccountSelector: React.FC = () => {
               <option value={-1} key={-1}>
                 No accounts found
               </option>
-              ] as JSX.Element[])}
-        </select>
+            ] as JSX.Element[])}
+        </select> */}
         <div className="position-relative">
           <button
             className="btn"
@@ -230,7 +272,7 @@ const DevnetAccountSelector: React.FC = () => {
           <MdRefresh />
         </button>
       </div>
-    </>
+    </div>
   )
 }
 
