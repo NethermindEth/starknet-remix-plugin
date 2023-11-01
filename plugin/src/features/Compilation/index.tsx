@@ -69,7 +69,7 @@ const CompilationCard: React.FC<{
         {activeTomlPath !== undefined && tomlPaths?.length > 0 && (
           <div className="project-dropdown-wrapper d-flex flex-column mb-3">
             <button
-              className="btn btn-warning btn-block d-block w-100 text-break mb-1 mt-1 px-0"
+              className="btn btn-warning w-100 text-break mb-1 mt-1 px-0"
               disabled={isCompiling}
               aria-disabled={isCompiling}
               onClick={() => {
@@ -89,7 +89,7 @@ const CompilationCard: React.FC<{
 
             <D.Root>
               <D.Trigger>
-                <div className="btn btn-primary w-100 text-break remixui_disabled mb-1 mt-1 px-0 trigger-wrapper" style={{ padding: '10px 1px' }}>
+                <div className="btn btn-primary w-100 trigger-wrapper px-0">
                   <label className="text-break text-white" style={{ fontFamily: 'inherit', fontSize: 'inherit' }}>
                     {activeTomlPath}
                   </label>

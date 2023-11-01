@@ -4,6 +4,11 @@
   justify-content: space-between;
 }
 
+.devnet-account-selector-trigger {
+  width: 100%;
+  border: 1px solid var(--primary-color-500);
+}
+
 .text-copied {
   top: 0px;
   left: 0px;
