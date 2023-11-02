@@ -1,6 +1,6 @@
 {
   "name": "starknet-remix-plugin",
-  "version": "0.1.0",
+  "version": "0.2.5",
   "private": true,
   "dependencies": {
     "@radix-ui/react-accordion": "^1.1.2",
