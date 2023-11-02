@@ -13,7 +13,7 @@ const CairoVersion: React.FC = () => {
   const { remixClient } = useRemixClient()
 
   const envViteVersion: string | undefined = import.meta.env.VITE_VERSION
-  const pluginVersion = envViteVersion !== undefined ? `v${envViteVersion}` : 'v0.2.0'
+  const pluginVersion = envViteVersion !== undefined ? `v${envViteVersion}` : 'v0.2.5'
 
   // Hard-coded versions for the example
   const [getVersions, setVersions] = useState([])
