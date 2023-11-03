@@ -8,13 +8,13 @@ pub const DEFAULT_CAIRO_DIR: &str = concat!(
     env!("CARGO_MANIFEST_DIR"),
     "/",
     "cairo_compilers/",
-    "v2.3.0"
+    "v2.3.1"
 );
 pub const CAIRO_COMPILERS_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/", "cairo_compilers/");
 #[allow(dead_code)]
 pub const TEMP_DIR: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/", "temp/");
 
-pub const DEFAULT_CAIRO_VERSION: &str = "v2.3.0";
+pub const DEFAULT_CAIRO_VERSION: &str = "v2.3.1";
 
 pub const DURATION_TO_PURGE: u64 = 60 * 5; // 5 minutes
 

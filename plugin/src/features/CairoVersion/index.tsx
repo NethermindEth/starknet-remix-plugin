@@ -33,6 +33,7 @@ const CairoVersion: React.FC = () => {
             }
           )
           const versions = JSON.parse(await response.text())
+          versions.sort()
           setVersions(versions)
         }
       } catch (e) {

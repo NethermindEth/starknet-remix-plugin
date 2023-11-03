@@ -117,13 +117,13 @@ const CompilationCard: React.FC<{
           </div>
         )}
         <button
-          className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-1 px-0"
+          className="btn btn-information btn-block d-block w-100 text-break remixui_disabled mb-1 mt-1 px-0"
           style={{
-            cursor: `${!validation || !isCurrentFileName ? 'not-allowed' : 'pointer'
+            cursor: `${(!validation || isCurrentFileName) ? 'not-allowed' : 'pointer'
               }`
           }}
-          disabled={!validation || !isCurrentFileName || isCompiling}
-          aria-disabled={!validation || !isCurrentFileName || isCompiling}
+          disabled={!validation || isCurrentFileName || isCompiling}
+          aria-disabled={!validation || isCurrentFileName || isCompiling}
           onClick={onClick}
         >
           <div className="d-flex align-items-center justify-content-center">
@@ -145,7 +145,7 @@ const CompilationCard: React.FC<{
                             >
                               {' '}
                             </span>
-                            <span style={{ paddingLeft: '0.5rem' }}>{status}</span>
+                            <span style={{ paddingLeft: '0.5rem' }}>{ useAtomValue(statusAtom)}</span>
                           </>
                           )
                         : (

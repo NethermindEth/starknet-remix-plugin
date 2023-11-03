@@ -240,37 +240,6 @@ const DevnetAccountSelector: React.FC = () => {
             </D.Content>
           </D.Portal>
         </D.Root>
-        {/* <select
-          className="custom-select"
-          aria-label=".form-select-sm example"
-          onChange={handleAccountChange}
-          value={accountIdx}
-          defaultValue={getSelectedAccountIndex(
-            availableDevnetAccounts,
-            selectedDevnetAccount
-          )}
-        >
-          {isDevnetAlive && availableDevnetAccounts.length > 0
-            ? availableDevnetAccounts.map((account, index) => {
-              return (
-                <option value={index} key={index}>
-                  {`${getShortenedHash(
-                    account.address ?? '',
-                    6,
-                    4
-                  )} (${getRoundedNumber(
-                    weiToEth(account.initial_balance),
-                    2
-                  )} ether)`}
-                </option>
-              )
-            })
-            : ([
-              <option value={-1} key={-1}>
-                No accounts found
-              </option>
-            ] as JSX.Element[])}
-        </select> */}
         <div className="position-relative">
           <button
             className="btn"
