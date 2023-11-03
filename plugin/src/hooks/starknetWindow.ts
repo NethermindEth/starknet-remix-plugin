@@ -9,6 +9,8 @@ import { useEffect, useState } from 'react'
 import useAccount from './useAccount'
 import useProvider from './useProvider'
 import useRemixClient from './useRemixClient'
+import { starknetWindowObject as stObj } from '../atoms/connection'
+import { useAtom } from 'jotai'
 
 const useStarknetWindow = (): {
   starknetWindowObject: StarknetWindowObject | null
@@ -18,11 +20,12 @@ const useStarknetWindow = (): {
   disconnectWalletHandler: (options?: DisconnectOptions) => Promise<void>
   refreshWalletConnection: () => Promise<void>
 } => {
+  const [starknetWindowObject, setStarknetWindowObject] = useAtom(stObj)
+
   const { remixClient } = useRemixClient()
   const { setAccount } = useAccount()
   const { setProvider } = useProvider()
 
-  const [starknetWindowObject, setStarknetWindowObject] = useState<StarknetWindowObject | null>(null)
   const [currentChainId, setCurrentChainId] = useState<string | undefined>(undefined)
   const getChainId = async (): Promise<void> => {
     if (starknetWindowObject != null) {

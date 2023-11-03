@@ -16,12 +16,25 @@ import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import transactionsAtom from '../../atoms/transactions'
 
 import './styles.css'
-import { compiledContractsAtom, selectedCompiledContract } from '../../atoms/compiledContracts'
+import {
+  compiledContractsAtom,
+  selectedCompiledContract
+} from '../../atoms/compiledContracts'
 import { envAtom } from '../../atoms/environment'
+import { starknetWindowObject as starknetWindowObjectAtom } from '../../atoms/connection'
 import useAccount from '../../hooks/useAccount'
 import useProvider from '../../hooks/useProvider'
 import useRemixClient from '../../hooks/useRemixClient'
-import { constructorInputsAtom, deployStatusAtom, deploymentAtom, isDeployingAtom, notEnoughInputsAtom } from '../../atoms/deployment'
+import {
+  constructorInputsAtom,
+  deployStatusAtom,
+  deploymentAtom,
+  isDeployingAtom,
+  notEnoughInputsAtom
+} from '../../atoms/deployment'
+import Tooltip from '../../components/ui_components/Tooltip'
+
+import { FaInfoCircle } from 'react-icons/fa'
 interface DeploymentProps {
   setActiveTab: (tab: AccordianTabs) => void
 }
@@ -32,17 +45,15 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   const { provider } = useProvider()
 
   const [contracts, setContracts] = useAtom(compiledContractsAtom)
-  const [selectedContract, setSelectedContract] = useAtom(selectedCompiledContract)
+  const [selectedContract, setSelectedContract] = useAtom(
+    selectedCompiledContract
+  )
 
   const [constructorCalldata, setConstructorCalldata] =
     useState<CallDataObject>({})
 
-  const {
-    isDeploying,
-    deployStatus,
-    constructorInputs,
-    notEnoughInputs
-  } = useAtomValue(deploymentAtom)
+  const { isDeploying, deployStatus, constructorInputs, notEnoughInputs } =
+    useAtomValue(deploymentAtom)
 
   const setIsDeploying = useSetAtom(isDeployingAtom)
   const setDeployStatus = useSetAtom(deployStatusAtom)
@@ -51,6 +62,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 
   const [transactions, setTransactions] = useAtom(transactionsAtom)
   const env = useAtomValue(envAtom)
+  const starknetWindowObject = useAtomValue(starknetWindowObjectAtom)
 
   const [chainId, setChainId] = useState<constants.StarknetChainId>(
     constants.StarknetChainId.SN_GOERLI
@@ -78,6 +90,19 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   }, [selectedContract])
 
   const deploy = async (calldata: BigNumberish[]): Promise<void> => {
+    if (
+      env === 'wallet' &&
+      starknetWindowObject !== null &&
+      starknetWindowObject.id === 'argentX'
+    ) {
+      await remixClient.call(
+        'notification' as any,
+        'toast',
+        `⚠️ You are connected to ${starknetWindowObject.id} wallet, please use the Braavos wallet instead!`
+      )
+      return
+    }
+
     setIsDeploying(true)
     remixClient.emit('statusChanged', {
       key: 'loading',
@@ -134,18 +159,19 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
             value: error.message,
             type: 'error'
           })
-          throw new Error(error.message + '\n Aborting deployment... Couldn\'t get declare infomation')
+          throw new Error(
+            error.message +
+              "\n Aborting deployment... Couldn't get declare infomation"
+          )
         }
       }
 
       setDeployStatus('Deploying...')
 
-      const deployResponse = await account.deployContract(
-        {
-          classHash: classHash ?? selectedContract.classHash,
-          constructorCalldata: calldata
-        }
-      )
+      const deployResponse = await account.deployContract({
+        classHash: classHash ?? selectedContract.classHash,
+        constructorCalldata: calldata
+      })
       await remixClient.call('terminal', 'log', {
         value: JSON.stringify(deployResponse, null, 2),
         type: 'info'
@@ -279,134 +305,137 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       <Container>
         {contracts.length > 0 && selectedContract != null
           ? (
-            <div className="">
-              <CompiledContracts show={'class'} />
-              <form onSubmit={handleDeploySubmit}>
-                {constructorInputs.map((input, index) => {
-                  return (
-                    <div
-                      className="udapp_multiArg constructor-label-wrapper"
-                      key={index}
-                    >
-                      <label key={index} className="constructor-label">
-                        {`${input.name} (${getParameterType(input.type) ?? ''
-                          }): `}
-                      </label>
-                      <input
-                        className="form-control constructor-input"
-                        name={input.name}
-                        data-type={input.type}
-                        data-index={index}
-                        value={constructorCalldata[index]?.value ?? ''}
-                        onChange={handleConstructorCalldataChange}
-                      />
-                    </div>
-                  )
-                })}
-                <button
-                  className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3 px-0"
-                  style={{
-                    cursor: `${isDeploying ||
-                      account == null ||
-                      selectedContract.deployedInfo.some(
-                        (info) =>
-                          info.address === account.address &&
-                          info.chainId === chainId
-                      )
+          <div className="">
+            <CompiledContracts show={'class'} />
+            <form onSubmit={handleDeploySubmit}>
+              {constructorInputs.map((input, index) => {
+                return (
+                  <div
+                    className="udapp_multiArg constructor-label-wrapper"
+                    key={index}
+                  >
+                    <label key={index} className="constructor-label">
+                      {`${input.name} (${
+                        getParameterType(input.type) ?? ''
+                      }): `}
+                      <Tooltip content = 'for eg. input: `1, 0` corresponds to 1 (low: 1, high: 0) ' icon={<FaInfoCircle/> } />
+                    </label>
+                    <input
+                      className="form-control constructor-input"
+                      name={input.name}
+                      data-type={input.type}
+                      data-index={index}
+                      value={constructorCalldata[index]?.value ?? ''}
+                      onChange={handleConstructorCalldataChange}
+                    />
+                  </div>
+                )
+              })}
+              <button
+                className="btn btn-information btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3 px-0"
+                style={{
+                  cursor: `${
+                    isDeploying ||
+                    account == null ||
+                    selectedContract.deployedInfo.some(
+                      (info) =>
+                        info.address === account.address &&
+                        info.chainId === chainId
+                    )
                       ? 'not-allowed'
                       : 'pointer'
-                      }`
-                  }}
-                  disabled={
-                    isDeploying ||
-                    account == null ||
-                    selectedContract.deployedInfo.some(
-                      (info) =>
-                        info.address === account.address &&
-                        info.chainId === chainId
-                    )
-                  }
-                  aria-disabled={
-                    isDeploying ||
-                    account == null ||
-                    selectedContract.deployedInfo.some(
-                      (info) =>
-                        info.address === account.address &&
-                        info.chainId === chainId
-                    )
-                  }
-                  type="submit"
-                >
-                  <div className="d-flex align-items-center justify-content-center">
-                    <div className="text-truncate overflow-hidden text-nowrap">
-                      {isDeploying
-                        ? (
-                          <>
-                            <span
-                              className="spinner-border spinner-border-sm"
-                              role="status"
-                              aria-hidden="true"
-                            >
-                              {' '}
-                            </span>
-                            <span style={{ paddingLeft: '0.5rem' }}>
-                              {deployStatus}
-                            </span>
-                          </>
-                          )
-                        : (
-                          <div className="text-truncate overflow-hidden text-nowrap">
-                            {account != null &&
-                              selectedContract.deployedInfo.some(
-                                (info) =>
-                                  info.address === account.address &&
-                                  info.chainId === chainId
-                              )
-                              ? (
-                                <span>
-                                  {' '}
-                                  Deployed <i className="bi bi-check"></i>{' '}
-                                  {selectedContract.name}
-                                </span>
-                                )
-                              : (
-                                <span> Deploy {selectedContract.name}</span>
-                                )}
-                          </div>
-                          )}
-                    </div>
+                  }`
+                }}
+                disabled={
+                  isDeploying ||
+                  account == null ||
+                  selectedContract.deployedInfo.some(
+                    (info) =>
+                      info.address === account.address &&
+                      info.chainId === chainId
+                  )
+                }
+                aria-disabled={
+                  isDeploying ||
+                  account == null ||
+                  selectedContract.deployedInfo.some(
+                    (info) =>
+                      info.address === account.address &&
+                      info.chainId === chainId
+                  )
+                }
+                type="submit"
+              >
+                <div className="d-flex align-items-center justify-content-center">
+                  <div className="text-truncate overflow-hidden text-nowrap">
+                    {isDeploying
+                      ? (
+                      <>
+                        <span
+                          className="spinner-border spinner-border-sm"
+                          role="status"
+                          aria-hidden="true"
+                        >
+                          {' '}
+                        </span>
+                        <span style={{ paddingLeft: '0.5rem' }}>
+                          {deployStatus}
+                        </span>
+                      </>
+                        )
+                      : (
+                      <div className="text-truncate overflow-hidden text-nowrap">
+                        {account != null &&
+                        selectedContract.deployedInfo.some(
+                          (info) =>
+                            info.address === account.address &&
+                            info.chainId === chainId
+                        )
+                          ? (
+                          <span>
+                            {' '}
+                            Deployed <i className="bi bi-check"></i>{' '}
+                            {selectedContract.name}
+                          </span>
+                            )
+                          : (
+                          <span> Deploy {selectedContract.name}</span>
+                            )}
+                      </div>
+                        )}
                   </div>
-                </button>
-              </form>
-              {account != null &&
-                selectedContract.deployedInfo.some(
-                  (info) =>
-                    info.address === account.address && info.chainId === chainId
-                ) && (
-                  <div className="mt-3">
-                    <label style={{ display: 'block' }}>
-                      Contract deployed! See{' '}
-                      <a
-                        href="/"
-                        className="text-info"
-                        onClick={(e) => {
-                          e.preventDefault()
-                          setActiveTab('interaction')
-                        }}
-                      >
-                        Interact
-                      </a>{' '}
-                      for more!
-                    </label>
-                  </div>
-              )}
-              {notEnoughInputs && (
-                <label>Please fill out all constructor fields!</label>
-              )}
-            </div>
+                </div>
+              </button>
+            </form>
+            {account != null &&
+              selectedContract.deployedInfo.some(
+                (info) =>
+                  info.address === account.address && info.chainId === chainId
+              ) && (
+                <div className="mt-3">
+                  <label style={{ display: 'block' }}>
+                    Contract deployed! See{' '}
+                    <a
+                      href="/"
+                      className="text-info"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        setActiveTab('interaction')
+                      }}
+                    >
+                      Interact
+                    </a>{' '}
+                    for more!
+                  </label>
+                </div>
+            )}
+            {notEnoughInputs && (
+              <label>Please fill out all constructor fields!</label>
+            )}
+          </div>
             )
           : (
-            <p>No contracts ready for deployment yet, compile a cairo contract</p>
+          <p>No contracts ready for deployment yet, compile a cairo contract</p>
             )}
       </Container>
     </>

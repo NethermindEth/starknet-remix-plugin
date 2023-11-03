@@ -1,7 +1,9 @@
 import { PluginClient } from '@remixproject/plugin'
 import { createClient } from '@remixproject/plugin-webview'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { fetchGitHubFilesRecursively } from '../utils/initial_scarb_codes'
+import { pluginLoaded as atomPluginLoaded } from '../atoms/remixClient'
+import { useAtom } from 'jotai'
 
 const remixClient = createClient(new PluginClient())
 
@@ -9,7 +11,7 @@ const useRemixClient = (): {
   remixClient: typeof remixClient
   isPluginLoaded: boolean
 } => {
-  const [pluginLoaded, setPluginLoaded] = useState<boolean>(false)
+  const [pluginLoaded, setPluginLoaded] = useAtom(atomPluginLoaded)
 
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
