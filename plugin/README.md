@@ -6,7 +6,7 @@ pnpm install
   
 ## Development
 
-```bash
+```bash 
 pnpm run start
 ``` 
  
