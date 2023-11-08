@@ -109,7 +109,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       type: 'info',
       title: `Deploying ${selectedContract?.name ?? ''} ...`
     })
-    let classHash = selectedContract?.sierraClassHash
+    let classHash = selectedContract?.classHash
     let updatedTransactions = transactions
     try {
       if (account === null || provider === null) {
@@ -123,11 +123,11 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       setDeployStatus('Declaring...')
       try {
         try {
-          await account.getClassByHash(selectedContract.sierraClassHash)
+          await account.getClassByHash(selectedContract.classHash)
           await remixClient.call(
             'notification' as any,
             'toast',
-            `ℹ️ Contract with classHash: ${selectedContract.sierraClassHash} already has been declared, proceeding to deployment...`
+            `ℹ️ Contract with classHash: ${selectedContract.classHash} already has been declared, proceeding to deployment...`
           )
         } catch (error) {
           const declareResponse = await account.declare({
