@@ -21,7 +21,7 @@ import {
   selectedCompiledContract
 } from '../../atoms/compiledContracts'
 import { envAtom } from '../../atoms/environment'
-import { starknetWindowObject as starknetWindowObjectAtom } from '../../atoms/connection'
+// import { starknetWindowObject as starknetWindowObjectAtom } from '../../atoms/connection'
 import useAccount from '../../hooks/useAccount'
 import useProvider from '../../hooks/useProvider'
 import useRemixClient from '../../hooks/useRemixClient'
@@ -62,7 +62,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 
   const [transactions, setTransactions] = useAtom(transactionsAtom)
   const env = useAtomValue(envAtom)
-  const starknetWindowObject = useAtomValue(starknetWindowObjectAtom)
+  // const starknetWindowObject = useAtomValue(starknetWindowObjectAtom)
 
   const [chainId, setChainId] = useState<constants.StarknetChainId>(
     constants.StarknetChainId.SN_GOERLI
@@ -90,18 +90,18 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   }, [selectedContract])
 
   const deploy = async (calldata: BigNumberish[]): Promise<void> => {
-    if (
-      env === 'wallet' &&
-      starknetWindowObject !== null &&
-      starknetWindowObject.id === 'argentX'
-    ) {
-      await remixClient.call(
-        'notification' as any,
-        'toast',
-        `⚠️ You are connected to ${starknetWindowObject.id} wallet, please use the Braavos wallet instead!`
-      )
-      return
-    }
+    // if (
+    //   env === 'wallet' &&
+    //   starknetWindowObject !== null &&
+    //   starknetWindowObject.id === 'argentX'
+    // ) {
+    //   await remixClient.call(
+    //     'notification' as any,
+    //     'toast',
+    //     `⚠️ You are connected to ${starknetWindowObject.id} wallet, please use the Braavos wallet instead!`
+    //   )
+    //   // return
+    // }
 
     setIsDeploying(true)
     remixClient.emit('statusChanged', {
@@ -132,7 +132,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         } catch (error) {
           const declareResponse = await account.declare({
             contract: selectedContract.sierra,
-            classHash: selectedContract.sierraClassHash,
+            classHash: selectedContract.classHash,
             compiledClassHash: selectedContract.compiledClassHash
           })
           await remixClient.call('terminal', 'log', {
