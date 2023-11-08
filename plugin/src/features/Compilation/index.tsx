@@ -138,13 +138,13 @@ const CompilationCard: React.FC<{
                       {isLoading
                         ? (
                           <>
-                            <span
+                            {/* <span
                               className="spinner-border spinner-border-sm"
                               role="status"
                               aria-hidden="true"
                             >
                               {' '}
-                            </span>
+                            </span> */}
                             <span style={{ paddingLeft: '0.5rem' }}>{ useAtomValue(statusAtom)}</span>
                           </>
                           )
@@ -375,7 +375,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       } catch (e) {
         console.log('error: ', e)
       }
-    }, 100)
+    }, 1)
   }, [currWorkspacePath])
 
   useEffect(() => {
@@ -667,18 +667,18 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         `Cairo compilation output written to: ${sierraPath} `
       )
       setStatus('done')
+      setAccordian('deploy')
     } catch (e) {
       setStatus('failed')
       if (e instanceof Error) {
         await remixClient.call('notification' as any, 'alert', {
           id: 'starknetRemixPluginAlert',
-          title: 'Expectation Failed',
+          title: 'Cairo Compilation Failed',
           message: e.message
         })
       }
       console.error(e)
     }
-    setAccordian('deploy')
     setIsCompiling(false)
   }
 
@@ -764,7 +764,6 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         throw new Error('Cairo Compilation Request Failed')
       }
       const scarbCompile: ScarbCompileResponse = JSON.parse(result)
-
       if (scarbCompile.status !== 'Success') {
         await remixClient.call(
           'notification' as any,
@@ -796,14 +795,16 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
       const contractsToStore: Contract[] = []
 
+      console.log(scarbCompile.file_content_map_array)
+
       for (const file of scarbCompile.file_content_map_array) {
-        if (file.file_name?.endsWith('.sierra.json')) {
-          const contractName: string = file.file_name.replace('.sierra.json', '')
+        if (file.file_name?.endsWith('.contract_class.json')) {
+          const contractName: string = file.file_name.replace('.contract_class.json', '')
           const sierra = JSON.parse(file.file_content)
           if (
             (scarbCompile.file_content_map_array?.find(
               (file: { file_name: string }) =>
-                file.file_name === contractName + '.casm.json'
+                file.file_name === contractName + '.compiled_contract_class.json'
             )) == null
           ) {
             notifyCasmInclusion = true
@@ -812,7 +813,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           const casm = JSON.parse(
             scarbCompile.file_content_map_array.find(
               (file: { file_name: string }) =>
-                file.file_name === contractName + '.casm.json'
+                file.file_name === contractName + '.compiled_contract_class.json'
             )?.file_content ?? ''
           )
           const genContract = await genContractData(
@@ -835,7 +836,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         await remixClient.call(
           'notification' as any,
           'toast',
-          'Please include \'casm=true\' in Scarb.toml to deploy cairo contracts'
+          'Please include \'casm=true\' in the Scarb.toml to deploy cairo contracts'
         )
       }
 
@@ -870,11 +871,13 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           title: 'Failed to save artifacts'
         })
       }
+      setStatus('done')
+      setAccordian('deploy')
     } catch (e) {
+      setStatus('failed')
       console.log('error: ', e)
     }
     setIsCompiling(false)
-    setStatus('done')
   }
 
   async function genContractData (
@@ -886,7 +889,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     const sierra = await JSON.parse(sierraFile)
     const casm = await JSON.parse(casmFile)
     const compiledClassHash = hash.computeCompiledClassHash(casm)
-    const classHash = hash.computeContractClassHash(sierra)
+    const classHash = hash.computeContractClassHash(sierraFile)
     const sierraClassHash = hash.computeSierraContractClassHash(sierra)
     if (
       contracts.find(

@@ -19,7 +19,7 @@ import ExplorerSelector, {
   useCurrentExplorer
 } from '../../components/ExplorerSelector'
 import { useAtomValue } from 'jotai'
-import { isCompilingAtom } from '../../atoms/compilation'
+import { isCompilingAtom, statusAtom } from '../../atoms/compilation'
 import { deploymentAtom } from '../../atoms/deployment'
 export type AccordianTabs =
   | 'compile'
@@ -30,6 +30,7 @@ export type AccordianTabs =
 
 const Plugin: React.FC = () => {
   const isCompiling = useAtomValue(isCompilingAtom)
+  const status = useAtomValue(statusAtom)
 
   const {
     isDeploying,
