@@ -906,7 +906,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       compiledClassHash,
       classHash,
       sierraClassHash,
-      sierra,
+      sierra: sierraFile,
       casm,
       path,
       deployedInfo: [],
