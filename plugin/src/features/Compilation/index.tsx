@@ -45,7 +45,14 @@ interface CompilationProps {
 }
 
 const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
-  const { remixClient, currentFilePath, currWorkspacePath } = useRemixClient()
+  const {
+    remixClient,
+    currentFilePath,
+    currWorkspacePath,
+    writeFileContent,
+    getCurrentFileContent,
+    showNotification
+  } = useRemixClient()
   const cairoVersion = useAtomValue(cairoVersionAtom)
 
   const [contracts, setContracts] = useAtom(compiledContractsAtom)
@@ -134,18 +141,8 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     // clear current file annotations: inline syntax error reporting
     await remixClient.editor.clearAnnotations()
     try {
-      setStatus('Getting cairo file path...')
-      const currentFilePath = await remixClient.call(
-        'fileManager',
-        'getCurrentFile'
-      )
-
       setStatus('Getting cairo file content...')
-      const currentFileContent = await remixClient.call(
-        'fileManager',
-        'readFile',
-        currentFilePath
-      )
+      const currentFileContent = await getCurrentFileContent()
 
       setStatus('Parsing cairo code...')
       const saveCodeResponse = await fetch(
@@ -293,15 +290,11 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       })
 
       try {
-        await remixClient.call(
-          'fileManager',
-          'writeFile',
+        await writeFileContent(
           sierraPath,
           sierra.file_content
         )
-        await remixClient.call(
-          'fileManager',
-          'writeFile',
+        await writeFileContent(
           casmPath,
           casm.file_content
         )
@@ -328,11 +321,10 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
       // await remixClient.fileManager.open(sierraPath)
 
-      await remixClient.call(
-        'notification' as any,
-        'toast',
+      await showNotification(
         `Cairo compilation output written to: ${sierraPath} `
       )
+
       setStatus('done')
     } catch (e) {
       setStatus('failed')
@@ -388,9 +380,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
             }
           )
           if (!response.ok) {
-            await remixClient.call(
-              'notification' as any,
-              'toast',
+            await showNotification(
               'Could not reach cairo compilation server'
             )
             throw new Error('Cairo Compilation Request Failed')
@@ -423,9 +413,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           ''
         )}/${scarbPath}`, 'compile-scarb-result')
       } catch (e) {
-        await remixClient.call(
-          'notification' as any,
-          'toast',
+        await showNotification(
           'Could not reach cairo compilation server'
         )
         throw new Error('Cairo Compilation Request Failed')
@@ -433,14 +421,13 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       const scarbCompile: ScarbCompileResponse = JSON.parse(result)
 
       if (scarbCompile.status !== 'Success') {
-        await remixClient.call(
-          'notification' as any,
-          'alert',
+        await showNotification(
           {
             id: 'starknetRemixPluginAlert',
             title: 'Scarb compilation failed!',
             message: 'Scarb compilation failed!, you can read logs in the terminal console'
-          }
+          },
+          'alert'
         )
         remixClient.emit('statusChanged', {
           key: 'failed',
@@ -499,9 +486,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         if (selectedContract == null) setSelectedContract(contracts[0])
       }
       if (notifyCasmInclusion) {
-        await remixClient.call(
-          'notification' as any,
-          'toast',
+        await showNotification(
           'Please include \'casm=true\' in Scarb.toml to deploy cairo contracts'
         )
       }
@@ -511,23 +496,17 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         for (const file of scarbCompile.file_content_map_array) {
           // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
           const filePath = `${scarbPath}/target/dev/${file.file_name}`
-          await remixClient.call(
-            'fileManager',
-            'writeFile',
+          await writeFileContent(
             filePath,
             JSON.stringify(JSON.parse(file.file_content))
           )
         }
-        await remixClient.call(
-          'notification' as any,
-          'toast',
+        await showNotification(
           `Compilation resultant files are written to ${scarbPath}/target/dev directory`
         )
       } catch (e) {
         if (e instanceof Error) {
-          await remixClient.call(
-            'notification' as any,
-            'toast',
+          await showNotification(
             e.message + ' try deleting the dir: ' + scarbPath + 'target/dev'
           )
         }

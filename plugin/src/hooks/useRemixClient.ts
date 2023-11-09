@@ -120,6 +120,12 @@ const useRemixClient = (): {
   isPluginLoaded: boolean
   currentFilePath: string
   currWorkspacePath: string
+  getCurrentFileContent: () => Promise<string>
+  writeFileContent: (path: string, content: any) => Promise<void>
+  showNotification: (
+  message: string | Record<string, string>,
+  type?: string
+  ) => Promise<void>
 } => {
   const [pluginLoaded, setPluginLoaded] = useAtom(atomPluginLoaded)
 
@@ -234,11 +240,45 @@ const useRemixClient = (): {
     getCurrentFileInfo().catch(e => { console.error(e) })
   }, [currentFileName, noFileSelected])
 
+  const getCurrentFileContent = async (): Promise<string> => {
+    return await remixClient.call(
+      'fileManager',
+      'readFile',
+      currentFilePath
+    )
+  }
+
+  const writeFileContent = async (
+    path: string,
+    content: string
+  ): Promise<void> => {
+    await remixClient.call(
+      'fileManager',
+      'writeFile',
+      path,
+      content
+    )
+  }
+
+  const showNotification = async (
+    message: string | Record<string, string>,
+    type?: string
+  ): Promise<void> => {
+    return await remixClient.call(
+      'notification' as any,
+      type ?? 'toast',
+      message
+    )
+  }
+
   return {
     remixClient,
     isPluginLoaded: pluginLoaded,
     currentFilePath,
-    currWorkspacePath
+    currWorkspacePath,
+    getCurrentFileContent,
+    writeFileContent,
+    showNotification
   }
 }
 

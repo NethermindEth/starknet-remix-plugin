@@ -7,7 +7,6 @@ h3 {
 .AccordionRoot {
   border-radius: 6px;
   width: 100%;
-  box-shadow: 0 2px 10px var(--primary-color-100);
 }
 
 .AccordionItem {
