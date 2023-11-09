@@ -1,3 +1,4 @@
+/* eslint-disable multiline-ternary */
 import React, { useEffect } from 'react'
 import { apiUrl } from '../../utils/network'
 import {
@@ -20,8 +21,21 @@ import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 
 // Imported Atoms
 import cairoVersionAtom from '../../atoms/cairoVersion'
-import { compiledContractsAtom, selectedCompiledContract } from '../../atoms/compiledContracts'
-import { activeTomlPathAtom, compilationAtom, currentFilenameAtom, hashDirAtom, isCompilingAtom, isValidCairoAtom, noFileSelectedAtom, statusAtom, tomlPathsAtom } from '../../atoms/compilation'
+import {
+  compiledContractsAtom,
+  selectedCompiledContract
+} from '../../atoms/compiledContracts'
+import {
+  activeTomlPathAtom,
+  compilationAtom,
+  currentFilenameAtom,
+  hashDirAtom,
+  isCompilingAtom,
+  isValidCairoAtom,
+  noFileSelectedAtom,
+  statusAtom,
+  tomlPathsAtom
+} from '../../atoms/compilation'
 import useRemixClient from '../../hooks/useRemixClient'
 import { isEmpty } from '../../utils/misc'
 
@@ -42,127 +56,118 @@ const CompilationCard: React.FC<{
   onClick: () => unknown
   compileScarb: (workspacePath: string, scarbPath: string) => Promise<void>
   currentWorkspacePath: string
-}> = (
-  {
-    validation,
-    isLoading,
-    onClick,
-    compileScarb,
-    currentWorkspacePath
-  }
-): React.ReactElement => {
+}> = ({
+  validation,
+  isLoading,
+  onClick,
+  compileScarb,
+  currentWorkspacePath
+}): React.ReactElement => {
   const { remixClient } = useRemixClient()
 
-  const {
-    activeTomlPath,
-    tomlPaths,
-    isCompiling,
-    currentFilename
-  } = useAtomValue(compilationAtom)
+  const { activeTomlPath, tomlPaths, isCompiling, currentFilename } =
+    useAtomValue(compilationAtom)
 
   const setActiveTomlPath = useSetAtom(activeTomlPathAtom)
 
   const isCurrentFileName = isEmpty(currentFilename)
 
   return (
-      <Container>
-        {activeTomlPath !== undefined && tomlPaths?.length > 0 && (
-          <div className="project-dropdown-wrapper d-flex flex-column mb-3">
-            <button
-              className="btn btn-warning w-100 text-break mb-1 mt-1 px-0"
-              disabled={isCompiling}
-              aria-disabled={isCompiling}
-              onClick={() => {
-                compileScarb(currentWorkspacePath, activeTomlPath).then(() => {
+    <Container>
+      {activeTomlPath !== undefined && tomlPaths?.length > 0 && (
+        <div className="project-dropdown-wrapper d-flex flex-column mb-3">
+          <button
+            className="btn btn-warning w-100 text-break mb-1 mt-1 px-0"
+            disabled={isCompiling}
+            aria-disabled={isCompiling}
+            onClick={() => {
+              compileScarb(currentWorkspacePath, activeTomlPath)
+                .then(() => {
                   remixClient.emit('statusChanged', {
                     key: 'succeed',
                     type: 'success',
                     title: 'Cheers : compilation successful'
                   })
-                }).catch(e => {
+                })
+                .catch((e) => {
                   console.log('error: ', e)
                 })
-              }}
-            >
-              Compile Project
-            </button>
+            }}
+          >
+            Compile Project
+          </button>
 
-            <D.Root>
-              <D.Trigger>
-                <div className="btn btn-primary w-100 trigger-wrapper px-0">
-                  <label className="text-break text-white" style={{ fontFamily: 'inherit', fontSize: 'inherit' }}>
-                    {activeTomlPath}
-                  </label>
-                  <BsChevronDown />
-                </div>
-              </D.Trigger>
-              <D.Portal>
-                <D.Content>
-                  {tomlPaths.map((tomlPath, i) => {
-                    return (
-                      <D.Item
-                        key={i.toString() + tomlPath}
-                        onClick={() => {
-                          setActiveTomlPath(tomlPath)
-                        }}
-                      >
-                        {tomlPath}
-                      </D.Item>
-                    )
-                  })}
-                </D.Content>
-              </D.Portal>
-            </D.Root>
-            <div className='mx-auto'>Or compile a single file:</div>
-          </div>
-        )}
-        <button
-          className="btn btn-information btn-block d-block w-100 text-break remixui_disabled mb-1 mt-1 px-0"
-          style={{
-            cursor: `${(!validation || isCurrentFileName) ? 'not-allowed' : 'pointer'
-              }`
-          }}
-          disabled={!validation || isCurrentFileName || isCompiling}
-          aria-disabled={!validation || isCurrentFileName || isCompiling}
-          onClick={onClick}
-        >
-          <div className="d-flex align-items-center justify-content-center">
-            <div className="text-truncate overflow-hidden text-nowrap">
-              {!validation
-                ? (
-                  <span>Select a valid cairo file</span>
+          <D.Root>
+            <D.Trigger>
+              <div className="btn btn-primary w-100 trigger-wrapper px-0">
+                <label
+                  className="text-break text-white"
+                  style={{ fontFamily: 'inherit', fontSize: 'inherit' }}
+                >
+                  {activeTomlPath}
+                </label>
+                <BsChevronDown />
+              </div>
+            </D.Trigger>
+            <D.Portal>
+              <D.Content>
+                {tomlPaths.map((tomlPath, i) => {
+                  return (
+                    <D.Item
+                      key={i.toString() + tomlPath}
+                      onClick={() => {
+                        setActiveTomlPath(tomlPath)
+                      }}
+                    >
+                      {tomlPath}
+                    </D.Item>
                   )
-                : (
-                  <>
-                    <div className="d-flex align-items-center justify-content-center">
-                      {isLoading
-                        ? (
-                          <>
-                            {/* <span
-                              className="spinner-border spinner-border-sm"
-                              role="status"
-                              aria-hidden="true"
-                            >
-                              {' '}
-                            </span> */}
-                            <span style={{ paddingLeft: '0.5rem' }}>{ useAtomValue(statusAtom)}</span>
-                          </>
-                          )
-                        : (
-                          <div className="text-truncate overflow-hidden text-nowrap">
-                            <span>Compile</span>
-                            <span className="ml-1 text-nowrap">
-                              {currentFilename}
-                            </span>
-                          </div>
-                          )}
+                })}
+              </D.Content>
+            </D.Portal>
+          </D.Root>
+          <div className="mx-auto">Or compile a single file:</div>
+        </div>
+      )}
+      <button
+        className="btn btn-information btn-block d-block w-100 text-break remixui_disabled mb-1 mt-1 px-0"
+        style={{
+          cursor: `${
+            !validation || isCurrentFileName ? 'not-allowed' : 'pointer'
+          }`
+        }}
+        disabled={!validation || isCurrentFileName || isCompiling}
+        aria-disabled={!validation || isCurrentFileName || isCompiling}
+        onClick={onClick}
+      >
+        <div className="d-flex align-items-center justify-content-center">
+          <div className="text-truncate overflow-hidden text-nowrap">
+            {!validation ? (
+              <span>Select a valid cairo file</span>
+            ) : (
+              <>
+                <div className="d-flex align-items-center justify-content-center">
+                  {isLoading ? (
+                    <>
+                      <span style={{ paddingLeft: '0.5rem' }}>
+                        {useAtomValue(statusAtom)}
+                      </span>
+                    </>
+                  ) : (
+                    <div className="text-truncate overflow-hidden text-nowrap">
+                      <span>Compile</span>
+                      <span className="ml-1 text-nowrap">
+                        {currentFilename}
+                      </span>
                     </div>
-                  </>
                   )}
-            </div>
+                </div>
+              </>
+            )}
           </div>
-        </button>
-      </Container>
+        </div>
+      </button>
+    </Container>
   )
 }
 
@@ -175,7 +180,9 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
   const cairoVersion = useAtomValue(cairoVersionAtom)
 
   const [contracts, setContracts] = useAtom(compiledContractsAtom)
-  const [selectedContract, setSelectedContract] = useAtom(selectedCompiledContract)
+  const [selectedContract, setSelectedContract] = useAtom(
+    selectedCompiledContract
+  )
 
   const {
     currentFilename,
@@ -371,7 +378,9 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
 
         setTomlPaths(allTomlPaths)
-        if (activeTomlPath === '' || activeTomlPath === undefined) { setActiveTomlPath(tomlPaths[0]) }
+        if (activeTomlPath === '' || activeTomlPath === undefined) {
+          setActiveTomlPath(tomlPaths[0])
+        }
       } catch (e) {
         console.log('error: ', e)
       }
@@ -379,7 +388,9 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
   }, [currWorkspacePath])
 
   useEffect(() => {
-    if (activeTomlPath === '' || activeTomlPath === undefined) { setActiveTomlPath(tomlPaths[0]) }
+    if (activeTomlPath === '' || activeTomlPath === undefined) {
+      setActiveTomlPath(tomlPaths[0])
+    }
   }, [tomlPaths])
 
   useEffect(() => {
@@ -542,7 +553,11 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         errorLetsArray.forEach(async (errorLet: any) => {
           const errorType = errorLet[0].split(':')[0].trim()
-          const errorTitle: string = errorLet[0].split(':').slice(1).join(':').trim()
+          const errorTitle: string = errorLet[0]
+            .split(':')
+            .slice(1)
+            .join(':')
+            .trim()
           const errorLine = errorLet[1].split(':')[1].trim()
           const errorColumn = errorLet[1].split(':')[2].trim()
           // join the rest of the array
@@ -571,7 +586,10 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       setStatus('Compiling to casm...')
 
       const compileToCasmResponse = await asyncFetch(
-        `compile-to-casm-async/${cairoVersion}/${hashDir}/${currentFilePath.replaceAll(getFileExtension(currentFilePath), 'sierra')}`,
+        `compile-to-casm-async/${cairoVersion}/${hashDir}/${currentFilePath.replaceAll(
+          getFileExtension(currentFilePath),
+          'sierra'
+        )}`,
         'compile-to-casm-result'
       )
 
@@ -644,10 +662,10 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
             'notification' as any,
             'toast',
             e.message +
-            ' try deleting the files: ' +
-            sierraPath +
-            ' and ' +
-            casmPath
+              ' try deleting the files: ' +
+              sierraPath +
+              ' and ' +
+              casmPath
           )
         }
         remixClient.emit('statusChanged', {
@@ -709,7 +727,8 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           )
           setStatus(`Saving ${allFilesKeys[i]}...`)
           const response = await fetch(
-            `${apiUrl}/save_code/${hashDir}/${workspacePath.replace('.', '') + '/' + allFilesKeys[i]
+            `${apiUrl}/save_code/${hashDir}/${
+              workspacePath.replace('.', '') + '/' + allFilesKeys[i]
             }`,
             {
               method: 'POST',
@@ -751,10 +770,13 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
       let result: string
       try {
-        result = await asyncFetch(`compile-scarb-async/${hashDir}/${workspacePath.replace(
-          '.',
-          ''
-        )}/${scarbPath}`, 'compile-scarb-result')
+        result = await asyncFetch(
+          `compile-scarb-async/${hashDir}/${workspacePath.replace(
+            '.',
+            ''
+          )}/${scarbPath}`,
+          'compile-scarb-result'
+        )
       } catch (e) {
         await remixClient.call(
           'notification' as any,
@@ -765,21 +787,21 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       }
       const scarbCompile: ScarbCompileResponse = JSON.parse(result)
       if (scarbCompile.status !== 'Success') {
-        await remixClient.call(
-          'notification' as any,
-          'alert',
-          {
-            id: 'starknetRemixPluginAlert',
-            title: 'Scarb compilation failed!',
-            message: 'Scarb compilation failed!, you can read logs in the terminal console'
-          }
-        )
+        await remixClient.call('notification' as any, 'alert', {
+          id: 'starknetRemixPluginAlert',
+          title: 'Scarb compilation failed!',
+          message:
+            'Scarb compilation failed!, you can read logs in the terminal console'
+        })
         remixClient.emit('statusChanged', {
           key: 'failed',
           type: 'error',
           title: 'Scarb compilation failed!'
         })
-        await remixClient.terminal.log({ type: 'error', value: scarbCompile.message })
+        await remixClient.terminal.log({
+          type: 'error',
+          value: scarbCompile.message
+        })
         throw new Error('Cairo Compilation Request Failed')
       }
 
@@ -799,13 +821,17 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
       for (const file of scarbCompile.file_content_map_array) {
         if (file.file_name?.endsWith('.contract_class.json')) {
-          const contractName: string = file.file_name.replace('.contract_class.json', '')
+          const contractName: string = file.file_name.replace(
+            '.contract_class.json',
+            ''
+          )
           const sierra = JSON.parse(file.file_content)
           if (
-            (scarbCompile.file_content_map_array?.find(
+            scarbCompile.file_content_map_array?.find(
               (file: { file_name: string }) =>
-                file.file_name === contractName + '.compiled_contract_class.json'
-            )) == null
+                file.file_name ===
+                contractName + '.compiled_contract_class.json'
+            ) == null
           ) {
             notifyCasmInclusion = true
             continue
@@ -813,7 +839,8 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           const casm = JSON.parse(
             scarbCompile.file_content_map_array.find(
               (file: { file_name: string }) =>
-                file.file_name === contractName + '.compiled_contract_class.json'
+                file.file_name ===
+                contractName + '.compiled_contract_class.json'
             )?.file_content ?? ''
           )
           const genContract = await genContractData(
@@ -836,7 +863,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         await remixClient.call(
           'notification' as any,
           'toast',
-          'Please include \'casm=true\' in the Scarb.toml to deploy cairo contracts'
+          "Please include 'casm=true' in the Scarb.toml to deploy cairo contracts"
         )
       }
 
@@ -918,14 +945,16 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
   return (
     <div>
       {compilations.map((compilation, idx) => {
-        return <CompilationCard
-          key={`${JSON.stringify(compilation)}${idx}`}
-          validation={compilation.validation}
-          isLoading={compilation.isLoading}
-          onClick={compilation.onClick}
-          compileScarb={compileScarb}
-          currentWorkspacePath={currWorkspacePath}
-        />
+        return (
+          <CompilationCard
+            key={`${JSON.stringify(compilation)}${idx}`}
+            validation={compilation.validation}
+            isLoading={compilation.isLoading}
+            onClick={compilation.onClick}
+            compileScarb={compileScarb}
+            currentWorkspacePath={currWorkspacePath}
+          />
+        )
       })}
     </div>
   )
