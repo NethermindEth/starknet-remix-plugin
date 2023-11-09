@@ -4,14 +4,13 @@ import './App.css'
 import Plugin from './features/Plugin'
 import Loader from './components/ui_components/CircularLoader'
 import FullScreenOverlay from './components/ui_components/FullScreenOverlay'
-import useRemixClient from './hooks/useRemixClient'
+import { pluginLoaded } from './atoms/remixClient'
+import { useAtomValue } from 'jotai'
 
 const App: React.FC = () => {
-  const { isPluginLoaded } = useRemixClient()
-
   return (
     <div className="shell bg-primary">
-      {isPluginLoaded
+      {useAtomValue(pluginLoaded)
         ? (
           <Plugin />
           )
