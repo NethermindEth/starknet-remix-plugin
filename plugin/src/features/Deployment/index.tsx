@@ -318,7 +318,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
                       {`${input.name} (${
                         getParameterType(input.type) ?? ''
                       }): `}
-                      <Tooltip content = 'for eg. input: `1, 0` corresponds to 1 (low: 1, high: 0) ' icon={<FaInfoCircle/> } />
+                      { getParameterType(input.type) === 'u256 (low, high)' && <Tooltip content = 'for eg. input: `1, 0` corresponds to 1 (low: 1, high: 0) ' icon={<FaInfoCircle/> } /> }
                     </label>
                     <input
                       className="form-control constructor-input"
@@ -371,13 +371,6 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
                     {isDeploying
                       ? (
                       <>
-                        <span
-                          className="spinner-border spinner-border-sm"
-                          role="status"
-                          aria-hidden="true"
-                        >
-                          {' '}
-                        </span>
                         <span style={{ paddingLeft: '0.5rem' }}>
                           {deployStatus}
                         </span>
