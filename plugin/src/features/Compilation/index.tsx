@@ -1,3 +1,4 @@
+/* eslint-disable multiline-ternary */
 import React, { useEffect } from 'react'
 import { apiUrl } from '../../utils/network'
 import {
@@ -56,7 +57,9 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
   const cairoVersion = useAtomValue(cairoVersionAtom)
 
   const [contracts, setContracts] = useAtom(compiledContractsAtom)
-  const [selectedContract, setSelectedContract] = useAtom(selectedCompiledContract)
+  const [selectedContract, setSelectedContract] = useAtom(
+    selectedCompiledContract
+  )
 
   const {
     currentFilename,
@@ -124,7 +127,9 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
   }, [currentFilename, remixClient])
 
   useEffect(() => {
-    if (activeTomlPath === '' || activeTomlPath === undefined) { setActiveTomlPath(tomlPaths[0]) }
+    if (activeTomlPath === '' || activeTomlPath === undefined) {
+      setActiveTomlPath(tomlPaths[0])
+    }
   }, [tomlPaths])
 
   const compilations = [
@@ -206,7 +211,11 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         errorLetsArray.forEach(async (errorLet: any) => {
           const errorType = errorLet[0].split(':')[0].trim()
-          const errorTitle: string = errorLet[0].split(':').slice(1).join(':').trim()
+          const errorTitle: string = errorLet[0]
+            .split(':')
+            .slice(1)
+            .join(':')
+            .trim()
           const errorLine = errorLet[1].split(':')[1].trim()
           const errorColumn = errorLet[1].split(':')[2].trim()
           // join the rest of the array
@@ -235,7 +244,10 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       setStatus('Compiling to casm...')
 
       const compileToCasmResponse = await asyncFetch(
-        `compile-to-casm-async/${cairoVersion}/${hashDir}/${currentFilePath.replaceAll(getFileExtension(currentFilePath), 'sierra')}`,
+        `compile-to-casm-async/${cairoVersion}/${hashDir}/${currentFilePath.replaceAll(
+          getFileExtension(currentFilePath),
+          'sierra'
+        )}`,
         'compile-to-casm-result'
       )
 
@@ -304,10 +316,10 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
             'notification' as any,
             'toast',
             e.message +
-            ' try deleting the files: ' +
-            sierraPath +
-            ' and ' +
-            casmPath
+              ' try deleting the files: ' +
+              sierraPath +
+              ' and ' +
+              casmPath
           )
         }
         remixClient.emit('statusChanged', {
@@ -326,18 +338,18 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       )
 
       setStatus('done')
+      setAccordian('deploy')
     } catch (e) {
       setStatus('failed')
       if (e instanceof Error) {
         await remixClient.call('notification' as any, 'alert', {
           id: 'starknetRemixPluginAlert',
-          title: 'Expectation Failed',
+          title: 'Cairo Compilation Failed',
           message: e.message
         })
       }
       console.error(e)
     }
-    setAccordian('deploy')
     setIsCompiling(false)
   }
 
@@ -368,7 +380,8 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           )
           setStatus(`Saving ${allFilesKeys[i]}...`)
           const response = await fetch(
-            `${apiUrl}/save_code/${hashDir}/${workspacePath.replace('.', '') + '/' + allFilesKeys[i]
+            `${apiUrl}/save_code/${hashDir}/${
+              workspacePath.replace('.', '') + '/' + allFilesKeys[i]
             }`,
             {
               method: 'POST',
@@ -408,10 +421,13 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
       let result: string
       try {
-        result = await asyncFetch(`compile-scarb-async/${hashDir}/${workspacePath.replace(
-          '.',
-          ''
-        )}/${scarbPath}`, 'compile-scarb-result')
+        result = await asyncFetch(
+          `compile-scarb-async/${hashDir}/${workspacePath.replace(
+            '.',
+            ''
+          )}/${scarbPath}`,
+          'compile-scarb-result'
+        )
       } catch (e) {
         await showNotification(
           'Could not reach cairo compilation server'
@@ -419,7 +435,6 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         throw new Error('Cairo Compilation Request Failed')
       }
       const scarbCompile: ScarbCompileResponse = JSON.parse(result)
-
       if (scarbCompile.status !== 'Success') {
         await showNotification(
           {
@@ -434,7 +449,10 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           type: 'error',
           title: 'Scarb compilation failed!'
         })
-        await remixClient.terminal.log({ type: 'error', value: scarbCompile.message })
+        await remixClient.terminal.log({
+          type: 'error',
+          value: scarbCompile.message
+        })
         throw new Error('Cairo Compilation Request Failed')
       }
 
@@ -450,15 +468,21 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
       const contractsToStore: Contract[] = []
 
+      console.log(scarbCompile.file_content_map_array)
+
       for (const file of scarbCompile.file_content_map_array) {
-        if (file.file_name?.endsWith('.sierra.json')) {
-          const contractName: string = file.file_name.replace('.sierra.json', '')
+        if (file.file_name?.endsWith('.contract_class.json')) {
+          const contractName: string = file.file_name.replace(
+            '.contract_class.json',
+            ''
+          )
           const sierra = JSON.parse(file.file_content)
           if (
-            (scarbCompile.file_content_map_array?.find(
+            scarbCompile.file_content_map_array?.find(
               (file: { file_name: string }) =>
-                file.file_name === contractName + '.casm.json'
-            )) == null
+                file.file_name ===
+                contractName + '.compiled_contract_class.json'
+            ) == null
           ) {
             notifyCasmInclusion = true
             continue
@@ -466,7 +490,8 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           const casm = JSON.parse(
             scarbCompile.file_content_map_array.find(
               (file: { file_name: string }) =>
-                file.file_name === contractName + '.casm.json'
+                file.file_name ===
+                contractName + '.compiled_contract_class.json'
             )?.file_content ?? ''
           )
           const genContract = await genContractData(
@@ -516,11 +541,13 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           title: 'Failed to save artifacts'
         })
       }
+      setStatus('done')
+      setAccordian('deploy')
     } catch (e) {
+      setStatus('failed')
       console.log('error: ', e)
     }
     setIsCompiling(false)
-    setStatus('done')
   }
 
   async function genContractData (
@@ -532,7 +559,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     const sierra = await JSON.parse(sierraFile)
     const casm = await JSON.parse(casmFile)
     const compiledClassHash = hash.computeCompiledClassHash(casm)
-    const classHash = hash.computeContractClassHash(sierra)
+    const classHash = hash.computeContractClassHash(sierraFile)
     const sierraClassHash = hash.computeSierraContractClassHash(sierra)
     if (
       contracts.find(
@@ -549,7 +576,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       compiledClassHash,
       classHash,
       sierraClassHash,
-      sierra,
+      sierra: sierraFile,
       casm,
       path,
       deployedInfo: [],
@@ -561,14 +588,16 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
   return (
     <div>
       {compilations.map((compilation, idx) => {
-        return <CompilationCard
-          key={`${JSON.stringify(compilation)}${idx}`}
-          validation={compilation.validation}
-          isLoading={compilation.isLoading}
-          onClick={compilation.onClick}
-          compileScarb={compileScarb}
-          currentWorkspacePath={currWorkspacePath}
-        />
+        return (
+          <CompilationCard
+            key={`${JSON.stringify(compilation)}${idx}`}
+            validation={compilation.validation}
+            isLoading={compilation.isLoading}
+            onClick={compilation.onClick}
+            compileScarb={compileScarb}
+            currentWorkspacePath={currWorkspacePath}
+          />
+        )
       })}
     </div>
   )

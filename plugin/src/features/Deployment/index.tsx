@@ -21,7 +21,7 @@ import {
   selectedCompiledContract
 } from '../../atoms/compiledContracts'
 import { envAtom } from '../../atoms/environment'
-import { starknetWindowObject as starknetWindowObjectAtom } from '../../atoms/connection'
+// import { starknetWindowObject as starknetWindowObjectAtom } from '../../atoms/connection'
 import useAccount from '../../hooks/useAccount'
 import useProvider from '../../hooks/useProvider'
 import useRemixClient from '../../hooks/useRemixClient'
@@ -62,7 +62,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 
   const [transactions, setTransactions] = useAtom(transactionsAtom)
   const env = useAtomValue(envAtom)
-  const starknetWindowObject = useAtomValue(starknetWindowObjectAtom)
+  // const starknetWindowObject = useAtomValue(starknetWindowObjectAtom)
 
   const [chainId, setChainId] = useState<constants.StarknetChainId>(
     constants.StarknetChainId.SN_GOERLI
@@ -90,18 +90,18 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   }, [selectedContract])
 
   const deploy = async (calldata: BigNumberish[]): Promise<void> => {
-    if (
-      env === 'wallet' &&
-      starknetWindowObject !== null &&
-      starknetWindowObject.id === 'argentX'
-    ) {
-      await remixClient.call(
-        'notification' as any,
-        'toast',
-        `⚠️ You are connected to ${starknetWindowObject.id} wallet, please use the Braavos wallet instead!`
-      )
-      return
-    }
+    // if (
+    //   env === 'wallet' &&
+    //   starknetWindowObject !== null &&
+    //   starknetWindowObject.id === 'argentX'
+    // ) {
+    //   await remixClient.call(
+    //     'notification' as any,
+    //     'toast',
+    //     `⚠️ You are connected to ${starknetWindowObject.id} wallet, please use the Braavos wallet instead!`
+    //   )
+    //   // return
+    // }
 
     setIsDeploying(true)
     remixClient.emit('statusChanged', {
@@ -109,7 +109,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       type: 'info',
       title: `Deploying ${selectedContract?.name ?? ''} ...`
     })
-    let classHash = selectedContract?.sierraClassHash
+    let classHash = selectedContract?.classHash
     let updatedTransactions = transactions
     try {
       if (account === null || provider === null) {
@@ -123,16 +123,16 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       setDeployStatus('Declaring...')
       try {
         try {
-          await account.getClassByHash(selectedContract.sierraClassHash)
+          await account.getClassByHash(selectedContract.classHash)
           await remixClient.call(
             'notification' as any,
             'toast',
-            `ℹ️ Contract with classHash: ${selectedContract.sierraClassHash} already has been declared, proceeding to deployment...`
+            `ℹ️ Contract with classHash: ${selectedContract.classHash} already has been declared, proceeding to deployment...`
           )
         } catch (error) {
           const declareResponse = await account.declare({
             contract: selectedContract.sierra,
-            classHash: selectedContract.sierraClassHash,
+            classHash: selectedContract.classHash,
             compiledClassHash: selectedContract.compiledClassHash
           })
           await remixClient.call('terminal', 'log', {
@@ -318,7 +318,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
                       {`${input.name} (${
                         getParameterType(input.type) ?? ''
                       }): `}
-                      <Tooltip content = 'for eg. input: `1, 0` corresponds to 1 (low: 1, high: 0) ' icon={<FaInfoCircle/> } />
+                      { getParameterType(input.type) === 'u256 (low, high)' && <Tooltip content = 'for eg. input: `1, 0` corresponds to 1 (low: 1, high: 0) ' icon={<FaInfoCircle/> } /> }
                     </label>
                     <input
                       className="form-control constructor-input"
@@ -371,13 +371,6 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
                     {isDeploying
                       ? (
                       <>
-                        <span
-                          className="spinner-border spinner-border-sm"
-                          role="status"
-                          aria-hidden="true"
-                        >
-                          {' '}
-                        </span>
                         <span style={{ paddingLeft: '0.5rem' }}>
                           {deployStatus}
                         </span>
