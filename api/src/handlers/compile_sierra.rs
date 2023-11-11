@@ -138,7 +138,6 @@ pub async fn do_compile_to_sierra(
         .wait_with_output()
         .map_err(ApiError::FailedToReadOutput)?;
 
-
     // Process the output messages
 
     let message = String::from_utf8(output.stderr)
@@ -159,12 +158,12 @@ pub async fn do_compile_to_sierra(
         );
 
     let status = match output.status.code() {
-            Some(0) => "Success",
-            Some(_) => "CompilationFailed",
-            None => "UnknownError",
-        }
-        .to_string();
-    
+        Some(0) => "Success",
+        Some(_) => "CompilationFailed",
+        None => "UnknownError",
+    }
+    .to_string();
+
     // Prepare response based on the compilation result
     match output.status.code() {
         Some(0) => {
@@ -178,23 +177,19 @@ pub async fn do_compile_to_sierra(
             )
             .await
             .map_err(ApiError::FailedToReadFile)?;
-        
+
             Ok(Json(CompileResponse {
                 file_content,
                 message,
                 status,
                 cairo_version,
             }))
-    
-        },
-        _ => {
-            Ok(Json(CompileResponse {
-                file_content: String::from(""),
-                message,
-                status,
-                cairo_version,
-            }))
         }
+        _ => Ok(Json(CompileResponse {
+            file_content: String::from(""),
+            message,
+            status,
+            cairo_version,
+        })),
     }
-
 }
