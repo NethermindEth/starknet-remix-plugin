@@ -11,7 +11,7 @@ use rocket::tokio::fs;
 use rocket::State;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
-use tracing::{debug, instrument};
+use tracing::{debug, info, instrument};
 
 #[instrument]
 #[get("/compile-to-sierra/<version>/<remix_file_path..>")]
