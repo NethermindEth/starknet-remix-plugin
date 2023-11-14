@@ -138,16 +138,7 @@ pub async fn do_compile_to_sierra(
         .wait_with_output()
         .map_err(ApiError::FailedToReadOutput)?;
 
-    let file_content = fs::read_to_string(
-        NamedFile::open(&sierra_path)
-            .await
-            .map_err(ApiError::FailedToReadFile)?
-            .path()
-            .to_str()
-            .ok_or(ApiError::FailedToParseString)?,
-    )
-    .await
-    .map_err(ApiError::FailedToReadFile)?;
+    // Process the output messages
 
     let message = String::from_utf8(output.stderr)
         .map_err(ApiError::UTF8Error)?
@@ -173,10 +164,32 @@ pub async fn do_compile_to_sierra(
     }
     .to_string();
 
-    Ok(Json(CompileResponse {
-        file_content,
-        message,
-        status,
-        cairo_version,
-    }))
+    // Prepare response based on the compilation result
+    match output.status.code() {
+        Some(0) => {
+            let file_content = fs::read_to_string(
+                NamedFile::open(&sierra_path)
+                    .await
+                    .map_err(ApiError::FailedToReadFile)?
+                    .path()
+                    .to_str()
+                    .ok_or(ApiError::FailedToParseString)?,
+            )
+            .await
+            .map_err(ApiError::FailedToReadFile)?;
+
+            Ok(Json(CompileResponse {
+                file_content,
+                message,
+                status,
+                cairo_version,
+            }))
+        }
+        _ => Ok(Json(CompileResponse {
+            file_content: String::from(""),
+            message,
+            status,
+            cairo_version,
+        })),
+    }
 }
