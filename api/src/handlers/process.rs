@@ -1,8 +1,7 @@
 use crate::handlers::types::{ApiCommand, ApiCommandResult};
 use crate::worker::{ProcessState, WorkerEngine};
 use rocket::State;
-use tracing::info;
-use tracing::instrument;
+use tracing::{info, instrument};
 use uuid::Uuid;
 
 #[instrument]
