@@ -11,8 +11,7 @@ use rocket::tokio::fs;
 use rocket::State;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
-use tracing::info;
-use tracing::instrument;
+use tracing::{debug, info, instrument};
 
 #[instrument]
 #[get("/compile-to-casm/<version>/<remix_file_path..>")]
