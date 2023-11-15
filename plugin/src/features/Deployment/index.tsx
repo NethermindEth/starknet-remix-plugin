@@ -1,51 +1,68 @@
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import { type BigNumberish } from 'ethers'
 import CompiledContracts from '../../components/CompiledContracts'
-import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
 import {
   type CallDataObj,
   type CallDataObject,
   type Contract
-} from '../../types/contracts'
+} from '../../utils/types/contracts'
 import { getConstructor, getParameterType } from '../../utils/utils'
-import './styles.css'
-import Container from '../../ui_components/Container'
+import Container from '../../components/ui_components/Container'
 
-import { ConnectionContext } from '../../contexts/ConnectionContext'
-import { RemixClientContext } from '../../contexts/RemixClientContext'
 import { type AccordianTabs } from '../Plugin'
-import DeploymentContext from '../../contexts/DeploymentContext'
-import TransactionContext from '../../contexts/TransactionContext'
 import { constants } from 'starknet'
-import EnvironmentContext from '../../contexts/EnvironmentContext'
+import { useAtom, useAtomValue, useSetAtom } from 'jotai'
+import transactionsAtom from '../../atoms/transactions'
 
+import './styles.css'
+import {
+  compiledContractsAtom,
+  selectedCompiledContract
+} from '../../atoms/compiledContracts'
+import { envAtom } from '../../atoms/environment'
+// import { starknetWindowObject as starknetWindowObjectAtom } from '../../atoms/connection'
+import useAccount from '../../hooks/useAccount'
+import useProvider from '../../hooks/useProvider'
+import useRemixClient from '../../hooks/useRemixClient'
+import {
+  constructorInputsAtom,
+  deployStatusAtom,
+  deploymentAtom,
+  isDeployingAtom,
+  notEnoughInputsAtom
+} from '../../atoms/deployment'
+import Tooltip from '../../components/ui_components/Tooltip'
+
+import { FaInfoCircle } from 'react-icons/fa'
 interface DeploymentProps {
   setActiveTab: (tab: AccordianTabs) => void
 }
 
 const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
-  const remixClient = useContext(RemixClientContext)
-  const { account, provider } = useContext(ConnectionContext)
-  const { contracts, selectedContract, setContracts, setSelectedContract } =
-    useContext(CompiledContractsContext)
+  const { remixClient } = useRemixClient()
+  const { account } = useAccount()
+  const { provider } = useProvider()
+
+  const [contracts, setContracts] = useAtom(compiledContractsAtom)
+  const [selectedContract, setSelectedContract] = useAtom(
+    selectedCompiledContract
+  )
 
   const [constructorCalldata, setConstructorCalldata] =
     useState<CallDataObject>({})
 
-  const {
-    isDeploying,
-    setIsDeploying,
-    deployStatus,
-    setDeployStatus,
-    constructorInputs,
-    setConstructorInputs,
-    notEnoughInputs,
-    setNotEnoughInputs
-  } = useContext(DeploymentContext)
+  const { isDeploying, deployStatus, constructorInputs, notEnoughInputs } =
+    useAtomValue(deploymentAtom)
 
-  const { transactions, setTransactions } = useContext(TransactionContext)
-  const { env } = useContext(EnvironmentContext)
+  const setIsDeploying = useSetAtom(isDeployingAtom)
+  const setDeployStatus = useSetAtom(deployStatusAtom)
+  const setConstructorInputs = useSetAtom(constructorInputsAtom)
+  const setNotEnoughInputs = useSetAtom(notEnoughInputsAtom)
+
+  const [transactions, setTransactions] = useAtom(transactionsAtom)
+  const env = useAtomValue(envAtom)
+  // const starknetWindowObject = useAtomValue(starknetWindowObjectAtom)
 
   const [chainId, setChainId] = useState<constants.StarknetChainId>(
     constants.StarknetChainId.SN_GOERLI
@@ -73,13 +90,26 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   }, [selectedContract])
 
   const deploy = async (calldata: BigNumberish[]): Promise<void> => {
+    // if (
+    //   env === 'wallet' &&
+    //   starknetWindowObject !== null &&
+    //   starknetWindowObject.id === 'argentX'
+    // ) {
+    //   await remixClient.call(
+    //     'notification' as any,
+    //     'toast',
+    //     `⚠️ You are connected to ${starknetWindowObject.id} wallet, please use the Braavos wallet instead!`
+    //   )
+    //   // return
+    // }
+
     setIsDeploying(true)
     remixClient.emit('statusChanged', {
       key: 'loading',
       type: 'info',
       title: `Deploying ${selectedContract?.name ?? ''} ...`
     })
-    let classHash = selectedContract?.sierraClassHash
+    let classHash = selectedContract?.classHash
     let updatedTransactions = transactions
     try {
       if (account === null || provider === null) {
@@ -93,16 +123,16 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       setDeployStatus('Declaring...')
       try {
         try {
-          await account.getClassByHash(selectedContract.sierraClassHash)
+          await account.getClassByHash(selectedContract.classHash)
           await remixClient.call(
             'notification' as any,
             'toast',
-            `ℹ️ Contract with classHash: ${selectedContract.sierraClassHash} already has been declared, proceeding to deployment...`
+            `ℹ️ Contract with classHash: ${selectedContract.classHash} already has been declared, proceeding to deployment...`
           )
         } catch (error) {
           const declareResponse = await account.declare({
             contract: selectedContract.sierra,
-            classHash: selectedContract.sierraClassHash,
+            classHash: selectedContract.classHash,
             compiledClassHash: selectedContract.compiledClassHash
           })
           await remixClient.call('terminal', 'log', {
@@ -129,18 +159,19 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
             value: error.message,
             type: 'error'
           })
-          throw new Error(error.message + '\n Aborting deployment... Couldn\'t get declare infomation')
+          throw new Error(
+            error.message +
+              "\n Aborting deployment... Couldn't get declare infomation"
+          )
         }
       }
 
       setDeployStatus('Deploying...')
 
-      const deployResponse = await account.deployContract(
-        {
-          classHash: classHash ?? selectedContract.classHash,
-          constructorCalldata: calldata
-        }
-      )
+      const deployResponse = await account.deployContract({
+        classHash: classHash ?? selectedContract.classHash,
+        constructorCalldata: calldata
+      })
       await remixClient.call('terminal', 'log', {
         value: JSON.stringify(deployResponse, null, 2),
         type: 'info'
@@ -215,15 +246,16 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       value,
       dataset: { type, index }
     } = event.target
-    setConstructorCalldata((prevCalldata) => ({
-      ...prevCalldata,
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      [index!]: {
-        name,
-        value,
-        type
-      }
-    }))
+    if (index != null) {
+      setConstructorCalldata((prevCalldata) => ({
+        ...prevCalldata,
+        [index]: {
+          name,
+          value,
+          type
+        }
+      }))
+    }
   }
 
   const getFormattedCalldata = (): BigNumberish[] => {
@@ -286,6 +318,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
                       {`${input.name} (${
                         getParameterType(input.type) ?? ''
                       }): `}
+                      { getParameterType(input.type) === 'u256 (low, high)' && <Tooltip content = 'for eg. input: `1, 0` corresponds to 1 (low: 1, high: 0) ' icon={<FaInfoCircle/> } /> }
                     </label>
                     <input
                       className="form-control constructor-input"
@@ -299,7 +332,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
                 )
               })}
               <button
-                className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3 px-0"
+                className="btn btn-information btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3 px-0"
                 style={{
                   cursor: `${
                     isDeploying ||
@@ -338,13 +371,6 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
                     {isDeploying
                       ? (
                       <>
-                        <span
-                          className="spinner-border spinner-border-sm"
-                          role="status"
-                          aria-hidden="true"
-                        >
-                          {' '}
-                        </span>
                         <span style={{ paddingLeft: '0.5rem' }}>
                           {deployStatus}
                         </span>

@@ -1,9 +1,4 @@
-/* eslint-disable react/jsx-key */
-/* eslint-disable @typescript-eslint/strict-boolean-expressions */
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
-/* eslint-disable no-case-declarations */
-/* eslint-disable multiline-ternary */
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { type BigNumberish } from 'ethers'
 
 import {
@@ -16,45 +11,50 @@ import {
   constants
 } from 'starknet'
 import CompiledContracts from '../../components/CompiledContracts'
-import { CompiledContractsContext } from '../../contexts/CompiledContractsContext'
-import { type CallDataObj, type Input } from '../../types/contracts'
+import { type CallDataObj, type Input } from '../../utils/types/contracts'
 import {
   getParameterType,
   getReadFunctions,
   getWriteFunctions
 } from '../../utils/utils'
-import Container from '../../ui_components/Container'
-import { ConnectionContext } from '../../contexts/ConnectionContext'
-import TransactionContext from '../../contexts/TransactionContext'
-import { RemixClientContext } from '../../contexts/RemixClientContext'
+import Container from '../../components/ui_components/Container'
 import storage from '../../utils/storage'
 import './index.css'
-import { useAtom } from 'jotai'
-import { type EnhancedAbiElement, interactAtom } from '../../atoms'
-import { Formik } from 'formik'
+import { useAtom, useAtomValue } from 'jotai'
+import { type EnhancedAbiElement, interactAtom, type UiAbiState } from '../../atoms'
+import { Formik, type FormikProps } from 'formik'
 import Yup, { transformInputs } from '../../utils/yup'
 
 import { BiReset } from 'react-icons/bi'
-import EnvironmentContext from '../../contexts/EnvironmentContext'
+import transactionsAtom from '../../atoms/transactions'
+import { compiledContractsAtom, selectedCompiledContract } from '../../atoms/compiledContracts'
+import { envAtom } from '../../atoms/environment'
+import useAccount from '../../hooks/useAccount'
+import useProvider from '../../hooks/useProvider'
+import useRemixClient from '../../hooks/useRemixClient'
+import { isEmpty } from '../../utils/misc'
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface InteractionProps {
   setInteractionStatus: React.Dispatch<React.SetStateAction<'loading' | 'error' | 'success' | ''>>
 }
 
 const Interaction: React.FC<InteractionProps> = (props) => {
-  const { contracts, selectedContract } = useContext(CompiledContractsContext)
-  const { account, provider } = useContext(ConnectionContext)
+  const contracts = useAtomValue(compiledContractsAtom)
+  const selectedContract = useAtomValue(selectedCompiledContract)
 
-  const { transactions, setTransactions } = useContext(TransactionContext)
-  const remixClient = useContext(RemixClientContext)
-  const { env } = useContext(EnvironmentContext)
+  const { account } = useAccount()
+  const { provider } = useProvider()
+
+  const [transactions, setTransactions] = useAtom(transactionsAtom)
+
+  const { remixClient } = useRemixClient()
+  const env = useAtomValue(envAtom)
 
   const [contractsState, setContractsState] = useAtom(interactAtom)
 
   // console.log(contractsState[selectedContract?.address!])
 
-  const setReadState = (readState: EnhancedAbiElement[]) => {
+  const setReadState = (readState: EnhancedAbiElement[]): void => {
     if (selectedContract != null) {
       setContractsState({
         ...contractsState,
@@ -65,7 +65,7 @@ const Interaction: React.FC<InteractionProps> = (props) => {
       })
     }
   }
-  const setWriteState = (writeState: EnhancedAbiElement[]) => {
+  const setWriteState = (writeState: EnhancedAbiElement[]): void => {
     if (selectedContract != null) {
       setContractsState({
         ...contractsState,
@@ -81,11 +81,12 @@ const Interaction: React.FC<InteractionProps> = (props) => {
     response: CallContractResponse | GetTransactionReceiptResponse,
     funcName: string,
     stateType: 'external' | 'view'
-  ) => {
+  ): void => {
     if (selectedContract != null) {
       const currentContractObj = contractsState[selectedContract.address]
       switch (stateType) {
         case 'view':
+        {
           const readState = currentContractObj.readState
           const oldElemIdx = readState.findIndex(
             (rObj) => rObj.name === funcName
@@ -112,7 +113,9 @@ const Interaction: React.FC<InteractionProps> = (props) => {
             /// If no old elem found, no need to udpate
           }
           break
+        }
         case 'external':
+        {
           const writeState = currentContractObj.writeState
           const oldElemWIdx = writeState.findIndex(
             (rObj) => rObj.name === funcName
@@ -140,6 +143,7 @@ const Interaction: React.FC<InteractionProps> = (props) => {
           }
           /// If no old elem found, no need to udpate
           break
+        }
       }
     }
   }
@@ -196,8 +200,8 @@ const Interaction: React.FC<InteractionProps> = (props) => {
       })
 
       // Merge with old objs, since old objs can have responses.
-      const oldContractObj = contractsState[selectedContract.address]
-      if (oldContractObj) {
+      const oldContractObj: undefined | UiAbiState = contractsState[selectedContract.address]
+      if (oldContractObj !== undefined) {
         const oldReadObjs = oldContractObj.readState
         const oldWriteObj = oldContractObj.writeState
         const mergedReadFuncs = readFunctions.map((f) => {
@@ -344,8 +348,8 @@ const Interaction: React.FC<InteractionProps> = (props) => {
     const inputs: CallDataObj[] = []
     try {
       input.forEach((c) => {
-        if (c.name) {
-          if (finalInputForm[c.name]) {
+        if (!isEmpty(c.name)) {
+          if (!isEmpty(finalInputForm[c.name])) {
             const callDataB = transformInputs(finalInputForm[c.name])
             if (!Array.isArray(callDataB)) {
               inputs.push([callDataB.toHexString()])
@@ -363,18 +367,19 @@ const Interaction: React.FC<InteractionProps> = (props) => {
     return inputs
   }
 
-  const clearRawInputs = async (
+  const clearRawInputs = (
     type: 'view' | 'external',
     funcName: string
-  ) => {
+  ): void => {
     if (selectedContract == null) {
       console.error('No Contract Selected!!')
       return
     }
     switch (type) {
       case 'view':
+      {
         const readFunctions =
-          contractsState[selectedContract?.address].readState
+            contractsState[selectedContract?.address].readState
         const newReadFns = readFunctions.map((rf) => {
           if (rf.name === funcName) {
             return {
@@ -389,9 +394,11 @@ const Interaction: React.FC<InteractionProps> = (props) => {
         })
         setReadState(newReadFns)
         break
+      }
       case 'external':
+      {
         const writeFunctions =
-          contractsState[selectedContract?.address].writeState
+            contractsState[selectedContract?.address].writeState
         const newWriteFns = writeFunctions.map((rf) => {
           if (rf.name === funcName) {
             return {
@@ -406,23 +413,25 @@ const Interaction: React.FC<InteractionProps> = (props) => {
         })
         setWriteState(newWriteFns)
         break
+      }
     }
   }
 
-  const propogateInputToState = async (
+  const propogateInputToState = (
     type: 'view' | 'external',
     funcName: string,
     inputName: string,
     newValue?: string
-  ) => {
+  ): void => {
     if (selectedContract == null) {
       console.error('No Contract Selected!!')
       return
     }
     switch (type) {
       case 'view':
+      {
         const readFunctions =
-          contractsState[selectedContract?.address].readState
+            contractsState[selectedContract?.address].readState
         const newReadFns = readFunctions.map((rf) => {
           if (rf.name === funcName) {
             const oldInputIdx = rf.inputs.findIndex((i) => i.name === inputName)
@@ -446,9 +455,11 @@ const Interaction: React.FC<InteractionProps> = (props) => {
         })
         setReadState(newReadFns)
         break
+      }
       case 'external':
+      {
         const writeFunctions =
-          contractsState[selectedContract?.address].writeState
+            contractsState[selectedContract?.address].writeState
         const newWriteFns = writeFunctions.map((rf) => {
           if (rf.name === funcName) {
             const oldInputIdx = rf.inputs.findIndex((i) => i.name === inputName)
@@ -472,43 +483,48 @@ const Interaction: React.FC<InteractionProps> = (props) => {
         })
         setWriteState(newWriteFns)
         break
+      }
     }
   }
 
-  const makeCallDataAndHandleCall = async (
+  const makeCallDataAndHandleCall = (
     finalIPs: any,
     type: 'view' | 'external',
     funcName: string
-  ) => {
+  ): void => {
     if (selectedContract == null) {
       console.error('No Contract Selected!!')
       return
     }
     switch (type) {
       case 'view':
+      {
         const readFunctions =
-          contractsState[selectedContract?.address].readState
+            contractsState[selectedContract?.address].readState
         const calledReadFn = readFunctions.find((rf) => rf.name === funcName)
         if (calledReadFn != null) {
           const transformedCallData = makeCallDatafromInput(
             calledReadFn.inputs,
             finalIPs
           )
-          await handleCall(funcName, 'view', transformedCallData)
+          handleCall(funcName, 'view', transformedCallData).catch(e => { console.error(e) })
         }
         break
+      }
       case 'external':
+      {
         const writeFunctions =
-          contractsState[selectedContract?.address].writeState
+            contractsState[selectedContract?.address].writeState
         const calledWriteFn = writeFunctions.find((rf) => rf.name === funcName)
         if (calledWriteFn != null) {
           const transformedCallData = makeCallDatafromInput(
             calledWriteFn.inputs,
             finalIPs
           )
-          await handleCall(funcName, 'external', transformedCallData)
+          handleCall(funcName, 'external', transformedCallData).catch(e => { console.error(e) })
         }
         break
+      }
     }
   }
 
@@ -524,29 +540,29 @@ const Interaction: React.FC<InteractionProps> = (props) => {
     })
     props.setInteractionStatus('loading')
     try {
-      if (selectedContract == null) {
+      if (selectedContract === null) {
         console.error('No Contract Selected!!')
+        return
+      }
+
+      if (account === null || account === undefined) {
+        console.error('No account selected.')
         return
       }
 
       if (type === 'view') {
         const callFunction = getCall(
           selectedContract.address,
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
           name,
           (callData?.flat() as BigNumberish[]) ?? []
         )
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
-        const response = await callFunction(account!)
+        const response = await callFunction(account)
         writeResponse(response, name, type)
         setResponses((responses) => [
           ...responses,
           {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
             functionName: name,
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
             contractName: selectedContract?.name,
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
             contractAddress: selectedContract?.address,
             callResponse: response
           }
@@ -558,14 +574,11 @@ const Interaction: React.FC<InteractionProps> = (props) => {
         })
       } else {
         const invocation = getInvocation(
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
           selectedContract?.address,
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
           name,
           (callData?.flat() as BigNumberish[]) ?? []
         )
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
-        const response = await invocation(account!)
+        const response = await invocation(account)
         const resultOfTx = await provider?.waitForTransaction(
           response.transaction_hash
         )
@@ -588,11 +601,8 @@ const Interaction: React.FC<InteractionProps> = (props) => {
         setResponses((responses) => [
           ...responses,
           {
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
             functionName: name,
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
             contractName: selectedContract?.name,
-            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion, @typescript-eslint/no-non-null-asserted-optional-chain
             contractAddress: selectedContract?.address,
             invocationResponse: resultOfTx
           }
@@ -619,166 +629,32 @@ const Interaction: React.FC<InteractionProps> = (props) => {
       })
     }
   }
+  const isContractSelected = contracts.length > 0 && selectedContract != null && selectedContract !== undefined
+  const isAccountAndContractValid = isContractSelected && account != null && selectedContract.deployedInfo.some(
+    (info) => info.address === account.address && info.chainId === chainId
+  )
 
   return (
     <Container>
-      {contracts.length > 0 && selectedContract != null ? (
-        <CompiledContracts show="contract" />
-      ) : (
-        <div>
-          <p>No compiled contracts to interact with... Yet.</p>
-        </div>
-      )}
-
-      { (contracts.length > 0 && selectedContract != null) && ((account != null &&
-      selectedContract != null) &&
-      selectedContract.deployedInfo.some(
-        (info) => info.address === account.address && info.chainId === chainId
-      ) ? (
-        // eslint-disable-next-line multiline-ternary
-        <>
-          <div className="read-functions-wrapper">
-            {selectedContract &&
-              contractsState[selectedContract.address]?.readState?.map(
-                (func, _index) => {
-                  const init: any = func.inputs.reduce((p, c) => {
-                    return {
-                      ...p,
-                      // Check if already has a rawInput in storage
-                      [c.name]: c.rawInput ?? ''
-                    }
-                  }, {})
-
-                  const validationSchema = func.inputs.reduce((p, c) => {
-                    return {
-                      ...p,
-                      [c.name]: Yup.string()
-                        .required(`${c.name} is required.`)
-                        // @ts-expect-error because validate_ip is not a function of Yup
-                        .validate_ip(c.type)
-                    }
-                  }, {})
-
-                  return (
-                    <div className="form-function-wrapper">
-                      <Formik
-                        initialValues={{ ...init }}
-                        onSubmit={(finalState, { setSubmitting }) => {
-                          makeCallDataAndHandleCall(
-                            finalState,
-                            'view',
-                            func?.name
-                          ).catch((e) => {
-                            console.error(e)
-                          })
-                          setSubmitting(false)
-                        }}
-                        validationSchema={Yup.object().shape({
-                          ...validationSchema
-                        })}
-                      >
-                        {(props) => {
-                          const {
-                            values,
-                            touched,
-                            errors,
-                            isSubmitting,
-                            handleChange,
-                            handleBlur,
-                            handleSubmit,
-                            handleReset
-                          } = props
-
-                          // console.log(values, errors)
-                          return (
-                            <form
-                              className="function-label-wrapper"
-                              style={{ display: 'flex' }}
-                              onSubmit={handleSubmit}
-                            >
-                              <div className="form-action-wrapper">
-                                <button
-                                  className={
-                                    "udapp_instanceButton undefined btn btn-sm btn-warning 'w-100'"
-                                  }
-                                  type="submit"
-                                  disabled={isSubmitting}
-                                >
-                                  {func.name}
-                                </button>
-                                <button
-                                  className={'btn btn-sm reset'}
-                                  onClick={(e) => {
-                                    clearRawInputs('view', func.name).catch((e) => {
-                                      console.error(e)
-                                    })
-                                    handleReset(e)
-                                  }}
-                                >
-                                  <BiReset />
-                                </button>
-                              </div>
-                              <div className={'function-inputs'}>
-                                {func.inputs.length > 0 &&
-                                  func.inputs.map((input, _index) => {
-                                    return (
-                                      <div className="input-func-wrapper">
-                                        <div className="hint">
-                                          {errors[input.name] &&
-                                            touched[input.name] && (
-                                              <div className="input-feedback text-danger">
-                                                {(errors as any)[input?.name]}
-                                              </div>
-                                          )}
-                                        </div>
-                                        <input
-                                          name={input.name}
-                                          value={values[input.name]}
-                                          data-datatype={input.type}
-                                          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                                          placeholder={`${
-                                            input.name
-                                          } (${getParameterType(input.type) ?? ''})`}
-                                          onBlur={handleBlur}
-                                          disabled={isSubmitting}
-                                          className={
-                                            errors[input.name] &&
-                                            touched[input.name]
-                                              ? 'form-control function-input function-error text-danger'
-                                              : 'form-control function-input'
-                                          }
-                                          onChange={(e) => {
-                                            handleChange(e)
-                                            // Propogate to rawInputs in storage.
-                                            propogateInputToState(
-                                              'view',
-                                              func.name,
-                                              input.name,
-                                              e.target.value
-                                            ).catch((e) => {
-                                              console.error(e)
-                                            })
-                                          }}
-                                        />
-                                      </div>
-                                    )
-                                  })}
-                              </div>
-                            </form>
-                          )
-                        }}
-                      </Formik>
-                    </div>
-                  )
-                }
-              )}
+      {contracts.length > 0 && selectedContract != null
+        ? (
+          <CompiledContracts show="contract" />
+          )
+        : (
+          <div>
+            <p>No compiled contracts to interact with... Yet.</p>
           </div>
-          {selectedContract &&
-            contractsState[selectedContract.address]?.writeState?.map(
+          )}
+
+      {isContractSelected && isAccountAndContractValid
+        ? <>
+          <div className="read-functions-wrapper">
+            {contractsState[selectedContract.address]?.readState?.map(
               (func, index) => {
-                const init: any = func.inputs.reduce((p, c) => {
+                const init: Record<string, string> = func.inputs.reduce((p, c) => {
                   return {
                     ...p,
+                    // Check if already has a rawInput in storage
                     [c.name]: c.rawInput ?? ''
                   }
                 }, {})
@@ -792,133 +668,244 @@ const Interaction: React.FC<InteractionProps> = (props) => {
                       .validate_ip(c.type)
                   }
                 }, {})
-                return (
-                  <>
-                    <div className="form-function-wrapper" key={index}>
-                      <Formik
-                        initialValues={{ ...init }}
-                        onSubmit={(finalState, { setSubmitting }) => {
-                          // console.log(
-                          //   finalState,
-                          //   'this conforms to init state'
-                          // )
-                          makeCallDataAndHandleCall(
-                            finalState,
-                            'external',
-                            func?.name
-                          ).catch((e) => {
-                            console.error(e)
-                          })
-                          setSubmitting(false)
-                        }}
-                        validationSchema={Yup.object().shape({
-                          ...validationSchema
-                        })}
-                      >
-                        {(props) => {
-                          const {
-                            values,
-                            touched,
-                            errors,
-                            isSubmitting,
-                            handleChange,
-                            handleBlur,
-                            handleSubmit,
-                            handleReset
-                          } = props
 
-                          // console.log(values, errors)
-                          return (
-                            <form
-                              className="function-label-wrapper"
-                              style={{ display: 'flex' }}
-                              key={index}
-                              onSubmit={handleSubmit}
-                            >
-                              <div className="form-action-wrapper">
-                                <button
-                                  className={
-                                    "udapp_instanceButton undefined btn btn-sm btn-info 'w-100'"
-                                  }
-                                  data-name={func.name}
-                                  data-type={func.state_mutability}
-                                  type="submit"
-                                  disabled={isSubmitting}
-                                >
-                                  {func.name}
-                                </button>
-                                <button
-                                  className={'btn btn-sm reset'}
-                                  onClick={(e) => {
-                                    clearRawInputs('external', func.name).catch((e) => {
-                                      console.error(e)
-                                    })
-                                    handleReset(e)
-                                  }}
-                                >
-                                  <BiReset />
-                                </button>
-                              </div>
-                              <div className={'function-inputs'}>
-                                {func.inputs.length > 0 &&
-                                  func.inputs.map((input, index) => {
-                                    return (
-                                      <div className="input-func-wrapper">
-                                        <div className="hint">
-                                          {errors[input.name] &&
-                                            touched[input.name] && (
-                                              <div className="input-feedback text-danger">
-                                                {(errors as any)[input?.name]}
-                                              </div>
-                                          )}
-                                        </div>
-                                        <input
-                                          name={input.name}
-                                          value={values[input.name]}
-                                          data-datatype={input.type}
-                                          // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                                          placeholder={`${
-                                            input.name
-                                          } (${getParameterType(input.type)})`}
-                                          onBlur={handleBlur}
-                                          disabled={isSubmitting}
-                                          className={
-                                            errors[input.name] &&
-                                            touched[input.name]
-                                              ? 'form-control function-input function-error text-danger'
-                                              : 'form-control function-input'
-                                          }
-                                          onChange={(e) => {
-                                            handleChange(e)
-                                            // Propogate to rawInputs in storage.
-                                            propogateInputToState(
-                                              'external',
-                                              func.name,
-                                              input.name,
-                                              e.target.value
-                                            ).catch((e) => {
-                                              console.error(e)
-                                            })
-                                          }}
-                                          key={index}
-                                        />
+                return (
+                  <div className="form-function-wrapper" key={index?.toString() + func.name}>
+                    <Formik
+                      initialValues={{ ...init }}
+                      onSubmit={(finalState, { setSubmitting }) => {
+                        makeCallDataAndHandleCall(
+                          finalState,
+                          'view',
+                          func?.name
+                        )
+                        setSubmitting(false)
+                      }}
+                      validationSchema={Yup.object().shape({
+                        ...validationSchema
+                      })}
+                    >
+                      {(props) => {
+                        const {
+                          values,
+                          touched,
+                          errors,
+                          isSubmitting,
+                          handleChange,
+                          handleBlur,
+                          handleSubmit,
+                          handleReset
+                        } = props
+
+                        // console.log(values, errors)
+                        return (
+                          <form
+                            className="function-label-wrapper"
+                            style={{ display: 'flex' }}
+                            onSubmit={handleSubmit}
+                          >
+                            <div className="form-action-wrapper">
+                              <button
+                                className={
+                                  "udapp_instanceButton undefined btn btn-sm btn-warning 'w-100'"
+                                }
+                                type="submit"
+                                disabled={isSubmitting}
+                              >
+                                {func.name}
+                              </button>
+                              <button
+                                className={'btn btn-sm reset'}
+                                onClick={(e) => {
+                                  clearRawInputs('view', func.name)
+                                  handleReset(e)
+                                }}
+                              >
+                                <BiReset />
+                              </button>
+                            </div>
+                            <div className={'function-inputs'}>
+                              {func.inputs.length > 0 &&
+                                func.inputs.map((input, index) => {
+                                  const hasErrors = (!isEmpty(errors[input.name]) && touched[input.name]) ?? false
+                                  return (
+                                    <div className="input-func-wrapper" key={index.toString() + input.name}>
+                                      <div className="hint">
+                                        {hasErrors && (
+                                          <div className="input-feedback text-danger">
+                                            {(errors as any)[input?.name]}
+                                          </div>
+                                        )}
                                       </div>
-                                    )
-                                  })}
-                              </div>
-                            </form>
-                          )
-                        }}
-                      </Formik>
-                    </div>
-                  </>
+                                      <input
+                                        name={input.name}
+                                        value={values[input.name]}
+                                        data-datatype={input.type}
+                                        placeholder={`${input.name
+                                          } (${getParameterType(input.type) ?? ''})`}
+                                        onBlur={handleBlur}
+                                        disabled={isSubmitting}
+                                        className={
+                                          hasErrors
+                                            ? 'form-control function-input function-error text-danger'
+                                            : 'form-control function-input'
+                                        }
+                                        onChange={(e) => {
+                                          handleChange(e)
+                                          // Propogate to rawInputs in storage.
+                                          propogateInputToState(
+                                            'view',
+                                            func.name,
+                                            input.name,
+                                            e.target.value
+                                          )
+                                        }}
+                                      />
+                                    </div>
+                                  )
+                                })}
+                            </div>
+                          </form>
+                        )
+                      }}
+                    </Formik>
+                  </div>
                 )
               }
             )}
+          </div>
+          {contractsState[selectedContract.address]?.writeState?.map(
+            (func, index) => {
+              const init: Record<string, any> = func.inputs.reduce((p, c) => {
+                return {
+                  ...p,
+                  [c.name]: c.rawInput ?? ''
+                }
+              }, {})
+
+              const validationSchema = func.inputs.reduce((p, c) => {
+                return {
+                  ...p,
+                  [c.name]: Yup.string()
+                    .required(`${c.name} is required.`)
+                    // @ts-expect-error because validate_ip is not a function of Yup
+                    .validate_ip(c.type)
+                }
+              }, {})
+
+              return (
+                <>
+                  <div className="form-function-wrapper" key={index}>
+                    <Formik
+                      initialValues={{ ...init }}
+                      onSubmit={(finalState, { setSubmitting }) => {
+                        makeCallDataAndHandleCall(
+                          finalState,
+                          'external',
+                          func?.name
+                        )
+                        setSubmitting(false)
+                      }}
+                      validationSchema={Yup.object().shape({
+                        ...validationSchema
+                      })}
+                    >
+                      {(props: FormikProps<Record<string, any>>) => {
+                        const {
+                          values,
+                          touched,
+                          errors,
+                          isSubmitting,
+                          handleChange,
+                          handleBlur,
+                          handleSubmit,
+                          handleReset
+                        } = props
+
+                        // console.log(values, errors)
+                        return (
+                          <form
+                            className="function-label-wrapper"
+                            style={{ display: 'flex' }}
+                            key={index}
+                            onSubmit={handleSubmit}
+                          >
+                            <div className="form-action-wrapper">
+                              <button
+                                className={
+                                  "udapp_instanceButton undefined btn btn-sm btn-info 'w-100'"
+                                }
+                                data-name={func.name}
+                                data-type={func.state_mutability}
+                                type="submit"
+                                disabled={isSubmitting}
+                              >
+                                {func.name}
+                              </button>
+                              <button
+                                className={'btn btn-sm reset'}
+                                onClick={(e) => {
+                                  clearRawInputs('external', func.name)
+                                  handleReset(e)
+                                }}
+                              >
+                                <BiReset />
+                              </button>
+                            </div>
+                            <div className={'function-inputs'}>
+                              {func.inputs.length > 0 &&
+                                func.inputs.map((input, index) => {
+                                  const hasErrors = (errors[input.name] != null && touched[input.name] != null) ?? false
+                                  return (
+                                    <div className="input-func-wrapper" key={index.toString() + input.name}>
+                                      <div className="hint">
+                                        {hasErrors && (
+                                          <div className="input-feedback text-danger">
+                                            {(errors as any)[input?.name]}
+                                          </div>
+                                        )}
+                                      </div>
+                                      <input
+                                        name={input.name}
+                                        value={values[input.name]}
+                                        data-datatype={input.type}
+                                        placeholder={`${input.name
+                                          } (${getParameterType(input.type)})`}
+                                        onBlur={handleBlur}
+                                        disabled={isSubmitting}
+                                        className={
+                                          hasErrors
+                                            ? 'form-control function-input function-error text-danger'
+                                            : 'form-control function-input'
+                                        }
+                                        onChange={(e) => {
+                                          handleChange(e)
+                                          // Propogate to rawInputs in storage.
+                                          propogateInputToState(
+                                            'external',
+                                            func.name,
+                                            input.name,
+                                            e.target.value
+                                          )
+                                        }}
+                                        key={index}
+                                      />
+                                    </div>
+                                  )
+                                })}
+                            </div>
+                          </form>
+                        )
+                      }}
+                    </Formik>
+                  </div>
+                </>
+              )
+            }
+          )}
         </>
-          ) : (
-        <p> Selected contract is not deployed yet... </p>
-          ))}
+        : <p> Selected contract is not deployed yet... </p>
+      }
     </Container>
   )
 }

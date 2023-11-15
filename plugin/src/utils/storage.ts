@@ -4,11 +4,9 @@ const storage = {
     if (item != null) return JSON.parse(item)
     return undefined
   },
-
   set: (key: string, value: any): void => {
     localStorage.setItem(key, JSON.stringify(value))
   },
-
   remove: (key: string): void => {
     localStorage.removeItem(key)
   }

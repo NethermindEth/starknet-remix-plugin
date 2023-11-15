@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-misused-promises */
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Account, CallData, Provider, ec, hash, stark } from 'starknet'
 import {
   type Network,
@@ -7,14 +6,9 @@ import {
   networkEquivalents,
   networkNameEquivalents
 } from '../../utils/constants'
-import { ConnectionContext } from '../../contexts/ConnectionContext'
 import { ethers } from 'ethers'
 
-import ManualAccountContext from '../../contexts/ManualAccountContext'
 import storage from '../../utils/storage'
-import { RemixClientContext } from '../../contexts/RemixClientContext'
-import TransactionContext from '../../contexts/TransactionContext'
-import EnvironmentContext from '../../contexts/EnvironmentContext'
 
 import './index.css'
 import { BiCopy, BiPlus } from 'react-icons/bi'
@@ -22,13 +16,21 @@ import { getExplorerUrl, trimStr } from '../../utils/utils'
 import { MdRefresh, MdCheckCircleOutline } from 'react-icons/md'
 import copy from 'copy-to-clipboard'
 import ExplorerSelector, { useCurrentExplorer } from '../ExplorerSelector'
+import { useAtom } from 'jotai'
+
+import transactionsAtom from '../../atoms/transactions'
+import { accountAtom, networkAtom, selectedAccountAtom } from '../../atoms/manualAccount'
+import { type Env, envAtom } from '../../atoms/environment'
+import useAccount from '../../hooks/useAccount'
+import useProvider from '../../hooks/useProvider'
+import useRemixClient from '../../hooks/useRemixClient'
 
 // TODOS: move state parts to contexts
 // Account address selection
 // network selection drop down
 
 const ManualAccount: React.FC<{
-  prevEnv: string
+  prevEnv: Env
 }> = ({ prevEnv }) => {
   const OZaccountClassHash =
     '0x2794ce20e5f2ff0d40e632cb53845b9f4e526ebd8471983f7dbd355b721d5a'
@@ -36,25 +38,20 @@ const ManualAccount: React.FC<{
   const balanceContractAddress =
     '0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7'
 
-  const { account, provider, setAccount, setProvider } =
-    useContext(ConnectionContext)
+  const { account, setAccount } = useAccount()
+  const { provider, setProvider } = useProvider()
 
   const [accountDeploying, setAccountDeploying] = useState(false)
 
-  const remixClient = useContext(RemixClientContext)
+  const { remixClient } = useRemixClient()
 
-  const { transactions, setTransactions } = useContext(TransactionContext)
+  const [transactions, setTransactions] = useAtom(transactionsAtom)
 
-  const { env, setEnv } = useContext(EnvironmentContext)
+  const [env, setEnv] = useAtom(envAtom)
 
-  const {
-    accounts,
-    setAccounts,
-    selectedAccount,
-    setSelectedAccount,
-    networkName,
-    setNetworkName
-  } = useContext(ManualAccountContext)
+  const [accounts, setAccounts] = useAtom(accountAtom)
+  const [selectedAccount, setSelectedAccount] = useAtom(selectedAccountAtom)
+  const [networkName, setNetworkName] = useAtom(networkAtom)
 
   useEffect(() => {
     setNetworkName(networkConstants[0].value)
@@ -228,24 +225,23 @@ const ManualAccount: React.FC<{
         publicKey: await account.signer.getPubKey()
       })
 
-      // eslint-disable-next-line @typescript-eslint/naming-convention
-      const { transaction_hash, contract_address } =
+      const { transaction_hash: transactionHash, contract_address: contractAddress } =
         await account.deployAccount({
           classHash: OZaccountClassHash,
           constructorCalldata: OZaccountConstructorCallData,
           addressSalt: await account.signer.getPubKey()
         })
 
-      console.log('transaction_hash=', transaction_hash)
+      console.log('transaction_hash=', transactionHash)
 
-      await provider.waitForTransaction(transaction_hash)
+      await provider.waitForTransaction(transactionHash)
 
       setTransactions([
         {
           type: 'deployAccount',
           account,
           provider,
-          txId: transaction_hash,
+          txId: transactionHash,
           env
         },
         ...transactions
@@ -266,7 +262,7 @@ const ManualAccount: React.FC<{
       storage.set('manualAccounts', JSON.stringify(newAccounts))
       console.log(
         '✅ New OpenZeppelin account created.\n   address =',
-        contract_address
+        contractAddress
       )
     } catch (e) {
       console.error(e)
@@ -318,16 +314,16 @@ const ManualAccount: React.FC<{
             ? (
                 accounts.map((account, index) => {
                   return (
-                <option value={index} key={index}>
-                  {trimStr(account.address, 6)}
-                </option>
+                  <option value={index} key={index}>
+                    {trimStr(account.address, 6)}
+                  </option>
                   )
                 })
               )
             : (
-            <option value={-1} key={-1}>
-              No account created yet
-            </option>
+              <option value={-1} key={-1}>
+                No account created yet
+              </option>
               )}
         </select>
         <button
@@ -438,13 +434,12 @@ const ManualAccount: React.FC<{
       <button
         className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled"
         style={{
-          cursor: `${
-            (selectedAccount?.deployed_networks.includes(networkName) ??
-              false) ||
+          cursor: `${(selectedAccount?.deployed_networks.includes(networkName) ??
+            false) ||
             accountDeploying
-              ? 'not-allowed'
-              : 'pointer'
-          }`
+            ? 'not-allowed'
+            : 'pointer'
+            }`
         }}
         disabled={
           (selectedAccount?.deployed_networks.includes(networkName) ?? false) ||
@@ -461,22 +456,22 @@ const ManualAccount: React.FC<{
       >
         {accountDeploying
           ? (
-          <>
-            <span
-              className="spinner-border spinner-border-sm"
-              role="status"
-              aria-hidden="true"
-            />
-            <span style={{ paddingLeft: '0.5rem' }}>Deploying Account...</span>
-          </>
+            <>
+              <span
+                className="spinner-border spinner-border-sm"
+                role="status"
+                aria-hidden="true"
+              />
+              <span style={{ paddingLeft: '0.5rem' }}>Deploying Account...</span>
+            </>
             )
           : selectedAccount?.deployed_networks.includes(networkName) ??
-          false
+            false
             ? (
               <>
-              <MdCheckCircleOutline color="#0fd543" size={18} />
-              <span style={{ paddingLeft: '0.5rem' }}>Account Deployed</span>
-            </>
+                <MdCheckCircleOutline color="#0fd543" size={18} />
+                <span style={{ paddingLeft: '0.5rem' }}>Account Deployed</span>
+              </>
               )
             : (
                 'Deploy Account'

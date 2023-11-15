@@ -48,7 +48,8 @@
 }
 
 .env-testnet-btn {
-  border: 1px solid orange;
+  border: 1px solid var(--warning-color-500) !important;
+  font-size: var(--font-sm) !important;
   color: var(--white);
 }
 
@@ -59,7 +60,7 @@
 }
 
 .env-testnet-btn:hover {
-  border: 1px solid orange;
+  border: 1px solid var(--warning-color-500);
 }
 
 .trigger-env {

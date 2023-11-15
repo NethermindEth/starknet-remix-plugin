@@ -2,6 +2,7 @@ FROM ubuntu:20.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV DEBCONF_NONINTERACTIVE_SEEN=true
+ENV SCARB_VERSION=2.3.1
 
 RUN apt-get clean
 
@@ -28,8 +29,8 @@ WORKDIR /opt/app
 
 SHELL ["/bin/bash", "-lc"]
 
-# install Scarb
-RUN curl --proto '=https' --tlsv1.2 -sSf https://docs.swmansion.com/scarb/install.sh | bash 
+# install Scarb (NOTE: a SPECIFIC version of Scarb is installed)
+RUN curl --proto '=https' --tlsv1.2 -sSf https://docs.swmansion.com/scarb/install.sh | bash -s -- -v $SCARB_VERSION
 ENV PATH="/root/.local/bin:${PATH}"
 
 # copy Remix plugin source and install Rust

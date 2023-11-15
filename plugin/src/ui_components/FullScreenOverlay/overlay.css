@@ -1,8 +1,0 @@
-.full-overlay {
-  width: 100vw;
-  height: 100vh;
-  background: var(--accentColor) 30;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}

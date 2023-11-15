@@ -66,9 +66,9 @@ https://raw.githubusercontent.com/ethereum/remix-plugins-directory/master/build/
 <br/>  
 Starknet plugin launch issues may be caused by connectivity errors or plugin components being unavailable. This can be tested from web browser, as indicated below:
 
-- https://cairo-remix-test.nethermind.io should respond with blank page (advanced: viewing page source will reveal a React component entry HTML markup) - no errors should be reported by the browser
-- https://cairo-compile-remix-test.nethermind.io/health should respond with `OK`
-- https://starknet-devnet-dev.nethermind.io/predeployed_accounts should respond with JSON text describing predeployed Starknet accounts
+- https://cairo-remix.nethermind.io should respond with blank page (advanced: viewing page source will reveal a React component entry HTML markup) - no errors should be reported by the browser
+- https://cairo-remix-api.nethermind.io/health should respond with `OK`
+- https://starknet-remix-devnet.nethermind.io/predeployed_accounts should respond with JSON text describing predeployed Starknet accounts
 </details>
 
 <details>

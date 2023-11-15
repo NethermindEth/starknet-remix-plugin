@@ -1,23 +1,23 @@
-import React, { useContext } from 'react'
+import React, { useState } from 'react'
 import { devnets } from '../../utils/network'
-import { type ConnectOptions, type DisconnectOptions } from 'get-starknet'
-import { ConnectionContext } from '../../contexts/ConnectionContext'
 
 import './styles.css'
-import EnvironmentContext from '../../contexts/EnvironmentContext'
+import { devnetAtom, envAtom } from '../../atoms/environment'
+import { useAtom, useSetAtom } from 'jotai'
+import useStarknetWindow from '../../hooks/starknetWindow'
+import useProvider from '../../hooks/useProvider'
+import * as D from '../../components/ui_components/Dropdown'
+import { BsChevronDown } from 'react-icons/bs'
 
-interface EnvironmentSelectorProps {
-  connectWalletHandler: (options?: ConnectOptions) => Promise<void>
-  disconnectWalletHandler: (options?: DisconnectOptions) => Promise<void>
-}
+const EnvironmentSelector: React.FC = () => {
+  const { setProvider } = useProvider()
+  const [env, setEnv] = useAtom(envAtom)
+  const setDevnet = useSetAtom(devnetAtom)
+  const { starknetWindowObject, connectWalletHandler } = useStarknetWindow()
 
-const EnvironmentSelector: React.FC<EnvironmentSelectorProps> = (props) => {
-  const { setProvider } = useContext(ConnectionContext)
-  const { env, setEnv, setDevnet, starknetWindowObject } = useContext(EnvironmentContext)
-
-  async function handleEnvironmentChange (event: any): Promise<void> {
-    const value = parseInt(event.target.value)
-    if (value > 0) {
+  const handleEnvironmentChange = (ipValue: string): void => {
+    const value = parseInt(ipValue)
+    if (!isNaN(value) && value > 0) {
       setDevnet(devnets[value - 1])
       if (value === 2) setEnv('remoteDevnet')
       else setEnv('localDevnet')
@@ -25,40 +25,63 @@ const EnvironmentSelector: React.FC<EnvironmentSelectorProps> = (props) => {
       return
     }
     setEnv('wallet')
-    if (starknetWindowObject === null) await props.connectWalletHandler()
+    if (starknetWindowObject === null) {
+      connectWalletHandler()
+        .catch(
+          e => {
+            console.error(e)
+          })
+    }
   }
 
-  const getDefualtIndex = (): number => {
-    if (env === 'wallet') return 0
-    if (env === 'localDevnet') return 1
-    return 2
+  const getActiveEnv = (lEnv: typeof env): string => {
+    switch (lEnv) {
+      case 'manual': return 'Manual'
+      case 'localDevnet': return 'Local Devnet'
+      case 'remoteDevnet': return 'Remote Devnet'
+      case 'wallet': return 'Wallet'
+    }
   }
+
+  const [dropdownControl, setDropdownControl] = useState(false)
 
   return (
     <div className="environment-selector-wrapper">
-      <select
-        className="custom-select"
-        aria-label=".form-select-sm example"
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        onChange={handleEnvironmentChange}
-        defaultValue={getDefualtIndex()}
-      >
-        {devnets.reduce<JSX.Element[]>(
-          (acc, devnet, index) => {
-            acc.push(
-              <option value={index + 1} key={index + 1}>
-                {devnet.name}
-              </option>
-            )
-            return acc
-          },
-          [
-            <option value={0} key={0}>
-              Wallet Selection
-            </option>
-          ]
-        )}
-      </select>
+      <D.Root open={dropdownControl} onOpenChange={(e) => { setDropdownControl(e) }}>
+        <D.Trigger>
+          <div className="flex flex-row justify-content-space-between align-items-center p-2 br-1 devnet-trigger-wrapper">
+            <label className='text-light text-sm m-0'>{getActiveEnv(env)}</label>
+            <BsChevronDown style={{
+              transform: dropdownControl ? 'rotate(180deg)' : 'none',
+              transition: 'all 0.3s ease'
+            }} />
+          </div>
+        </D.Trigger>
+        <D.Portal>
+          <D.Content>
+            <D.Item
+              key={'0wallet'}
+              onClick={() => {
+                handleEnvironmentChange('0')
+              }}
+            >
+              Wallet
+            </D.Item>
+            {devnets.map((devnet, i) => {
+              return (
+                <D.Item
+                  key={i.toString() + devnet?.name}
+                  onClick={() => {
+                    handleEnvironmentChange((i + 1).toString())
+                  }}
+                >
+                  {devnet?.name}
+                </D.Item>
+              )
+            })}
+          </D.Content>
+        </D.Portal>
+      </D.Root>
     </div>
   )
 }

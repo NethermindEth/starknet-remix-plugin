@@ -1,96 +1,102 @@
-import * as D from '../../ui_components/Dropdown';
-import React, {useContext, useEffect, useState} from 'react';
-import { apiUrl } from '../../utils/network';
-import { RemixClientContext } from '../../contexts/RemixClientContext';
-import CairoVersionContext from '../../contexts/CairoVersion';
-import { BsChevronDown } from 'react-icons/bs';
-import Nethermind from '../../components/NM';
-import './style.css';
+import * as D from '../../components/ui_components/Dropdown'
+import React, { useEffect, useState } from 'react'
+import { apiUrl } from '../../utils/network'
+import { BsChevronDown } from 'react-icons/bs'
+import Nethermind from '../../components/NM'
+import cairoVersionAtom from '../../atoms/cairoVersion'
+import './style.css'
+import { useAtom } from 'jotai'
+import useRemixClient from '../../hooks/useRemixClient'
 
 const CairoVersion: React.FC = () => {
-  const { version: cairoVersion, setVersion: setCairoVersion } = useContext(CairoVersionContext);
-  const remixClient = useContext(RemixClientContext);
+  const [cairoVersion, setCairoVersion] = useAtom(cairoVersionAtom)
+  const { remixClient } = useRemixClient()
 
-  const pluginVersion = import.meta.env.VITE_VERSION !== undefined ? `v${import.meta.env.VITE_VERSION}` : 'v0.2.0';
+  const envViteVersion: string | undefined = import.meta.env.VITE_VERSION
+  const pluginVersion = envViteVersion !== undefined ? `v${envViteVersion}` : 'v0.2.5'
 
   // Hard-coded versions for the example
-  const [getVersions, setVersions] = useState([]);
+  const [getVersions, setVersions] = useState([])
 
   useEffect(() => {
-    const fetchCairoVersions = async () => {
+    const fetchCairoVersions = async (): Promise<void> => {
       try {
         if (apiUrl !== undefined) {
           const response = await fetch(
-              `${apiUrl}/cairo_versions`,
-              {
-                method: 'GET',
-                headers: {
-                  'Content-Type': 'application/octet-stream'
-                },
-                redirect: 'follow'
-              }
-            );
-          const versions = JSON.parse(await response.text());
-          setVersions(versions);
+            `${apiUrl}/cairo_versions`,
+            {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/octet-stream'
+              },
+              redirect: 'follow'
+            }
+          )
+          const versions = JSON.parse(await response.text())
+          versions.sort()
+          setVersions(versions)
         }
       } catch (e) {
-        await remixClient.call('notification' as any, 'toast', '🔴 Failed to fetch cairo versions from the compilation server');
-        console.error(e);
-        await remixClient.terminal.log(`🔴 Failed to fetch cairo versions from the compilation server ${e}` as any);
+        await remixClient.call('notification' as any, 'toast', '🔴 Failed to fetch cairo versions from the compilation server')
+        console.error(e)
+        await remixClient.terminal.log(`🔴 Failed to fetch cairo versions from the compilation server ${e as string}` as any)
       }
     }
 
-    setTimeout(async () => {
-      await fetchCairoVersions();
+    setTimeout(() => {
+      const fetchCairo = async (): Promise<void> => {
+        await fetchCairoVersions()
 
-      if (getVersions.length > 0) {
-        setCairoVersion(getVersions[0])
+        if (getVersions.length > 0) {
+          setCairoVersion(getVersions[getVersions.length - 1])
+        }
       }
-    }, 10000);
-  }, [remixClient]);
+      fetchCairo().catch(e => { console.error(e) })
+    }, 10000)
+  }, [remixClient])
 
   useEffect(() => {
     if (getVersions.length > 0) {
-      setCairoVersion(getVersions[0])
+      setCairoVersion(getVersions[getVersions.length - 1])
     }
-  }, [remixClient, getVersions]);
+  }, [remixClient, getVersions])
 
   return (
-      <div className="version-wrapper">
-        <div>
-          <D.Root>
-            <D.Trigger>
-              <label className="cairo-version-legend">
-                Using Cairo {cairoVersion} <BsChevronDown />
-              </label>
-            </D.Trigger>
-            <D.Portal>
-              <D.Content>
-                {getVersions.map((v, i) => (
-                    <D.Item
-                        key={i}
-                        onClick={() => {
-                          setCairoVersion(v);
-                        }}
-                    >
-                      {v}
-                    </D.Item>
-                ))}
-              </D.Content>
-            </D.Portal>
-          </D.Root>
-        </div>
-        <div className="version-right">
-          <label className="nethermind-powered">
-            <span style={{ marginRight: '4px' }}>Powered by </span>
-            <Nethermind size="xs" />
-          </label>
-          <label className="plugin-version">
-            Plugin version: {pluginVersion}
-          </label>
-        </div>
+    <div className="version-wrapper">
+      <div>
+        <D.Root>
+          <D.Trigger>
+            <label className="cairo-version-legend">
+              Using Cairo {cairoVersion} <BsChevronDown />
+            </label>
+          </D.Trigger>
+          <D.Portal>
+            <D.Content>
+              {getVersions.map((v, i) => (
+                <D.Item
+                  key={i}
+                  onClick={() => {
+                    setCairoVersion(v)
+                  }}
+                >
+                  {v}
+                </D.Item>
+              ))}
+            </D.Content>
+          </D.Portal>
+        </D.Root>
       </div>
-  );
+      <div className="version-right">
+        <label className="nethermind-powered">
+          <span style={{ marginRight: '4px' }}>Powered by </span>
+          <Nethermind size="xs" />
+        </label>
+        <label className="plugin-version">
+          Plugin version: {pluginVersion}
+        </label>
+      </div>
+    </div>
+  )
 }
 
-export default CairoVersion;
+export default CairoVersion

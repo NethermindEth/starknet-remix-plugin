@@ -1,3 +1,4 @@
+import { nanoid } from 'nanoid'
 import React from 'react'
 
 const Notices = [
@@ -6,16 +7,16 @@ const Notices = [
   'Declaration of contracts with some wallets will be supported when they update to the latest starknet.js version'
 ]
 
-const BackgroundNotices = () => {
+const BackgroundNotices: React.FC = () => {
   return (
-    <div>
-      <p className="text-center">Notices</p>
+    <div className='bg-transparent'>
+      <p className="text-center text-md text-light">Notices</p>
       {
         <ul className="list-group">
           {Notices.map((notice, index) => {
             return (
-              <li className="list-group-item d-flex justify-content-left align-items-center disabled">
-                <span className="badge badge-primary badge-pill mr-2">
+              <li key={nanoid()} className="list-group-item d-flex justify-content-left align-items-center text-disabled bg-primary">
+                <span className="badge badge-information badge-pilled mr-2">
                   {index + 1}
                 </span>
                 {notice}

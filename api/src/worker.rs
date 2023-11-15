@@ -134,7 +134,7 @@ impl WorkerEngine {
                 break;
             }
 
-            let now = Self::timestamp();
+            let now = crate::utils::lib::timestamp();
 
             while let Some((process_id, timestamp)) = process_timestamps_to_purge.pop() {
                 if timestamp < now {
@@ -157,10 +157,8 @@ impl WorkerEngine {
         let mut is_enabled = self.is_supervisor_enabled.lock().await;
         *is_enabled = false;
 
-        if let Ok(supervisor_thread) = Arc::try_unwrap(self.supervisor_thread.clone()) {
-            if let Some(join_handle) = supervisor_thread {
-                let _ = join_handle.await;
-            }
+        if let Ok(Some(join_handle)) = Arc::try_unwrap(self.supervisor_thread.clone()) {
+            let _ = join_handle.await;
         }
 
         self.supervisor_thread = Arc::new(None);
@@ -207,14 +205,20 @@ impl WorkerEngine {
                                         .insert(process_id, ProcessState::Completed(result));
 
                                     arc_timestamps_to_purge
-                                        .push((process_id, Self::timestamp() + DURATION_TO_PURGE))
+                                        .push((
+                                            process_id,
+                                            crate::utils::lib::timestamp() + DURATION_TO_PURGE,
+                                        ))
                                         .unwrap();
                                 }
                                 Err(e) => {
                                     arc_process_states.insert(process_id, ProcessState::Error(e));
 
                                     arc_timestamps_to_purge
-                                        .push((process_id, Self::timestamp() + DURATION_TO_PURGE))
+                                        .push((
+                                            process_id,
+                                            crate::utils::lib::timestamp() + DURATION_TO_PURGE,
+                                        ))
                                         .unwrap();
                                 }
                             }
@@ -228,9 +232,5 @@ impl WorkerEngine {
             }
         }
         info!("Worker thread finished...");
-    }
-
-    fn timestamp() -> u64 {
-        chrono::Utc::now().timestamp() as u64
     }
 }

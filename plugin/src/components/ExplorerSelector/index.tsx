@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import * as D from '../../ui_components/Dropdown'
+import * as D from '../ui_components/Dropdown'
 import { networkExplorerUrls as EXPLORERS } from '../../utils/constants'
 
 import './index.css'
@@ -8,8 +8,7 @@ import { type IExplorerSelector, type IUseCurrentExplorer } from '../../utils/mi
 const VOYAGER_LOGO = 'https://voyager.online/favicons/favicon-32x32.png'
 const STARKSCAN_LOGO = 'https://starkscan.co/img/company/favicon.ico'
 
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-const explorerToLogo = (explorer: keyof typeof EXPLORERS) => {
+const explorerToLogo = (explorer: keyof typeof EXPLORERS): string => {
   switch (explorer) {
     case 'starkscan':
       return STARKSCAN_LOGO
@@ -36,7 +35,7 @@ const ExplorerSelector: React.FC<IExplorerSelector> = ({
   const { explorer, setExplorer } = controlHook
   return (
     <div
-      className={`${(isInline === true) ? 'inline-root-wrapper' : ''}`}
+      className={`${isInline !== undefined && isInline ? 'inline-root-wrapper' : ''}`}
       onClick={(e) => {
         e.stopPropagation()
       }}

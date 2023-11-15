@@ -1,57 +1,60 @@
 import {
   getRoundedNumber,
-  getSelectedAccountIndex,
   getShortenedHash,
   weiToEth
 } from '../../utils/utils'
 import { getAccounts } from '../../utils/network'
-import React, { useContext, useEffect, useState } from 'react'
-import { ConnectionContext } from '../../contexts/ConnectionContext'
+import React, { useEffect, useState } from 'react'
 import { Account, Provider } from 'starknet'
-import { RemixClientContext } from '../../contexts/RemixClientContext'
 import { MdCopyAll, MdRefresh } from 'react-icons/md'
 import './devnetAccountSelector.css'
-import EnvironmentContext from '../../contexts/EnvironmentContext'
 import copy from 'copy-to-clipboard'
+import { useAtom, useAtomValue } from 'jotai'
+import { availableDevnetAccountsAtom, devnetAtom, envAtom, isDevnetAliveAtom, selectedDevnetAccountAtom } from '../../atoms/environment'
+import useAccount from '../../hooks/useAccount'
+import useProvider from '../../hooks/useProvider'
+import useRemixClient from '../../hooks/useRemixClient'
+import * as D from '../../components/ui_components/Dropdown'
+import { BsCheck, BsChevronDown } from 'react-icons/bs'
 
 const DevnetAccountSelector: React.FC = () => {
-  const { account, setAccount, provider, setProvider } =
-    useContext(ConnectionContext)
-  const remixClient = useContext(RemixClientContext)
-  const {
-    env,
-    devnet,
-    isDevnetAlive,
-    setIsDevnetAlive,
-    selectedDevnetAccount,
-    setSelectedDevnetAccount,
-    availableDevnetAccounts,
-    setAvailableDevnetAccounts
-  } = useContext(EnvironmentContext)
+  const { account, setAccount } = useAccount()
+  const { provider, setProvider } = useProvider()
+  const { remixClient } = useRemixClient()
+  const env = useAtomValue(envAtom)
+  const devnet = useAtomValue(devnetAtom)
+  const [isDevnetAlive, setIsDevnetAlive] = useAtom(isDevnetAliveAtom)
+  const [selectedDevnetAccount, setSelectedDevnetAccount] = useAtom(selectedDevnetAccountAtom)
+  const [availableDevnetAccounts, setAvailableDevnetAccounts] = useAtom(availableDevnetAccountsAtom)
+
+  const checkDevnetUrl = async (): Promise<void> => {
+    try {
+      const response = await fetch(`${devnet.url}/is_alive`, {
+        method: 'GET',
+        redirect: 'follow',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      const status = await response.text()
+
+      if (status !== 'Alive!!!' || response.status !== 200) {
+        setIsDevnetAlive(false)
+      } else {
+        setIsDevnetAlive(true)
+      }
+    } catch (error) {
+      setIsDevnetAlive(false)
+    }
+  }
 
   // devnet live status
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    const interval = setInterval(async () => {
-      try {
-        const response = await fetch(`${devnet.url}/is_alive`, {
-          method: 'GET',
-          redirect: 'follow',
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        })
-        const status = await response.text()
-
-        if (status !== 'Alive!!!' || response.status !== 200) {
-          setIsDevnetAlive(() => false)
-        } else {
-          setIsDevnetAlive(() => true)
-        }
-      } catch (error) {
-        setIsDevnetAlive(() => false)
-      }
-    }, 1000)
+    const interval = setInterval(() => {
+      checkDevnetUrl().catch(e => {
+        console.error(e)
+      })
+    }, 3000)
     return () => {
       clearInterval(interval)
     }
@@ -65,14 +68,14 @@ const DevnetAccountSelector: React.FC = () => {
         `❗️ Server ${devnet.name} - ${devnet.url} is not healthy or not reachable at the moment`
       )
     } catch (e) {
-      console.log(e)
+      console.error(e)
     }
   }
 
   useEffect(() => {
     if (!isDevnetAlive) {
       notifyDevnetStatus().catch((e) => {
-        console.log(e)
+        console.error(e)
       })
     }
   }, [isDevnetAlive])
@@ -96,12 +99,13 @@ const DevnetAccountSelector: React.FC = () => {
   }
 
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    setTimeout(async () => {
+    setTimeout(() => {
       if (!isDevnetAlive) {
         return
       }
-      await refreshDevnetAccounts()
+      refreshDevnetAccounts().catch(e => {
+        console.error(e)
+      })
     }, 1)
   }, [devnet, isDevnetAlive])
 
@@ -135,12 +139,12 @@ const DevnetAccountSelector: React.FC = () => {
     setProvider(newProvider)
   }, [devnet, selectedDevnetAccount])
 
-  function handleAccountChange (event: any): void {
-    if (event.target.value === -1) {
+  function handleAccountChange (value: number): void {
+    if (value === -1) {
       return
     }
-    setAccountIdx(event.target.value)
-    setSelectedDevnetAccount(availableDevnetAccounts[event.target.value])
+    setAccountIdx(value)
+    setSelectedDevnetAccount(availableDevnetAccounts[value])
     const newProvider = new Provider({
       sequencer: {
         baseUrl: devnet.url
@@ -150,8 +154,8 @@ const DevnetAccountSelector: React.FC = () => {
     setAccount(
       new Account(
         provider ?? newProvider,
-        availableDevnetAccounts[event.target.value].address,
-        availableDevnetAccounts[event.target.value].private_key
+        availableDevnetAccounts[value].address,
+        availableDevnetAccounts[value].private_key
       )
     )
   }
@@ -164,41 +168,54 @@ const DevnetAccountSelector: React.FC = () => {
   useEffect(() => {
     setAccountIdx(0)
   }, [env])
+
+  const [dropdownControl, setDropdownControl] = useState(false)
+
   return (
-    <>
+    <div className='mt-2'>
       <label className="">Devnet account selection</label>
       <div className="devnet-account-selector-wrapper">
-        <select
-          className="custom-select"
-          aria-label=".form-select-sm example"
-          onChange={handleAccountChange}
-          value={accountIdx}
-          defaultValue={getSelectedAccountIndex(
-            availableDevnetAccounts,
-            selectedDevnetAccount
-          )}
-        >
-          {isDevnetAlive && availableDevnetAccounts.length > 0
-            ? availableDevnetAccounts.map((account, index) => {
-              return (
-                  <option value={index} key={index}>
-                    {`${getShortenedHash(
-                      account.address ?? '',
-                      6,
-                      4
-                    )} (${getRoundedNumber(
-                      weiToEth(account.initial_balance),
-                      2
-                    )} ether)`}
-                  </option>
-              )
-            })
-            : ([
-                <option value={-1} key={-1}>
-                  No accounts found
-                </option>
-              ] as JSX.Element[])}
-        </select>
+        <D.Root open={dropdownControl} onOpenChange={(e) => { setDropdownControl(e) }}>
+          <D.Trigger >
+            <div className='flex flex-row justify-content-space-between align-items-center p-2 br-1 devnet-account-selector-trigger'>
+              <label className='text-light text-sm m-0'>{(availableDevnetAccounts.length !== 0 && (availableDevnetAccounts[accountIdx]?.address) !== undefined)
+                ? getShortenedHash(
+                  availableDevnetAccounts[accountIdx]?.address,
+                  6,
+                  4
+                )
+                : 'No accounts found'}</label>
+              <BsChevronDown style={{
+                transform: dropdownControl ? 'rotate(180deg)' : 'none',
+                transition: 'all 0.3s ease'
+              }} />            </div>
+          </D.Trigger>
+          <D.Portal>
+            <D.Content>
+              {isDevnetAlive && availableDevnetAccounts.length > 0
+                ? availableDevnetAccounts.map((account, index) => {
+                  return (
+                    <D.Item onClick={() => { handleAccountChange(index) }} key={index}>
+                      {accountIdx === index && <BsCheck size={18} />}
+                      {`${getShortenedHash(
+                        account.address ?? '',
+                        6,
+                        4
+                      )} (${getRoundedNumber(
+                        weiToEth(account.initial_balance),
+                        2
+                      )} ether)`}
+                    </D.Item>
+                  )
+                })
+                : ([
+                  <D.Item onClick={() => { handleAccountChange(-1) }} key={-1}>
+                    No accounts found
+                  </D.Item>
+                  ] as JSX.Element[])}
+            </D.Content>
+          </D.Portal>
+        </D.Root>
         <div className="position-relative">
           <button
             className="btn"
@@ -226,7 +243,7 @@ const DevnetAccountSelector: React.FC = () => {
           <MdRefresh />
         </button>
       </div>
-    </>
+    </div>
   )
 }
 

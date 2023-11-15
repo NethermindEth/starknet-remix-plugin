@@ -1,5 +1,5 @@
 import { atomWithStorage } from 'jotai/utils'
-import { type AbiElement, type Input } from '../types/contracts'
+import { type AbiElement, type Input } from '../utils/types/contracts'
 import {
   type CallContractResponse,
   type InvokeTransactionReceiptResponse

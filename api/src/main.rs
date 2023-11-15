@@ -3,12 +3,14 @@ extern crate rocket;
 
 pub mod cors;
 pub mod handlers;
+pub mod rate_limiter;
 pub mod tracing_log;
 pub mod types;
 pub mod utils;
 pub mod worker;
 
 use crate::cors::CORS;
+use crate::rate_limiter::RateLimiter;
 use crate::tracing_log::init_logger;
 use crate::worker::WorkerEngine;
 use handlers::cairo_version::{cairo_version, cairo_version_async, get_cairo_version_result};
@@ -20,6 +22,7 @@ use handlers::compile_sierra::{
 use handlers::process::get_process_status;
 use handlers::save_code::save_code;
 use handlers::scarb_compile::{get_scarb_compile_result, scarb_compile, scarb_compile_async};
+use handlers::scarb_test::{get_scarb_test_result, scarb_test_async};
 use handlers::{health, who_is_this};
 use tracing::info;
 
@@ -49,26 +52,32 @@ async fn rocket() -> _ {
 
     info!("Starting Rocket webserver...");
 
-    rocket::build().manage(engine).attach(CORS).mount(
-        "/",
-        routes![
-            compile_to_sierra,
-            compile_to_siera_async,
-            get_siera_compile_result,
-            compile_to_casm,
-            compile_to_casm_async,
-            compile_to_casm_result,
-            scarb_compile,
-            scarb_compile_async,
-            get_scarb_compile_result,
-            save_code,
-            cairo_versions,
-            cairo_version,
-            cairo_version_async,
-            get_cairo_version_result,
-            get_process_status,
-            health,
-            who_is_this,
-        ],
-    )
+    rocket::build()
+        .manage(engine)
+        .attach(CORS)
+        .manage(RateLimiter::new())
+        .mount(
+            "/",
+            routes![
+                compile_to_sierra,
+                compile_to_siera_async,
+                get_siera_compile_result,
+                compile_to_casm,
+                compile_to_casm_async,
+                compile_to_casm_result,
+                scarb_compile,
+                scarb_compile_async,
+                get_scarb_compile_result,
+                save_code,
+                cairo_versions,
+                cairo_version,
+                cairo_version_async,
+                get_cairo_version_result,
+                get_process_status,
+                health,
+                who_is_this,
+                get_scarb_test_result,
+                scarb_test_async,
+            ],
+        )
 }

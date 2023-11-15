@@ -23,6 +23,12 @@ pub struct ScarbCompileResponse {
     pub file_content_map_array: Vec<FileContentMap>,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ScarbTestResponse {
+    pub status: String,
+    pub message: String,
+}
+
 #[derive(Debug)]
 pub enum ApiCommand {
     CairoVersion,
@@ -37,6 +43,9 @@ pub enum ApiCommand {
     ScarbCompile {
         remix_file_path: PathBuf,
     },
+    ScarbTest {
+        remix_file_path: PathBuf,
+    },
     #[allow(dead_code)]
     Shutdown,
 }
@@ -47,6 +56,7 @@ pub enum ApiCommandResult {
     CasmCompile(CompileResponse),
     SierraCompile(CompileResponse),
     ScarbCompile(ScarbCompileResponse),
+    ScarbTest(ScarbTestResponse),
     #[allow(dead_code)]
     Shutdown,
 }

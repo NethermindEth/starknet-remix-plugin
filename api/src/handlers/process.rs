@@ -22,7 +22,7 @@ pub async fn get_process_status(process_id: String, engine: &State<WorkerEngine>
                 )
             } else {
                 // TODO can we return HTTP status code here?
-                format!("Process id not found")
+                format!("Process with id={} not found", process_id)
             }
         }
         Err(e) => {
