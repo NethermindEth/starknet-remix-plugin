@@ -1,3 +1,10 @@
+<!-- markdownlint-disable -->
+<div align="center">
+  <img src="docs/images/Starknet Remix Plugin Logo.svg" height="128">
+</div>
+<br />
+<!-- markdownlint-restore -->
+
 # Starknet Remix Plugin
 
 [![Static Badge](https://img.shields.io/badge/Try_it_out!-2f6df2)](https://remix.ethereum.org/#activate=Starknet)
