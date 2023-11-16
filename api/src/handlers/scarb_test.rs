@@ -10,7 +10,7 @@ use rocket::serde::json::Json;
 use rocket::State;
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
-use tracing::instrument;
+use tracing::{debug, info, instrument};
 
 #[instrument]
 #[get("/scarb-test-async/<remix_file_path..>")]

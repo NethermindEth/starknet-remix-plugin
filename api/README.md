@@ -6,7 +6,7 @@
 ## Run
  
 ```bash
-cargo run  
+cargo run
 ``` 
 ## To run while watching files
  
