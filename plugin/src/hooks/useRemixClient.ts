@@ -164,43 +164,45 @@ const useRemixClient = (): {
     return () => { clearInterval(timeoutId) }
   }, [])
 
-  // Remix Client Event Listeners
-  remixClient.on('fileManager', 'noFileSelected', () => {
-    setNoFileSelected(true)
-  })
+  useEffect(() => {
+    // Remix Client Event Listeners
+    remixClient.on('fileManager', 'noFileSelected', () => {
+      setNoFileSelected(true)
+    })
 
-  remixClient.on(
-    'fileManager',
-    'currentFileChanged',
-    (currentFileChanged: any) => {
-      const filename = getFileNameFromPath(currentFileChanged)
-      const currentFileExtension = getFileExtension(filename)
-      setIsValidCairo(currentFileExtension === 'cairo')
-      setCurrentFileName(filename)
-      remixClient.emit('statusChanged', {
-        key: 'succeed',
-        type: 'info',
-        title: 'Current file: ' + filename
-      })
-      setNoFileSelected(false)
-    }
-  )
+    remixClient.on(
+      'fileManager',
+      'currentFileChanged',
+      (currentFileChanged: any) => {
+        const filename = getFileNameFromPath(currentFileChanged)
+        const currentFileExtension = getFileExtension(filename)
+        setIsValidCairo(currentFileExtension === 'cairo')
+        setCurrentFileName(filename)
+        remixClient.emit('statusChanged', {
+          key: 'succeed',
+          type: 'info',
+          title: 'Current file: ' + filename
+        })
+        setNoFileSelected(false)
+      }
+    )
 
-  remixClient.on('fileManager', 'fileAdded', (_: any) => {
-    getAndSetTomlPaths(remixClient, currWorkspacePath, setTomlPaths).catch(e => { console.error(e) })
-  })
-  remixClient.on('fileManager', 'folderAdded', (_: any) => {
-    getAndSetTomlPaths(remixClient, currWorkspacePath, setTomlPaths).catch(e => { console.error(e) })
-  })
-  remixClient.on('fileManager', 'fileRemoved', (_: any) => {
-    getAndSetTomlPaths(remixClient, currWorkspacePath, setTomlPaths).catch(e => { console.error(e) })
-  })
-  remixClient.on('filePanel', 'workspaceCreated', (_: any) => {
-    getAndSetTomlPaths(remixClient, currWorkspacePath, setTomlPaths).catch(e => { console.error(e) })
-  })
-  remixClient.on('filePanel', 'workspaceRenamed', (_: any) => {
-    getAndSetTomlPaths(remixClient, currWorkspacePath, setTomlPaths).catch(e => { console.error(e) })
-  })
+    remixClient.on('fileManager', 'fileAdded', (_: any) => {
+      getAndSetTomlPaths(remixClient, currWorkspacePath, setTomlPaths).catch(e => { console.error(e) })
+    })
+    remixClient.on('fileManager', 'folderAdded', (_: any) => {
+      getAndSetTomlPaths(remixClient, currWorkspacePath, setTomlPaths).catch(e => { console.error(e) })
+    })
+    remixClient.on('fileManager', 'fileRemoved', (_: any) => {
+      getAndSetTomlPaths(remixClient, currWorkspacePath, setTomlPaths).catch(e => { console.error(e) })
+    })
+    remixClient.on('filePanel', 'workspaceCreated', (_: any) => {
+      getAndSetTomlPaths(remixClient, currWorkspacePath, setTomlPaths).catch(e => { console.error(e) })
+    })
+    remixClient.on('filePanel', 'workspaceRenamed', (_: any) => {
+      getAndSetTomlPaths(remixClient, currWorkspacePath, setTomlPaths).catch(e => { console.error(e) })
+    })
+  }, [])
 
   const getCurrentFileInfo = async (): Promise<void> => {
     try {
