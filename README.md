@@ -5,10 +5,8 @@
 
 <!-- markdownlint-disable -->
 <div align="center">
-  <img src="docs/images/Starknet Remix Plugin Logo.svg" height="256">
+  <img src="docs/images/Starknet-Remix-Plugin-Logo.svg" height="256"/>
 </div>
-<br />
-<!-- markdownlint-restore -->
 
 <div align="center">
 
