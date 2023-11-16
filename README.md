@@ -1,3 +1,8 @@
+<div align="center">
+ <h1> Starknet Remix Plugin </h1>
+</div>
+
+
 <!-- markdownlint-disable -->
 <div align="center">
   <img src="docs/images/Starknet Remix Plugin Logo.svg" height="256">
@@ -5,12 +10,14 @@
 <br />
 <!-- markdownlint-restore -->
 
-# Starknet Remix Plugin
+<div align="center">
 
 [![Static Badge](https://img.shields.io/badge/Try_it_out!-2f6df2)](https://remix.ethereum.org/#activate=Starknet)
 [![Pull Requests welcome](https://img.shields.io/badge/PRs-welcome-ff69b4.svg?style=flat-square)](https://github.com/NethermindEth/Starknet-remix-plugin/issues)
 [![Discord](https://img.shields.io/discord/629004402170134531?label=Discord)](https://discord.com/invite/PaCMRFdvWT)
 [![Static Badge](https://img.shields.io/badge/Telegram-2AABEE)](https://t.me/StarknetRemixPlugin)
+
+</div>
 
 Welcome to the **Starknet Remix Plugin** repository! 🎉 
 
