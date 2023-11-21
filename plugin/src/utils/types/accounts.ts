@@ -9,6 +9,7 @@ enum StarknetChainId {
 }
 
 interface DevnetAccount {
+  balance: number
   initial_balance: number
   address: string
   private_key: string

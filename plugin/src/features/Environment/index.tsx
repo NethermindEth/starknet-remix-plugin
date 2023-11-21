@@ -81,7 +81,7 @@ const Environment: React.FC = () => {
                       </div>
                     </div>
                     <div className="flex flex-column">
-                      {['localDevnet', 'remoteDevnet'].includes(env) ? (
+                      {['localDevnet', 'remoteDevnet', 'localKatanaDevnet'].includes(env) ? (
                         <DevnetAccountSelector />
                       ) : (
                         <Wallet

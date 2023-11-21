@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Account, CallData, Provider, ec, hash, stark } from 'starknet'
+import { Account, CallData, RpcProvider, ec, hash, stark } from 'starknet'
 import {
   type Network,
   networks as networkConstants,
@@ -62,8 +62,9 @@ const ManualAccount: React.FC<{
     const chainId = networkEquivalents.get(networkName)
     if (chainId && netName) {
       setProvider(
-        new Provider({
-          sequencer: { network: netName, chainId }
+        new RpcProvider({
+          nodeUrl: netName,
+          chainId
         })
       )
     }
@@ -174,11 +175,9 @@ const ManualAccount: React.FC<{
     setNetworkName(event.target.value)
     if (event.target.value.length > 0 && chainId && networkName) {
       setProvider(
-        new Provider({
-          sequencer: {
-            network: networkName,
-            chainId
-          }
+        new RpcProvider({
+          nodeUrl: networkName,
+          chainId
         })
       )
       return
