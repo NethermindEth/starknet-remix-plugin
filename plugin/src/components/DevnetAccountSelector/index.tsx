@@ -5,7 +5,7 @@ import {
 } from '../../utils/utils'
 import { getAccounts } from '../../utils/network'
 import React, { useEffect, useState } from 'react'
-import { Account, Provider } from 'starknet'
+import { Account, RpcProvider } from 'starknet'
 import { MdCopyAll, MdRefresh } from 'react-icons/md'
 import './devnetAccountSelector.css'
 import copy from 'copy-to-clipboard'
@@ -29,7 +29,8 @@ const DevnetAccountSelector: React.FC = () => {
 
   const checkDevnetUrl = async (): Promise<void> => {
     try {
-      const response = await fetch(`${devnet.url}/is_alive`, {
+      const isKatanaEnv = (env === 'localKatanaDevnet')
+      const response = await fetch(`${devnet.url}/${isKatanaEnv ? '' : 'is_alive'}`, {
         method: 'GET',
         redirect: 'follow',
         headers: {
@@ -37,7 +38,15 @@ const DevnetAccountSelector: React.FC = () => {
         }
       })
       const status = await response.text()
-
+      if (isKatanaEnv) {
+        const jsonStatus: { health: boolean } = JSON.parse(status)
+        if (jsonStatus.health) {
+          setIsDevnetAlive(true)
+        } else {
+          setIsDevnetAlive(false)
+        }
+        return
+      }
       if (status !== 'Alive!!!' || response.status !== 200) {
         setIsDevnetAlive(false)
       } else {
@@ -83,7 +92,7 @@ const DevnetAccountSelector: React.FC = () => {
   const refreshDevnetAccounts = async (): Promise<void> => {
     setAccountRefreshing(true)
     try {
-      const accounts = await getAccounts(devnet.url)
+      const accounts = await getAccounts(devnet.url, (env === 'localKatanaDevnet'))
       if (
         JSON.stringify(accounts) !== JSON.stringify(availableDevnetAccounts)
       ) {
@@ -122,11 +131,7 @@ const DevnetAccountSelector: React.FC = () => {
   }, [availableDevnetAccounts, devnet])
 
   useEffect(() => {
-    const newProvider = new Provider({
-      sequencer: {
-        baseUrl: devnet.url
-      }
-    })
+    const newProvider = new RpcProvider({ nodeUrl: devnet.url })
     if (selectedDevnetAccount != null) {
       setAccount(
         new Account(
@@ -145,11 +150,7 @@ const DevnetAccountSelector: React.FC = () => {
     }
     setAccountIdx(value)
     setSelectedDevnetAccount(availableDevnetAccounts[value])
-    const newProvider = new Provider({
-      sequencer: {
-        baseUrl: devnet.url
-      }
-    })
+    const newProvider = new RpcProvider({ nodeUrl: devnet.url })
     if (provider == null) setProvider(newProvider)
     setAccount(
       new Account(
@@ -202,7 +203,7 @@ const DevnetAccountSelector: React.FC = () => {
                         6,
                         4
                       )} (${getRoundedNumber(
-                        weiToEth(account.initial_balance),
+                        weiToEth((env === 'localKatanaDevnet') ? account.balance : account.initial_balance),
                         2
                       )} ether)`}
                     </D.Item>

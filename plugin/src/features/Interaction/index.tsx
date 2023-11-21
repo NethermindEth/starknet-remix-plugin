@@ -1,8 +1,8 @@
+/* eslint-disable multiline-ternary */
 import React, { useEffect, useState } from 'react'
 import { type BigNumberish } from 'ethers'
 
 import {
-  type Account,
   type RawCalldata,
   type CallContractResponse,
   type GetTransactionReceiptResponse,
@@ -21,13 +21,20 @@ import Container from '../../components/ui_components/Container'
 import storage from '../../utils/storage'
 import './index.css'
 import { useAtom, useAtomValue } from 'jotai'
-import { type EnhancedAbiElement, interactAtom, type UiAbiState } from '../../atoms'
+import {
+  type EnhancedAbiElement,
+  interactAtom,
+  type UiAbiState
+} from '../../atoms'
 import { Formik, type FormikProps } from 'formik'
 import Yup, { transformInputs } from '../../utils/yup'
 
 import { BiReset } from 'react-icons/bi'
 import transactionsAtom from '../../atoms/transactions'
-import { compiledContractsAtom, selectedCompiledContract } from '../../atoms/compiledContracts'
+import {
+  compiledContractsAtom,
+  selectedCompiledContract
+} from '../../atoms/compiledContracts'
 import { envAtom } from '../../atoms/environment'
 import useAccount from '../../hooks/useAccount'
 import useProvider from '../../hooks/useProvider'
@@ -35,7 +42,9 @@ import useRemixClient from '../../hooks/useRemixClient'
 import { isEmpty } from '../../utils/misc'
 
 interface InteractionProps {
-  setInteractionStatus: React.Dispatch<React.SetStateAction<'loading' | 'error' | 'success' | ''>>
+  setInteractionStatus: React.Dispatch<
+  React.SetStateAction<'loading' | 'error' | 'success' | ''>
+  >
 }
 
 const Interaction: React.FC<InteractionProps> = (props) => {
@@ -85,8 +94,7 @@ const Interaction: React.FC<InteractionProps> = (props) => {
     if (selectedContract != null) {
       const currentContractObj = contractsState[selectedContract.address]
       switch (stateType) {
-        case 'view':
-        {
+        case 'view': {
           const readState = currentContractObj.readState
           const oldElemIdx = readState.findIndex(
             (rObj) => rObj.name === funcName
@@ -114,8 +122,7 @@ const Interaction: React.FC<InteractionProps> = (props) => {
           }
           break
         }
-        case 'external':
-        {
+        case 'external': {
           const writeState = currentContractObj.writeState
           const oldElemWIdx = writeState.findIndex(
             (rObj) => rObj.name === funcName
@@ -126,7 +133,7 @@ const Interaction: React.FC<InteractionProps> = (props) => {
               ...oldElemW,
               invocationResponse: response as InvokeFunctionResponse
             }
-            const newWriteStateFunc = writeState.map((rObj) => {
+            const newWriteState = writeState.map((rObj) => {
               if (rObj.name === funcName) {
                 return newElemW
               }
@@ -137,7 +144,7 @@ const Interaction: React.FC<InteractionProps> = (props) => {
               ...contractsState,
               [selectedContract?.address]: {
                 ...currentContractObj,
-                writeState: newWriteStateFunc
+                writeState: newWriteState
               }
             })
           }
@@ -200,7 +207,8 @@ const Interaction: React.FC<InteractionProps> = (props) => {
       })
 
       // Merge with old objs, since old objs can have responses.
-      const oldContractObj: undefined | UiAbiState = contractsState[selectedContract.address]
+      const oldContractObj: undefined | UiAbiState =
+        contractsState[selectedContract.address]
       if (oldContractObj !== undefined) {
         const oldReadObjs = oldContractObj.readState
         const oldWriteObj = oldContractObj.writeState
@@ -251,11 +259,9 @@ const Interaction: React.FC<InteractionProps> = (props) => {
     contractAddress: string,
     entrypoint: string,
     calldata: BigNumberish[] = []
-  ): ((
-      account: Account | AccountInterface
-    ) => Promise<InvokeFunctionResponse>) => {
+  ): ((account: AccountInterface) => Promise<InvokeFunctionResponse>) => {
     const invocation = async (
-      account: Account | AccountInterface
+      account: AccountInterface
     ): Promise<InvokeFunctionResponse> => {
       const response = await account.execute({
         contractAddress,
@@ -301,11 +307,9 @@ const Interaction: React.FC<InteractionProps> = (props) => {
     contractAddress: string,
     entrypoint: string,
     calldata: BigNumberish[] = []
-  ): ((
-      account: Account | AccountInterface
-    ) => Promise<CallContractResponse>) => {
+  ): ((account: AccountInterface) => Promise<CallContractResponse>) => {
     const call = async (
-      account: Account | AccountInterface
+      account: AccountInterface
     ): Promise<CallContractResponse> => {
       const response = await account.callContract({
         contractAddress,
@@ -376,10 +380,9 @@ const Interaction: React.FC<InteractionProps> = (props) => {
       return
     }
     switch (type) {
-      case 'view':
-      {
+      case 'view': {
         const readFunctions =
-            contractsState[selectedContract?.address].readState
+          contractsState[selectedContract?.address].readState
         const newReadFns = readFunctions.map((rf) => {
           if (rf.name === funcName) {
             return {
@@ -395,10 +398,9 @@ const Interaction: React.FC<InteractionProps> = (props) => {
         setReadState(newReadFns)
         break
       }
-      case 'external':
-      {
+      case 'external': {
         const writeFunctions =
-            contractsState[selectedContract?.address].writeState
+          contractsState[selectedContract?.address].writeState
         const newWriteFns = writeFunctions.map((rf) => {
           if (rf.name === funcName) {
             return {
@@ -428,10 +430,9 @@ const Interaction: React.FC<InteractionProps> = (props) => {
       return
     }
     switch (type) {
-      case 'view':
-      {
+      case 'view': {
         const readFunctions =
-            contractsState[selectedContract?.address].readState
+          contractsState[selectedContract?.address].readState
         const newReadFns = readFunctions.map((rf) => {
           if (rf.name === funcName) {
             const oldInputIdx = rf.inputs.findIndex((i) => i.name === inputName)
@@ -456,10 +457,9 @@ const Interaction: React.FC<InteractionProps> = (props) => {
         setReadState(newReadFns)
         break
       }
-      case 'external':
-      {
+      case 'external': {
         const writeFunctions =
-            contractsState[selectedContract?.address].writeState
+          contractsState[selectedContract?.address].writeState
         const newWriteFns = writeFunctions.map((rf) => {
           if (rf.name === funcName) {
             const oldInputIdx = rf.inputs.findIndex((i) => i.name === inputName)
@@ -497,31 +497,33 @@ const Interaction: React.FC<InteractionProps> = (props) => {
       return
     }
     switch (type) {
-      case 'view':
-      {
+      case 'view': {
         const readFunctions =
-            contractsState[selectedContract?.address].readState
+          contractsState[selectedContract?.address].readState
         const calledReadFn = readFunctions.find((rf) => rf.name === funcName)
         if (calledReadFn != null) {
           const transformedCallData = makeCallDatafromInput(
             calledReadFn.inputs,
             finalIPs
           )
-          handleCall(funcName, 'view', transformedCallData).catch(e => { console.error(e) })
+          handleCall(funcName, 'view', transformedCallData).catch((e) => {
+            console.error(e)
+          })
         }
         break
       }
-      case 'external':
-      {
+      case 'external': {
         const writeFunctions =
-            contractsState[selectedContract?.address].writeState
+          contractsState[selectedContract?.address].writeState
         const calledWriteFn = writeFunctions.find((rf) => rf.name === funcName)
         if (calledWriteFn != null) {
           const transformedCallData = makeCallDatafromInput(
             calledWriteFn.inputs,
             finalIPs
           )
-          handleCall(funcName, 'external', transformedCallData).catch(e => { console.error(e) })
+          handleCall(funcName, 'external', transformedCallData).catch((e) => {
+            console.error(e)
+          })
         }
         break
       }
@@ -570,7 +572,8 @@ const Interaction: React.FC<InteractionProps> = (props) => {
         remixClient.emit('statusChanged', {
           key: 'succeed',
           type: 'success',
-          title: 'Function call succeeded, results are written to the terminal log'
+          title:
+            'Function call succeeded, results are written to the terminal log'
         })
       } else {
         const invocation = getInvocation(
@@ -629,35 +632,44 @@ const Interaction: React.FC<InteractionProps> = (props) => {
       })
     }
   }
-  const isContractSelected = contracts.length > 0 && selectedContract != null && selectedContract !== undefined
-  const isAccountAndContractValid = isContractSelected && account != null && selectedContract.deployedInfo.some(
-    (info) => info.address === account.address && info.chainId === chainId
-  )
+  const isContractSelected =
+    contracts.length > 0 &&
+    selectedContract != null &&
+    selectedContract !== undefined
+  const isAccountAndContractValid =
+    isContractSelected &&
+    account != null &&
+    selectedContract.deployedInfo.some(
+      (info) => info.address === account.address && info.chainId === chainId
+    )
 
   return (
     <Container>
       {contracts.length > 0 && selectedContract != null
         ? (
-          <CompiledContracts show="contract" />
+        <CompiledContracts show="contract" />
           )
         : (
-          <div>
-            <p>No compiled contracts to interact with... Yet.</p>
-          </div>
+        <div>
+          <p>No compiled contracts to interact with... Yet.</p>
+        </div>
           )}
 
-      {isContractSelected && isAccountAndContractValid
-        ? <>
+      {isContractSelected && isAccountAndContractValid ? (
+        <>
           <div className="read-functions-wrapper">
             {contractsState[selectedContract.address]?.readState?.map(
               (func, index) => {
-                const init: Record<string, string> = func.inputs.reduce((p, c) => {
-                  return {
-                    ...p,
-                    // Check if already has a rawInput in storage
-                    [c.name]: c.rawInput ?? ''
-                  }
-                }, {})
+                const init: Record<string, string> = func.inputs.reduce(
+                  (p, c) => {
+                    return {
+                      ...p,
+                      // Check if already has a rawInput in storage
+                      [c.name]: c.rawInput ?? ''
+                    }
+                  },
+                  {}
+                )
 
                 const validationSchema = func.inputs.reduce((p, c) => {
                   return {
@@ -670,7 +682,10 @@ const Interaction: React.FC<InteractionProps> = (props) => {
                 }, {})
 
                 return (
-                  <div className="form-function-wrapper" key={index?.toString() + func.name}>
+                  <div
+                    className="form-function-wrapper"
+                    key={index?.toString() + func.name}
+                  >
                     <Formik
                       initialValues={{ ...init }}
                       onSubmit={(finalState, { setSubmitting }) => {
@@ -727,9 +742,15 @@ const Interaction: React.FC<InteractionProps> = (props) => {
                             <div className={'function-inputs'}>
                               {func.inputs.length > 0 &&
                                 func.inputs.map((input, index) => {
-                                  const hasErrors = (!isEmpty(errors[input.name]) && touched[input.name]) ?? false
+                                  const hasErrors =
+                                    (!isEmpty(errors[input.name]) &&
+                                      touched[input.name]) ??
+                                    false
                                   return (
-                                    <div className="input-func-wrapper" key={index.toString() + input.name}>
+                                    <div
+                                      className="input-func-wrapper"
+                                      key={index.toString() + input.name}
+                                    >
                                       <div className="hint">
                                         {hasErrors && (
                                           <div className="input-feedback text-danger">
@@ -741,8 +762,9 @@ const Interaction: React.FC<InteractionProps> = (props) => {
                                         name={input.name}
                                         value={values[input.name]}
                                         data-datatype={input.type}
-                                        placeholder={`${input.name
-                                          } (${getParameterType(input.type) ?? ''})`}
+                                        placeholder={`${input.name} (${
+                                          getParameterType(input.type) ?? ''
+                                        })`}
                                         onBlur={handleBlur}
                                         disabled={isSubmitting}
                                         className={
@@ -855,9 +877,15 @@ const Interaction: React.FC<InteractionProps> = (props) => {
                             <div className={'function-inputs'}>
                               {func.inputs.length > 0 &&
                                 func.inputs.map((input, index) => {
-                                  const hasErrors = (errors[input.name] != null && touched[input.name] != null) ?? false
+                                  const hasErrors =
+                                    (errors[input.name] != null &&
+                                      touched[input.name] != null) ??
+                                    false
                                   return (
-                                    <div className="input-func-wrapper" key={index.toString() + input.name}>
+                                    <div
+                                      className="input-func-wrapper"
+                                      key={index.toString() + input.name}
+                                    >
                                       <div className="hint">
                                         {hasErrors && (
                                           <div className="input-feedback text-danger">
@@ -869,8 +897,9 @@ const Interaction: React.FC<InteractionProps> = (props) => {
                                         name={input.name}
                                         value={values[input.name]}
                                         data-datatype={input.type}
-                                        placeholder={`${input.name
-                                          } (${getParameterType(input.type)})`}
+                                        placeholder={`${
+                                          input.name
+                                        } (${getParameterType(input.type)})`}
                                         onBlur={handleBlur}
                                         disabled={isSubmitting}
                                         className={
@@ -904,8 +933,9 @@ const Interaction: React.FC<InteractionProps> = (props) => {
             }
           )}
         </>
-        : <p> Selected contract is not deployed yet... </p>
-      }
+      ) : (
+        <p> Selected contract is not deployed yet... </p>
+      )}
     </Container>
   )
 }

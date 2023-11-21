@@ -19,8 +19,17 @@ const EnvironmentSelector: React.FC = () => {
     const value = parseInt(ipValue)
     if (!isNaN(value) && value > 0) {
       setDevnet(devnets[value - 1])
-      if (value === 2) setEnv('remoteDevnet')
-      else setEnv('localDevnet')
+      switch (value) {
+        case 1:
+          setEnv('localDevnet')
+          break
+        case 2:
+          setEnv('remoteDevnet')
+          break
+        case 3:
+          setEnv('localKatanaDevnet')
+          break
+      }
       setProvider(null)
       return
     }
@@ -39,6 +48,7 @@ const EnvironmentSelector: React.FC = () => {
       case 'manual': return 'Manual'
       case 'localDevnet': return 'Local Devnet'
       case 'remoteDevnet': return 'Remote Devnet'
+      case 'localKatanaDevnet': return 'Local Katana Devnet'
       case 'wallet': return 'Wallet'
     }
   }

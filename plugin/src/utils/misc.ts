@@ -1,31 +1,31 @@
 // Set of functions I thought I might need to use in the future.
 // TODO: erase if not neeeded.
 
-import { Provider } from 'starknet'
+import { RpcProvider } from 'starknet'
 import { devnetUrl } from './constants'
 
-const getProvider = (network: string): Provider => {
+const getProvider = (network: string): RpcProvider => {
   switch (network) {
     case 'mainnet-alpha':
-      return new Provider({
-        sequencer: { baseUrl: 'https://sequencer.starknet.io' }
+      return new RpcProvider({
+        nodeUrl: 'https://sequencer.starknet.io'
       })
     case 'goerli-alpha':
-      return new Provider({
-        sequencer: { baseUrl: 'https://goerli.starknet.io' }
+      return new RpcProvider({
+        nodeUrl: 'https://goerli.starknet.io'
       })
     case 'goerli-alpha-2':
-      return new Provider({
-        sequencer: { baseUrl: 'https://goerli.starknet.io' }
+      return new RpcProvider({
+        nodeUrl: 'https://goerli.starknet.io'
       })
     case devnetUrl:
-      return new Provider({
+      return new RpcProvider({
         // TODO: Let user chose port eventually.
-        sequencer: { baseUrl: devnetUrl }
+        nodeUrl: devnetUrl
       })
     default:
-      return new Provider({
-        sequencer: { baseUrl: 'https://goerli.starknet.io' }
+      return new RpcProvider({
+        nodeUrl: 'https://goerli.starknet.io'
       })
   }
 }

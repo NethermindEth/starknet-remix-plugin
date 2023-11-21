@@ -17,8 +17,17 @@ import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 
 // Imported Atoms
 import cairoVersionAtom from '../../atoms/cairoVersion'
-import { compiledContractsAtom, selectedCompiledContract } from '../../atoms/compiledContracts'
-import { activeTomlPathAtom, compilationAtom, hashDirAtom, isCompilingAtom, statusAtom } from '../../atoms/compilation'
+import {
+  compiledContractsAtom,
+  selectedCompiledContract
+} from '../../atoms/compiledContracts'
+import {
+  activeTomlPathAtom,
+  compilationAtom,
+  hashDirAtom,
+  isCompilingAtom,
+  statusAtom
+} from '../../atoms/compilation'
 import useRemixClient from '../../hooks/useRemixClient'
 import { isEmpty } from '../../utils/misc'
 import CompilationCard from './CompilationCard'
@@ -102,6 +111,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         if (!currentFilePath.endsWith('.cairo')) {
           throw new Error('Not a valid cairo file')
         }
+
         const currentFileContent = await remixClient.call(
           'fileManager',
           'readFile',
@@ -302,14 +312,8 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       })
 
       try {
-        await writeFileContent(
-          sierraPath,
-          sierra.file_content
-        )
-        await writeFileContent(
-          casmPath,
-          casm.file_content
-        )
+        await writeFileContent(sierraPath, sierra.file_content)
+        await writeFileContent(casmPath, casm.file_content)
       } catch (e) {
         if (e instanceof Error) {
           await remixClient.call(
@@ -393,9 +397,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
             }
           )
           if (!response.ok) {
-            await showNotification(
-              'Could not reach cairo compilation server'
-            )
+            await showNotification('Could not reach cairo compilation server')
             throw new Error('Cairo Compilation Request Failed')
           }
         }
@@ -429,9 +431,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           'compile-scarb-result'
         )
       } catch (e) {
-        await showNotification(
-          'Could not reach cairo compilation server'
-        )
+        await showNotification('Could not reach cairo compilation server')
         throw new Error('Cairo Compilation Request Failed')
       }
       const scarbCompile: ScarbCompileResponse = JSON.parse(result)
@@ -440,7 +440,8 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           {
             id: 'starknetRemixPluginAlert',
             title: 'Scarb compilation failed!',
-            message: 'Scarb compilation failed!, you can read logs in the terminal console'
+            message:
+              'Scarb compilation failed!, you can read logs in the terminal console'
           },
           'alert'
         )
@@ -512,7 +513,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       }
       if (notifyCasmInclusion) {
         await showNotification(
-          'Please include \'casm=true\' in Scarb.toml to deploy cairo contracts'
+          "Please include 'casm=true' in Scarb.toml to deploy cairo contracts"
         )
       }
 
