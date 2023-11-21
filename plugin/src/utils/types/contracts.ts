@@ -1,9 +1,9 @@
 import { type BigNumberish } from 'ethers'
 import {
   type constants,
-  type Account,
   type CairoAssembly,
-  type InvokeFunctionResponse
+  type InvokeFunctionResponse,
+  type AccountInterface
 } from 'starknet'
 
 interface Contract {
@@ -39,7 +39,7 @@ interface AbiElement {
   state_mutability?: string
   calldata?: CallDataObj[]
   items?: AbiElement[]
-  callFunction?: (account: Account) => Promise<InvokeFunctionResponse>
+  callFunction?: (account: AccountInterface) => Promise<InvokeFunctionResponse>
 }
 
 type Abi = AbiElement[]
