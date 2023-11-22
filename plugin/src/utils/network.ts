@@ -28,26 +28,31 @@ const getAccounts = async (
   customDevnetUrl: string = devnetUrl,
   isKatana: boolean = false
 ): Promise<DevnetAccount[]> => {
-  if (isKatana) {
-    const response = await fetch(`${customDevnetUrl}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        jsonrpc: '2.0',
-        method: 'katana_predeployedAccounts',
-        params: [],
-        id: 1
+  try {
+    if (isKatana) {
+      const response = await fetch(`${customDevnetUrl}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          method: 'katana_predeployedAccounts',
+          params: [],
+          id: 1
+        })
       })
-    })
-    const jsonResp = await response.json()
-    const accounts: DevnetAccount[] = jsonResp.result
+      const jsonResp = await response.json()
+      const accounts: DevnetAccount[] = jsonResp.result
+      return accounts
+    }
+    const response = await fetch(`${customDevnetUrl}/predeployed_accounts`)
+    const accounts: DevnetAccount[] = await response.json()
     return accounts
+  } catch (error) {
+    console.error(error)
+    return []
   }
-  const response = await fetch(`${customDevnetUrl}/predeployed_accounts`)
-  const accounts: DevnetAccount[] = await response.json()
-  return accounts
 }
 
 const getAccountBalance = async (
