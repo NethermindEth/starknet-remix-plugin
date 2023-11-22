@@ -99,6 +99,7 @@ const DevnetAccountSelector: React.FC = () => {
         setAvailableDevnetAccounts(accounts)
       }
     } catch (e) {
+      setAvailableDevnetAccounts([])
       await remixClient.terminal.log({
         type: 'error',
         value: `Failed to get accounts information from ${devnet.url}`
@@ -110,6 +111,7 @@ const DevnetAccountSelector: React.FC = () => {
   useEffect(() => {
     setTimeout(() => {
       if (!isDevnetAlive) {
+        setAvailableDevnetAccounts([])
         return
       }
       refreshDevnetAccounts().catch(e => {
