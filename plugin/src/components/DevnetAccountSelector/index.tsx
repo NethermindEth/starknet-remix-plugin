@@ -181,7 +181,7 @@ const DevnetAccountSelector: React.FC = () => {
         <D.Root open={dropdownControl} onOpenChange={(e) => { setDropdownControl(e) }}>
           <D.Trigger >
             <div className='flex flex-row justify-content-space-between align-items-center p-2 br-1 devnet-account-selector-trigger'>
-              <label className='text-light text-sm m-0'>{(availableDevnetAccounts.length !== 0 && (availableDevnetAccounts[accountIdx]?.address) !== undefined)
+              <label className='text-light text-sm m-0'>{(availableDevnetAccounts !== undefined && availableDevnetAccounts.length !== 0 && (availableDevnetAccounts[accountIdx]?.address) !== undefined)
                 ? getShortenedHash(
                   availableDevnetAccounts[accountIdx]?.address,
                   6,
