@@ -43,16 +43,17 @@ const DevnetAccountSelector: React.FC = () => {
         if (jsonStatus.health) {
           setIsDevnetAlive(true)
         } else {
+          setAvailableDevnetAccounts([])
           setIsDevnetAlive(false)
         }
-        return
-      }
-      if (status !== 'Alive!!!' || response.status !== 200) {
+      } else if (status !== 'Alive!!!' || response.status !== 200) {
+        setAvailableDevnetAccounts([])
         setIsDevnetAlive(false)
       } else {
         setIsDevnetAlive(true)
       }
     } catch (error) {
+      setAvailableDevnetAccounts([])
       setIsDevnetAlive(false)
     }
   }
@@ -96,7 +97,8 @@ const DevnetAccountSelector: React.FC = () => {
       if (
         JSON.stringify(accounts) !== JSON.stringify(availableDevnetAccounts)
       ) {
-        setAvailableDevnetAccounts(accounts)
+        if (accounts !== undefined) setAvailableDevnetAccounts(accounts)
+        else setAvailableDevnetAccounts([])
       }
     } catch (e) {
       setAvailableDevnetAccounts([])
@@ -124,9 +126,10 @@ const DevnetAccountSelector: React.FC = () => {
     if (
       !(
         selectedDevnetAccount !== null &&
+        availableDevnetAccounts !== undefined &&
         availableDevnetAccounts.includes(selectedDevnetAccount)
       ) &&
-      availableDevnetAccounts.length > 0
+      (availableDevnetAccounts !== undefined && availableDevnetAccounts.length > 0)
     ) {
       setSelectedDevnetAccount(availableDevnetAccounts[0])
     }
@@ -195,7 +198,7 @@ const DevnetAccountSelector: React.FC = () => {
           </D.Trigger>
           <D.Portal>
             <D.Content>
-              {isDevnetAlive && availableDevnetAccounts.length > 0
+              {isDevnetAlive && (availableDevnetAccounts !== undefined && availableDevnetAccounts.length > 0)
                 ? availableDevnetAccounts.map((account, index) => {
                   return (
                     <D.Item onClick={() => { handleAccountChange(index) }} key={index}>
