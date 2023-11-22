@@ -110,13 +110,13 @@ const CompilationCard: React.FC<{
                         {isLoading
                           ? (
                             <>
-                              <span
+                              {/* <span
                                 className="spinner-border spinner-border-sm"
                                 role="status"
                                 aria-hidden="true"
                               >
                                 {' '}
-                              </span>
+                              </span> */}
                               <span style={{ paddingLeft: '0.5rem' }}>{ useAtomValue(statusAtom)}</span>
                             </>
                             )

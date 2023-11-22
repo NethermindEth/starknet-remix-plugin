@@ -22,6 +22,8 @@ const transformTypeToText = (type: string): string => {
       return 'Local Devnet'
     case 'remoteDevnet':
       return 'Remote Devnet'
+    case 'localKatanaDevnet':
+      return 'Local Katana Devnet'
     default:
       return type
   }
@@ -62,7 +64,7 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
       </div>
       <div className="account-wrapper">
         <p>From: </p>
-         { (env === 'localDevnet' || env === 'remoteDevnet')
+         { (env === 'localDevnet' || env === 'remoteDevnet' || env === 'localKatanaDevnet')
            ? <a
           title={account?.address}
           target="_blank" rel="noreferrer"
@@ -79,7 +81,7 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
       </div>
       <div className="txn-wrapper">
         <p>Transaction ID</p>
-        { (env === 'localDevnet' || env === 'remoteDevnet')
+        { (env === 'localDevnet' || env === 'remoteDevnet' || env === 'localKatanaDevnet')
           ? <a target="_blank" title={txId} rel="noreferrer">
           {txId}
         </a>
@@ -88,8 +90,8 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
       </a>}
       </div>
       <div className="txn-network">
-        { (env === 'localDevnet' || env === 'remoteDevnet') ? <p>Network</p> : <p>Chain</p> }
-        <NetworkTag type={(env === 'localDevnet' || env === 'remoteDevnet') ? env : chain} />
+        { (env === 'localDevnet' || env === 'remoteDevnet' || env === 'localKatanaDevnet') ? <p>Network</p> : <p>Chain</p> }
+        <NetworkTag type={(env === 'localDevnet' || env === 'remoteDevnet' || env === 'localKatanaDevnet') ? env : chain} />
       </div>
     </div>
   )

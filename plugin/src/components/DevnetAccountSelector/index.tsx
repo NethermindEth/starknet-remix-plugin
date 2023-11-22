@@ -43,17 +43,14 @@ const DevnetAccountSelector: React.FC = () => {
         if (jsonStatus.health) {
           setIsDevnetAlive(true)
         } else {
-          setAvailableDevnetAccounts([])
           setIsDevnetAlive(false)
         }
       } else if (status !== 'Alive!!!' || response.status !== 200) {
-        setAvailableDevnetAccounts([])
         setIsDevnetAlive(false)
       } else {
         setIsDevnetAlive(true)
       }
     } catch (error) {
-      setAvailableDevnetAccounts([])
       setIsDevnetAlive(false)
     }
   }
@@ -114,11 +111,13 @@ const DevnetAccountSelector: React.FC = () => {
     setTimeout(() => {
       if (!isDevnetAlive) {
         setAvailableDevnetAccounts([])
-        return
+        setAccount(null)
+        setSelectedDevnetAccount(null)
+      } else {
+        refreshDevnetAccounts().catch(e => {
+          console.error(e)
+        })
       }
-      refreshDevnetAccounts().catch(e => {
-        console.error(e)
-      })
     }, 1)
   }, [devnet, isDevnetAlive])
 
@@ -126,10 +125,9 @@ const DevnetAccountSelector: React.FC = () => {
     if (
       !(
         selectedDevnetAccount !== null &&
-        availableDevnetAccounts !== undefined &&
         availableDevnetAccounts.includes(selectedDevnetAccount)
       ) &&
-      (availableDevnetAccounts !== undefined && availableDevnetAccounts.length > 0)
+      (availableDevnetAccounts.length > 0)
     ) {
       setSelectedDevnetAccount(availableDevnetAccounts[0])
     }
