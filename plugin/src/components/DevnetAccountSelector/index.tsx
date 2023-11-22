@@ -99,6 +99,7 @@ const DevnetAccountSelector: React.FC = () => {
         setAvailableDevnetAccounts(accounts)
       }
     } catch (e) {
+      setAvailableDevnetAccounts([])
       await remixClient.terminal.log({
         type: 'error',
         value: `Failed to get accounts information from ${devnet.url}`
@@ -110,6 +111,7 @@ const DevnetAccountSelector: React.FC = () => {
   useEffect(() => {
     setTimeout(() => {
       if (!isDevnetAlive) {
+        setAvailableDevnetAccounts([])
         return
       }
       refreshDevnetAccounts().catch(e => {
@@ -179,7 +181,7 @@ const DevnetAccountSelector: React.FC = () => {
         <D.Root open={dropdownControl} onOpenChange={(e) => { setDropdownControl(e) }}>
           <D.Trigger >
             <div className='flex flex-row justify-content-space-between align-items-center p-2 br-1 devnet-account-selector-trigger'>
-              <label className='text-light text-sm m-0'>{(availableDevnetAccounts.length !== 0 && (availableDevnetAccounts[accountIdx]?.address) !== undefined)
+              <label className='text-light text-sm m-0'>{(availableDevnetAccounts !== undefined && availableDevnetAccounts.length !== 0 && (availableDevnetAccounts[accountIdx]?.address) !== undefined)
                 ? getShortenedHash(
                   availableDevnetAccounts[accountIdx]?.address,
                   6,
