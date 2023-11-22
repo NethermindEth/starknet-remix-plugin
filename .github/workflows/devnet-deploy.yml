@@ -127,8 +127,7 @@ jobs:
         with:
           task-definition: task-definition.json
           container-name: "devnet"
-          # image: shardlabs/starknet-devnet-rs:${{ inputs.version }}
-          image: shardlabs/starknet-devnet:${{ inputs.version }}
+          image: shardlabs/starknet-devnet-rs:${{ inputs.version }}
 
       - name: Deploy Amazon ECS task definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1

@@ -7,7 +7,7 @@ import {
   type CallDataObject,
   type Contract
 } from '../../utils/types/contracts'
-import { getConstructor, getParameterType } from '../../utils/utils'
+import { getConstructor, getParameterType, getShortenedHash } from '../../utils/utils'
 import Container from '../../components/ui_components/Container'
 
 import { type AccordianTabs } from '../Plugin'
@@ -127,7 +127,11 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
           await remixClient.call(
             'notification' as any,
             'toast',
-            `ℹ️ Contract with classHash: ${selectedContract.classHash} already has been declared, proceeding to deployment...`
+            `ℹ️ Contract with classHash: ${getShortenedHash(
+              selectedContract.classHash,
+              6,
+              4
+            )} already has been declared, proceeding to deployment...`
           )
         } catch (error) {
           const declareResponse = await account.declare({
