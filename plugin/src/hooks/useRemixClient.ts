@@ -38,6 +38,11 @@ const createExampleWorkspace = async (client: typeof remixClient): Promise<void>
           `hello_world/${filePath}/${file.fileName}`,
           fileContent
         )
+      } else if (file != null) {
+        await client.fileManager.writeFile(
+          `hello_world/${filePath}/${file.fileName}`,
+          fileContent
+        )
       }
     }
   } catch (e) {
@@ -139,7 +144,6 @@ const useRemixClient = (): {
 
   useEffect(() => {
     remixClient.onload(() => {
-      console.log('Remix Plugin Loaded')
       setPluginLoaded(true)
       checkWorkspaceAndPopulateExample(remixClient).catch(e => { console.error(e) })
       remixClient.filePanel.getCurrentWorkspace().then(currWorkspace => {
@@ -188,6 +192,9 @@ const useRemixClient = (): {
     )
 
     remixClient.on('fileManager', 'fileAdded', (_: any) => {
+      getAndSetTomlPaths(remixClient, currWorkspacePath, setTomlPaths).catch(e => { console.error(e) })
+    })
+    remixClient.on('fileManager', 'currentFileChanged', (_: any) => {
       getAndSetTomlPaths(remixClient, currWorkspacePath, setTomlPaths).catch(e => { console.error(e) })
     })
     remixClient.on('fileManager', 'folderAdded', (_: any) => {

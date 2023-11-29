@@ -8,6 +8,7 @@ import { getReadFunctions, getWriteFunctions } from '../../utils/utils'
 import Container from '../../components/ui_components/Container'
 import storage from '../../utils/storage'
 import './index.css'
+import './override.css'
 import { useAtom, useAtomValue } from 'jotai'
 import { interactAtom, type UiAbiState } from '../../atoms'
 
