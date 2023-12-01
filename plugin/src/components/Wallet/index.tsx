@@ -11,6 +11,8 @@ import { getExplorerUrl, trimStr } from '../../utils/utils'
 import useStarknetWindow from '../../hooks/starknetWindow'
 import { type StarknetChainId } from '../../utils/starknet'
 import type { Env } from '../../atoms/environment'
+import { useAccount } from '@starknet-react/core'
+import ConnectModal from '../starknet/connect'
 
 interface WalletProps {
   setPrevEnv: (newEnv: Env) => void
@@ -24,6 +26,8 @@ const Wallet: React.FC<WalletProps> = (props) => {
     currentChainId,
     refreshWalletConnection
   } = useStarknetWindow()
+
+  // const { status } = useAccount()
 
   const currentChain = useMemo(() => {
     // Explicit cast here is fine, in worst case will coalese to `goerli-alpha`
@@ -55,6 +59,7 @@ const Wallet: React.FC<WalletProps> = (props) => {
           Reconnect
         </button>
       </div>
+      <ConnectModal />
       {starknetWindowObject != null
         ? (
           <>

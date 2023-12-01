@@ -24,6 +24,7 @@ import { deploymentAtom } from '../../atoms/deployment'
 import { pluginLoaded as atomPluginLoaded } from '../../atoms/remixClient'
 import useRemixClient from '../../hooks/useRemixClient'
 import { fetchGitHubFilesRecursively } from '../../utils/initial_scarb_codes'
+import { StarknetProvider } from '../../components/starknet/starknet-provider'
 export type AccordianTabs =
   | 'compile'
   | 'deploy'
@@ -135,7 +136,7 @@ const Plugin: React.FC = () => {
   }, [])
 
   return (
-    <>
+    <StarknetProvider>
       <div className="plugin-wrapper">
         <div className="plugin-main-wrapper">
           <CairoVersion />
@@ -251,7 +252,7 @@ const Plugin: React.FC = () => {
           <Environment />
         </div>
       </div>
-    </>
+    </StarknetProvider>
   )
 }
 
