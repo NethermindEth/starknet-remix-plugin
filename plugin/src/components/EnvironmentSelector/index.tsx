@@ -4,7 +4,6 @@ import { devnets } from '../../utils/network'
 import './styles.css'
 import { devnetAtom, envAtom } from '../../atoms/environment'
 import { useAtom, useSetAtom } from 'jotai'
-import useStarknetWindow from '../../hooks/starknetWindow'
 import useProvider from '../../hooks/useProvider'
 import * as D from '../../components/ui_components/Dropdown'
 import { BsChevronDown } from 'react-icons/bs'
@@ -13,7 +12,6 @@ const EnvironmentSelector: React.FC = () => {
   const { setProvider } = useProvider()
   const [env, setEnv] = useAtom(envAtom)
   const setDevnet = useSetAtom(devnetAtom)
-  const { starknetWindowObject, connectWalletHandler } = useStarknetWindow()
 
   const handleEnvironmentChange = (ipValue: string): void => {
     const value = parseInt(ipValue)
@@ -34,13 +32,6 @@ const EnvironmentSelector: React.FC = () => {
       return
     }
     setEnv('wallet')
-    if (starknetWindowObject === null) {
-      connectWalletHandler()
-        .catch(
-          e => {
-            console.error(e)
-          })
-    }
   }
 
   const getActiveEnv = (lEnv: typeof env): string => {

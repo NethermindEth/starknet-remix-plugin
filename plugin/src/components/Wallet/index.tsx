@@ -1,18 +1,17 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import copy from 'copy-to-clipboard'
 import './wallet.css'
 import { MdCopyAll } from 'react-icons/md'
-import {
-  type Network,
-  networkEquivalentsRev
-} from '../../utils/constants'
+import { type Network } from '../../utils/constants'
 import ExplorerSelector, { useCurrentExplorer } from '../ExplorerSelector'
 import { getExplorerUrl, trimStr } from '../../utils/utils'
-import useStarknetWindow from '../../hooks/starknetWindow'
-import { type StarknetChainId } from '../../utils/starknet'
 import type { Env } from '../../atoms/environment'
-import { useAccount } from '@starknet-react/core'
+import { useAccount, useProvider } from '@starknet-react/core'
 import ConnectModal from '../starknet/connect'
+import DisconnectModal from '../starknet/disconnect'
+import { getChainName } from '../../utils/starknet'
+import useAccountAtom from '../../hooks/useAccount'
+import useProviderAtom from '../../hooks/useProvider'
 
 interface WalletProps {
   setPrevEnv: (newEnv: Env) => void
@@ -21,18 +20,19 @@ interface WalletProps {
 const Wallet: React.FC<WalletProps> = (props) => {
   const [showCopied, setCopied] = useState(false)
 
-  const {
-    starknetWindowObject,
-    currentChainId,
-    refreshWalletConnection
-  } = useStarknetWindow()
+  const { status, account, connector, chainId } = useAccount()
 
-  // const { status } = useAccount()
+  const { provider } = useProvider()
 
-  const currentChain = useMemo(() => {
-    // Explicit cast here is fine, in worst case will coalese to `goerli-alpha`
-    return networkEquivalentsRev.get(currentChainId as StarknetChainId) ?? 'goerli-alpha'
-  }, [currentChainId])
+  const { setAccount } = useAccountAtom()
+  const { setProvider } = useProviderAtom()
+
+  useEffect(() => {
+    if (status === 'connected') {
+      setAccount(account ?? null)
+      setProvider(provider ?? null)
+    }
+  }, [status])
 
   const explorerHook = useCurrentExplorer()
 
@@ -46,80 +46,85 @@ const Wallet: React.FC<WalletProps> = (props) => {
         padding: '1rem 0rem'
       }}
     >
-      <div className="wallet-actions">
-        <button
-          className="btn btn-primary w-100"
-          onClick={(e) => {
-            e.preventDefault()
-            refreshWalletConnection().catch(e => {
-              console.error(e)
-            })
-          }}
-        >
-          Reconnect
-        </button>
-      </div>
-      <ConnectModal />
-      {starknetWindowObject != null
+      {status === 'connected'
         ? (
-          <>
-            <div className="wallet-row-wrapper">
-              <div className="wallet-wrapper">
-                <img src={starknetWindowObject?.icon} alt="wallet icon" />
-                <p className="text"> {starknetWindowObject?.id}</p>
-                <p className="text text-right text-secondary"> {currentChain}</p>
-              </div>
-              <div className="account-network-wrapper">
-                <ExplorerSelector
-                  path={`/contract/${starknetWindowObject?.account?.address as string ?? ''}`}
-                  title={starknetWindowObject?.account?.address}
-                  text="View"
-                  isInline
-                  isTextVisible={false}
-                  controlHook={explorerHook}
-                />
-              </div>
-            </div>
-            <div className="wallet-account-wrapper">
-              <p
-                className="text account"
-                title={starknetWindowObject?.account?.address}
-              >
-                <a
-                  href={`${getExplorerUrl(explorerHook.explorer, currentChain as Network)}/contract/${starknetWindowObject?.account?.address as string ?? ''}`}
-                  target="_blank"
-                  rel="noreferer noopener noreferrer"
-                >
-                  {trimStr(
-                    starknetWindowObject?.account?.address ?? '',
-                    10
-                  )}
-                </a>
+        <>
+          <div className="wallet-row-wrapper">
+            <div className="wallet-wrapper">
+              <img src={connector?.icon?.dark} alt="wallet icon" />
+              <p className="text"> {connector?.id}</p>
+              <p className="text text-right text-secondary">
+                {' '}
+                {getChainName(chainId?.toString() ?? '')}
               </p>
-              <span style={{ position: 'relative' }}>
-                <button
-                  className="btn p-0"
-                  onClick={() => {
-                    copy(starknetWindowObject?.account?.address ?? '')
-                    setCopied(true)
-                    setTimeout(() => {
-                      setCopied(false)
-                    }, 1000)
-                  }}
-                >
-                  <MdCopyAll />
-                </button>
-                {showCopied && (
-                  <p style={{ position: 'absolute', right: 0, minWidth: '70px' }}>
-                    Copied
-                  </p>
-                )}
-              </span>
             </div>
-          </>
+            <div className="account-network-wrapper">
+              <ExplorerSelector
+                path={`/contract/${(account?.address as string) ?? ''}`}
+                title={account?.address}
+                text="View"
+                isInline
+                isTextVisible={false}
+                controlHook={explorerHook}
+              />
+            </div>
+          </div>
+          <div className="wallet-account-wrapper">
+            <p className="text account" title={account?.address}>
+              <a
+                href={`${getExplorerUrl(
+                  explorerHook.explorer,
+                  getChainName(chainId?.toString() ?? '') as Network
+                )}/contract/${(account?.address as string) ?? ''}`}
+                target="_blank"
+                rel="noreferer noopener noreferrer"
+              >
+                {trimStr(account?.address ?? '', 10)}
+              </a>
+            </p>
+            <span style={{ position: 'relative' }}>
+              <button
+                className="btn p-0"
+                onClick={() => {
+                  copy(account?.address ?? '')
+                  setCopied(true)
+                  setTimeout(() => {
+                    setCopied(false)
+                  }, 1000)
+                }}
+              >
+                <MdCopyAll />
+              </button>
+              {showCopied && (
+                <p style={{ position: 'absolute', right: 0, minWidth: '70px' }}>
+                  Copied
+                </p>
+              )}
+            </span>
+          </div>
+          <div className="wallet-actions">
+            <DisconnectModal />
+          </div>
+        </>
           )
         : (
-          <p> Wallet not connected</p>
+        <>
+          {status === 'disconnected'
+            ? (
+            <ConnectModal />
+              )
+            : (
+            <>
+              {status === 'connecting'
+                ? (
+                <p>Connecting...</p>
+                  )
+                : (
+                <p>Reconnecting...</p>
+                  )}
+            </>
+              )}
+        </>
           )}
     </div>
   )

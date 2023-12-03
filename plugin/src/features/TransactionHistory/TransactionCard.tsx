@@ -46,7 +46,7 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
   const { account, txId, env } = transaction
 
   const cardRef = useRef<HTMLDivElement>(null)
-  const [chain, setChain] = React.useState<string>('goerli-alpha')
+  const [chain, setChain] = React.useState<string>('goerli')
 
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises

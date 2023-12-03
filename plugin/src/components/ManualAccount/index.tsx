@@ -392,7 +392,7 @@ const ManualAccount: React.FC<{
               </button>
             </div>
           )}
-          {networkName === 'goerli-alpha' && (
+          {networkName === 'goerli' && (
             <button
               className="btn btn-secondary w-100"
               onClick={() => {

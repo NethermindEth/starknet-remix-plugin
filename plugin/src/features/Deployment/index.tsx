@@ -35,6 +35,7 @@ import {
 import Tooltip from '../../components/ui_components/Tooltip'
 
 import { FaInfoCircle } from 'react-icons/fa'
+import { useWaitForTransaction } from '@starknet-react/core'
 interface DeploymentProps {
   setActiveTab: (tab: AccordianTabs) => void
 }
@@ -62,7 +63,8 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 
   const [transactions, setTransactions] = useAtom(transactionsAtom)
   const env = useAtomValue(envAtom)
-  // const starknetWindowObject = useAtomValue(starknetWindowObjectAtom)
+
+  const {} = useWaitForTransaction()
 
   const [chainId, setChainId] = useState<constants.StarknetChainId>(
     constants.StarknetChainId.SN_GOERLI
@@ -90,18 +92,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   }, [selectedContract])
 
   const deploy = async (calldata: BigNumberish[]): Promise<void> => {
-    // if (
-    //   env === 'wallet' &&
-    //   starknetWindowObject !== null &&
-    //   starknetWindowObject.id === 'argentX'
-    // ) {
-    //   await remixClient.call(
-    //     'notification' as any,
-    //     'toast',
-    //     `⚠️ You are connected to ${starknetWindowObject.id} wallet, please use the Braavos wallet instead!`
-    //   )
-    //   // return
-    // }
+    console.log('Account', account, provider)
 
     setIsDeploying(true)
     remixClient.emit('statusChanged', {
@@ -155,7 +146,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
           ]
           setTransactions(updatedTransactions)
           classHash = declareResponse.class_hash
-          await account.waitForTransaction(declareResponse.transaction_hash)
+          await provider.waitForTransaction(declareResponse.transaction_hash)
         }
       } catch (error) {
         if (error instanceof Error) {
@@ -191,7 +182,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         },
         ...updatedTransactions
       ])
-      await account.waitForTransaction(deployResponse.transaction_hash)
+      await provider.waitForTransaction(deployResponse.transaction_hash)
       setDeployStatus('done')
       setActiveTab('interaction')
       setContractDeployment(selectedContract, deployResponse.contract_address)

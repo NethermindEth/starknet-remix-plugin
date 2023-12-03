@@ -7,6 +7,18 @@ export enum StarknetChainId {
   SN_GOERLI = '0x534e5f474f45524c49'
 }
 
+export function getChainName (chainId: string): string {
+  chainId = BigNumber.from(chainId).toHexString()
+  switch (chainId) {
+    case StarknetChainId.SN_MAIN:
+      return 'mainnet'
+    case StarknetChainId.SN_GOERLI:
+      return 'goerli'
+    default:
+      return 'unknown'
+  }
+}
+
 export function normalizeParam (
   param: any | any[],
   metadata: ParameterMetadata
