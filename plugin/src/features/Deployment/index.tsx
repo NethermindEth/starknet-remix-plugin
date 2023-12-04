@@ -90,19 +90,6 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   }, [selectedContract])
 
   const deploy = async (calldata: BigNumberish[]): Promise<void> => {
-    // if (
-    //   env === 'wallet' &&
-    //   starknetWindowObject !== null &&
-    //   starknetWindowObject.id === 'argentX'
-    // ) {
-    //   await remixClient.call(
-    //     'notification' as any,
-    //     'toast',
-    //     `⚠️ You are connected to ${starknetWindowObject.id} wallet, please use the Braavos wallet instead!`
-    //   )
-    //   // return
-    // }
-
     setIsDeploying(true)
     remixClient.emit('statusChanged', {
       key: 'loading',
@@ -134,6 +121,10 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
             )} already has been declared, proceeding to deployment...`
           )
         } catch (error) {
+          await remixClient.call('terminal', 'log', {
+            value: `------------------------ Declaring contract: ${selectedContract.name} ------------------------`,
+            type: 'info'
+          })
           const declareResponse = await account.declare({
             contract: selectedContract.sierra,
             classHash: selectedContract.classHash,
@@ -141,6 +132,10 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
           })
           await remixClient.call('terminal', 'log', {
             value: JSON.stringify(declareResponse, null, 2),
+            type: 'info'
+          })
+          await remixClient.call('terminal', 'log', {
+            value: `---------------------- End Declaring contract: ${selectedContract.name} ----------------------`,
             type: 'info'
           })
           updatedTransactions = [
@@ -155,7 +150,19 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
           ]
           setTransactions(updatedTransactions)
           classHash = declareResponse.class_hash
-          await account.waitForTransaction(declareResponse.transaction_hash)
+          await remixClient.call('terminal', 'log', {
+            value: `--------------------- Getting declare contract: ${selectedContract.name} tx receipt --------------------`,
+            type: 'info'
+          })
+          const txReceipt = await account.waitForTransaction(declareResponse.transaction_hash)
+          await remixClient.call('terminal', 'log', {
+            value: JSON.stringify(txReceipt, null, 2),
+            type: 'info'
+          })
+          await remixClient.call('terminal', 'log', {
+            value: `--------------------- End getting declare contract: ${selectedContract.name} tx receipt ------------------`,
+            type: 'info'
+          })
         }
       } catch (error) {
         if (error instanceof Error) {
@@ -172,12 +179,23 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 
       setDeployStatus('Deploying...')
 
+      await remixClient.call('terminal', 'log', {
+        value: `------------------------ Deploying contract: ${selectedContract.name} ------------------------`,
+        type: 'info'
+      })
+
       const deployResponse = await account.deployContract({
         classHash: classHash ?? selectedContract.classHash,
         constructorCalldata: calldata
       })
+
       await remixClient.call('terminal', 'log', {
         value: JSON.stringify(deployResponse, null, 2),
+        type: 'info'
+      })
+
+      await remixClient.call('terminal', 'log', {
+        value: `---------------------- End Deploying contract: ${selectedContract.name} ----------------------`,
         type: 'info'
       })
 
@@ -191,7 +209,23 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         },
         ...updatedTransactions
       ])
-      await account.waitForTransaction(deployResponse.transaction_hash)
+
+      await remixClient.call('terminal', 'log', {
+        value: `--------------------- Getting deploy contract: ${selectedContract.name} tx receipt --------------------`,
+        type: 'info'
+      })
+
+      const txReceipt = await account.waitForTransaction(deployResponse.transaction_hash)
+      await remixClient.call('terminal', 'log', {
+        value: JSON.stringify(txReceipt, null, 2),
+        type: 'info'
+      })
+
+      await remixClient.call('terminal', 'log', {
+        value: `--------------------- End getting deploy contract: ${selectedContract.name} tx receipt ------------------`,
+        type: 'info'
+      })
+
       setDeployStatus('done')
       setActiveTab('interaction')
       setContractDeployment(selectedContract, deployResponse.contract_address)
@@ -200,7 +234,6 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         type: 'success',
         title: `Contract ${selectedContract?.name} deployed!`
       })
-      // setContractAsDeployed(selectedContract as Contract);
     } catch (error) {
       setDeployStatus('error')
       if (error instanceof Error) {
@@ -236,7 +269,6 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     } else {
       setNotEnoughInputs(false)
       const calldata = getFormattedCalldata()
-      // setFinalCallData(calldata)
       handleDeploy(calldata)
     }
   }
