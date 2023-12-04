@@ -1,0 +1,57 @@
+/* Overriding Package's CSS */
+:root {
+    .tab-trigger {
+        background-color: var(--primary-color);
+        padding: 0.5rem !important;
+        margin: 0;
+    }
+
+    .function-root {
+        background-color: var(--primary-color);
+    }
+
+    .function-header {
+        padding: var(--space-xs);
+        background-color: var(--primary-color);
+        border-radius: 0.2rem;
+    }
+
+    .function-header p {
+        color: white;
+    }
+
+    .function-form-submit {
+        background: none;
+        background-color: var(--information-color) !important;
+        transition: all 0.2s ease;
+    }
+
+    .function-form-submit:focus {
+        outline-offset: 0px;
+        outline: 4px solid var(--information-color-900);
+    }
+
+    .function-form-submit:hover {
+        background: none;
+        background-color: var(--information-color-800) !important;
+    }
+
+    .function-form-input {
+        background-color: var(--primary-color-600);
+        color: white;
+    }
+
+    .function-form-input-wrapper {
+        border: 1px solid var(--primary-color-500);
+    }
+
+    .function-struct {
+        background-color: var(--primary-color);
+        box-shadow: none;
+        border: 1px solid var(--primary-color-600);
+    }
+
+    .function-struct-header {
+        font-size: var(--text-sm);
+    }
+}

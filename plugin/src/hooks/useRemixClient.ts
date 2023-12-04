@@ -144,7 +144,6 @@ const useRemixClient = (): {
 
   useEffect(() => {
     remixClient.onload(() => {
-      console.log('Remix Plugin Loaded')
       setPluginLoaded(true)
       checkWorkspaceAndPopulateExample(remixClient).catch(e => { console.error(e) })
       remixClient.filePanel.getCurrentWorkspace().then(currWorkspace => {
