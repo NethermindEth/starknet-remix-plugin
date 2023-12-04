@@ -197,9 +197,6 @@ const useRemixClient = (): {
     remixClient.on('fileManager', 'fileAdded', (_: any) => {
       getAndSetTomlPaths(remixClient, currWorkspacePath, setTomlPaths).catch(e => { console.error(e) })
     })
-    remixClient.on('fileManager', 'currentFileChanged', (_: any) => {
-      getAndSetTomlPaths(remixClient, currWorkspacePath, setTomlPaths).catch(e => { console.error(e) })
-    })
     remixClient.on('fileManager', 'folderAdded', (_: any) => {
       getAndSetTomlPaths(remixClient, currWorkspacePath, setTomlPaths).catch(e => { console.error(e) })
     })
