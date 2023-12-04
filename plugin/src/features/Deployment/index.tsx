@@ -211,7 +211,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       ])
 
       await remixClient.call('terminal', 'log', {
-        value: `--------------------- Getting deeploy contract: ${selectedContract.name} tx receipt --------------------`,
+        value: `--------------------- Getting deploy contract: ${selectedContract.name} tx receipt --------------------`,
         type: 'info'
       })
 
