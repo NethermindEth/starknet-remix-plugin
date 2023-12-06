@@ -1,24 +1,22 @@
 .version-wrapper {
     display: grid;
     padding: 0.5rem 0rem;
-    grid-template-columns: 1fr 120px;
+    grid-template-columns: 1fr auto; /* Changed 120px to auto for automatic width */
     justify-items: start;
-  }
-  
-  .version-wrapper > label:nth-last-of-type(-n+2) {
-    justify-self: end;
-  }
+}
 
-  .version-right {
+.version-right {
+    justify-self: end; /* This line ensures that .version-right aligns to the right */
     display: flex;
     flex-direction: column;
-    align-self: end;
-  }
+}
 
-  .nethermind-powered, .plugin-version {
+.nethermind-powered, .plugin-version {
     align-self: end;
-  }
+    display: flex;
+    flex-direction: row;
+}
 
-  .plugin-version {
+.plugin-version {
     border: none;
-  }
+}
