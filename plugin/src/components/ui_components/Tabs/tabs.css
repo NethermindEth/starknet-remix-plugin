@@ -15,7 +15,7 @@ input {
 .TabsList {
   flex-shrink: 0;
   display: flex;
-  border-bottom: 1px solid var(--secondary-color);
+  border-bottom: 1px solid var(--secondary);
 }
 
 .TabsTrigger {
@@ -30,7 +30,7 @@ input {
   font-size: 15px;
   line-height: 1;
   color: var(--white);
-  border-right: 1px solid var(--secondary-color);
+  border-right: 1px solid var(--secondary);
   user-select: none;
 }
 .TabsTrigger:first-child {
@@ -55,7 +55,7 @@ input {
 .TabsContent {
   flex-grow: 1;
   padding: 20px;
-  background-color: var(--primary-color-900);
+  background-color: var(--primary);
   border-bottom-left-radius: 6px;
   border-bottom-right-radius: 6px;
   outline: none;

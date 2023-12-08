@@ -1,5 +1,6 @@
 import { nanoid } from 'nanoid'
 import React from 'react'
+import './style.css'
 
 const Notices = [
   'The starknet Remix Plugin is in Alpha',
@@ -10,12 +11,12 @@ const Notices = [
 const BackgroundNotices: React.FC = () => {
   return (
     <div className='bg-transparent'>
-      <p className="text-center text-md text-light">Notices</p>
+      <p className="text-center text-md bg-notices-text">Notices</p>
       {
         <ul className="list-group">
           {Notices.map((notice, index) => {
             return (
-              <li key={nanoid()} className="list-group-item d-flex justify-content-left align-items-center text-disabled bg-primary">
+              <li key={nanoid()} className="list-group-item d-flex justify-content-left align-items-center bg-primary bg-notices-text">
                 <span className="badge badge-information badge-pilled mr-2">
                   {index + 1}
                 </span>

@@ -6,23 +6,23 @@
     }
 
     .text-secondary {
-        color: var(--secondary-color) !important;
+        color: var(--secondary) !important;
     }
 
     .text-success {
-        color: var(--success-color) !important;
+        color: var(--success) !important;
     }
 
     .text-information {
-        color: var(--information-color) !important;
+        color: var(--info) !important;
     }
 
     .text-warning {
-        color: var(--warning-color) !important;
+        color: var(--warning) !important;
     }
 
     .text-error {
-        color: var(--error-color) !important;
+        color: var(--error) !important;
     }
 
     .text-dark {
@@ -30,11 +30,11 @@
     }
 
     .text-light {
-        color: var(--light) !important;
+        color: var(--text) !important;
     }
 
     .text-disabled {
-        color: var(--dark-300) !important;
+        color: var(--text-bg-mark) !important;
     }
 
     /* Text Alignment */

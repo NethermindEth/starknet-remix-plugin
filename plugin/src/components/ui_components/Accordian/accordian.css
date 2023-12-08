@@ -28,7 +28,7 @@ h3 {
 .AccordionItem:focus-within {
   position: relative;
   z-index: 1;
-  box-shadow: 0 0 0 2px var(--secondary-color);
+  box-shadow: 0 0 0 2px var(--secondary);
 }
 
 .AccordionHeader {
@@ -46,21 +46,21 @@ h3 {
   font-size: 1rem;
   font-weight: bold;
   line-height: 1;
-  color: var(--light);
+  color: var(--text);
   transition: all 0.1s ease;
-  border-bottom: 1px solid var(--secondary-color-900);
+  border-bottom: 1px solid var(--secondary);
   box-shadow: 0 1px 0 var(--primary-color);
 }
 
 .AccordionTrigger:hover {
-  background-color: var(--secondary-color) !important;
-  color: var(--light);
+  background-color: var(--secondary) !important;
+  color: var(--text);
 }
 
 .AccordionContent {
   overflow: hidden;
   font-size: 1rem;
-  color: var(--light);
+  color: var(--text);
 }
 .AccordionContent[data-state='open'] {
   animation: slideDown 300ms cubic-bezier(0.87, 0, 0.13, 1);

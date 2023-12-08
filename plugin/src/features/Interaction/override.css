@@ -22,33 +22,33 @@
 
     .function-form-submit {
         background: none;
-        background-color: var(--information-color) !important;
+        background-color: var(--info) !important;
         transition: all 0.2s ease;
     }
 
     .function-form-submit:focus {
-        outline-offset: 0px;
-        outline: 4px solid var(--information-color-900);
+        outline-offset: 0;
+        outline: 4px solid var(--info);
     }
 
     .function-form-submit:hover {
         background: none;
-        background-color: var(--information-color-800) !important;
+        background-color: var(--info) !important;
     }
 
     .function-form-input {
-        background-color: var(--primary-color-600);
+        background-color: var(--primary);
         color: white;
     }
 
     .function-form-input-wrapper {
-        border: 1px solid var(--primary-color-500);
+        border: 1px solid var(--primary);
     }
 
     .function-struct {
         background-color: var(--primary-color);
         box-shadow: none;
-        border: 1px solid var(--primary-color-600);
+        border: 1px solid var(--primary);
     }
 
     .function-struct-header {
