@@ -90,19 +90,6 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   }, [selectedContract])
 
   const deploy = async (calldata: BigNumberish[]): Promise<void> => {
-    // if (
-    //   env === 'wallet' &&
-    //   starknetWindowObject !== null &&
-    //   starknetWindowObject.id === 'argentX'
-    // ) {
-    //   await remixClient.call(
-    //     'notification' as any,
-    //     'toast',
-    //     `⚠️ You are connected to ${starknetWindowObject.id} wallet, please use the Braavos wallet instead!`
-    //   )
-    //   // return
-    // }
-
     setIsDeploying(true)
     remixClient.emit('statusChanged', {
       key: 'loading',
@@ -172,7 +159,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 
       setDeployStatus('Deploying...')
 
-      const deployResponse = await account.deployContract({
+      const deployResponse = await account.deploy({
         classHash: classHash ?? selectedContract.classHash,
         constructorCalldata: calldata
       })
@@ -194,7 +181,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       await account.waitForTransaction(deployResponse.transaction_hash)
       setDeployStatus('done')
       setActiveTab('interaction')
-      setContractDeployment(selectedContract, deployResponse.contract_address)
+      setContractDeployment(selectedContract, deployResponse.contract_address[0])
       remixClient.emit('statusChanged', {
         key: 'succeed',
         type: 'success',
