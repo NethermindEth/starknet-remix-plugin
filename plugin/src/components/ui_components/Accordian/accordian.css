@@ -48,8 +48,7 @@ h3 {
   line-height: 1;
   color: var(--text);
   transition: all 0.1s ease;
-  border-bottom: 1px solid var(--secondary);
-  box-shadow: 0 1px 0 var(--primary);
+  box-shadow: 0 1px 0 var(--secondary);
 }
 
 .AccordionTrigger:hover {
