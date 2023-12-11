@@ -2,7 +2,7 @@
 
     /* Texts */
     .text-primary {
-        border-color: var(--primary-color) !important;
+        border-color: var(--primary) !important;
     }
 
     .text-secondary {

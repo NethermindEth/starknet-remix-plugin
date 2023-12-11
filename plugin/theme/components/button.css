@@ -25,7 +25,7 @@
     .btn-primary.disabled,
     .btn-primary.disabled:hover {
         color: var(--text);
-        background-color: var(--primary);
+        background-color: var(--bgPrimary);
     }
 
     .btn-primary:hover {

@@ -41,10 +41,10 @@ input {
   border-right: none;
 }
 .TabsTrigger:hover {
-  color: var(--primary-color) !important;
+  color: var(--primary) !important;
 }
 .TabsTrigger[data-state='active'] {
-  color: var(--primary-color);
+  color: var(--primary);
   box-shadow: inset 0 -1px 0 0 currentColor, 0 1px 0 0 currentColor;
 }
 .TabsTrigger:focus {
@@ -55,7 +55,7 @@ input {
 .TabsContent {
   flex-grow: 1;
   padding: 20px;
-  background-color: var(--primary);
+  background-color: var(--bgPrimary);
   border-bottom-left-radius: 6px;
   border-bottom-right-radius: 6px;
   outline: none;

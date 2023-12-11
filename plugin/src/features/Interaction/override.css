@@ -1,23 +1,30 @@
 /* Overriding Package's CSS */
 :root {
     .tab-trigger {
-        background-color: var(--primary-color);
+        background-color: var(--bgPrimary);
         padding: 0.5rem !important;
         margin: 0;
     }
 
     .function-root {
-        background-color: var(--primary-color);
+        background-color: var(--bgPrimary);
+
+        padding: 0.5rem !important;
+    }
+
+    .tag-blue {
+        margin: 0 !important;
+        padding: 0.1rem 0.5rem !important;
     }
 
     .function-header {
         padding: var(--space-xs);
-        background-color: var(--primary-color);
+        background-color: var(--bgPrimary);
         border-radius: 0.2rem;
     }
 
     .function-header p {
-        color: white;
+        color: var(--text);
     }
 
     .function-form-submit {
@@ -37,18 +44,18 @@
     }
 
     .function-form-input {
-        background-color: var(--primary);
-        color: white;
+        background-color: var(--bgPrimary);
+        color: var(--text);
     }
 
     .function-form-input-wrapper {
-        border: 1px solid var(--primary);
+        border: 1px solid var(--secondary);
     }
 
     .function-struct {
-        background-color: var(--primary-color);
+        background-color: var(--bgPrimary);
         box-shadow: none;
-        border: 1px solid var(--primary);
+        border: 1px solid var(--secondary);
     }
 
     .function-struct-header {

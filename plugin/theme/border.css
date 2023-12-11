@@ -168,7 +168,7 @@
 
     /* Border Colors */
     .border-primary {
-        border-color: var(--primary-color);
+        border-color: var(--primary);
     }
 
     .border-secondary {
