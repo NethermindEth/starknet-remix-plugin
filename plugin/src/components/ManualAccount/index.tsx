@@ -233,7 +233,7 @@ const ManualAccount: React.FC<{
 
       console.log('transaction_hash=', transactionHash)
 
-      await provider.waitForTransaction(transactionHash)
+      await provider.getTransactionReceipt(transactionHash)
 
       setTransactions([
         {

@@ -184,7 +184,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         type: 'info'
       })
 
-      const deployResponse = await account.deployContract({
+      const deployResponse = await account.deploy({
         classHash: classHash ?? selectedContract.classHash,
         constructorCalldata: calldata
       })
@@ -228,7 +228,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 
       setDeployStatus('done')
       setActiveTab('interaction')
-      setContractDeployment(selectedContract, deployResponse.contract_address)
+      setContractDeployment(selectedContract, deployResponse.contract_address[0])
       remixClient.emit('statusChanged', {
         key: 'succeed',
         type: 'success',
