@@ -61,4 +61,12 @@
     .function-struct-header {
         font-size: var(--text-sm);
     }
+
+    .function-form button {
+        width: calc(100%);
+        box-sizing: border-box;
+        margin: 0;
+        padding: 10px;
+    }
+
 }
