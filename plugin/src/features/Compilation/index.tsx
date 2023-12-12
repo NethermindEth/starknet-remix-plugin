@@ -619,7 +619,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
       if (contract != null) {
         setSelectedContract(contract)
-        setContracts([...contracts, contract])
+        setContracts([contract, ...contracts])
       } else {
         if (selectedContract == null) setSelectedContract(contracts[0])
       }
@@ -855,7 +855,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
       if (contractsToStore.length > 1) {
         setSelectedContract(contractsToStore[0])
-        setContracts([...contracts, ...contractsToStore])
+        setContracts([...contractsToStore, ...contracts])
       } else {
         if (selectedContract == null) setSelectedContract(contracts[0])
       }
