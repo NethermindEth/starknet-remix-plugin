@@ -348,6 +348,7 @@ const Interaction: React.FC<InteractionProps> = (props) => {
 
       {isContractSelected && isAccountAndContractValid ? (
         <ABIForm
+          key={selectedContract?.compiledClassHash + selectedContract?.address}
           abi={selectedContract?.abi}
           // eslint-disable-next-line @typescript-eslint/no-misused-promises
           callBackFn={handleCallBack}
