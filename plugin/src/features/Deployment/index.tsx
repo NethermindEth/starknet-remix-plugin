@@ -28,9 +28,13 @@ import useRemixClient from '../../hooks/useRemixClient'
 import {
   constructorInputsAtom,
   deployStatusAtom,
+  declStatusAtom,
   deploymentAtom,
   isDeployingAtom,
-  notEnoughInputsAtom
+  isDelcaringAtom,
+  notEnoughInputsAtom,
+  declTxHashAtom,
+  deployTxHashAtom
 } from '../../atoms/deployment'
 import Tooltip from '../../components/ui_components/Tooltip'
 
@@ -53,18 +57,23 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   const [constructorCalldata, setConstructorCalldata] =
     useState<CallDataObject>({})
 
-  const { isDeploying, deployStatus, constructorInputs, notEnoughInputs } =
+  const { isDeploying, deployStatus, isDeclaring, declStatus, constructorInputs, notEnoughInputs, declTxHash, deployTxHash } =
     useAtomValue(deploymentAtom)
 
   const setIsDeploying = useSetAtom(isDeployingAtom)
   const setDeployStatus = useSetAtom(deployStatusAtom)
+  const setIsDeclaring = useSetAtom(isDelcaringAtom)
+  const setDeclStatus = useSetAtom(declStatusAtom)
   const setConstructorInputs = useSetAtom(constructorInputsAtom)
   const setNotEnoughInputs = useSetAtom(notEnoughInputsAtom)
+  const setDeclTxHash = useSetAtom(declTxHashAtom)
+  const setDeployTxHash = useSetAtom(deployTxHashAtom)
 
   const [transactions, setTransactions] = useAtom(transactionsAtom)
   const env = useAtomValue(envAtom)
 
-  const {} = useWaitForTransaction()
+  const declTxStatus = useWaitForTransaction({ hash: declTxHash, watch: true })
+  const deployTxStatus = useWaitForTransaction({ hash: deployTxHash, watch: true })
 
   const [chainId, setChainId] = useState<constants.StarknetChainId>(
     constants.StarknetChainId.SN_GOERLI
@@ -91,17 +100,58 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     }
   }, [selectedContract])
 
-  const deploy = async (calldata: BigNumberish[]): Promise<void> => {
-    console.log('Account', account, provider)
+  useEffect(() => {
+    if (declTxHash === '') return
+    if (declTxStatus.status === 'success') {
+      setDeclStatus('done')
+      setIsDeclaring(false)
+      remixClient.emit('statusChanged', {
+        key: 'succeed',
+        type: 'success',
+        title: `Contract ${selectedContract?.name ?? ''} declared!`
+      })
+    }
+    if (declTxStatus.status === 'error') {
+      setDeclStatus('error')
+      setIsDeclaring(false)
+    }
+    if (declTxStatus.status === 'pending') {
+      setDeclStatus('pending')
+      setIsDeclaring(true)
+    }
+  }, [declTxStatus])
 
-    setIsDeploying(true)
+  useEffect(() => {
+    if (deployTxHash === '') return
+    if (deployTxStatus.status === 'success') {
+      setDeployStatus('done')
+      setIsDeploying(false)
+      remixClient.emit('statusChanged', {
+        key: 'succeed',
+        type: 'success',
+        title: `Contract ${selectedContract?.name ?? ''} deployed!`
+      })
+    }
+    if (deployTxStatus.status === 'error') {
+      setDeployStatus('error')
+      setIsDeploying(false)
+    }
+    if (deployTxStatus.status === 'pending') {
+      setDeployStatus('pending')
+      setIsDeploying(true)
+    }
+  }, [deployTxStatus])
+
+  const declare = async (): Promise<void> => {
+    setIsDeclaring(true)
     remixClient.emit('statusChanged', {
       key: 'loading',
       type: 'info',
-      title: `Deploying ${selectedContract?.name ?? ''} ...`
+      title: `Declaring ${selectedContract?.name ?? ''} ...`
     })
-    let classHash = selectedContract?.classHash
+
     let updatedTransactions = transactions
+
     try {
       if (account === null || provider === null) {
         throw new Error('No account or provider selected!')
@@ -110,8 +160,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       if (selectedContract === null) {
         throw new Error('No contract selected for deployment!')
       }
-
-      setDeployStatus('Declaring...')
+      setDeclStatus('Declaring...')
       try {
         try {
           await account.getClassByHash(selectedContract.classHash)
@@ -124,6 +173,13 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
               4
             )} already has been declared, proceeding to deployment...`
           )
+          setIsDeclaring(false)
+          setDeclStatus('done')
+          remixClient.emit('statusChanged', {
+            key: 'succeed',
+            type: 'success',
+            title: `Contract ${selectedContract?.name ?? ''} declared!`
+          })
         } catch (error) {
           const declareResponse = await account.declare({
             contract: selectedContract.sierra,
@@ -145,10 +201,12 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
             ...updatedTransactions
           ]
           setTransactions(updatedTransactions)
-          classHash = declareResponse.class_hash
-          await provider.waitForTransaction(declareResponse.transaction_hash)
+          setDeclTxHash(declareResponse.transaction_hash)
         }
+        setContractDeclaration(selectedContract)
       } catch (error) {
+        setDeclStatus('error')
+        setIsDeclaring(false)
         if (error instanceof Error) {
           await remixClient.call('terminal', 'log', {
             value: error.message,
@@ -159,6 +217,38 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
               "\n Aborting deployment... Couldn't get declare infomation"
           )
         }
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        await remixClient.call('terminal', 'log', {
+          value: error.message,
+          type: 'error'
+        })
+      }
+      remixClient.emit('statusChanged', {
+        key: 'failed',
+        type: 'error',
+        title: 'Declaration failed, error logged in the terminal!'
+      })
+    }
+  }
+
+  const deploy = async (calldata: BigNumberish[]): Promise<void> => {
+    setIsDeploying(true)
+    remixClient.emit('statusChanged', {
+      key: 'loading',
+      type: 'info',
+      title: `Deploying ${selectedContract?.name ?? ''} ...`
+    })
+    const classHash = selectedContract?.classHash
+    const updatedTransactions = transactions
+    try {
+      if (account === null || provider === null) {
+        throw new Error('No account or provider selected!')
+      }
+
+      if (selectedContract === null) {
+        throw new Error('No contract selected for deployment!')
       }
 
       setDeployStatus('Deploying...')
@@ -182,18 +272,12 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         },
         ...updatedTransactions
       ])
-      await provider.waitForTransaction(deployResponse.transaction_hash)
-      setDeployStatus('done')
-      setActiveTab('interaction')
+      setDeployTxHash(deployResponse.transaction_hash)
       setContractDeployment(selectedContract, deployResponse.contract_address)
-      remixClient.emit('statusChanged', {
-        key: 'succeed',
-        type: 'success',
-        title: `Contract ${selectedContract?.name} deployed!`
-      })
       // setContractAsDeployed(selectedContract as Contract);
     } catch (error) {
       setDeployStatus('error')
+      setIsDeploying(false)
       if (error instanceof Error) {
         await remixClient.call('terminal', 'log', {
           value: error.message,
@@ -206,7 +290,6 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         title: 'Deployment failed, error logged in the terminal!'
       })
     }
-    setIsDeploying(false)
   }
 
   const handleDeploy = (calldata: BigNumberish[]): void => {
@@ -230,6 +313,13 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       // setFinalCallData(calldata)
       handleDeploy(calldata)
     }
+  }
+
+  const handleDeclare = (event: any): void => {
+    event.preventDefault()
+    declare().catch((error) => {
+      console.log('Error during declaration:', error)
+    })
   }
 
   const handleConstructorCalldataChange = (
@@ -272,6 +362,25 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     return []
   }
 
+  const setContractDeclaration = (currentContract: Contract): void => {
+    if (account == null) return
+    const declaredContract = {
+      ...currentContract,
+      declaredInfo: [
+        ...currentContract.declaredInfo,
+        { chainId }
+      ]
+    }
+    const updatedContracts = contracts.map((contract) => {
+      if (contract.classHash === declaredContract.classHash) {
+        return declaredContract
+      }
+      return contract
+    })
+    setContracts(updatedContracts)
+    setSelectedContract(declaredContract)
+  }
+
   const setContractDeployment = (
     currentContract: Contract,
     address: string
@@ -302,6 +411,69 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
           ? (
           <div className="">
             <CompiledContracts show={'class'} />
+            <button
+                className="btn btn-warning btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3 px-0"
+                style={{
+                  cursor: `${
+                    isDeclaring ||
+                    account == null ||
+                    selectedContract.declaredInfo.some(
+                      (info) =>
+                        info.chainId === chainId
+                    )
+                      ? 'not-allowed'
+                      : 'pointer'
+                  }`
+                }}
+                disabled={
+                  isDeclaring ||
+                  account == null ||
+                  selectedContract.declaredInfo.some(
+                    (info) =>
+                      info.chainId === chainId
+                  )
+                }
+                aria-disabled={
+                  isDeclaring ||
+                  account == null ||
+                  selectedContract.declaredInfo.some(
+                    (info) =>
+                      info.chainId === chainId
+                  )
+                }
+                onClick={handleDeclare}
+              >
+                <div className="d-flex align-items-center justify-content-center">
+                  <div className="text-truncate overflow-hidden text-nowrap">
+                    {isDeclaring
+                      ? (
+                      <>
+                        <span style={{ paddingLeft: '0.5rem' }}>
+                          {declStatus}
+                        </span>
+                      </>
+                        )
+                      : (
+                      <div className="text-truncate overflow-hidden text-nowrap">
+                        {account !== null &&
+                        selectedContract.declaredInfo.some(
+                          (info) =>
+                            info.chainId === chainId
+                        )
+                          ? (
+                          <span>
+                            {' '}
+                            Declared {selectedContract.name} <i className="bi bi-check"></i>
+                          </span>
+                            )
+                          : (
+                          <span> Declare {selectedContract.name}</span>
+                            )}
+                      </div>
+                        )}
+                  </div>
+                </div>
+              </button>
             <form onSubmit={handleDeploySubmit}>
               {constructorInputs.map((input, index) => {
                 return (

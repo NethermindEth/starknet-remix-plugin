@@ -30,7 +30,7 @@ const Wallet: React.FC<WalletProps> = (props) => {
   useEffect(() => {
     if (status === 'connected') {
       setAccount(account ?? null)
-      setProvider(provider ?? null)
+      setProvider(provider)
     }
   }, [status])
 

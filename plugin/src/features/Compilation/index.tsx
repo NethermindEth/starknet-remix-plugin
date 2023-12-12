@@ -581,6 +581,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       casm,
       path,
       deployedInfo: [],
+      declaredInfo: [],
       address: ''
     }
     return contract
