@@ -96,7 +96,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       if (selectedContract === null) {
         throw new Error('No contract selected for deployment!')
       }
-
+      console.log(provider)
       setDeployStatus('Declaring...')
       try {
         try {

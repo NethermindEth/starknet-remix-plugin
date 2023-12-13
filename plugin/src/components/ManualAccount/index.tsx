@@ -19,11 +19,16 @@ import ExplorerSelector, { useCurrentExplorer } from '../ExplorerSelector'
 import { useAtom } from 'jotai'
 
 import transactionsAtom from '../../atoms/transactions'
-import { accountAtom, networkAtom, selectedAccountAtom } from '../../atoms/manualAccount'
+import {
+  accountAtom,
+  networkAtom,
+  selectedAccountAtom
+} from '../../atoms/manualAccount'
 import { type Env, envAtom } from '../../atoms/environment'
 import useAccount from '../../hooks/useAccount'
 import useProvider from '../../hooks/useProvider'
 import useRemixClient from '../../hooks/useRemixClient'
+import { getProvider } from '../../utils/misc'
 
 // TODOS: move state parts to contexts
 // Account address selection
@@ -58,16 +63,8 @@ const ManualAccount: React.FC<{
   }, [setNetworkName])
 
   useEffect(() => {
-    const netName = networkNameEquivalents.get(networkName)
-    const chainId = networkEquivalents.get(networkName)
-    if (chainId && netName) {
-      setProvider(
-        new RpcProvider({
-          nodeUrl: netName,
-          chainId
-        })
-      )
-    }
+    const prov = getProvider(networkName)
+    setProvider(prov)
   }, [setProvider, networkName])
 
   useEffect(() => {
@@ -115,11 +112,13 @@ const ManualAccount: React.FC<{
 
   const updateBalance = async (): Promise<void> => {
     if (account != null && provider != null && selectedAccount != null) {
-      const resp = await provider.callContract({
+      console.log(account, provider)
+      const resp = await account.callContract({
         contractAddress: balanceContractAddress,
         entrypoint: 'balanceOf',
         calldata: [account.address]
       })
+      console.log(resp)
       const balance = resp.result[0]
       const newAccount = { ...selectedAccount, balance }
       const newAccounts = accounts.map((acc) => {
@@ -224,16 +223,18 @@ const ManualAccount: React.FC<{
         publicKey: await account.signer.getPubKey()
       })
 
-      const { transaction_hash: transactionHash, contract_address: contractAddress } =
-        await account.deployAccount({
-          classHash: OZaccountClassHash,
-          constructorCalldata: OZaccountConstructorCallData,
-          addressSalt: await account.signer.getPubKey()
-        })
+      const {
+        transaction_hash: transactionHash,
+        contract_address: contractAddress
+      } = await account.deployAccount({
+        classHash: OZaccountClassHash,
+        constructorCalldata: OZaccountConstructorCallData,
+        addressSalt: await account.signer.getPubKey()
+      })
 
       console.log('transaction_hash=', transactionHash)
 
-      await provider.getTransactionReceipt(transactionHash)
+      await provider.waitForTransaction(transactionHash)
 
       setTransactions([
         {
@@ -313,16 +314,16 @@ const ManualAccount: React.FC<{
             ? (
                 accounts.map((account, index) => {
                   return (
-                  <option value={index} key={index}>
-                    {trimStr(account.address, 6)}
-                  </option>
+                <option value={index} key={index}>
+                  {trimStr(account.address, 6)}
+                </option>
                   )
                 })
               )
             : (
-              <option value={-1} key={-1}>
-                No account created yet
-              </option>
+            <option value={-1} key={-1}>
+              No account created yet
+            </option>
               )}
         </select>
         <button
@@ -343,7 +344,10 @@ const ManualAccount: React.FC<{
                 <p className="m-0">
                   Address:{' '}
                   <a
-                    href={`${getExplorerUrl(explorerHook.explorer, networkName as Network)}/contract/${selectedAccount?.address}`}
+                    href={`${getExplorerUrl(
+                      explorerHook.explorer,
+                      networkName as Network
+                    )}/contract/${selectedAccount?.address}`}
                     target="_blank"
                     rel="noreferer noopener noreferrer"
                   >
@@ -392,14 +396,20 @@ const ManualAccount: React.FC<{
               </button>
             </div>
           )}
-          {networkName === 'goerli-alpha' && (
+          {networkName === 'goerli' && (
             <button
               className="btn btn-secondary w-100"
               onClick={() => {
                 copy(selectedAccount?.address ?? '')
-                remixClient.call('notification' as any, 'toast', 'ℹ️ Address copied to Clipboard').catch((err) => {
-                  console.log(err)
-                })
+                remixClient
+                  .call(
+                    'notification' as any,
+                    'toast',
+                    'ℹ️ Address copied to Clipboard'
+                  )
+                  .catch((err) => {
+                    console.log(err)
+                  })
                 setTimeout(() => {
                   window?.open(
                     'https://faucet.goerli.starknet.io/',
@@ -433,12 +443,13 @@ const ManualAccount: React.FC<{
       <button
         className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled"
         style={{
-          cursor: `${(selectedAccount?.deployed_networks.includes(networkName) ??
-            false) ||
+          cursor: `${
+            (selectedAccount?.deployed_networks.includes(networkName) ??
+              false) ||
             accountDeploying
-            ? 'not-allowed'
-            : 'pointer'
-            }`
+              ? 'not-allowed'
+              : 'pointer'
+          }`
         }}
         disabled={
           (selectedAccount?.deployed_networks.includes(networkName) ?? false) ||
@@ -455,22 +466,22 @@ const ManualAccount: React.FC<{
       >
         {accountDeploying
           ? (
-            <>
-              <span
-                className="spinner-border spinner-border-sm"
-                role="status"
-                aria-hidden="true"
-              />
-              <span style={{ paddingLeft: '0.5rem' }}>Deploying Account...</span>
-            </>
+          <>
+            <span
+              className="spinner-border spinner-border-sm"
+              role="status"
+              aria-hidden="true"
+            />
+            <span style={{ paddingLeft: '0.5rem' }}>Deploying Account...</span>
+          </>
             )
           : selectedAccount?.deployed_networks.includes(networkName) ??
-            false
+          false
             ? (
-              <>
-                <MdCheckCircleOutline color="#0fd543" size={18} />
-                <span style={{ paddingLeft: '0.5rem' }}>Account Deployed</span>
-              </>
+          <>
+            <MdCheckCircleOutline color="#0fd543" size={18} />
+            <span style={{ paddingLeft: '0.5rem' }}>Account Deployed</span>
+          </>
               )
             : (
                 'Deploy Account'
