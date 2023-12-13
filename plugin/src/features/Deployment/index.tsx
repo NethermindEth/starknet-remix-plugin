@@ -14,7 +14,6 @@ import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import transactionsAtom from '../../atoms/transactions'
 
 import './styles.css'
-import './override.css'
 import {
   compiledContractsAtom,
   selectedCompiledContract
