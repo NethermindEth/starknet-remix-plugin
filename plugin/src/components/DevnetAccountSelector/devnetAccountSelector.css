@@ -6,12 +6,12 @@
 
 .devnet-account-selector-trigger {
   width: 100%;
-  border: 1px solid var(--primary-color-500);
+  border: 1px solid var(--primary);
 }
 
 .text-copied {
-  top: 0px;
-  left: 0px;
+  top: 0;
+  left: 0;
   background: slateblue;
   padding: 0.2rem;
 }

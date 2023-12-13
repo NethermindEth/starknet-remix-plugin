@@ -10,10 +10,10 @@
 }
 
 .env-testnet-btn {
-    border: 1px solid orange;
+    border: 1px solid var(--orange);
     color: var(--white);
 }
 
 .env-testnet-btn:hover {
-    border: 1px solid orange;
+    border: 1px solid var(--orange);
 }

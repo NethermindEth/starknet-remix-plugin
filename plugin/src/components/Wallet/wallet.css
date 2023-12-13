@@ -14,7 +14,7 @@
 .account-network-selector {
   font-size: 0.8rem;
   color: var(--white);
-  margin: 0px;
+  margin: 0;
 }
 
 .wallet-account-wrapper {

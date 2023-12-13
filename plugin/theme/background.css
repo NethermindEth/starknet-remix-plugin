@@ -2,29 +2,29 @@
 
     /* Classes Definitions */
     /* Backgrounds */
-    .bg-primary {
-        background: var(--primary-color-900) !important;
-    }
+     .bg-primary {
+         background: var(--body-bg) !important;
+     }
 
-    .bg-secondary {
-        background: var(--secondary-color-900) !important;
-    }
+     .bg-secondary {
+         background: var(--secondary) !important;
+     }
 
-    .bg-success {
-        background: var(--success-color);
-    }
+     .bg-success {
+         background: var(--success);
+     }
 
-    .bg-information {
-        background: var(--information-color);
-    }
+     .bg-information {
+         background: var(--info);
+     }
 
-    .bg-warning {
-        background: var(--warning-color);
-    }
+     .bg-warning {
+         background: var(--warning);
+     }
 
-    .bg-error {
-        background: var(--error-color);
-    }
+     .bg-error {
+         background: var(--error);
+     }
 
     .bg-dark {
         background: var(--dark);
@@ -33,7 +33,7 @@
     .bg-light {
         background: var(--light);
     }
-    
+
     .bg-transparent {
         background: transparent !important;
     }

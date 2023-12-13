@@ -3,11 +3,9 @@ import React, { useEffect, useState } from 'react'
 import { type BigNumberish } from 'ethers'
 import CompiledContracts from '../../components/CompiledContracts'
 import {
-  type CallDataObj,
-  type CallDataObject,
   type Contract
 } from '../../utils/types/contracts'
-import { getConstructor, getParameterType, getShortenedHash } from '../../utils/utils'
+import { getConstructor, getShortenedHash } from '../../utils/utils'
 import Container from '../../components/ui_components/Container'
 
 import { type AccordianTabs } from '../Plugin'
@@ -16,12 +14,12 @@ import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import transactionsAtom from '../../atoms/transactions'
 
 import './styles.css'
+import './override.css'
 import {
   compiledContractsAtom,
   selectedCompiledContract
 } from '../../atoms/compiledContracts'
 import { envAtom } from '../../atoms/environment'
-// import { starknetWindowObject as starknetWindowObjectAtom } from '../../atoms/connection'
 import useAccount from '../../hooks/useAccount'
 import useProvider from '../../hooks/useProvider'
 import useRemixClient from '../../hooks/useRemixClient'
@@ -29,12 +27,10 @@ import {
   constructorInputsAtom,
   deployStatusAtom,
   deploymentAtom,
-  isDeployingAtom,
-  notEnoughInputsAtom
+  isDeployingAtom
 } from '../../atoms/deployment'
-import Tooltip from '../../components/ui_components/Tooltip'
 
-import { FaInfoCircle } from 'react-icons/fa'
+import { type CallbackReturnType, ConstructorForm } from 'starknet-abi-forms'
 interface DeploymentProps {
   setActiveTab: (tab: AccordianTabs) => void
 }
@@ -49,20 +45,15 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     selectedCompiledContract
   )
 
-  const [constructorCalldata, setConstructorCalldata] =
-    useState<CallDataObject>({})
-
-  const { isDeploying, deployStatus, constructorInputs, notEnoughInputs } =
+  const { notEnoughInputs } =
     useAtomValue(deploymentAtom)
 
   const setIsDeploying = useSetAtom(isDeployingAtom)
   const setDeployStatus = useSetAtom(deployStatusAtom)
   const setConstructorInputs = useSetAtom(constructorInputsAtom)
-  const setNotEnoughInputs = useSetAtom(notEnoughInputsAtom)
 
   const [transactions, setTransactions] = useAtom(transactionsAtom)
   const env = useAtomValue(envAtom)
-  // const starknetWindowObject = useAtomValue(starknetWindowObjectAtom)
 
   const [chainId, setChainId] = useState<constants.StarknetChainId>(
     constants.StarknetChainId.SN_GOERLI
@@ -83,7 +74,6 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   }, [provider])
 
   useEffect(() => {
-    setConstructorCalldata({})
     if (selectedContract != null) {
       setConstructorInputs(getConstructor(selectedContract?.abi)?.inputs ?? [])
     }
@@ -106,7 +96,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       if (selectedContract === null) {
         throw new Error('No contract selected for deployment!')
       }
-
+      console.log(provider)
       setDeployStatus('Declaring...')
       try {
         try {
@@ -184,7 +174,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         type: 'info'
       })
 
-      const deployResponse = await account.deployContract({
+      const deployResponse = await account.deploy({
         classHash: classHash ?? selectedContract.classHash,
         constructorCalldata: calldata
       })
@@ -228,7 +218,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 
       setDeployStatus('done')
       setActiveTab('interaction')
-      setContractDeployment(selectedContract, deployResponse.contract_address)
+      setContractDeployment(selectedContract, deployResponse.contract_address[0])
       remixClient.emit('statusChanged', {
         key: 'succeed',
         type: 'success',
@@ -257,60 +247,8 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     })
   }
 
-  const handleDeploySubmit = (event: any): void => {
-    event.preventDefault()
-    const formDataValues = Object.values(constructorCalldata)
-    if (
-      formDataValues.length < constructorInputs.length ||
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-      formDataValues.some((input) => !input.value)
-    ) {
-      setNotEnoughInputs(true)
-    } else {
-      setNotEnoughInputs(false)
-      const calldata = getFormattedCalldata()
-      handleDeploy(calldata)
-    }
-  }
-
-  const handleConstructorCalldataChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ): void => {
-    event.preventDefault()
-    const {
-      name,
-      value,
-      dataset: { type, index }
-    } = event.target
-    if (index != null) {
-      setConstructorCalldata((prevCalldata) => ({
-        ...prevCalldata,
-        [index]: {
-          name,
-          value,
-          type
-        }
-      }))
-    }
-  }
-
-  const getFormattedCalldata = (): BigNumberish[] => {
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-    if (constructorCalldata) {
-      const formattedCalldata: CallDataObj[] = []
-
-      Object.values(constructorCalldata).forEach((input) => {
-        formattedCalldata.push(
-          input.value
-            .trim()
-            .split(',')
-            .map((val) => val.trim()) as CallDataObj
-        )
-      })
-
-      return formattedCalldata.flat() as BigNumberish[]
-    }
-    return []
+  const handleDeploySubmit = (data: CallbackReturnType): void => {
+    handleDeploy(data.starknetjs as BigNumberish[])
   }
 
   const setContractDeployment = (
@@ -343,99 +281,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
           ? (
           <div className="">
             <CompiledContracts show={'class'} />
-            <form onSubmit={handleDeploySubmit}>
-              {constructorInputs.map((input, index) => {
-                return (
-                  <div
-                    className="udapp_multiArg constructor-label-wrapper"
-                    key={index}
-                  >
-                    <label key={index} className="constructor-label">
-                      {`${input.name} (${
-                        getParameterType(input.type) ?? ''
-                      }): `}
-                      { getParameterType(input.type) === 'u256 (low, high)' && <Tooltip content = 'for eg. input: `1, 0` corresponds to 1 (low: 1, high: 0) ' icon={<FaInfoCircle/> } /> }
-                    </label>
-                    <input
-                      className="form-control constructor-input"
-                      name={input.name}
-                      data-type={input.type}
-                      data-index={index}
-                      value={constructorCalldata[index]?.value ?? ''}
-                      onChange={handleConstructorCalldataChange}
-                    />
-                  </div>
-                )
-              })}
-              <button
-                className="btn btn-information btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3 px-0"
-                style={{
-                  cursor: `${
-                    isDeploying ||
-                    account == null ||
-                    selectedContract.deployedInfo.some(
-                      (info) =>
-                        info.address === account.address &&
-                        info.chainId === chainId
-                    )
-                      ? 'not-allowed'
-                      : 'pointer'
-                  }`
-                }}
-                disabled={
-                  isDeploying ||
-                  account == null ||
-                  selectedContract.deployedInfo.some(
-                    (info) =>
-                      info.address === account.address &&
-                      info.chainId === chainId
-                  )
-                }
-                aria-disabled={
-                  isDeploying ||
-                  account == null ||
-                  selectedContract.deployedInfo.some(
-                    (info) =>
-                      info.address === account.address &&
-                      info.chainId === chainId
-                  )
-                }
-                type="submit"
-              >
-                <div className="d-flex align-items-center justify-content-center">
-                  <div className="text-truncate overflow-hidden text-nowrap">
-                    {isDeploying
-                      ? (
-                      <>
-                        <span style={{ paddingLeft: '0.5rem' }}>
-                          {deployStatus}
-                        </span>
-                      </>
-                        )
-                      : (
-                      <div className="text-truncate overflow-hidden text-nowrap">
-                        {account != null &&
-                        selectedContract.deployedInfo.some(
-                          (info) =>
-                            info.address === account.address &&
-                            info.chainId === chainId
-                        )
-                          ? (
-                          <span>
-                            {' '}
-                            Deployed <i className="bi bi-check"></i>{' '}
-                            {selectedContract.name}
-                          </span>
-                            )
-                          : (
-                          <span> Deploy {selectedContract.name}</span>
-                            )}
-                      </div>
-                        )}
-                  </div>
-                </div>
-              </button>
-            </form>
+            <ConstructorForm key = {selectedContract.compiledClassHash} abi={selectedContract.abi} callBackFn={handleDeploySubmit} />
             {account != null &&
               selectedContract.deployedInfo.some(
                 (info) =>

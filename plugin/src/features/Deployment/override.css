@@ -23,10 +23,6 @@
         border-radius: 0.2rem;
     }
 
-    .function-header p {
-        color: var(--text);
-    }
-
     .function-form-submit {
         background: none;
         background-color: var(--info) !important;

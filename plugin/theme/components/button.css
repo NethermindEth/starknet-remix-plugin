@@ -13,98 +13,98 @@
     }
 
     .btn label {
-        padding: 0px;
-        margin: 0px;
+        padding: 0;
+        margin: 0;
     }
 
     .btn-primary {
-        color: var(--light);
-        background-color: var(--primary-color-600);
+        color: var(--text);
+        background-color: var(--info);
     }
 
     .btn-primary.disabled,
     .btn-primary.disabled:hover {
-        color: var(--light-200);
-        background-color: var(--primary-color-700);
+        color: var(--text);
+        background-color: var(--bgPrimary);
     }
 
     .btn-primary:hover {
-        background-color: var(--primary-color-800);
+        background-color: var(--secondary);
     }
 
     .btn-secondary {
-        color: var(--light);
-        background-color: var(--secondary-color-700);
+        color: var(--text);
+        background-color: var(--secondary);
     }
 
     .btn-secondary.disabled,
     .btn-secondary.disabled:hover {
-        color: var(--light-200);
-        background-color: var(--secondary-color-700);
+        color: var(--text);
+        background-color: var(--secondary);
     }
 
     .btn-secondary:hover {
-        background-color: var(--secondary-color-800);
+        background-color: var(--secondary);
     }
 
     .btn-success {
-        color: var(--light);
-        background-color: var(--success-color-700);
+        color: var(--text);
+        background-color: var(--success);
     }
 
     .btn-success.disabled,
     .btn-success.disabled:hover {
-        color: var(--light-200);
-        background-color: var(--success-color-700);
+        color: var(--text);
+        background-color: var(--success);
     }
 
     .btn-success:hover {
-        background-color: var(--success-color-800);
+        background-color: var(--success);
     }
 
     .btn-information {
-        color: var(--light);
-        background-color: var(--information-color-700);
+        color: var(--text);
+        background-color: var(--info);
     }
 
     .btn-information.disabled,
     .btn-information.disabled:hover {
-        color: var(--light-200);
-        background-color: var(--information-color-700);
+        color: var(--text);
+        background-color: var(--info);
     }
 
     .btn-information:hover {
-        background-color: var(--information-color-800);
+        background-color: var(--info);
     }
 
     .btn-warning {
-        color: var(--light);
-        background-color: var(--warning-color-700);
+        color: var(--text);
+        background-color: var(--warning);
     }
 
     .btn-warning.disabled,
     .btn-warning.disabled:hover {
-        color: var(--light-200);
-        background-color: var(--warning-color-700);
+        color: var(--text);
+        background-color: var(--warning);
     }
 
     .btn-warning:hover {
-        background-color: var(--warning-color-800);
+        background-color: var(--warning);
     }
 
     .btn-error {
-        color: var(--light);
-        background-color: var(--error-color-700);
+        color: var(--text);
+        background-color: var(--error);
     }
 
     .btn-error.disabled,
     .btn-error.disabled:hover {
-        color: var(--light-200);
-        background-color: var(--error-color-700);
+        color: var(--text);
+        background-color: var(--error);
     }
 
     .btn-error:hover {
-        background-color: var(--error-color-800);
+        background-color: var(--error);
     }
 
 }
