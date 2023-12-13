@@ -280,7 +280,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
           ? (
           <div className="">
             <CompiledContracts show={'class'} />
-            <ConstructorForm key = {selectedContract.compiledClassHash} abi={selectedContract.abi} callBackFn={handleDeploySubmit} />
+            <ConstructorForm key = {selectedContract.compiledClassHash + selectedContract.sierraClassHash} abi={selectedContract.abi} callBackFn={handleDeploySubmit} />
             {account != null &&
               selectedContract.deployedInfo.some(
                 (info) =>
