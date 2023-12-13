@@ -1,5 +1,9 @@
 lockfileVersion: '6.0'
 
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
 dependencies:
   '@radix-ui/react-accordion':
     specifier: ^1.1.2
@@ -73,6 +77,9 @@ dependencies:
   starknet:
     specifier: 5.19.5
     version: 5.19.5
+  starknet-abi-forms:
+    specifier: ^0.1.4
+    version: 0.1.4(react-dom@18.2.0)(react@18.2.0)
   vite-plugin-svgr:
     specifier: ^4.0.0
     version: 4.0.0(typescript@4.9.5)(vite@4.4.9)
@@ -4487,6 +4494,17 @@ packages:
     resolution: {integrity: sha512-R0XvVJ9WusLiqTCEiGCmICCMplcCkIwwR11mOSD9CR5u+IXYdiseeEuXCVAjS54zqwkLcPNnmU4OeJ6tUrWhDw==}
     engines: {node: '>=0.10.0'}
 
+  /starknet-abi-forms@0.1.4(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-gtOvOtTbN5MIg/AVmXWTBcGAx5/i2MP/F8/v2egNnt1RiZyBHMI8/AZBzuPmCC5xNWTJBPp01xFwfT5/6IVa+Q==}
+    engines: {node: '>=14.0.0'}
+    peerDependencies:
+      react: '>=17'
+      react-dom: '>=17'
+    dependencies:
+      react: 18.2.0
+      react-dom: 18.2.0(react@18.2.0)
+    dev: false
+
   /starknet@5.19.5:
     resolution: {integrity: sha512-S7V4ifyYd+ApsIwYTd7YA5U2Px+NZkCsQPnmgY/wkc5LLFKhYMNpzHQ5nIA15p70AwtSXCcsEBnHNRBOuci13Q==}
     dependencies:
@@ -5047,7 +5065,3 @@ packages:
       toposort: 2.0.2
       type-fest: 2.19.0
     dev: false
-
-settings:
-  autoInstallPeers: true
-  excludeLinksFromLockfile: false

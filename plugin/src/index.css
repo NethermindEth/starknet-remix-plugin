@@ -14,13 +14,8 @@ code {
 
 /* Colors and Global CSS Variables are defined here */
 :root {
-  --white: white;
-  --black: black;
-  --violet: violet;
-  --textPrimary: white;
-  --bgPrimary: #222336;
-  --borderPrimary: #3f4455;
-  --shadowPrimary: rgba(0, 0, 0, 0.5);
-  --accentColor: #3e4595;
-  --accentColor30: #3e459530;
+  --textPrimary: var(--text);
+  --bgPrimary: var(--body-bg);
+  --accentColor: var(--secondary);
+  --accentColor30: var(--secondary);
 }

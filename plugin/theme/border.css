@@ -168,27 +168,27 @@
 
     /* Border Colors */
     .border-primary {
-        border-color: var(--primary-color);
+        border-color: var(--primary);
     }
 
     .border-secondary {
-        border-color: var(--secondary-color);
+        border-color: var(--secondary);
     }
 
     .border-success {
-        border-color: var(--success-color);
+        border-color: var(--success);
     }
 
     .border-information {
-        border-color: var(--information-color);
+        border-color: var(--info);
     }
 
     .border-warning {
-        border-color: var(--warning-color);
+        border-color: var(--warning);
     }
 
     .border-error {
-        border-color: var(--error-color);
+        border-color: var(--error);
     }
 
     .border-dark {
@@ -196,6 +196,6 @@
     }
 
     .border-light {
-        border-color: var(--light);
+        border-color: var(--text);
     }
 }

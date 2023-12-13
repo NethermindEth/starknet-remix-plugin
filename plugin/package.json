@@ -27,6 +27,7 @@
     "react-dom": "^18.2.0",
     "react-icons": "^4.10.1",
     "starknet": "5.19.5",
+    "starknet-abi-forms": "^0.1.4",
     "vite-plugin-svgr": "^4.0.0",
     "web-vitals": "^2.1.4",
     "yup": "^1.2.0"

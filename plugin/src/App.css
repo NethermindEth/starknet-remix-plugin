@@ -6,4 +6,6 @@
 
 .cairo-version-legend {
   margin: 0 24px;
+  display: flex;
+  flex-direction: row;
 }

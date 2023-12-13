@@ -1,7 +1,7 @@
 /* Card Css */
 
 .maincard {
-  background: var(--accentColor30);
+  border: 1px solid var(--secondary);
   display: grid;
   padding: 1rem;
   gap: 0.5rem;
@@ -35,10 +35,12 @@
   display: block;
   font-weight: 600;
 }
+
 .account-wrapper a {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 .account-wrapper a:hover {
   cursor: pointer;
 }
@@ -76,39 +78,39 @@
 
 .tag {
   border: 1px solid;
-  border-color: white;
+  border-color: var(--white);
   border-radius: 0.5rem;
   font-size: 0.8rem;
   text-transform: uppercase;
 }
 
 .tag-declare {
-  border-color: green;
-  color: green;
+  border-color: var(--green);
+  color: var(--green);
 }
 
 .tag-invoke {
-  border-color: blueviolet;
-  color: blueviolet;
+  border-color: var(--indigo);
+  color: var(--indigo);
 }
 
 .tag-deploy {
-  border-color: palegreen;
-  color: palegreen;
+  border-color: var(--teal);
+  color: var(--teal);
 }
 
 .tag-deployAccount {
-  border-color: yellow;
-  color: yellow;
+  border-color: var(--yellow);
+  color: var(--yellow);
 }
 
 
 .tag-localDevnet {
-  border-color: orange;
-  color: orange;
+  border-color: var(--orange);
+  color: var(--orange);
 }
 
 .tag-remoteDevnet {
-  border-color: palegoldenrod;
-  color: palegoldenrod;
+  border-color: var(--yellow);
+  color: var(--yellow);
 }

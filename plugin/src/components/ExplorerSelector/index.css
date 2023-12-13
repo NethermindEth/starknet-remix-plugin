@@ -2,7 +2,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   font-weight: 500;
-  color: var(--secondaryColor);
+  color: var(--secondary);
 }
 
 .img-explorer-logo {
@@ -22,7 +22,7 @@
 }
 
 .styled-dropdown-item * {
-  margin: 0px;
+  margin: 0;
   text-transform: capitalize;
 }
 

@@ -2,44 +2,42 @@ import { constants } from 'starknet'
 
 const devnetUrl = 'http://127.0.0.1:5050'
 
-type Network =
-  | 'goerli-alpha'
-  | 'mainnet-alpha'
+type Network = 'goerli' | 'mainnet'
 
 const networks = [
-  { name: 'Testnet', value: 'goerli-alpha' },
-  { name: 'Mainnet', value: 'mainnet-alpha' }
+  { name: 'Testnet', value: 'goerli' },
+  { name: 'Mainnet', value: 'mainnet' }
 ]
 
 const networkExplorerUrls = {
   voyager: {
-    'goerli-alpha': 'https://goerli.voyager.online',
-    'mainnet-alpha': 'https://voyager.online'
+    goerli: 'https://goerli.voyager.online',
+    mainnet: 'https://voyager.online'
   },
   starkscan: {
-    'goerli-alpha': 'https://testnet.starkscan.co',
-    'mainnet-alpha': 'https://starkscan.co'
+    goerli: 'https://testnet.starkscan.co',
+    mainnet: 'https://starkscan.co'
   }
 }
 
 const networkEquivalents = new Map([
-  ['goerli-alpha', constants.StarknetChainId.SN_GOERLI],
-  ['mainnet-alpha', constants.StarknetChainId.SN_MAIN]
+  ['goerli', constants.StarknetChainId.SN_GOERLI],
+  ['mainnet', constants.StarknetChainId.SN_MAIN]
 ])
 
 const networkEquivalentsRev = new Map([
-  [constants.StarknetChainId.SN_GOERLI, 'goerli-alpha'],
-  [constants.StarknetChainId.SN_MAIN, 'mainnet-alpha']
+  [constants.StarknetChainId.SN_GOERLI, 'goerli'],
+  [constants.StarknetChainId.SN_MAIN, 'mainnet']
 ])
 
 const networkNameEquivalents = new Map([
-  ['goerli-alpha', constants.NetworkName.SN_GOERLI],
-  ['mainnet-alpha', constants.NetworkName.SN_MAIN]
+  ['goerli', constants.NetworkName.SN_GOERLI],
+  ['mainnet', constants.NetworkName.SN_MAIN]
 ])
 
 const networkNameEquivalentsRev = new Map([
-  [constants.NetworkName.SN_GOERLI, 'goerli-alpha'],
-  [constants.NetworkName.SN_MAIN, 'mainnet-alpha']
+  [constants.NetworkName.SN_GOERLI, 'goerli'],
+  [constants.NetworkName.SN_MAIN, 'mainnet']
 ])
 
 const licenses = [
@@ -67,7 +65,8 @@ export {
   networkEquivalentsRev,
   networkNameEquivalents,
   networkNameEquivalentsRev,
-  licenses, constants
+  licenses,
+  constants
 }
 
 export type { Network }
