@@ -12,9 +12,6 @@ const CairoVersion: React.FC = () => {
   const [cairoVersion, setCairoVersion] = useAtom(cairoVersionAtom)
   const { remixClient } = useRemixClient()
 
-  const envViteVersion: string | undefined = import.meta.env.VITE_VERSION
-  const pluginVersion = envViteVersion !== undefined ? `v${envViteVersion}` : 'v0.2.5'
-
   // Hard-coded versions for the example
   const [getVersions, setVersions] = useState([])
 
@@ -88,11 +85,8 @@ const CairoVersion: React.FC = () => {
       </div>
       <div className="version-right">
         <label className="nethermind-powered">
-          <span style={{ marginRight: '4px' }}>Powered by </span>
+          <span>Powered by: </span>
           <Nethermind size="xs" />
-        </label>
-        <label className="plugin-version">
-          Plugin version: {pluginVersion}
         </label>
       </div>
     </div>

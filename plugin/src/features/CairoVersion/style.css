@@ -1,8 +1,8 @@
 .version-wrapper {
-    display: grid;
-    padding: 0.5rem 0rem;
-    grid-template-columns: 1fr auto; /* Changed 120px to auto for automatic width */
-    justify-items: start;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin: 0 16px;
 }
 
 .version-right {
@@ -11,12 +11,20 @@
     flex-direction: column;
 }
 
-.nethermind-powered, .plugin-version {
+.nethermind-powered {
     align-self: end;
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
 }
 
+.nethermind-powered span {
+    margin-bottom: 5px;
+}
+
+.nethermind-powered img {
+    filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%);
+}
+/*316*/
 .plugin-version {
     border: none;
 }
