@@ -17,6 +17,7 @@ import useRemixClient from '../../hooks/useRemixClient'
 import * as D from '../../components/ui_components/Dropdown'
 import { BsCheck, BsChevronDown } from 'react-icons/bs'
 import { declTxHashAtom, deployTxHashAtom } from '../../atoms/deployment'
+import { invokeTxHashAtom } from '../../atoms/interaction'
 
 const DevnetAccountSelector: React.FC = () => {
   const { account, setAccount } = useAccount()
@@ -30,6 +31,7 @@ const DevnetAccountSelector: React.FC = () => {
 
   const setDeclTxHash = useSetAtom(declTxHashAtom)
   const setDeployTxHash = useSetAtom(deployTxHashAtom)
+  const setInvokeTxHash = useSetAtom(invokeTxHashAtom)
 
   const checkDevnetUrl = async (): Promise<void> => {
     try {
@@ -118,6 +120,7 @@ const DevnetAccountSelector: React.FC = () => {
         setAccount(null)
         setDeclTxHash('')
         setDeployTxHash('')
+        setInvokeTxHash('')
         setSelectedDevnetAccount(null)
       } else {
         refreshDevnetAccounts().catch(e => {
@@ -151,6 +154,7 @@ const DevnetAccountSelector: React.FC = () => {
       )
       setDeclTxHash('')
       setDeployTxHash('')
+      setInvokeTxHash('')
     }
     setProvider(newProvider)
   }, [devnet, selectedDevnetAccount])
@@ -172,6 +176,7 @@ const DevnetAccountSelector: React.FC = () => {
     )
     setDeclTxHash('')
     setDeployTxHash('')
+    setInvokeTxHash('')
   }
 
   const [accountRefreshing, setAccountRefreshing] = useState(false)

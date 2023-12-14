@@ -30,6 +30,7 @@ import useProvider from '../../hooks/useProvider'
 import useRemixClient from '../../hooks/useRemixClient'
 import { getProvider } from '../../utils/misc'
 import { declTxHashAtom, deployTxHashAtom } from '../../atoms/deployment'
+import { invokeTxHashAtom } from '../../atoms/interaction'
 
 // TODOS: move state parts to contexts
 // Account address selection
@@ -49,6 +50,7 @@ const ManualAccount: React.FC<{
 
   const setDeclTxHash = useSetAtom(declTxHashAtom)
   const setDeployTxHash = useSetAtom(deployTxHashAtom)
+  const setInvokeTxHash = useSetAtom(invokeTxHashAtom)
 
   const [accountDeploying, setAccountDeploying] = useState(false)
 
@@ -100,6 +102,7 @@ const ManualAccount: React.FC<{
           )
           setDeclTxHash('')
           setDeployTxHash('')
+          setInvokeTxHash('')
         }
       }
       return
@@ -112,6 +115,7 @@ const ManualAccount: React.FC<{
         )
         setDeclTxHash('')
         setDeployTxHash('')
+        setInvokeTxHash('')
       }
     } else {
       setSelectedAccount(null)
@@ -209,6 +213,7 @@ const ManualAccount: React.FC<{
       )
       setDeclTxHash('')
       setDeployTxHash('')
+      setInvokeTxHash('')
     }
   }
 

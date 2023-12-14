@@ -13,6 +13,7 @@ import { getChainName } from '../../utils/starknet'
 import useAccountAtom from '../../hooks/useAccount'
 import useProviderAtom from '../../hooks/useProvider'
 import { declTxHashAtom, deployTxHashAtom } from '../../atoms/deployment'
+import { invokeTxHashAtom } from '../../atoms/interaction'
 import { useSetAtom } from 'jotai'
 
 interface WalletProps {
@@ -31,6 +32,7 @@ const Wallet: React.FC<WalletProps> = (props) => {
 
   const setDeclTxHash = useSetAtom(declTxHashAtom)
   const setDeployTxHash = useSetAtom(deployTxHashAtom)
+  const setInvokeTxHash = useSetAtom(invokeTxHashAtom)
 
   useEffect(() => {
     if (status === 'connected') {
@@ -42,6 +44,7 @@ const Wallet: React.FC<WalletProps> = (props) => {
     }
     setDeployTxHash('')
     setDeclTxHash('')
+    setInvokeTxHash('')
   }, [status])
 
   const explorerHook = useCurrentExplorer()

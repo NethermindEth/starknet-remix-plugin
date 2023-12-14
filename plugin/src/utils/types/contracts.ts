@@ -21,6 +21,7 @@ interface Contract {
   }>
   declaredInfo: Array<{
     chainId: constants.StarknetChainId
+    env: string
   }>
   address: string
 }

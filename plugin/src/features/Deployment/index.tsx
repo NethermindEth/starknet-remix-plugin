@@ -91,8 +91,13 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   }, [selectedContract])
 
   useEffect(() => {
-    console.log('declTxHash', declTxHash)
-    if (declTxHash === '') return
+    console.log('declTxHash', declTxHash, declTxStatus.status, env)
+    if (declTxHash === '') {
+      setIsDeclaring(false)
+      setDeclStatus('')
+      return
+    }
+    if (env !== 'wallet') return
     if (declTxStatus.status === 'success') {
       setDeclStatus('done')
       setIsDeclaring(false)
@@ -119,7 +124,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         title: 'Declaration failed'
       })
       remixClient.call('terminal', 'log', {
-        value: JSON.stringify(declTxStatus.error, null, 2),
+        value: JSON.stringify(declTxStatus, null, 2),
         type: 'info'
       }).catch(() => {})
 
@@ -140,8 +145,13 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   }, [declTxHash, declTxStatus.status])
 
   useEffect(() => {
-    console.log('deployTxHash', deployTxHash, deployTxStatus.status)
-    if (deployTxHash === '') return
+    console.log('deployTxHash', deployTxHash, deployTxStatus.status, env)
+    if (deployTxHash === '') {
+      setIsDeploying(false)
+      setDeployStatus('')
+      return
+    }
+    if (env !== 'wallet') return
     if (deployTxStatus.status === 'success') {
       setDeployStatus('done')
       setIsDeploying(false)
@@ -159,6 +169,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         value: `--------------------- End getting deploy contract: ${selectedContract?.name ?? ''} tx receipt ------------------`,
         type: 'info'
       }).catch(() => {})
+      setActiveTab('interaction')
     }
     if (deployTxStatus.status === 'error') {
       setDeployStatus('error')
@@ -168,7 +179,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         title: 'Deployment failed'
       })
       remixClient.call('terminal', 'log', {
-        value: JSON.stringify(deployTxStatus.error, null, 2),
+        value: JSON.stringify(deployTxStatus, null, 2),
         type: 'info'
       }).catch(() => {})
 
@@ -255,7 +266,25 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
             ...updatedTransactions
           ]
           setTransactions(updatedTransactions)
-          setDeclTxHash(declareResponse.transaction_hash)
+          if (env === 'wallet') {
+            setDeclTxHash(declareResponse.transaction_hash)
+          } else {
+            await remixClient.call('terminal', 'log', {
+              value: `--------------------- Getting declare contract: ${selectedContract.name} tx receipt --------------------`,
+              type: 'info'
+            })
+            const txReceipt = await account.waitForTransaction(declareResponse.transaction_hash)
+            await remixClient.call('terminal', 'log', {
+              value: JSON.stringify(txReceipt, null, 2),
+              type: 'info'
+            })
+            await remixClient.call('terminal', 'log', {
+              value: `--------------------- End getting declare contract: ${selectedContract.name} tx receipt ------------------`,
+              type: 'info'
+            })
+            setDeclStatus('done')
+            setIsDeclaring(false)
+          }
         }
         setContractDeclaration(selectedContract)
       } catch (error) {
@@ -339,7 +368,27 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         },
         ...updatedTransactions
       ])
-      setDeployTxHash(deployResponse.transaction_hash)
+      if (env === 'wallet') setDeployTxHash(deployResponse.transaction_hash)
+      else {
+        setDeployStatus('done')
+        setIsDeploying(false)
+        await remixClient.call('terminal', 'log', {
+          value: `--------------------- Getting deploy contract: ${selectedContract.name} tx receipt --------------------`,
+          type: 'info'
+        })
+
+        const txReceipt = await account.waitForTransaction(deployResponse.transaction_hash)
+        await remixClient.call('terminal', 'log', {
+          value: JSON.stringify(txReceipt, null, 2),
+          type: 'info'
+        })
+
+        await remixClient.call('terminal', 'log', {
+          value: `--------------------- End getting deploy contract: ${selectedContract.name} tx receipt ------------------`,
+          type: 'info'
+        })
+        setActiveTab('interaction')
+      }
       setContractDeployment(selectedContract, deployResponse.contract_address[0])
     } catch (error) {
       setDeployStatus('error')
@@ -381,7 +430,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       ...currentContract,
       declaredInfo: [
         ...currentContract.declaredInfo,
-        { chainId }
+        { chainId, env }
       ]
     }
     const updatedContracts = contracts.map((contract) => {
@@ -425,14 +474,14 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
           <div className="">
             <CompiledContracts show={'class'} />
             <button
-                className="btn btn-warning btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3 px-0"
+                className="btn btn-warning btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3 px-0 rounded"
                 style={{
                   cursor: `${
                     isDeclaring ||
                     account == null ||
                     selectedContract.declaredInfo.some(
                       (info) =>
-                        info.chainId === chainId
+                        info.chainId === chainId && info.env === env
                     )
                       ? 'not-allowed'
                       : 'pointer'
@@ -443,7 +492,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
                   account == null ||
                   selectedContract.declaredInfo.some(
                     (info) =>
-                      info.chainId === chainId
+                      info.chainId === chainId && info.env === env
                   )
                 }
                 aria-disabled={
@@ -451,7 +500,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
                   account == null ||
                   selectedContract.declaredInfo.some(
                     (info) =>
-                      info.chainId === chainId
+                      info.chainId === chainId && info.env === env
                   )
                 }
                 onClick={handleDeclare}
@@ -471,7 +520,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
                         {account !== null &&
                         selectedContract.declaredInfo.some(
                           (info) =>
-                            info.chainId === chainId
+                            info.chainId === chainId && info.env === env
                         )
                           ? (
                           <span>
