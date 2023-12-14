@@ -10,3 +10,42 @@
   overflow-y: scroll;
   height: 100%;
 }
+
+.tab-list {
+}
+
+.tabs-trigger[data-state='active'] {
+  border-bottom: 3px solid var(--info);
+  transition: border-bottom 0.3s ease;
+  color: var(--info);
+}
+
+.tabs-trigger:focus {
+  outline: none;
+}
+
+.tabs-trigger {
+  width: auto;
+  height: 100%;
+  text-align: center;
+  padding: 0.5rem;
+  border-bottom: 3px solid transparent;
+  transition: border-bottom 0.3s ease;
+  border-radius: 3px;
+}
+
+.accordian-list-number {
+  font-size: 1rem;
+  font-weight: bold;
+  margin-right: 0;
+
+  border-radius: 50%;
+
+  background-color: var(--bgPrimary);
+
+  padding: 5px 8px;
+}
+
+.blank-placeholder {
+  min-height: 150px;
+}

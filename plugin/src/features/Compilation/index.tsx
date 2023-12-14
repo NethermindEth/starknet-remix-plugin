@@ -74,10 +74,18 @@ const CompilationCard: React.FC<{
 
   return (
     <Container>
+      <div className={'compilation-info flex-col text-center align-items-center'}>
+        <div className={'icon'}>
+          <img src={'compile-icon.svg'} alt={'compile-icon'} />
+        </div>
+        <span>
+          <p>Go into your file explorer and select a valid cairo file to compile</p>
+        </span>
+      </div>
       {activeTomlPath !== undefined && tomlPaths?.length > 0 && (
         <div className="project-dropdown-wrapper d-flex flex-column mb-3">
           <button
-            className="btn btn-warning w-100 text-break mb-1 mt-1 px-0"
+            className="btn btn-warning w-100 rounded-button text-break mb-1 mt-1 px-0"
             disabled={isCompiling}
             aria-disabled={isCompiling}
             onClick={() => {
@@ -99,14 +107,16 @@ const CompilationCard: React.FC<{
 
           <D.Root>
             <D.Trigger>
-              <div className="btn btn-primary w-100 trigger-wrapper px-0">
-                <label
+              <div className="btn btn-primary rounded-button w-100 trigger-wrapper px-0">
+                <span className={'flex flex-row m-1'}>
+                  <label
                   className="text-break text-white"
                   style={{ fontFamily: 'inherit', fontSize: 'inherit' }}
                 >
                   {activeTomlPath}
                 </label>
-                <BsChevronDown />
+                <BsChevronDown className={'ml-1'} />
+                </span>
               </div>
             </D.Trigger>
             <D.Portal>
@@ -126,11 +136,11 @@ const CompilationCard: React.FC<{
               </D.Content>
             </D.Portal>
           </D.Root>
-          <div className="mx-auto">Or compile a single file:</div>
+          <div className="text-on-bg mx-auto">Or compile a single file:</div>
         </div>
       )}
       <button
-        className="btn btn-information btn-block d-block w-100 text-break remixui_disabled mb-1 mt-1 px-0"
+        className="compile-button btn btn-information btn-block d-block w-100 text-break rounded-button remixui_disabled mb-1 mt-1 px-0"
         style={{
           cursor: `${
             !validation || isCurrentFileName ? 'not-allowed' : 'pointer'

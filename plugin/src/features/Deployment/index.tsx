@@ -279,6 +279,12 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         {contracts.length > 0 && selectedContract != null
           ? (
           <div className="">
+            <div className={'compilation-info flex-col text-center align-items-center mb-2'}>
+              <div className={'icon'}>
+                <img src={'deploy-icon.svg'} alt={'deploy-icon'} />
+              </div>
+              <span className={'mt-1 mb-1'}>Deploy your selected contract</span>
+            </div>
             <CompiledContracts show={'class'} />
             <ConstructorForm key = {selectedContract.compiledClassHash + selectedContract.sierraClassHash} abi={selectedContract.abi} callBackFn={handleDeploySubmit} />
             {account != null &&

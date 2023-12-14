@@ -1,3 +1,9 @@
 .bg-notices-text {
     color: var(--text);
 }
+
+.bg-notices-root {
+    margin-top: 1rem !important;
+    padding-top: 0 !important;
+}
+

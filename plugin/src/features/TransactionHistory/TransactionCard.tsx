@@ -1,12 +1,8 @@
 import React, { useEffect, useRef } from 'react'
 import { type Transaction } from '../../utils/types/transaction'
 import './transactioncard.css'
-import {
-  type Network,
-  networkEquivalentsRev,
-  type networkExplorerUrls
-} from '../../utils/constants'
-import { getExplorerUrl } from '../../utils/utils'
+import { type Network, networkEquivalentsRev, type networkExplorerUrls } from '../../utils/constants'
+import { getExplorerUrl, getShortenedHash } from '../../utils/utils'
 
 interface TagType {
   type: 'deploy' | 'declare' | 'invoke' | 'deployAccount'
@@ -54,6 +50,9 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
 }) => {
   const { account, txId, env } = transaction
 
+  const txIdShort = getShortenedHash(txId, 8, 6)
+  const accountShort = getShortenedHash(account?.address ?? '', 8, 6)
+
   const cardRef = useRef<HTMLDivElement>(null)
   const [chain, setChain] = React.useState<string>('goerli')
 
@@ -67,73 +66,68 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
   })
 
   return (
-    <div className="maincard" ref={cardRef}>
-      <div className="tag-wrapper">
-        <Tag type={transaction.type} />
+    <div className='maincard' ref={cardRef}>
+      <div className={'txn-info-1'}>
+        <div className='account-wrapper'>
+          <p>From:</p>
+          {env === 'localDevnet' ||
+          env === 'remoteDevnet' ||
+          env === 'localKatanaDevnet'
+            ? (
+              <a title={account?.address} target='_blank' rel='noreferrer'>
+                {accountShort}
+              </a>
+              )
+            : (
+              <a
+                title={account?.address}
+                href={`${getExplorerUrl(explorer, chain as Network)}/contract/${
+                  account?.address ?? ''
+                }`}
+                target='_blank'
+                rel='noreferrer'
+              >
+                {accountShort}
+              </a>
+              )}
+        </div>
+        <div className='txn-wrapper'>
+          <p>TxID:</p>
+          {env === 'localDevnet' ||
+          env === 'remoteDevnet' ||
+          env === 'localKatanaDevnet'
+            ? (
+              <a target='_blank' title={txId} rel='noreferrer'>
+                {txIdShort}
+              </a>
+              )
+            : (
+              <a
+                href={`${getExplorerUrl(explorer, chain as Network)}/tx/${txId}`}
+                target='_blank'
+                title={txIdShort}
+                rel='noreferrer'
+              >
+                {txIdShort}
+              </a>
+              )}
+        </div>
       </div>
-      <div className="account-wrapper">
-        <p>From: </p>
-        {env === 'localDevnet' ||
-        env === 'remoteDevnet' ||
-        env === 'localKatanaDevnet'
-          ? (
-          <a title={account?.address} target="_blank" rel="noreferrer">
-            {account?.address}
-          </a>
-            )
-          : (
-          <a
-            title={account?.address}
-            href={`${getExplorerUrl(explorer, chain as Network)}/contract/${
-              account?.address ?? ''
-            }`}
-            target="_blank"
-            rel="noreferrer"
-          >
-            {account?.address}
-          </a>
-            )}
-      </div>
-      <div className="txn-wrapper">
-        <p>Transaction ID</p>
-        {env === 'localDevnet' ||
-        env === 'remoteDevnet' ||
-        env === 'localKatanaDevnet'
-          ? (
-          <a target="_blank" title={txId} rel="noreferrer">
-            {txId}
-          </a>
-            )
-          : (
-          <a
-            href={`${getExplorerUrl(explorer, chain as Network)}/tx/${txId}`}
-            target="_blank"
-            title={txId}
-            rel="noreferrer"
-          >
-            {txId}
-          </a>
-            )}
-      </div>
-      <div className="txn-network">
-        {env === 'localDevnet' ||
-        env === 'remoteDevnet' ||
-        env === 'localKatanaDevnet'
-          ? (
-          <p>Network</p>
-            )
-          : (
-          <p>Chain</p>
-            )}
-        <NetworkTag
-          type={
-            env === 'localDevnet' ||
-            env === 'remoteDevnet' ||
-            env === 'localKatanaDevnet'
-              ? env
-              : chain
-          }
-        />
+      <div className={'txn-info-2'}>
+        <div className='tag-wrapper'>
+          <Tag type={transaction.type}/>
+        </div>
+        <div className='txn-network'>
+          <NetworkTag
+            type={
+              env === 'localDevnet' ||
+              env === 'remoteDevnet' ||
+              env === 'localKatanaDevnet'
+                ? env
+                : chain
+            }
+          />
+        </div>
       </div>
     </div>
   )
