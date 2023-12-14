@@ -1,0 +1,99 @@
+/* Overriding Package's CSS */
+:root {
+    .tab-trigger {
+        background-color: var(--bgPrimary);
+        padding: 0.5rem !important;
+        margin: 0;
+    }
+
+    .function-root {
+        background-color: var(--bgPrimary);
+
+        padding: 0.5rem !important;
+    }
+
+    .tag-blue {
+        margin: 0 !important;
+        padding: 0.1rem 0.5rem !important;
+    }
+
+    .function-header {
+        padding: var(--space-xs);
+        background-color: var(--bgPrimary);
+        border-radius: 0.2rem;
+    }
+
+    .function-header p {
+        color: var(--text);
+    }
+
+    .function-form-submit {
+        background: none;
+        background-color: var(--info) !important;
+        transition: all 0.2s ease;
+    }
+
+    .function-form-submit:focus {
+        outline-offset: 0;
+        outline: 4px solid var(--info);
+    }
+
+    .function-form-submit:hover {
+        background: none;
+        background-color: var(--info) !important;
+    }
+
+    .function-form-input {
+        background-color: var(--bgPrimary);
+        color: var(--text);
+    }
+
+    .function-form-input-wrapper {
+        border: 1px solid var(--secondary);
+    }
+
+    .function-struct {
+        background-color: var(--bgPrimary);
+        box-shadow: none;
+        border: 1px solid var(--secondary);
+    }
+
+    .function-struct-header {
+        font-size: var(--text-sm);
+    }
+
+    .function-form button {
+        width: calc(100%);
+        box-sizing: border-box;
+        margin: 0;
+        padding: 10px;
+    }
+
+    .tooltip-input-final-value {
+        display: none;
+    }
+
+    .function-header span {
+        display: none;
+    }
+
+    .input-label {
+        display: flex;
+        flex-direction: column;
+        padding: 2px;
+    }
+
+    .input-label span {
+        margin-left: 0 !important;
+        /*padding: 5px !important;*/
+        padding-left: 5px !important;
+    }
+
+    .function-form-input-wrapper button {
+        display: none;
+    }
+
+    .function-form-input-wrapper {
+        padding-bottom: 10px !important;
+    }
+}

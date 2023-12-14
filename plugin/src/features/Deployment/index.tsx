@@ -3,11 +3,9 @@ import React, { useEffect, useState } from 'react'
 import { type BigNumberish } from 'ethers'
 import CompiledContracts from '../../components/CompiledContracts'
 import {
-  type CallDataObj,
-  type CallDataObject,
   type Contract
 } from '../../utils/types/contracts'
-import { getConstructor, getParameterType, getShortenedHash } from '../../utils/utils'
+import { getConstructor, getShortenedHash } from '../../utils/utils'
 import Container from '../../components/ui_components/Container'
 
 import { type AccordianTabs } from '../Plugin'
@@ -21,7 +19,6 @@ import {
   selectedCompiledContract
 } from '../../atoms/compiledContracts'
 import { envAtom } from '../../atoms/environment'
-// import { starknetWindowObject as starknetWindowObjectAtom } from '../../atoms/connection'
 import useAccount from '../../hooks/useAccount'
 import useProvider from '../../hooks/useProvider'
 import useRemixClient from '../../hooks/useRemixClient'
@@ -30,16 +27,23 @@ import {
   deployStatusAtom,
   declStatusAtom,
   deploymentAtom,
+<<<<<<< HEAD
   isDeployingAtom,
   isDelcaringAtom,
   notEnoughInputsAtom,
   declTxHashAtom,
   deployTxHashAtom
+=======
+  isDeployingAtom
+>>>>>>> develop
 } from '../../atoms/deployment'
-import Tooltip from '../../components/ui_components/Tooltip'
 
+<<<<<<< HEAD
 import { FaInfoCircle } from 'react-icons/fa'
 import { useWaitForTransaction } from '@starknet-react/core'
+=======
+import { type CallbackReturnType, ConstructorForm } from 'starknet-abi-forms'
+>>>>>>> develop
 interface DeploymentProps {
   setActiveTab: (tab: AccordianTabs) => void
 }
@@ -54,10 +58,14 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     selectedCompiledContract
   )
 
+<<<<<<< HEAD
   const [constructorCalldata, setConstructorCalldata] =
     useState<CallDataObject>({})
 
   const { isDeploying, deployStatus, isDeclaring, declStatus, constructorInputs, notEnoughInputs, declTxHash, deployTxHash } =
+=======
+  const { notEnoughInputs } =
+>>>>>>> develop
     useAtomValue(deploymentAtom)
 
   const setIsDeploying = useSetAtom(isDeployingAtom)
@@ -65,6 +73,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   const setIsDeclaring = useSetAtom(isDelcaringAtom)
   const setDeclStatus = useSetAtom(declStatusAtom)
   const setConstructorInputs = useSetAtom(constructorInputsAtom)
+<<<<<<< HEAD
   const setNotEnoughInputs = useSetAtom(notEnoughInputsAtom)
   const setDeclTxHash = useSetAtom(declTxHashAtom)
   const setDeployTxHash = useSetAtom(deployTxHashAtom)
@@ -74,6 +83,11 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 
   const declTxStatus = useWaitForTransaction({ hash: declTxHash, watch: true })
   const deployTxStatus = useWaitForTransaction({ hash: deployTxHash, watch: true })
+=======
+
+  const [transactions, setTransactions] = useAtom(transactionsAtom)
+  const env = useAtomValue(envAtom)
+>>>>>>> develop
 
   const [chainId, setChainId] = useState<constants.StarknetChainId>(
     constants.StarknetChainId.SN_GOERLI
@@ -94,12 +108,12 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   }, [provider])
 
   useEffect(() => {
-    setConstructorCalldata({})
     if (selectedContract != null) {
       setConstructorInputs(getConstructor(selectedContract?.abi)?.inputs ?? [])
     }
   }, [selectedContract])
 
+<<<<<<< HEAD
   useEffect(() => {
     if (declTxHash === '') return
     if (declTxStatus.status === 'success') {
@@ -144,6 +158,10 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 
   const declare = async (): Promise<void> => {
     setIsDeclaring(true)
+=======
+  const deploy = async (calldata: BigNumberish[]): Promise<void> => {
+    setIsDeploying(true)
+>>>>>>> develop
     remixClient.emit('statusChanged', {
       key: 'loading',
       type: 'info',
@@ -160,7 +178,12 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       if (selectedContract === null) {
         throw new Error('No contract selected for deployment!')
       }
+<<<<<<< HEAD
       setDeclStatus('Declaring...')
+=======
+      console.log(provider)
+      setDeployStatus('Declaring...')
+>>>>>>> develop
       try {
         try {
           await account.getClassByHash(selectedContract.classHash)
@@ -181,6 +204,10 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
             title: `Contract ${selectedContract?.name ?? ''} declared!`
           })
         } catch (error) {
+          await remixClient.call('terminal', 'log', {
+            value: `------------------------ Declaring contract: ${selectedContract.name} ------------------------`,
+            type: 'info'
+          })
           const declareResponse = await account.declare({
             contract: selectedContract.sierra,
             classHash: selectedContract.classHash,
@@ -188,6 +215,10 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
           })
           await remixClient.call('terminal', 'log', {
             value: JSON.stringify(declareResponse, null, 2),
+            type: 'info'
+          })
+          await remixClient.call('terminal', 'log', {
+            value: `---------------------- End Declaring contract: ${selectedContract.name} ----------------------`,
             type: 'info'
           })
           updatedTransactions = [
@@ -201,7 +232,24 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
             ...updatedTransactions
           ]
           setTransactions(updatedTransactions)
+<<<<<<< HEAD
           setDeclTxHash(declareResponse.transaction_hash)
+=======
+          classHash = declareResponse.class_hash
+          await remixClient.call('terminal', 'log', {
+            value: `--------------------- Getting declare contract: ${selectedContract.name} tx receipt --------------------`,
+            type: 'info'
+          })
+          const txReceipt = await account.waitForTransaction(declareResponse.transaction_hash)
+          await remixClient.call('terminal', 'log', {
+            value: JSON.stringify(txReceipt, null, 2),
+            type: 'info'
+          })
+          await remixClient.call('terminal', 'log', {
+            value: `--------------------- End getting declare contract: ${selectedContract.name} tx receipt ------------------`,
+            type: 'info'
+          })
+>>>>>>> develop
         }
         setContractDeclaration(selectedContract)
       } catch (error) {
@@ -253,12 +301,23 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 
       setDeployStatus('Deploying...')
 
-      const deployResponse = await account.deployContract({
+      await remixClient.call('terminal', 'log', {
+        value: `------------------------ Deploying contract: ${selectedContract.name} ------------------------`,
+        type: 'info'
+      })
+
+      const deployResponse = await account.deploy({
         classHash: classHash ?? selectedContract.classHash,
         constructorCalldata: calldata
       })
+
       await remixClient.call('terminal', 'log', {
         value: JSON.stringify(deployResponse, null, 2),
+        type: 'info'
+      })
+
+      await remixClient.call('terminal', 'log', {
+        value: `---------------------- End Deploying contract: ${selectedContract.name} ----------------------`,
         type: 'info'
       })
 
@@ -272,9 +331,37 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         },
         ...updatedTransactions
       ])
+<<<<<<< HEAD
       setDeployTxHash(deployResponse.transaction_hash)
       setContractDeployment(selectedContract, deployResponse.contract_address)
       // setContractAsDeployed(selectedContract as Contract);
+=======
+
+      await remixClient.call('terminal', 'log', {
+        value: `--------------------- Getting deploy contract: ${selectedContract.name} tx receipt --------------------`,
+        type: 'info'
+      })
+
+      const txReceipt = await account.waitForTransaction(deployResponse.transaction_hash)
+      await remixClient.call('terminal', 'log', {
+        value: JSON.stringify(txReceipt, null, 2),
+        type: 'info'
+      })
+
+      await remixClient.call('terminal', 'log', {
+        value: `--------------------- End getting deploy contract: ${selectedContract.name} tx receipt ------------------`,
+        type: 'info'
+      })
+
+      setDeployStatus('done')
+      setActiveTab('interaction')
+      setContractDeployment(selectedContract, deployResponse.contract_address[0])
+      remixClient.emit('statusChanged', {
+        key: 'succeed',
+        type: 'success',
+        title: `Contract ${selectedContract?.name} deployed!`
+      })
+>>>>>>> develop
     } catch (error) {
       setDeployStatus('error')
       setIsDeploying(false)
@@ -298,6 +385,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     })
   }
 
+<<<<<<< HEAD
   const handleDeploySubmit = (event: any): void => {
     event.preventDefault()
     const formDataValues = Object.values(constructorCalldata)
@@ -360,6 +448,10 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       return formattedCalldata.flat() as BigNumberish[]
     }
     return []
+=======
+  const handleDeploySubmit = (data: CallbackReturnType): void => {
+    handleDeploy(data.starknetjs as BigNumberish[])
+>>>>>>> develop
   }
 
   const setContractDeclaration = (currentContract: Contract): void => {
@@ -411,6 +503,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
           ? (
           <div className="">
             <CompiledContracts show={'class'} />
+<<<<<<< HEAD
             <button
                 className="btn btn-warning btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3 px-0"
                 style={{
@@ -567,6 +660,9 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
                 </div>
               </button>
             </form>
+=======
+            <ConstructorForm key = {selectedContract.compiledClassHash + selectedContract.sierraClassHash} abi={selectedContract.abi} callBackFn={handleDeploySubmit} />
+>>>>>>> develop
             {account != null &&
               selectedContract.deployedInfo.some(
                 (info) =>

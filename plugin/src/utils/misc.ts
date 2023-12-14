@@ -6,17 +6,13 @@ import { devnetUrl } from './constants'
 
 const getProvider = (network: string): RpcProvider => {
   switch (network) {
-    case 'mainnet-alpha':
+    case 'mainnet':
       return new RpcProvider({
         nodeUrl: 'https://sequencer.starknet.io'
       })
-    case 'goerli-alpha':
+    case 'goerli':
       return new RpcProvider({
-        nodeUrl: 'https://goerli.starknet.io'
-      })
-    case 'goerli-alpha-2':
-      return new RpcProvider({
-        nodeUrl: 'https://goerli.starknet.io'
+        nodeUrl: 'https://rpc.starknet-testnet.lava.build'
       })
     case devnetUrl:
       return new RpcProvider({
@@ -25,7 +21,7 @@ const getProvider = (network: string): RpcProvider => {
       })
     default:
       return new RpcProvider({
-        nodeUrl: 'https://goerli.starknet.io'
+        nodeUrl: 'https://rpc.starknet-testnet.lava.build'
       })
   }
 }

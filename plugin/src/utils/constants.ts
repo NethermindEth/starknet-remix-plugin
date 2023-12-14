@@ -67,7 +67,8 @@ export {
   networkEquivalentsRev,
   networkNameEquivalents,
   networkNameEquivalentsRev,
-  licenses, constants
+  licenses,
+  constants
 }
 
 export type { Network }

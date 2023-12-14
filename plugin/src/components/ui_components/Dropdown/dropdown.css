@@ -9,8 +9,8 @@ button {
   border: 1px solid var(--light);
   border-radius: 6px;
   padding: 5px;
-  box-shadow: 0px 10px 38px -10px rgba(22, 23, 24, 0.35),
-    0px 10px 20px -15px rgba(22, 23, 24, 0.2);
+  box-shadow: 0 10px 38px -10px var(--secondary),
+    0 10px 20px -15px var(--primary);
   animation-duration: 400ms;
   animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
   will-change: transform, opacity;
@@ -38,7 +38,7 @@ button {
 .DropdownMenuSubTrigger {
   font-size: 13px;
   line-height: 1;
-  color: var(--light);
+  color: var(--text);
   border-radius: 3px;
   display: flex;
   align-items: center;
@@ -49,36 +49,36 @@ button {
   outline: none;
 }
 .DropdownMenuSubTrigger[data-state='open'] {
-  color: var(--light);
+  color: var(--text);
 }
 .DropdownMenuItem[data-disabled],
 .DropdownMenuCheckboxItem[data-disabled],
 .DropdownMenuRadioItem[data-disabled],
 .DropdownMenuSubTrigger[data-disabled] {
-  color: var(--light);
+  color: var(--text);
   pointer-events: none;
 }
 .DropdownMenuItem[data-highlighted],
 .DropdownMenuCheckboxItem[data-highlighted],
 .DropdownMenuRadioItem[data-highlighted],
 .DropdownMenuSubTrigger[data-highlighted] {
-  color: var(--light);
+  color: var(--text);
 }
 
-.DropdownMenuItem:hover { 
-  background: var(--secondary-color) !important;
+.DropdownMenuItem:hover {
+  background: var(--secondary) !important;
 }
 
 .DropdownMenuLabel {
   padding-left: 25px;
   font-size: 12px;
   line-height: 25px;
-  color: var(--light);
+  color: var(--text);
 }
 
 .DropdownMenuSeparator {
   height: 1px;
-  background-color: var(--primary-color-800);
+  background-color: var(--bgPrimary);
   margin: 5px;
 }
 
@@ -107,7 +107,7 @@ button {
   box-shadow: 0 2px 10px var(--blackA7);
 }
 .IconButton:hover {
-  background-color: var(--secondary-color);
+  background-color: var(--secondary);
 }
 .IconButton:focus {
   box-shadow: 0 0 0 2px black;
@@ -116,13 +116,13 @@ button {
 .RightSlot {
   margin-left: auto;
   padding-left: 20px;
-  color: var(--light);
+  color: var(--text);
 }
 [data-highlighted] > .RightSlot {
   color: white;
 }
 [data-disabled] .RightSlot {
-  color: var(--light-600);
+  color: var(--text);
 }
 
 @keyframes slideUpAndFade {

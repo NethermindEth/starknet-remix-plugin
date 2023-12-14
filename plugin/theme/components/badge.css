@@ -17,32 +17,32 @@
     }
 
     .badge-primary {
-        color: var(--light) !important;
-        background: var(--primary-color) !important;
+        color: var(--text) !important;
+        background: var(--primary) !important;
     }
 
     .badge-secondary {
-        color: var(--light) !important;
-        background: var(--secondary-color) !important;
+        color: var(--text) !important;
+        background: var(--secondary) !important;
     }
 
     .badge-information {
-        color: var(--light) !important;
-        background: var(--information-color) !important;
+        color: var(--text) !important;
+        background: var(--info) !important;
     }
 
     .badge-error {
-        color: var(--light) !important;
-        background: var(--error-color) !important;
+        color: var(--text) !important;
+        background: var(--error) !important;
     }
 
     .badge-success {
-        color: var(--light) !important;
-        background: var(--success-color) !important;
+        color: var(--text) !important;
+        background: var(--success) !important;
     }
 
     .badge-warning {
-        color: var(--light) !important;
-        background: var(--warning-color) !important;
+        color: var(--text) !important;
+        background: var(--warning) !important;
     }
 }
