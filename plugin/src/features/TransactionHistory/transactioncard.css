@@ -4,6 +4,7 @@
   display: flex;
   background: var(--light);
   border-radius: 6px;
+  margin: 1px;
 }
 
 .tag-wrapper {
