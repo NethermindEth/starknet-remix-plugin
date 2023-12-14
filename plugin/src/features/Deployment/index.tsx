@@ -27,23 +27,14 @@ import {
   deployStatusAtom,
   declStatusAtom,
   deploymentAtom,
-<<<<<<< HEAD
   isDeployingAtom,
   isDelcaringAtom,
-  notEnoughInputsAtom,
   declTxHashAtom,
   deployTxHashAtom
-=======
-  isDeployingAtom
->>>>>>> develop
 } from '../../atoms/deployment'
 
-<<<<<<< HEAD
-import { FaInfoCircle } from 'react-icons/fa'
 import { useWaitForTransaction } from '@starknet-react/core'
-=======
 import { type CallbackReturnType, ConstructorForm } from 'starknet-abi-forms'
->>>>>>> develop
 interface DeploymentProps {
   setActiveTab: (tab: AccordianTabs) => void
 }
@@ -58,23 +49,14 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     selectedCompiledContract
   )
 
-<<<<<<< HEAD
-  const [constructorCalldata, setConstructorCalldata] =
-    useState<CallDataObject>({})
-
-  const { isDeploying, deployStatus, isDeclaring, declStatus, constructorInputs, notEnoughInputs, declTxHash, deployTxHash } =
-=======
-  const { notEnoughInputs } =
->>>>>>> develop
-    useAtomValue(deploymentAtom)
+  const { isDeclaring, isDeploying, declStatus, notEnoughInputs, declTxHash, deployTxHash } = useAtomValue(deploymentAtom)
 
   const setIsDeploying = useSetAtom(isDeployingAtom)
   const setDeployStatus = useSetAtom(deployStatusAtom)
   const setIsDeclaring = useSetAtom(isDelcaringAtom)
   const setDeclStatus = useSetAtom(declStatusAtom)
   const setConstructorInputs = useSetAtom(constructorInputsAtom)
-<<<<<<< HEAD
-  const setNotEnoughInputs = useSetAtom(notEnoughInputsAtom)
+
   const setDeclTxHash = useSetAtom(declTxHashAtom)
   const setDeployTxHash = useSetAtom(deployTxHashAtom)
 
@@ -83,11 +65,6 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 
   const declTxStatus = useWaitForTransaction({ hash: declTxHash, watch: true })
   const deployTxStatus = useWaitForTransaction({ hash: deployTxHash, watch: true })
-=======
-
-  const [transactions, setTransactions] = useAtom(transactionsAtom)
-  const env = useAtomValue(envAtom)
->>>>>>> develop
 
   const [chainId, setChainId] = useState<constants.StarknetChainId>(
     constants.StarknetChainId.SN_GOERLI
@@ -113,8 +90,8 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     }
   }, [selectedContract])
 
-<<<<<<< HEAD
   useEffect(() => {
+    console.log('declTxHash', declTxHash)
     if (declTxHash === '') return
     if (declTxStatus.status === 'success') {
       setDeclStatus('done')
@@ -124,18 +101,46 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         type: 'success',
         title: `Contract ${selectedContract?.name ?? ''} declared!`
       })
+      remixClient.call('terminal', 'log', {
+        value: JSON.stringify(declTxStatus.data, null, 2),
+        type: 'info'
+      }).catch(() => {})
+
+      remixClient.call('terminal', 'log', {
+        value: `--------------------- End getting declare contract: ${selectedContract?.name ?? ''} tx receipt ------------------`,
+        type: 'info'
+      }).catch(() => {})
     }
     if (declTxStatus.status === 'error') {
       setDeclStatus('error')
+      remixClient.emit('statusChanged', {
+        key: 'failed',
+        type: 'error',
+        title: 'Declaration failed'
+      })
+      remixClient.call('terminal', 'log', {
+        value: JSON.stringify(declTxStatus.error, null, 2),
+        type: 'info'
+      }).catch(() => {})
+
+      remixClient.call('terminal', 'log', {
+        value: `--------------------- End getting declare contract: ${selectedContract?.name ?? ''} tx receipt ------------------`,
+        type: 'info'
+      }).catch(() => {})
       setIsDeclaring(false)
     }
     if (declTxStatus.status === 'pending') {
-      setDeclStatus('pending')
-      setIsDeclaring(true)
+      if (isDeclaring) {
+        remixClient.call('terminal', 'log', {
+          value: `--------------------- Getting declare contract: ${selectedContract?.name ?? ''} tx receipt --------------------`,
+          type: 'info'
+        }).catch(() => {})
+      }
     }
-  }, [declTxStatus])
+  }, [declTxHash, declTxStatus.status])
 
   useEffect(() => {
+    console.log('deployTxHash', deployTxHash, deployTxStatus.status)
     if (deployTxHash === '') return
     if (deployTxStatus.status === 'success') {
       setDeployStatus('done')
@@ -145,23 +150,46 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         type: 'success',
         title: `Contract ${selectedContract?.name ?? ''} deployed!`
       })
+      remixClient.call('terminal', 'log', {
+        value: JSON.stringify(deployTxStatus.data, null, 2),
+        type: 'info'
+      }).catch(() => {})
+
+      remixClient.call('terminal', 'log', {
+        value: `--------------------- End getting deploy contract: ${selectedContract?.name ?? ''} tx receipt ------------------`,
+        type: 'info'
+      }).catch(() => {})
     }
     if (deployTxStatus.status === 'error') {
       setDeployStatus('error')
+      remixClient.emit('statusChanged', {
+        key: 'failed',
+        type: 'error',
+        title: 'Deployment failed'
+      })
+      remixClient.call('terminal', 'log', {
+        value: JSON.stringify(deployTxStatus.error, null, 2),
+        type: 'info'
+      }).catch(() => {})
+
+      remixClient.call('terminal', 'log', {
+        value: `--------------------- End getting deploy contract: ${selectedContract?.name ?? ''} tx receipt ------------------`,
+        type: 'info'
+      }).catch(() => {})
       setIsDeploying(false)
     }
     if (deployTxStatus.status === 'pending') {
-      setDeployStatus('pending')
-      setIsDeploying(true)
+      if (isDeploying) {
+        remixClient.call('terminal', 'log', {
+          value: `--------------------- Getting deploy contract: ${selectedContract?.name ?? ''} tx receipt --------------------`,
+          type: 'info'
+        }).catch(() => {})
+      }
     }
-  }, [deployTxStatus])
+  }, [deployTxHash, deployTxStatus.status])
 
   const declare = async (): Promise<void> => {
     setIsDeclaring(true)
-=======
-  const deploy = async (calldata: BigNumberish[]): Promise<void> => {
-    setIsDeploying(true)
->>>>>>> develop
     remixClient.emit('statusChanged', {
       key: 'loading',
       type: 'info',
@@ -178,12 +206,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       if (selectedContract === null) {
         throw new Error('No contract selected for deployment!')
       }
-<<<<<<< HEAD
       setDeclStatus('Declaring...')
-=======
-      console.log(provider)
-      setDeployStatus('Declaring...')
->>>>>>> develop
       try {
         try {
           await account.getClassByHash(selectedContract.classHash)
@@ -194,7 +217,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
               selectedContract.classHash,
               6,
               4
-            )} already has been declared, proceeding to deployment...`
+            )} already has been declared, you can proceed to deployment`
           )
           setIsDeclaring(false)
           setDeclStatus('done')
@@ -232,24 +255,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
             ...updatedTransactions
           ]
           setTransactions(updatedTransactions)
-<<<<<<< HEAD
           setDeclTxHash(declareResponse.transaction_hash)
-=======
-          classHash = declareResponse.class_hash
-          await remixClient.call('terminal', 'log', {
-            value: `--------------------- Getting declare contract: ${selectedContract.name} tx receipt --------------------`,
-            type: 'info'
-          })
-          const txReceipt = await account.waitForTransaction(declareResponse.transaction_hash)
-          await remixClient.call('terminal', 'log', {
-            value: JSON.stringify(txReceipt, null, 2),
-            type: 'info'
-          })
-          await remixClient.call('terminal', 'log', {
-            value: `--------------------- End getting declare contract: ${selectedContract.name} tx receipt ------------------`,
-            type: 'info'
-          })
->>>>>>> develop
         }
         setContractDeclaration(selectedContract)
       } catch (error) {
@@ -267,6 +273,8 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         }
       }
     } catch (error) {
+      setDeclStatus('error')
+      setIsDeclaring(false)
       if (error instanceof Error) {
         await remixClient.call('terminal', 'log', {
           value: error.message,
@@ -331,37 +339,8 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         },
         ...updatedTransactions
       ])
-<<<<<<< HEAD
       setDeployTxHash(deployResponse.transaction_hash)
-      setContractDeployment(selectedContract, deployResponse.contract_address)
-      // setContractAsDeployed(selectedContract as Contract);
-=======
-
-      await remixClient.call('terminal', 'log', {
-        value: `--------------------- Getting deploy contract: ${selectedContract.name} tx receipt --------------------`,
-        type: 'info'
-      })
-
-      const txReceipt = await account.waitForTransaction(deployResponse.transaction_hash)
-      await remixClient.call('terminal', 'log', {
-        value: JSON.stringify(txReceipt, null, 2),
-        type: 'info'
-      })
-
-      await remixClient.call('terminal', 'log', {
-        value: `--------------------- End getting deploy contract: ${selectedContract.name} tx receipt ------------------`,
-        type: 'info'
-      })
-
-      setDeployStatus('done')
-      setActiveTab('interaction')
       setContractDeployment(selectedContract, deployResponse.contract_address[0])
-      remixClient.emit('statusChanged', {
-        key: 'succeed',
-        type: 'success',
-        title: `Contract ${selectedContract?.name} deployed!`
-      })
->>>>>>> develop
     } catch (error) {
       setDeployStatus('error')
       setIsDeploying(false)
@@ -385,24 +364,6 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     })
   }
 
-<<<<<<< HEAD
-  const handleDeploySubmit = (event: any): void => {
-    event.preventDefault()
-    const formDataValues = Object.values(constructorCalldata)
-    if (
-      formDataValues.length < constructorInputs.length ||
-      // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-      formDataValues.some((input) => !input.value)
-    ) {
-      setNotEnoughInputs(true)
-    } else {
-      setNotEnoughInputs(false)
-      const calldata = getFormattedCalldata()
-      // setFinalCallData(calldata)
-      handleDeploy(calldata)
-    }
-  }
-
   const handleDeclare = (event: any): void => {
     event.preventDefault()
     declare().catch((error) => {
@@ -410,48 +371,8 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     })
   }
 
-  const handleConstructorCalldataChange = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ): void => {
-    event.preventDefault()
-    const {
-      name,
-      value,
-      dataset: { type, index }
-    } = event.target
-    if (index != null) {
-      setConstructorCalldata((prevCalldata) => ({
-        ...prevCalldata,
-        [index]: {
-          name,
-          value,
-          type
-        }
-      }))
-    }
-  }
-
-  const getFormattedCalldata = (): BigNumberish[] => {
-    // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
-    if (constructorCalldata) {
-      const formattedCalldata: CallDataObj[] = []
-
-      Object.values(constructorCalldata).forEach((input) => {
-        formattedCalldata.push(
-          input.value
-            .trim()
-            .split(',')
-            .map((val) => val.trim()) as CallDataObj
-        )
-      })
-
-      return formattedCalldata.flat() as BigNumberish[]
-    }
-    return []
-=======
   const handleDeploySubmit = (data: CallbackReturnType): void => {
     handleDeploy(data.starknetjs as BigNumberish[])
->>>>>>> develop
   }
 
   const setContractDeclaration = (currentContract: Contract): void => {
@@ -503,7 +424,6 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
           ? (
           <div className="">
             <CompiledContracts show={'class'} />
-<<<<<<< HEAD
             <button
                 className="btn btn-warning btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3 px-0"
                 style={{
@@ -567,102 +487,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
                   </div>
                 </div>
               </button>
-            <form onSubmit={handleDeploySubmit}>
-              {constructorInputs.map((input, index) => {
-                return (
-                  <div
-                    className="udapp_multiArg constructor-label-wrapper"
-                    key={index}
-                  >
-                    <label key={index} className="constructor-label">
-                      {`${input.name} (${
-                        getParameterType(input.type) ?? ''
-                      }): `}
-                      { getParameterType(input.type) === 'u256 (low, high)' && <Tooltip content = 'for eg. input: `1, 0` corresponds to 1 (low: 1, high: 0) ' icon={<FaInfoCircle/> } /> }
-                    </label>
-                    <input
-                      className="form-control constructor-input"
-                      name={input.name}
-                      data-type={input.type}
-                      data-index={index}
-                      value={constructorCalldata[index]?.value ?? ''}
-                      onChange={handleConstructorCalldataChange}
-                    />
-                  </div>
-                )
-              })}
-              <button
-                className="btn btn-information btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3 px-0"
-                style={{
-                  cursor: `${
-                    isDeploying ||
-                    account == null ||
-                    selectedContract.deployedInfo.some(
-                      (info) =>
-                        info.address === account.address &&
-                        info.chainId === chainId
-                    )
-                      ? 'not-allowed'
-                      : 'pointer'
-                  }`
-                }}
-                disabled={
-                  isDeploying ||
-                  account == null ||
-                  selectedContract.deployedInfo.some(
-                    (info) =>
-                      info.address === account.address &&
-                      info.chainId === chainId
-                  )
-                }
-                aria-disabled={
-                  isDeploying ||
-                  account == null ||
-                  selectedContract.deployedInfo.some(
-                    (info) =>
-                      info.address === account.address &&
-                      info.chainId === chainId
-                  )
-                }
-                type="submit"
-              >
-                <div className="d-flex align-items-center justify-content-center">
-                  <div className="text-truncate overflow-hidden text-nowrap">
-                    {isDeploying
-                      ? (
-                      <>
-                        <span style={{ paddingLeft: '0.5rem' }}>
-                          {deployStatus}
-                        </span>
-                      </>
-                        )
-                      : (
-                      <div className="text-truncate overflow-hidden text-nowrap">
-                        {account != null &&
-                        selectedContract.deployedInfo.some(
-                          (info) =>
-                            info.address === account.address &&
-                            info.chainId === chainId
-                        )
-                          ? (
-                          <span>
-                            {' '}
-                            Deployed <i className="bi bi-check"></i>{' '}
-                            {selectedContract.name}
-                          </span>
-                            )
-                          : (
-                          <span> Deploy {selectedContract.name}</span>
-                            )}
-                      </div>
-                        )}
-                  </div>
-                </div>
-              </button>
-            </form>
-=======
             <ConstructorForm key = {selectedContract.compiledClassHash + selectedContract.sierraClassHash} abi={selectedContract.abi} callBackFn={handleDeploySubmit} />
->>>>>>> develop
             {account != null &&
               selectedContract.deployedInfo.some(
                 (info) =>

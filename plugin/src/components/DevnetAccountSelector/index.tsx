@@ -9,13 +9,14 @@ import { Account, RpcProvider } from 'starknet'
 import { MdCopyAll, MdRefresh } from 'react-icons/md'
 import './devnetAccountSelector.css'
 import copy from 'copy-to-clipboard'
-import { useAtom, useAtomValue } from 'jotai'
+import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import { availableDevnetAccountsAtom, devnetAtom, envAtom, isDevnetAliveAtom, selectedDevnetAccountAtom } from '../../atoms/environment'
 import useAccount from '../../hooks/useAccount'
 import useProvider from '../../hooks/useProvider'
 import useRemixClient from '../../hooks/useRemixClient'
 import * as D from '../../components/ui_components/Dropdown'
 import { BsCheck, BsChevronDown } from 'react-icons/bs'
+import { declTxHashAtom, deployTxHashAtom } from '../../atoms/deployment'
 
 const DevnetAccountSelector: React.FC = () => {
   const { account, setAccount } = useAccount()
@@ -26,6 +27,9 @@ const DevnetAccountSelector: React.FC = () => {
   const [isDevnetAlive, setIsDevnetAlive] = useAtom(isDevnetAliveAtom)
   const [selectedDevnetAccount, setSelectedDevnetAccount] = useAtom(selectedDevnetAccountAtom)
   const [availableDevnetAccounts, setAvailableDevnetAccounts] = useAtom(availableDevnetAccountsAtom)
+
+  const setDeclTxHash = useSetAtom(declTxHashAtom)
+  const setDeployTxHash = useSetAtom(deployTxHashAtom)
 
   const checkDevnetUrl = async (): Promise<void> => {
     try {
@@ -112,6 +116,8 @@ const DevnetAccountSelector: React.FC = () => {
       if (!isDevnetAlive) {
         setAvailableDevnetAccounts([])
         setAccount(null)
+        setDeclTxHash('')
+        setDeployTxHash('')
         setSelectedDevnetAccount(null)
       } else {
         refreshDevnetAccounts().catch(e => {
@@ -143,6 +149,8 @@ const DevnetAccountSelector: React.FC = () => {
           selectedDevnetAccount.private_key
         )
       )
+      setDeclTxHash('')
+      setDeployTxHash('')
     }
     setProvider(newProvider)
   }, [devnet, selectedDevnetAccount])
@@ -162,6 +170,8 @@ const DevnetAccountSelector: React.FC = () => {
         availableDevnetAccounts[value].private_key
       )
     )
+    setDeclTxHash('')
+    setDeployTxHash('')
   }
 
   const [accountRefreshing, setAccountRefreshing] = useState(false)

@@ -12,6 +12,8 @@ import DisconnectModal from '../starknet/disconnect'
 import { getChainName } from '../../utils/starknet'
 import useAccountAtom from '../../hooks/useAccount'
 import useProviderAtom from '../../hooks/useProvider'
+import { declTxHashAtom, deployTxHashAtom } from '../../atoms/deployment'
+import { useSetAtom } from 'jotai'
 
 interface WalletProps {
   setPrevEnv: (newEnv: Env) => void
@@ -27,11 +29,19 @@ const Wallet: React.FC<WalletProps> = (props) => {
   const { setAccount } = useAccountAtom()
   const { setProvider } = useProviderAtom()
 
+  const setDeclTxHash = useSetAtom(declTxHashAtom)
+  const setDeployTxHash = useSetAtom(deployTxHashAtom)
+
   useEffect(() => {
     if (status === 'connected') {
       setAccount(account ?? null)
       setProvider(provider)
+    } else {
+      setAccount(null)
+      setProvider(null)
     }
+    setDeployTxHash('')
+    setDeclTxHash('')
   }, [status])
 
   const explorerHook = useCurrentExplorer()
