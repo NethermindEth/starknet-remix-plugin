@@ -7,7 +7,7 @@ export default function DisconnectModal (): JSX.Element {
 
   return (
     <div className="w-full flex justify-center">
-      <div className="flex flex-col justify-center w-full">
+      <div className="flex flex-col justify-center w-full mr-2">
         <button
           className='btn btn-warning justify-cente flex-col flex w-full rounded'
           onClick={() => { disconnect() }}
