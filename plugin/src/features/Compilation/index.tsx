@@ -76,8 +76,9 @@ const CompilationCard: React.FC<{
     <Container>
       {activeTomlPath !== undefined && tomlPaths?.length > 0 && (
         <div className="project-dropdown-wrapper d-flex flex-column mb-3">
+          <D.Root>
           <button
-            className="btn btn-warning w-100 text-break mb-1 mt-1 px-0"
+            className="btn btn-warning w-100 text-break mb-1 mt-1 px-0 rounded"
             disabled={isCompiling}
             aria-disabled={isCompiling}
             onClick={() => {
@@ -96,10 +97,8 @@ const CompilationCard: React.FC<{
           >
             Compile Project
           </button>
-
-          <D.Root>
             <D.Trigger>
-              <div className="btn btn-primary w-100 trigger-wrapper px-0">
+              <div className="btn btn-primary w-100 trigger-wrapper px-0 rounded h-200">
                 <label
                   className="text-break text-white"
                   style={{ fontFamily: 'inherit', fontSize: 'inherit' }}
@@ -130,7 +129,7 @@ const CompilationCard: React.FC<{
         </div>
       )}
       <button
-        className="btn btn-information btn-block d-block w-100 text-break remixui_disabled mb-1 mt-1 px-0"
+        className="btn btn-information btn-block d-block w-100 text-break remixui_disabled mb-1 mt-1 px-0 rounded"
         style={{
           cursor: `${
             !validation || isCurrentFileName ? 'not-allowed' : 'pointer'
@@ -937,6 +936,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       casm,
       path,
       deployedInfo: [],
+      declaredInfo: [],
       address: ''
     }
     return contract

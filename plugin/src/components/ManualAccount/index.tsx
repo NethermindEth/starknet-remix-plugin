@@ -16,7 +16,7 @@ import { getExplorerUrl, trimStr } from '../../utils/utils'
 import { MdRefresh, MdCheckCircleOutline } from 'react-icons/md'
 import copy from 'copy-to-clipboard'
 import ExplorerSelector, { useCurrentExplorer } from '../ExplorerSelector'
-import { useAtom } from 'jotai'
+import { useAtom, useSetAtom } from 'jotai'
 
 import transactionsAtom from '../../atoms/transactions'
 import {
@@ -29,6 +29,8 @@ import useAccount from '../../hooks/useAccount'
 import useProvider from '../../hooks/useProvider'
 import useRemixClient from '../../hooks/useRemixClient'
 import { getProvider } from '../../utils/misc'
+import { declTxHashAtom, deployTxHashAtom } from '../../atoms/deployment'
+import { invokeTxHashAtom } from '../../atoms/interaction'
 
 // TODOS: move state parts to contexts
 // Account address selection
@@ -45,6 +47,10 @@ const ManualAccount: React.FC<{
 
   const { account, setAccount } = useAccount()
   const { provider, setProvider } = useProvider()
+
+  const setDeclTxHash = useSetAtom(declTxHashAtom)
+  const setDeployTxHash = useSetAtom(deployTxHashAtom)
+  const setInvokeTxHash = useSetAtom(invokeTxHashAtom)
 
   const [accountDeploying, setAccountDeploying] = useState(false)
 
@@ -94,6 +100,9 @@ const ManualAccount: React.FC<{
               selectedAccount.private_key
             )
           )
+          setDeclTxHash('')
+          setDeployTxHash('')
+          setInvokeTxHash('')
         }
       }
       return
@@ -104,6 +113,9 @@ const ManualAccount: React.FC<{
         setAccount(
           new Account(provider, accounts[0].address, accounts[0].private_key)
         )
+        setDeclTxHash('')
+        setDeployTxHash('')
+        setInvokeTxHash('')
       }
     } else {
       setSelectedAccount(null)
@@ -199,6 +211,9 @@ const ManualAccount: React.FC<{
           selectedAccount.private_key
         )
       )
+      setDeclTxHash('')
+      setDeployTxHash('')
+      setInvokeTxHash('')
     }
   }
 
@@ -289,7 +304,7 @@ const ManualAccount: React.FC<{
     <div className="manual-root-wrapper">
       <button
         type="button"
-        className="mb-0 btn btn-sm btn-outline-secondary float-right rounded-pill env-testnet-btn"
+        className="mb-0 btn btn-sm btn-outline-secondary float-right rounded-pill env-testnet-btn rounded"
         onClick={() => {
           setEnv(prevEnv)
         }}
@@ -327,7 +342,7 @@ const ManualAccount: React.FC<{
               )}
         </select>
         <button
-          className="btn btn-primary"
+          className="btn btn-primary rounded"
           onClick={(e) => {
             e.preventDefault()
             void createTestnetAccount()
@@ -357,7 +372,7 @@ const ManualAccount: React.FC<{
               )}
               <div className="d-flex">
                 <button
-                  className="btn"
+                  className="btn rounded"
                   onClick={() => copy(selectedAccount.address)}
                 >
                   <BiCopy />
@@ -398,7 +413,7 @@ const ManualAccount: React.FC<{
           )}
           {networkName === 'goerli' && (
             <button
-              className="btn btn-secondary w-100"
+              className="btn btn-secondary w-100 rounded"
               onClick={() => {
                 copy(selectedAccount?.address ?? '')
                 remixClient
@@ -441,7 +456,7 @@ const ManualAccount: React.FC<{
         })}
       </select>
       <button
-        className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled"
+        className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled rounded"
         style={{
           cursor: `${
             (selectedAccount?.deployed_networks.includes(networkName) ??
@@ -478,10 +493,10 @@ const ManualAccount: React.FC<{
           : selectedAccount?.deployed_networks.includes(networkName) ??
           false
             ? (
-          <>
+          <div className='account-deploy'>
             <MdCheckCircleOutline color="#0fd543" size={18} />
             <span style={{ paddingLeft: '0.5rem' }}>Account Deployed</span>
-          </>
+          </div>
               )
             : (
                 'Deploy Account'

@@ -19,6 +19,10 @@ interface Contract {
     address: string
     chainId: constants.StarknetChainId
   }>
+  declaredInfo: Array<{
+    chainId: constants.StarknetChainId
+    env: string
+  }>
   address: string
 }
 
