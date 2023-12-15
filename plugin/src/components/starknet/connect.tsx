@@ -8,14 +8,17 @@ export default function ConnectModal (): JSX.Element {
     <div className="flex flex-col gap-4">
       {connectors.map((connector: Connector) => (
         <button
-          className="btn btn-primary"
+          className="btn btn-primary rounded mt-2 mr-3 justify-center"
           key={connector.id}
           onClick={() => {
             connect({ connector })
           }}
           disabled={!connector.available()}
         >
-          Connect {connector.name}
+          <div className="wallet-row-wrapper wallet-wrapper">
+            Connect {connector.name}
+            <img className='wallet-wrapper' src={connector?.icon?.dark} alt="wallet icon" />
+          </div>
         </button>
       ))}
     </div>
