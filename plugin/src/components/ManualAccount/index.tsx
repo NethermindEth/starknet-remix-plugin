@@ -304,7 +304,7 @@ const ManualAccount: React.FC<{
     <div className="manual-root-wrapper">
       <button
         type="button"
-        className="mb-0 btn btn-sm btn-outline-secondary float-right rounded-pill env-testnet-btn"
+        className="mb-0 btn btn-sm btn-outline-secondary float-right rounded-pill env-testnet-btn rounded"
         onClick={() => {
           setEnv(prevEnv)
         }}
@@ -342,7 +342,7 @@ const ManualAccount: React.FC<{
               )}
         </select>
         <button
-          className="btn btn-primary"
+          className="btn btn-primary rounded"
           onClick={(e) => {
             e.preventDefault()
             void createTestnetAccount()
@@ -372,7 +372,7 @@ const ManualAccount: React.FC<{
               )}
               <div className="d-flex">
                 <button
-                  className="btn"
+                  className="btn rounded"
                   onClick={() => copy(selectedAccount.address)}
                 >
                   <BiCopy />
@@ -413,7 +413,7 @@ const ManualAccount: React.FC<{
           )}
           {networkName === 'goerli' && (
             <button
-              className="btn btn-secondary w-100"
+              className="btn btn-secondary w-100 rounded"
               onClick={() => {
                 copy(selectedAccount?.address ?? '')
                 remixClient
@@ -456,7 +456,7 @@ const ManualAccount: React.FC<{
         })}
       </select>
       <button
-        className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled"
+        className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled rounded"
         style={{
           cursor: `${
             (selectedAccount?.deployed_networks.includes(networkName) ??
@@ -493,10 +493,10 @@ const ManualAccount: React.FC<{
           : selectedAccount?.deployed_networks.includes(networkName) ??
           false
             ? (
-          <>
+          <div className='account-deploy'>
             <MdCheckCircleOutline color="#0fd543" size={18} />
             <span style={{ paddingLeft: '0.5rem' }}>Account Deployed</span>
-          </>
+          </div>
               )
             : (
                 'Deploy Account'
