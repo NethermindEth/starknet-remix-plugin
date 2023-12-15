@@ -3,14 +3,11 @@ import React, { useEffect, useState } from 'react'
 
 import { constants } from 'starknet'
 import CompiledContracts from '../../components/CompiledContracts'
-import { type CallDataObj } from '../../utils/types/contracts'
-import { getReadFunctions, getWriteFunctions } from '../../utils/utils'
 import Container from '../../components/ui_components/Container'
 import storage from '../../utils/storage'
 import './index.css'
 import './override.css'
 import { useAtom, useAtomValue } from 'jotai'
-import { interactAtom, type UiAbiState } from '../../atoms'
 
 import transactionsAtom from '../../atoms/transactions'
 import {
@@ -24,6 +21,8 @@ import useRemixClient from '../../hooks/useRemixClient'
 
 import { ABIForm, type CallbackReturnType } from 'starknet-abi-forms'
 import 'starknet-abi-forms/index.css'
+import { invokeTxHashAtom, isInvokingAtom } from '../../atoms/interaction'
+import { useWaitForTransaction } from '@starknet-react/core'
 
 interface InteractionProps {
   setInteractionStatus: React.Dispatch<
@@ -43,11 +42,70 @@ const Interaction: React.FC<InteractionProps> = (props) => {
   const { remixClient } = useRemixClient()
   const env = useAtomValue(envAtom)
 
-  const [contractsState, setContractsState] = useAtom(interactAtom)
+  const [isInvoking, setIsInvoking] = useAtom(isInvokingAtom)
 
   const [chainId, setChainId] = useState<constants.StarknetChainId>(
     constants.StarknetChainId.SN_GOERLI
   )
+
+  const [invokeTxHash, setInvokeTxHash] = useAtom(invokeTxHashAtom)
+
+  const invokeTxStatus = useWaitForTransaction({ hash: invokeTxHash, watch: true })
+
+  useEffect(() => {
+    console.log('invokeTxHash', invokeTxHash, invokeTxStatus.status)
+    if (invokeTxHash === '') {
+      setIsInvoking(false)
+      props.setInteractionStatus('')
+      return
+    }
+    if (env !== 'wallet') return
+    if (invokeTxStatus.status === 'success') {
+      props.setInteractionStatus('success')
+      setIsInvoking(false)
+      remixClient.emit('statusChanged', {
+        key: 'succeed',
+        type: 'success',
+        title: 'Invokation successful'
+      })
+      remixClient.call('terminal', 'log', {
+        value: JSON.stringify(invokeTxStatus.data, null, 2),
+        type: 'info'
+      }).catch(() => {})
+
+      remixClient.call('terminal', 'log', {
+        value: '--------------------- End fetching invoke transaction details ------------------',
+        type: 'info'
+      }).catch(() => {})
+    }
+    if (invokeTxStatus.status === 'error') {
+      props.setInteractionStatus('error')
+      remixClient.emit('statusChanged', {
+        key: 'failed',
+        type: 'error',
+        title: 'Invokation failed'
+      })
+
+      remixClient.call('terminal', 'log', {
+        value: JSON.stringify(invokeTxStatus, null, 2),
+        type: 'info'
+      }).catch(() => {})
+
+      remixClient.call('terminal', 'log', {
+        value: '--------------------- End fetching transaction details ------------------',
+        type: 'info'
+      }).catch(() => {})
+      setIsInvoking(false)
+    }
+    if (invokeTxStatus.status === 'pending') {
+      if (isInvoking) {
+        remixClient.call('terminal', 'log', {
+          value: '--------------------- Fetching invoke transaction details --------------------',
+          type: 'info'
+        }).catch(() => {})
+      }
+    }
+  }, [invokeTxHash, invokeTxStatus.status])
 
   useEffect(() => {
     if (provider !== null) {
@@ -69,70 +127,6 @@ const Interaction: React.FC<InteractionProps> = (props) => {
       storage.set('notifCount', 0 as number)
     }
   })
-
-  useEffect(() => {
-    if (selectedContract != null) {
-      let readFunctions = getReadFunctions(selectedContract?.abi)
-      let writeFunctions = getWriteFunctions(selectedContract?.abi)
-
-      readFunctions = readFunctions.map((func) => {
-        func.calldata = new Array<CallDataObj>(func.inputs.length).fill([])
-        return { ...func }
-      })
-
-      writeFunctions = writeFunctions.map((func) => {
-        func.calldata = new Array<CallDataObj>(func.inputs.length).fill([])
-        return { ...func }
-      })
-
-      // Merge with old objs, since old objs can have responses.
-      const oldContractObj: undefined | UiAbiState =
-        contractsState[selectedContract.address]
-      if (oldContractObj !== undefined) {
-        const oldReadObjs = oldContractObj.readState
-        const oldWriteObj = oldContractObj.writeState
-        const mergedReadFuncs = readFunctions.map((f) => {
-          const oldFound = oldReadObjs.find((oF) => oF.name === f.name)
-          if (oldFound != null) {
-            return {
-              ...f,
-              ...oldFound
-            }
-          } else {
-            return f
-          }
-        })
-        const mergedWriteFunc = writeFunctions.map((f) => {
-          const oldFound = oldWriteObj.find((oF) => oF.name === f.name)
-          if (oldFound != null) {
-            return {
-              ...f,
-              ...oldFound
-            }
-          } else {
-            return f
-          }
-        })
-        setContractsState({
-          ...contractsState,
-          [selectedContract.address]: {
-            ...contractsState[selectedContract.address],
-            readState: [...mergedReadFuncs],
-            writeState: [...mergedWriteFunc]
-          }
-        })
-      } else {
-        setContractsState({
-          ...contractsState,
-          [selectedContract.address]: {
-            ...contractsState[selectedContract.address],
-            readState: [...readFunctions],
-            writeState: [...writeFunctions]
-          }
-        })
-      }
-    }
-  }, [selectedContract])
 
   const isContractSelected =
     contracts.length > 0 &&
@@ -226,6 +220,7 @@ const Interaction: React.FC<InteractionProps> = (props) => {
           value: `------------------- End calling ${res.functionName} --------------------`,
           type: 'info'
         })
+        props.setInteractionStatus('success')
       }
 
       /**
@@ -241,6 +236,7 @@ const Interaction: React.FC<InteractionProps> = (props) => {
        * - show the notif to user every 7th time the call is made
        */
       if (res.stateMutability === 'external') {
+        setIsInvoking(true)
         await remixClient.call('terminal', 'log', {
           value: `------------------ Invoking ${res.functionName} -----------------------`,
           type: 'info'
@@ -279,6 +275,13 @@ const Interaction: React.FC<InteractionProps> = (props) => {
           }, null, 2),
           type: 'info'
         })
+
+        await remixClient.call('terminal', 'log', {
+          value: `----------End  Invoke ${res.functionName} transaction receipt -------------`,
+          type: 'info'
+        })
+
+        setInvokeTxHash(resp.transaction_hash)
         const currNotifCount = storage.get('notifCount')
         if (currNotifCount !== undefined) {
           const notifCount = parseInt(currNotifCount)
@@ -292,34 +295,30 @@ const Interaction: React.FC<InteractionProps> = (props) => {
           storage.set('notifCount', (notifCount + 1) % 7)
         }
 
-        await remixClient.call('terminal', 'log', {
-          value: `----- Getting invoke ${res.functionName} transaction details ... ----------`,
-          type: 'info'
-        })
+        if (env !== 'wallet') {
+          await remixClient.call('terminal', 'log', {
+            value: `----- Getting invoke ${res.functionName} transaction details ... ----------`,
+            type: 'info'
+          })
 
-        const resultOfTx = await provider?.waitForTransaction(
-          resp.transaction_hash
-        )
-
-        await remixClient.call('terminal', 'log', {
-          value: `---------- Invoke ${res.functionName} transaction details ----------------`,
-          type: 'info'
-        })
-
-        await remixClient.call('terminal', 'log', {
-          value: JSON.stringify({
-            resultOfTx,
-            contract: selectedContract?.name,
-            function: res.functionName
-          }, null, 2),
-          type: 'info'
-        })
-        await remixClient.call('terminal', 'log', {
-          value: `------------------ End Invoking ${res.functionName} -------------------`,
-          type: 'info'
-        })
+          const resultOfTx = await provider?.waitForTransaction(
+            resp.transaction_hash
+          )
+          await remixClient.call('terminal', 'log', {
+            value: JSON.stringify({
+              resultOfTx,
+              contract: selectedContract?.name,
+              function: res.functionName
+            }, null, 2),
+            type: 'info'
+          })
+          await remixClient.call('terminal', 'log', {
+            value: `------------------ End Invoking ${res.functionName} -------------------`,
+            type: 'info'
+          })
+          props.setInteractionStatus('success')
+        }
       }
-      props.setInteractionStatus('success')
     } catch (error) {
       props.setInteractionStatus('error')
       if (error instanceof Error) {

@@ -47,7 +47,6 @@ const Environment: React.FC = () => {
             </div>
           </AccordionTrigger>
           <AccordionContent>
-            <>
               <div className="flex flex-column">
                 {env !== 'manual' ? (
                   <>
@@ -94,7 +93,6 @@ const Environment: React.FC = () => {
                   <ManualAccount prevEnv={prevEnv} />
                 )}
               </div>
-            </>
           </AccordionContent>
         </AccordianItem>
       </Accordian>

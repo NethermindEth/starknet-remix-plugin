@@ -1,13 +1,20 @@
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import copy from 'copy-to-clipboard'
 import './wallet.css'
 import { MdCopyAll } from 'react-icons/md'
-import { type Network, networkEquivalentsRev } from '../../utils/constants'
+import { type Network } from '../../utils/constants'
 import ExplorerSelector, { useCurrentExplorer } from '../ExplorerSelector'
 import { getExplorerUrl, trimStr } from '../../utils/utils'
-import useStarknetWindow from '../../hooks/starknetWindow'
-import { type StarknetChainId } from '../../utils/starknet'
 import type { Env } from '../../atoms/environment'
+import { useAccount, useProvider } from '@starknet-react/core'
+import ConnectModal from '../starknet/connect'
+import DisconnectModal from '../starknet/disconnect'
+import { getChainName } from '../../utils/starknet'
+import useAccountAtom from '../../hooks/useAccount'
+import useProviderAtom from '../../hooks/useProvider'
+import { declTxHashAtom, deployTxHashAtom } from '../../atoms/deployment'
+import { invokeTxHashAtom } from '../../atoms/interaction'
+import { useSetAtom } from 'jotai'
 
 interface WalletProps {
   setPrevEnv: (newEnv: Env) => void
@@ -16,15 +23,29 @@ interface WalletProps {
 const Wallet: React.FC<WalletProps> = (props) => {
   const [showCopied, setCopied] = useState(false)
 
-  const { starknetWindowObject, currentChainId, refreshWalletConnection } =
-    useStarknetWindow()
+  const { status, account, connector, chainId } = useAccount()
 
-  const currentChain = useMemo(() => {
-    // Explicit cast here is fine, in worst case will coalese to `goerli`
-    return (
-      networkEquivalentsRev.get(currentChainId as StarknetChainId) ?? 'goerli'
-    )
-  }, [currentChainId])
+  const { provider } = useProvider()
+
+  const { setAccount } = useAccountAtom()
+  const { setProvider } = useProviderAtom()
+
+  const setDeclTxHash = useSetAtom(declTxHashAtom)
+  const setDeployTxHash = useSetAtom(deployTxHashAtom)
+  const setInvokeTxHash = useSetAtom(invokeTxHashAtom)
+
+  useEffect(() => {
+    if (status === 'connected') {
+      setAccount(account ?? null)
+      setProvider(provider)
+    } else {
+      setAccount(null)
+      setProvider(null)
+    }
+    setDeployTxHash('')
+    setDeclTxHash('')
+    setInvokeTxHash('')
+  }, [status])
 
   const explorerHook = useCurrentExplorer()
 
@@ -38,34 +59,22 @@ const Wallet: React.FC<WalletProps> = (props) => {
         padding: '1rem 0rem'
       }}
     >
-      <div className="wallet-actions">
-        <button
-          className="btn btn-primary w-100"
-          onClick={(e) => {
-            e.preventDefault()
-            refreshWalletConnection().catch((e) => {
-              console.error(e)
-            })
-          }}
-        >
-          Reconnect
-        </button>
-      </div>
-      {starknetWindowObject != null
+      {status === 'connected'
         ? (
         <>
           <div className="wallet-row-wrapper">
             <div className="wallet-wrapper">
-              <img src={starknetWindowObject?.icon} alt="wallet icon" />
-              <p className="text"> {starknetWindowObject?.id}</p>
-              <p className="text text-right text-secondary"> {currentChain}</p>
+              <img src={connector?.icon?.dark} alt="wallet icon" />
+              <p className="text"> {connector?.id}</p>
+              <p className="text text-right text-secondary">
+                {' '}
+                {getChainName(chainId?.toString() ?? '')}
+              </p>
             </div>
             <div className="account-network-wrapper">
               <ExplorerSelector
-                path={`/contract/${
-                  (starknetWindowObject?.account?.address as string) ?? ''
-                }`}
-                title={starknetWindowObject?.account?.address}
+                path={`/contract/${(account?.address as string) ?? ''}`}
+                title={account?.address}
                 text="View"
                 isInline
                 isTextVisible={false}
@@ -74,28 +83,23 @@ const Wallet: React.FC<WalletProps> = (props) => {
             </div>
           </div>
           <div className="wallet-account-wrapper">
-            <p
-              className="text account"
-              title={starknetWindowObject?.account?.address}
-            >
+            <p className="text account" title={account?.address}>
               <a
                 href={`${getExplorerUrl(
                   explorerHook.explorer,
-                  currentChain as Network
-                )}/contract/${
-                  (starknetWindowObject?.account?.address as string) ?? ''
-                }`}
+                  getChainName(chainId?.toString() ?? '') as Network
+                )}/contract/${(account?.address as string) ?? ''}`}
                 target="_blank"
                 rel="noreferer noopener noreferrer"
               >
-                {trimStr(starknetWindowObject?.account?.address ?? '', 10)}
+                {trimStr(account?.address ?? '', 10)}
               </a>
             </p>
             <span style={{ position: 'relative' }}>
               <button
                 className="btn p-0"
                 onClick={() => {
-                  copy(starknetWindowObject?.account?.address ?? '')
+                  copy(account?.address ?? '')
                   setCopied(true)
                   setTimeout(() => {
                     setCopied(false)
@@ -111,10 +115,29 @@ const Wallet: React.FC<WalletProps> = (props) => {
               )}
             </span>
           </div>
+          <div className="wallet-actions">
+            <DisconnectModal />
+          </div>
         </>
           )
         : (
-        <p> Wallet not connected</p>
+        <>
+          {status === 'disconnected'
+            ? (
+            <ConnectModal />
+              )
+            : (
+            <>
+              {status === 'connecting'
+                ? (
+                <p>Connecting...</p>
+                  )
+                : (
+                <p>Reconnecting...</p>
+                  )}
+            </>
+              )}
+        </>
           )}
     </div>
   )
