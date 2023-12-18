@@ -4,6 +4,7 @@
   gap: 1rem;
   display: flex;
   flex-direction: column;
+  padding: 16px;
 }
 
 .manual-root-wrapper p {
@@ -45,4 +46,10 @@
   justify-content: space-between;
   flex-wrap: wrap;
   align-items: center;
+}
+
+.info-box-manual-account {
+  font-size: 0.9rem;
+  display: flex;
+  justify-content: space-between;
 }

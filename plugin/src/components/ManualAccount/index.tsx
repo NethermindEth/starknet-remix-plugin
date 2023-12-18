@@ -12,7 +12,7 @@ import storage from '../../utils/storage'
 
 import './index.css'
 import { BiCopy, BiPlus } from 'react-icons/bi'
-import { getExplorerUrl, trimStr } from '../../utils/utils'
+import {getExplorerUrl, getShortenedHash, trimStr} from '../../utils/utils'
 import { MdRefresh, MdCheckCircleOutline } from 'react-icons/md'
 import copy from 'copy-to-clipboard'
 import ExplorerSelector, { useCurrentExplorer } from '../ExplorerSelector'
@@ -287,15 +287,6 @@ const ManualAccount: React.FC<{
 
   return (
     <div className="manual-root-wrapper">
-      <button
-        type="button"
-        className="mb-0 btn btn-sm btn-outline-secondary float-right rounded-pill env-testnet-btn"
-        onClick={() => {
-          setEnv(prevEnv)
-        }}
-      >
-        Back to Previous
-      </button>
       <div className="network-selection-wrapper">
         <select
           className="custom-select"
@@ -339,37 +330,41 @@ const ManualAccount: React.FC<{
       {selectedAccount != null && (
         <div>
           <div className="mb-2">
-            <div className="selected-address-wrapper">
+            <div>
               {account != null && (
-                <p className="m-0">
-                  Address:{' '}
-                  <a
-                    href={`${getExplorerUrl(
-                      explorerHook.explorer,
-                      networkName as Network
-                    )}/contract/${selectedAccount?.address}`}
-                    target="_blank"
-                    rel="noreferer noopener noreferrer"
-                  >
-                    {trimStr(selectedAccount.address, 8)}
+                <div className={"info-box-manual-account"}>
+                  <span className={"info-box-label mr-1"}>
+                    ADDRESS:{' '}
+                  </span>
+                  <span>
+                    <a
+                        href={`${getExplorerUrl(
+                            explorerHook.explorer,
+                            networkName as Network
+                        )}/contract/${selectedAccount?.address}`}
+                        target="_blank"
+                        rel="noreferer noopener noreferrer"
+                    >
+                    {getShortenedHash(selectedAccount.address, 6, 4)}
                   </a>
-                </p>
+                  </span>
+                  <div className="copy-labels row">
+                    <button
+                        className="btn"
+                        onClick={() => copy(selectedAccount.address)}
+                    >
+                      <BiCopy />
+                    </button>
+                    <ExplorerSelector
+                        path={`/contract/${selectedAccount.address}`}
+                        title={selectedAccount.address}
+                        isInline
+                        isTextVisible={false}
+                        controlHook={explorerHook}
+                    />
+                  </div>
+                </div>
               )}
-              <div className="d-flex">
-                <button
-                  className="btn"
-                  onClick={() => copy(selectedAccount.address)}
-                >
-                  <BiCopy />
-                </button>
-                <ExplorerSelector
-                  path={`/contract/${selectedAccount.address}`}
-                  title={selectedAccount.address}
-                  isInline
-                  isTextVisible={false}
-                  controlHook={explorerHook}
-                />
-              </div>
             </div>
           </div>
           {account != null && provider != null && (

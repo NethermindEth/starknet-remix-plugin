@@ -1,11 +1,27 @@
 .starknet-connection-component {
-  background-color: var(--body-bg);
+  background-color: var(--light);
+  margin: 16px;
+  border-radius: 8px;
+  padding-top: 8px;
+}
+
+.tabs-content-env {
+  padding: 16px 16px 16px;
+  border-top: 1px solid var(--secondary);
 }
 
 .wallet-wrapper {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.tab-list {
+  font-size: smaller;
+  font-weight: bold;
+}
+
+.tab-header-env {
 }
 
 .wallet-wrapper > p {
