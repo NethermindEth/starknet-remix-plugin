@@ -317,8 +317,9 @@ const ManualAccount: React.FC<{
             </option>
               )}
         </select>
+        <div></div>
         <button
-          className="btn btn-primary"
+          className="btn btn-secondary add-account-btn"
           onClick={(e) => {
             e.preventDefault()
             void createTestnetAccount()
@@ -334,9 +335,9 @@ const ManualAccount: React.FC<{
               {account != null && (
                 <div className={"info-box-manual-account"}>
                   <span className={"info-box-label mr-1"}>
-                    ADDRESS:{' '}
+                    ADDRESS{' '}
                   </span>
-                  <span>
+                  <span className={"info-box-value"}>
                     <a
                         href={`${getExplorerUrl(
                             explorerHook.explorer,
@@ -348,34 +349,36 @@ const ManualAccount: React.FC<{
                     {getShortenedHash(selectedAccount.address, 6, 4)}
                   </a>
                   </span>
-                  <div className="copy-labels row">
+                  {/*<div className="copy-labels row">*/}
                     <button
                         className="btn"
                         onClick={() => copy(selectedAccount.address)}
                     >
                       <BiCopy />
                     </button>
-                    <ExplorerSelector
-                        path={`/contract/${selectedAccount.address}`}
-                        title={selectedAccount.address}
-                        isInline
-                        isTextVisible={false}
-                        controlHook={explorerHook}
-                    />
-                  </div>
+                    {/*<ExplorerSelector*/}
+                    {/*    path={`/contract/${selectedAccount.address}`}*/}
+                    {/*    title={selectedAccount.address}*/}
+                    {/*    isInline*/}
+                    {/*    isTextVisible={false}*/}
+                    {/*    controlHook={explorerHook}*/}
+                    {/*/>*/}
+                  {/*</div>*/}
                 </div>
               )}
             </div>
           </div>
           {account != null && provider != null && (
-            <div className="manual-balance-wrapper">
-              <p>
-                Balance:{' '}
+            <div className="info-box-manual-account">
+              <span className={"info-box-label"}>
+                BALANCE{' '}
+              </span>
+              <span className={"info-box-value"}>
                 {parseFloat(
-                  ethers.utils.formatEther(selectedAccount.balance)
+                    ethers.utils.formatEther(selectedAccount.balance)
                 )?.toFixed(8)}{' '}
                 ETH
-              </p>
+              </span>
               <button
                 className="btn btn-refresh"
                 data-refreshing={balanceRefreshing}
@@ -393,7 +396,7 @@ const ManualAccount: React.FC<{
           )}
           {networkName === 'goerli' && (
             <button
-              className="btn btn-secondary w-100"
+              className="btn btn-primary mt-2 w-100-btn"
               onClick={() => {
                 copy(selectedAccount?.address ?? '')
                 remixClient
@@ -436,7 +439,7 @@ const ManualAccount: React.FC<{
         })}
       </select>
       <button
-        className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled"
+        className="btn btn-primary btn-block d-block w-100-btn text-break remixui_disabled"
         style={{
           cursor: `${
             (selectedAccount?.deployed_networks.includes(networkName) ??

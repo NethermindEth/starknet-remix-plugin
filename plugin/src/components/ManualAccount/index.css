@@ -16,7 +16,7 @@
 .network-selection-wrapper {
   width: 100%;
   display: grid;
-  grid-template-columns: 8fr 2fr;
+  grid-template-columns: 90fr 2fr 10fr;
   align-items: center;
 }
 
@@ -52,4 +52,21 @@
   font-size: 0.9rem;
   display: flex;
   justify-content: space-between;
+}
+
+.info-box-label {
+  font-weight: bold;
+  color: var(--text-bg-mark)
+}
+
+.info-box-value {
+  width: 50%;
+}
+
+.add-account-btn {
+  height: 100%;
+}
+
+.w-100-btn {
+  width: calc(100% - 16px) !important;
 }
