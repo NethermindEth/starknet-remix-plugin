@@ -12,11 +12,11 @@ import storage from '../../utils/storage'
 
 import './index.css'
 import { BiCopy, BiPlus } from 'react-icons/bi'
-import {getExplorerUrl, getShortenedHash, trimStr} from '../../utils/utils'
+import { getExplorerUrl, getShortenedHash, trimStr } from '../../utils/utils'
 import { MdRefresh, MdCheckCircleOutline } from 'react-icons/md'
 import copy from 'copy-to-clipboard'
-import ExplorerSelector, { useCurrentExplorer } from '../ExplorerSelector'
-import { useAtom } from 'jotai'
+import { useCurrentExplorer } from '../ExplorerSelector'
+import { useAtom, useAtomValue } from 'jotai'
 
 import transactionsAtom from '../../atoms/transactions'
 import {
@@ -52,7 +52,7 @@ const ManualAccount: React.FC<{
 
   const [transactions, setTransactions] = useAtom(transactionsAtom)
 
-  const [env, setEnv] = useAtom(envAtom)
+  const env = useAtomValue(envAtom)
 
   const [accounts, setAccounts] = useAtom(accountAtom)
   const [selectedAccount, setSelectedAccount] = useAtom(selectedAccountAtom)
@@ -333,11 +333,11 @@ const ManualAccount: React.FC<{
           <div className="mb-2">
             <div>
               {account != null && (
-                <div className={"info-box-manual-account"}>
-                  <span className={"info-box-label mr-1"}>
+                <div className={'info-box-manual-account'}>
+                  <span className={'info-box-label mr-1'}>
                     ADDRESS{' '}
                   </span>
-                  <span className={"info-box-value"}>
+                  <span className={'info-box-value'}>
                     <a
                         href={`${getExplorerUrl(
                             explorerHook.explorer,
@@ -349,33 +349,33 @@ const ManualAccount: React.FC<{
                     {getShortenedHash(selectedAccount.address, 6, 4)}
                   </a>
                   </span>
-                  {/*<div className="copy-labels row">*/}
+                  {/* <div className="copy-labels row"> */}
                     <button
                         className="btn"
                         onClick={() => copy(selectedAccount.address)}
                     >
                       <BiCopy />
                     </button>
-                    {/*<ExplorerSelector*/}
-                    {/*    path={`/contract/${selectedAccount.address}`}*/}
-                    {/*    title={selectedAccount.address}*/}
-                    {/*    isInline*/}
-                    {/*    isTextVisible={false}*/}
-                    {/*    controlHook={explorerHook}*/}
-                    {/*/>*/}
-                  {/*</div>*/}
+                    {/* <ExplorerSelector */}
+                    {/*    path={`/contract/${selectedAccount.address}`} */}
+                    {/*    title={selectedAccount.address} */}
+                    {/*    isInline */}
+                    {/*    isTextVisible={false} */}
+                    {/*    controlHook={explorerHook} */}
+                    {/* /> */}
+                  {/* </div> */}
                 </div>
               )}
             </div>
           </div>
           {account != null && provider != null && (
             <div className="info-box-manual-account">
-              <span className={"info-box-label"}>
+              <span className={'info-box-label'}>
                 BALANCE{' '}
               </span>
-              <span className={"info-box-value"}>
+              <span className={'info-box-value'}>
                 {parseFloat(
-                    ethers.utils.formatEther(selectedAccount.balance)
+                  ethers.utils.formatEther(selectedAccount.balance)
                 )?.toFixed(8)}{' '}
                 ETH
               </span>

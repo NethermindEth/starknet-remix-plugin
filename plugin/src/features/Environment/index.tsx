@@ -6,23 +6,16 @@ import './styles.css'
 import EnvironmentSelector from '../../components/EnvironmentSelector'
 import Wallet from '../../components/Wallet'
 import { RxDotFilled } from 'react-icons/rx'
-import Accordian, {
-  AccordianItem,
-  AccordionContent,
-  AccordionTrigger
-} from '../../components/ui_components/Accordian'
 import ManualAccount from '../../components/ManualAccount'
-import { useAtom, useAtomValue } from 'jotai'
+import { useAtomValue } from 'jotai'
 import { type Env, envAtom, isDevnetAliveAtom } from '../../atoms/environment'
 import * as Tabs from '@radix-ui/react-tabs'
 
 const Environment: React.FC = () => {
-  const [env, setEnv] = useAtom(envAtom)
+  const env = useAtomValue(envAtom)
   const isDevnetAlive = useAtomValue(isDevnetAliveAtom)
 
   const [prevEnv, setPrevEnv] = useState<Env>(env)
-
-  const [currentPane, setCurrentPane] = useState('environment')
 
   return (
     <div className="starknet-connection-component mb-8">
