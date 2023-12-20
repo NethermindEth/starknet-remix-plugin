@@ -13,7 +13,7 @@
 
 .chain-name {
     font-weight: 700;
-    color: var(--accentColor);
+    color: var(--text);
 }
 
 .chain-account-info {
