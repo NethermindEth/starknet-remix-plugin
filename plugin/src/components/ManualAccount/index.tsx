@@ -329,8 +329,8 @@ const ManualAccount: React.FC<{
         </button>
       </div>
       {selectedAccount != null && (
-        <div>
-          <div className="mb-2">
+        <div className={"info-boxes"}>
+          <div className="">
             <div>
               {account != null && (
                 <div className={'info-box-manual-account'}>
@@ -349,21 +349,12 @@ const ManualAccount: React.FC<{
                     {getShortenedHash(selectedAccount.address, 6, 4)}
                   </a>
                   </span>
-                  {/* <div className="copy-labels row"> */}
                     <button
-                        className="btn"
+                        className="btn info-box-copy-btn"
                         onClick={() => copy(selectedAccount.address)}
                     >
                       <BiCopy />
                     </button>
-                    {/* <ExplorerSelector */}
-                    {/*    path={`/contract/${selectedAccount.address}`} */}
-                    {/*    title={selectedAccount.address} */}
-                    {/*    isInline */}
-                    {/*    isTextVisible={false} */}
-                    {/*    controlHook={explorerHook} */}
-                    {/* /> */}
-                  {/* </div> */}
                 </div>
               )}
             </div>
@@ -380,7 +371,7 @@ const ManualAccount: React.FC<{
                 ETH
               </span>
               <button
-                className="btn btn-refresh"
+                className="btn info-box-copy-btn"
                 data-refreshing={balanceRefreshing}
                 onClick={(e) => {
                   e.preventDefault()

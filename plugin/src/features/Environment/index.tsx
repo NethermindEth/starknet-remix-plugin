@@ -10,6 +10,7 @@ import ManualAccount from '../../components/ManualAccount'
 import { useAtomValue } from 'jotai'
 import { type Env, envAtom, isDevnetAliveAtom } from '../../atoms/environment'
 import * as Tabs from '@radix-ui/react-tabs'
+import Accordian, { AccordianItem, AccordionContent, AccordionTrigger } from '../../components/ui_components/Accordian'
 
 const Environment: React.FC = () => {
   const env = useAtomValue(envAtom)
@@ -18,70 +19,79 @@ const Environment: React.FC = () => {
   const [prevEnv, setPrevEnv] = useState<Env>(env)
 
   return (
-    <div className="starknet-connection-component mb-8">
-      <Tabs.Root defaultValue={'environment'}>
-        <Tabs.List className={'flex justify-between rounded tab-list tab-header-env'}>
-          <Tabs.List className={'tabs-trigger'}></Tabs.List>
-          <Tabs.Trigger className={'tabs-trigger'} value={'environment'}>Environment</Tabs.Trigger>
-          <Tabs.Trigger className={'tabs-trigger'} value={'test-accounts'}>Test Accounts</Tabs.Trigger>
-          <Tabs.List className={'tabs-trigger'}></Tabs.List>
-        </Tabs.List>
+    <Accordian className={'accordian-env'} type={'single'} defaultValue={'closed'}>
+      <AccordianItem value={'closed'}></AccordianItem>
+      <AccordianItem value={'env'} className={'accordian-item-env'}>
+        <AccordionTrigger className={'accordian-trigger-env'}>Env</AccordionTrigger>
 
-        <Tabs.Content value={'environment'} className={'tabs-content-env'}>
-          <div>
-            <div className="flex flex-column">
-              {env !== 'manual' ? (
-                  <div>
-                    <div className="flex flex-column">
-                      <label className="">Environment selection</label>
-                      <div className="flex_dot">
-                        <EnvironmentSelector />
-                        {env === 'wallet'
-                          ? (
-                                <RxDotFilled
-                                    size={'30px'}
-                                    color="rebeccapurple"
-                                    title="Wallet is active"
+        <AccordionContent className={'accordian-content-env'}>
+          <div className="starknet-connection-component">
+            <Tabs.Root defaultValue={'environment'}>
+              <Tabs.List className={'flex justify-between rounded tab-list tab-header-env'}>
+                <Tabs.List className={'tabs-trigger'}></Tabs.List>
+                <Tabs.Trigger className={'tabs-trigger'} value={'environment'}>Environment</Tabs.Trigger>
+                <Tabs.Trigger className={'tabs-trigger'} value={'test-accounts'}>Test Accounts</Tabs.Trigger>
+                <Tabs.List className={'tabs-trigger'}></Tabs.List>
+              </Tabs.List>
+
+              <Tabs.Content value={'environment'} className={'tabs-content-env'}>
+                <div>
+                  <div className="flex flex-column">
+                    {env !== 'manual' ? (
+                        <div>
+                          <div className="flex flex-column">
+                            <label className="">Environment selection</label>
+                            <div className="flex_dot">
+                              <EnvironmentSelector />
+                              {env === 'wallet'
+                                ? (
+                                      <RxDotFilled
+                                          size={'30px'}
+                                          color="rebeccapurple"
+                                          title="Wallet is active"
+                                      />
+                                  )
+                                : isDevnetAlive
+                                  ? (
+                                          <RxDotFilled
+                                              size={'30px'}
+                                              color="lime"
+                                              title="Devnet is live"
+                                          />
+                                    )
+                                  : (
+                                          <RxDotFilled
+                                              size={'30px'}
+                                              color="red"
+                                              title="Devnet server down"
+                                          />
+                                    )}
+                            </div>
+                          </div>
+                          <div className="flex flex-column">
+                            {['localDevnet', 'remoteDevnet', 'localKatanaDevnet'].includes(env) ? (
+                                <DevnetAccountSelector />
+                            ) : (
+                                <Wallet
+                                    setPrevEnv={setPrevEnv}
                                 />
-                            )
-                          : isDevnetAlive
-                            ? (
-                                    <RxDotFilled
-                                        size={'30px'}
-                                        color="lime"
-                                        title="Devnet is live"
-                                    />
-                              )
-                            : (
-                                    <RxDotFilled
-                                        size={'30px'}
-                                        color="red"
-                                        title="Devnet server down"
-                                    />
-                              )}
-                      </div>
-                    </div>
-                    <div className="flex flex-column">
-                      {['localDevnet', 'remoteDevnet', 'localKatanaDevnet'].includes(env) ? (
-                          <DevnetAccountSelector />
-                      ) : (
-                          <Wallet
-                              setPrevEnv={setPrevEnv}
-                          />
-                      )}
-                    </div>
+                            )}
+                          </div>
+                        </div>
+                    ) : (
+                        <ManualAccount prevEnv={prevEnv} />
+                    )}
                   </div>
-              ) : (
-                  <ManualAccount prevEnv={prevEnv} />
-              )}
-            </div>
+                </div>
+              </Tabs.Content>
+              <Tabs.Content value={'test-accounts'}>
+                <ManualAccount prevEnv={prevEnv} />
+              </Tabs.Content>
+            </Tabs.Root>
           </div>
-        </Tabs.Content>
-        <Tabs.Content value={'test-accounts'}>
-          <ManualAccount prevEnv={prevEnv} />
-        </Tabs.Content>
-      </Tabs.Root>
-    </div>
+        </AccordionContent>
+      </AccordianItem>
+    </Accordian>
   )
 }
 

@@ -43,15 +43,17 @@ interface IAccordian {
   defaultValue: any
   value?: any
   children: React.ReactNode
+  className?: string
 }
 const Accordian: React.FC<IAccordian> = ({
   type = 'single',
   children,
   defaultValue,
-  value
+  value,
+  className
 }) => (
   <AccordionPrimitive.Root
-    className="AccordionRoot"
+    className={className ?? 'AccordionRoot'}
     type={type}
     value={value}
     defaultValue={defaultValue}
