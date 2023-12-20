@@ -338,90 +338,85 @@ const ManualAccount: React.FC<{
           <BiPlus />
         </button>
       </div>
-      {selectedAccount != null && (
-        <div className={'info-boxes'}>
-          <div className="">
-            <div>
-              {account != null && (
-                <div className={'info-box-manual-account'}>
-                  <span className={'info-box-label mr-1'}>
-                    ADDRESS{' '}
-                  </span>
-                  <span className={'info-box-value'}>
-                    <a
-                        href={`${getExplorerUrl(
-                            explorerHook.explorer,
-                            networkName as Network
-                        )}/contract/${selectedAccount?.address}`}
-                        target="_blank"
-                        rel="noreferer noopener noreferrer"
-                    >
-                    {getShortenedHash(selectedAccount.address, 6, 4)}
-                  </a>
-                  </span>
-                    <button
-                        className="btn info-box-copy-btn"
-                        onClick={() => copy(selectedAccount.address)}
-                    >
-                      <BiCopy />
-                    </button>
-                </div>
-              )}
-            </div>
-          </div>
-          {account != null && provider != null && (
-            <div className="info-box-manual-account">
-              <span className={'info-box-label'}>
-                BALANCE{' '}
-              </span>
-              <span className={'info-box-value'}>
-                {parseFloat(
-                  ethers.utils.formatEther(selectedAccount.balance)
-                )?.toFixed(8)}{' '}
-                ETH
-              </span>
-              <button
-                className="btn info-box-copy-btn"
-                data-refreshing={balanceRefreshing}
-                onClick={(e) => {
-                  e.preventDefault()
-                  setBalanceRefreshing(true)
-                  updateBalance().catch((err) => {
-                    console.log(err)
-                  })
-                }}
-              >
-                <MdRefresh />
-              </button>
-            </div>
-          )}
-          {networkName === 'goerli' && (
-            <button
-              className="btn btn-primary mt-2 w-100-btn"
-              onClick={() => {
-                copy(selectedAccount?.address ?? '')
-                remixClient
-                  .call(
-                    'notification' as any,
-                    'toast',
-                    'ℹ️ Address copied to Clipboard'
-                  )
-                  .catch((err) => {
-                    console.log(err)
-                  })
-                setTimeout(() => {
-                  window?.open(
-                    'https://faucet.goerli.starknet.io/',
-                    '_blank',
-                    'noopener noreferrer'
-                  )
-                }, 2000)
-              }}
+
+      {selectedAccount != null && account != null && (
+        <div className={'info-box-manual-account'}>
+          <span className={'info-box-label'}>
+            ADDRESS{' '}
+          </span>
+          <span className={'info-box-value'}>
+            <a
+                href={`${getExplorerUrl(
+                    explorerHook.explorer,
+                    networkName as Network
+                )}/contract/${selectedAccount?.address}`}
+                target="_blank"
+                rel="noreferer noopener noreferrer"
             >
-              Request funds on Starknet Faucet
+            {getShortenedHash(selectedAccount.address, 6, 4)}
+          </a>
+          </span>
+            <button
+                className="btn info-box-copy-btn"
+                onClick={() => copy(selectedAccount.address)}
+            >
+              <BiCopy />
             </button>
-          )}
         </div>
+      )}
+
+      {selectedAccount != null && account != null && provider != null && (
+        <div className="info-box-manual-account">
+          <span className={'info-box-label'}>
+            BALANCE{' '}
+          </span>
+          <span className={'info-box-value'}>
+            {parseFloat(
+              ethers.utils.formatEther(selectedAccount.balance)
+            )?.toFixed(8)}{' '}
+            ETH
+          </span>
+          <button
+            className="btn info-box-copy-btn"
+            data-refreshing={balanceRefreshing}
+            onClick={(e) => {
+              e.preventDefault()
+              setBalanceRefreshing(true)
+              updateBalance().catch((err) => {
+                console.log(err)
+              })
+            }}
+          >
+            <MdRefresh />
+          </button>
+        </div>
+      )}
+
+      {selectedAccount != null && networkName === 'goerli' && (
+        <button
+          className="btn btn-primary w-100-btn"
+          onClick={() => {
+            copy(selectedAccount?.address ?? '')
+            remixClient
+              .call(
+                'notification' as any,
+                'toast',
+                'ℹ️ Address copied to Clipboard'
+              )
+              .catch((err) => {
+                console.log(err)
+              })
+            setTimeout(() => {
+              window?.open(
+                'https://faucet.goerli.starknet.io/',
+                '_blank',
+                'noopener noreferrer'
+              )
+            }, 2000)
+          }}
+        >
+          Request funds on Starknet Faucet
+        </button>
       )}
 
       <D.Root open={providerDropdownOpen} onOpenChange={setProviderDropdownOpen}>

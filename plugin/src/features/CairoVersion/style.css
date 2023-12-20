@@ -25,6 +25,12 @@
 
 .nethermind-powered img {
     filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%);
+    transition: filter 0.5s;
+}
+
+.nethermind-powered img:hover {
+    filter: none;
+    transition: filter 0.5s;
 }
 /*316*/
 .plugin-version {
