@@ -11,6 +11,7 @@ import { useAtomValue } from 'jotai'
 import { type Env, envAtom, isDevnetAliveAtom } from '../../atoms/environment'
 import * as Tabs from '@radix-ui/react-tabs'
 import Accordian, { AccordianItem, AccordionContent, AccordionTrigger } from '../../components/ui_components/Accordian'
+import { CurrentEnv } from '../../components/CurrentEnv'
 
 const Environment: React.FC = () => {
   const env = useAtomValue(envAtom)
@@ -22,7 +23,9 @@ const Environment: React.FC = () => {
     <Accordian className={'accordian-env'} type={'single'} defaultValue={'closed'}>
       <AccordianItem value={'closed'}></AccordianItem>
       <AccordianItem value={'env'} className={'accordian-item-env'}>
-        <AccordionTrigger className={'accordian-trigger-env'}>Env</AccordionTrigger>
+        <AccordionTrigger className={'accordian-trigger-env'}>
+          <CurrentEnv/>
+        </AccordionTrigger>
 
         <AccordionContent className={'accordian-content-env'}>
           <div className="starknet-connection-component">

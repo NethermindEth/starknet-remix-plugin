@@ -3,8 +3,7 @@ import { Account, CallData, RpcProvider, ec, hash, stark } from 'starknet'
 import {
   type Network,
   networks as networkConstants,
-  networkEquivalents,
-  networkNameEquivalents
+  networkEquivalents
 } from '../../utils/constants'
 import { ethers } from 'ethers'
 
@@ -29,6 +28,9 @@ import useAccount from '../../hooks/useAccount'
 import useProvider from '../../hooks/useProvider'
 import useRemixClient from '../../hooks/useRemixClient'
 import { getProvider } from '../../utils/misc'
+
+import * as D from '../ui_components/Dropdown'
+import { BsChevronDown } from 'react-icons/bs'
 
 // TODOS: move state parts to contexts
 // Account address selection
@@ -167,12 +169,11 @@ const ManualAccount: React.FC<{
   }
 
   function handleProviderChange (
-    event: React.ChangeEvent<HTMLSelectElement>
+    networkName: string
   ): void {
-    const networkName = networkNameEquivalents.get(event.target.value)
-    const chainId = networkEquivalents.get(event.target.value)
-    setNetworkName(event.target.value)
-    if (event.target.value.length > 0 && chainId && networkName) {
+    const chainId = networkEquivalents.get(networkName)
+    if (chainId) {
+      setNetworkName(networkName)
       setProvider(
         new RpcProvider({
           nodeUrl: networkName,
@@ -185,9 +186,8 @@ const ManualAccount: React.FC<{
   }
 
   function handleAccountChange (
-    event: React.ChangeEvent<HTMLSelectElement>
+    accountIndex: number
   ): void {
-    const accountIndex = parseInt(event.target.value)
     if (accountIndex === -1) return
     const selectedAccount = accounts[accountIndex]
     setSelectedAccount(selectedAccount)
@@ -282,41 +282,51 @@ const ManualAccount: React.FC<{
   }
 
   const [balanceRefreshing, setBalanceRefreshing] = useState(false)
+  const [dropdownControl, setDropdownControl] = useState(false)
+  const [providerDropdownOpen, setProviderDropdownOpen] = useState(false)
 
   const explorerHook = useCurrentExplorer()
 
   return (
     <div className="manual-root-wrapper">
       <div className="network-selection-wrapper">
-        <select
-          className="custom-select"
-          aria-label=".form-select-sm example"
-          onChange={handleAccountChange}
-          // value={selectedAccount?.address}
-          defaultValue={
-            selectedAccount == null
-              ? -1
-              : accounts.findIndex(
-                (acc) => acc.address === selectedAccount?.address
-              )
-          }
-        >
-          {accounts.length > 0
-            ? (
-                accounts.map((account, index) => {
-                  return (
-                <option value={index} key={index}>
-                  {trimStr(account.address, 6)}
-                </option>
+        <D.Root open={dropdownControl} onOpenChange={setDropdownControl}>
+          <D.Trigger>
+            <div className="flex flex-row justify-content-space-between align-items-center p-2 br-1 devnet-trigger-wrapper">
+              <label className='text-light text-sm m-0'>
+                {(selectedAccount != null) ? trimStr(selectedAccount.address, 6) : 'Select Account'}
+              </label>
+              <BsChevronDown style={{
+                transform: dropdownControl ? 'rotate(180deg)' : 'none',
+                transition: 'all 0.3s ease'
+              }} />
+            </div>
+          </D.Trigger>
+          <D.Portal>
+            <D.Content>
+              {accounts.length > 0
+                ? (
+                    accounts.map((account, index) => (
+                      <D.Item
+                          key={index}
+                          onClick={() => { handleAccountChange(index) }}
+                      >
+                        {trimStr(account.address, 6)}
+                      </D.Item>
+                    ))
                   )
-                })
-              )
-            : (
-            <option value={-1} key={-1}>
-              No account created yet
-            </option>
-              )}
-        </select>
+                : (
+                  <D.Item
+                      key={'no-account'}
+                      disabled
+                  >
+                    No account created yet
+                  </D.Item>
+                  )}
+            </D.Content>
+          </D.Portal>
+        </D.Root>
+
         <div></div>
         <button
           className="btn btn-secondary add-account-btn"
@@ -329,7 +339,7 @@ const ManualAccount: React.FC<{
         </button>
       </div>
       {selectedAccount != null && (
-        <div className={"info-boxes"}>
+        <div className={'info-boxes'}>
           <div className="">
             <div>
               {account != null && (
@@ -414,21 +424,30 @@ const ManualAccount: React.FC<{
         </div>
       )}
 
-      <select
-        className="custom-select"
-        aria-label=".form-select-sm example"
-        onChange={handleProviderChange}
-        value={networkName}
-        defaultValue={networkName}
-      >
-        {networkConstants.map((network) => {
-          return (
-            <option value={network.value} key={network.name}>
-              {network.value}
-            </option>
-          )
-        })}
-      </select>
+      <D.Root open={providerDropdownOpen} onOpenChange={setProviderDropdownOpen}>
+        <D.Trigger>
+          <div className="flex flex-row justify-content-space-between align-items-center p-2 br-1 devnet-trigger-wrapper">
+            <label className='text-light text-sm m-0'>{networkName}</label>
+            <BsChevronDown style={{
+              transform: providerDropdownOpen ? 'rotate(180deg)' : 'none',
+              transition: 'all 0.3s ease'
+            }} />
+          </div>
+        </D.Trigger>
+        <D.Portal>
+          <D.Content>
+            {networkConstants.map((network) => (
+                <D.Item
+                    key={network.name + '$' + network.value}
+                    onClick={() => { handleProviderChange(network.value) }}
+                >
+                  {network.value}
+                </D.Item>
+            ))}
+          </D.Content>
+        </D.Portal>
+      </D.Root>
+
       <button
         className="btn btn-primary btn-block d-block w-100-btn text-break remixui_disabled"
         style={{
