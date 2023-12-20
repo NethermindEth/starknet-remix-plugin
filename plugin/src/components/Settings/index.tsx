@@ -1,5 +1,5 @@
 import React from 'react'
-import 'settings.css'
+import './settings.css'
 
 export const Settings: React.FC = () => {
   return (

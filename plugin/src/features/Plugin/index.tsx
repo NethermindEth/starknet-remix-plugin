@@ -25,6 +25,7 @@ import { pluginLoaded as atomPluginLoaded } from '../../atoms/remixClient'
 import useRemixClient from '../../hooks/useRemixClient'
 import { fetchGitHubFilesRecursively } from '../../utils/initial_scarb_codes'
 import * as Tabs from '@radix-ui/react-tabs'
+import { Settings } from '../../components/Settings'
 export type AccordianTabs =
   | 'compile'
   | 'deploy'
@@ -156,6 +157,7 @@ const Plugin: React.FC = () => {
               <Tabs.Trigger value={'home'} className={'tabs-trigger'}>Home</Tabs.Trigger>
               <Tabs.Trigger value={'transactions'} className={'tabs-trigger'}>Transactions</Tabs.Trigger>
               <Tabs.Trigger value={'info'} className={'tabs-trigger'}>Info</Tabs.Trigger>
+              <Tabs.Trigger value={'settings'} className={'tabs-trigger'}>Settings</Tabs.Trigger>
               <div className={'tabs-trigger'}></div>
             </Tabs.List>
 
@@ -252,6 +254,10 @@ const Plugin: React.FC = () => {
 
               <Tabs.Content value='info'>
                 <BackgroundNotices />
+              </Tabs.Content>
+
+              <Tabs.Content value={'settings'}>
+                <Settings />
               </Tabs.Content>
             </Tabs.Root>
             <div className={'blank-placeholder'}></div>
