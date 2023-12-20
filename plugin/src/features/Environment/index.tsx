@@ -5,17 +5,16 @@ import './styles.css'
 
 import EnvironmentSelector from '../../components/EnvironmentSelector'
 import Wallet from '../../components/Wallet'
-import { RxDotFilled } from 'react-icons/rx'
 import ManualAccount from '../../components/ManualAccount'
 import { useAtomValue } from 'jotai'
-import { type Env, envAtom, isDevnetAliveAtom } from '../../atoms/environment'
+import { type Env, envAtom } from '../../atoms/environment'
 import * as Tabs from '@radix-ui/react-tabs'
 import Accordian, { AccordianItem, AccordionContent, AccordionTrigger } from '../../components/ui_components/Accordian'
 import { CurrentEnv } from '../../components/CurrentEnv'
+import { DevnetStatus } from '../../components/DevnetStatus'
 
 const Environment: React.FC = () => {
   const env = useAtomValue(envAtom)
-  const isDevnetAlive = useAtomValue(isDevnetAliveAtom)
 
   const [prevEnv, setPrevEnv] = useState<Env>(env)
 
@@ -46,29 +45,7 @@ const Environment: React.FC = () => {
                             <label className="">Environment selection</label>
                             <div className="flex_dot">
                               <EnvironmentSelector />
-                              {env === 'wallet'
-                                ? (
-                                      <RxDotFilled
-                                          size={'30px'}
-                                          color="rebeccapurple"
-                                          title="Wallet is active"
-                                      />
-                                  )
-                                : isDevnetAlive
-                                  ? (
-                                          <RxDotFilled
-                                              size={'30px'}
-                                              color="lime"
-                                              title="Devnet is live"
-                                          />
-                                    )
-                                  : (
-                                          <RxDotFilled
-                                              size={'30px'}
-                                              color="red"
-                                              title="Devnet server down"
-                                          />
-                                    )}
+                              <DevnetStatus />
                             </div>
                           </div>
                           <div className="flex flex-column">
