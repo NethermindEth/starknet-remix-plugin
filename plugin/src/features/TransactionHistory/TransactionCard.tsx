@@ -69,7 +69,7 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
     <div className='maincard' ref={cardRef}>
       <div className={'txn-info-1'}>
         <div className='account-wrapper'>
-          <p>From:</p>
+          <p className={'label-tx'}>From:</p>
           {env === 'localDevnet' ||
           env === 'remoteDevnet' ||
           env === 'localKatanaDevnet'
@@ -92,7 +92,7 @@ const TransactionCard: React.FC<TransactionCardProps> = ({
               )}
         </div>
         <div className='txn-wrapper'>
-          <p>TxID:</p>
+          <p className={'label-tx'}>TxID:</p>
           {env === 'localDevnet' ||
           env === 'remoteDevnet' ||
           env === 'localKatanaDevnet'

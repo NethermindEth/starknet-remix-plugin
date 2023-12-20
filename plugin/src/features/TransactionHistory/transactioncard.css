@@ -1,10 +1,12 @@
 /* Card Css */
 
 .maincard {
-  display: flex;
+  display: grid;
+  grid-template-columns: 70% 30%;
   background: var(--light);
   border-radius: 6px;
-  margin: 1px;
+  white-space: nowrap;
+  align-items: center;
 }
 
 .tag-wrapper {
@@ -14,15 +16,18 @@
 }
 
 .txn-info-1 {
-  width: 65%;
+  font-size: 14px;
+  align-content: center;
+  align-items: center;
 }
 
 .txn-info-2 {
-  width: 35%;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
+  align-content: center;
   padding: 10px;
+  font-size: 10px;
 }
 
 .tag {
@@ -65,6 +70,14 @@
   max-width: 100%;
   overflow: hidden;
   justify-content: space-between;
+}
+
+.txn-wrapper, .account-wrapper {
+  align-content: center;
+}
+
+.label-tx {
+  font-weight: bold;
 }
 
 .txn-wrapper p {
