@@ -84,12 +84,11 @@ h3 {
   font-size: 1rem;
   color: var(--text);
   background-color: var(--accordian-bg-color) !important;
+  margin: 0 10px;
 }
 .AccordionContent[data-state='open'] {
   animation: slideDown 300ms cubic-bezier(0.87, 0, 0.13, 1);
 
-  background-color: var(--accordian-bg-color) !important;
-  margin: 0 10px;
   border-bottom-left-radius: var(--accordian-border-radius);
   border-bottom-right-radius: var(--accordian-border-radius);
 }

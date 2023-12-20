@@ -27,7 +27,7 @@ export const AccordionTrigger = React.forwardRef<any, any>(
 export const AccordionContent = React.forwardRef<any, any>(
   ({ children, className, ...props }, forwardedRef) => (
     <AccordionPrimitive.Content
-      className={'AccordionContent bg-primary'}
+      className={'AccordionContent'}
       {...props}
       ref={forwardedRef}
     >
