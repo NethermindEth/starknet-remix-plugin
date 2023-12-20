@@ -354,7 +354,7 @@ const Interaction: React.FC<InteractionProps> = (props) => {
           callBackFn={handleCallBack}
         />
       ) : (
-        <p> Selected contract is not deployed yet... </p>
+        <p className={'mt-3 text-center font-bold'}> Selected contract is not deployed yet... </p>
       )}
     </Container>
   )
