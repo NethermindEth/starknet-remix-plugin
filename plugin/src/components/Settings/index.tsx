@@ -20,7 +20,7 @@ export const Settings: React.FC = () => {
           <div className={'settings-box-content'}>
             <D.Root>
               <D.Trigger>
-                <label className="flex flex-row justify-content-space-between align-items-center p-2 br-1 devnet-trigger-wrapper w-100">
+                <label className="flex flex-row justify-content-space-between align-items-center p-2 m-0 devnet-trigger-wrapper w-100">
                   Using Cairo {cairoVersion} <BsChevronDown/>
                 </label>
               </D.Trigger>
