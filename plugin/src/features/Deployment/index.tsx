@@ -30,6 +30,7 @@ import {
 } from '../../atoms/deployment'
 
 import { type CallbackReturnType, ConstructorForm } from 'starknet-abi-forms'
+import { useIcon } from '../../hooks/useIcons'
 interface DeploymentProps {
   setActiveTab: (tab: AccordianTabs) => void
 }
@@ -281,7 +282,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
           <div className="">
             <div className={'compilation-info flex-col text-center align-items-center mb-2'}>
               <div className={'icon'}>
-                <img src={'deploy-icon.svg'} alt={'deploy-icon'} />
+                <img src={useIcon('deploy-icon.svg')} alt={'deploy-icon'}/>
               </div>
               <span className={'mt-1 mb-1'}>Deploy your selected contract</span>
             </div>
@@ -315,7 +316,12 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
           </div>
             )
           : (
-          <p>No contracts ready for deployment yet, compile a cairo contract</p>
+              <div className={'flex flex-column justify-content-center align-items-center'}>
+                <div className={'icon mb-2'}>
+                  <img src={useIcon('deploy-icon.svg')} alt={'deploy-icon'}/>
+                </div>
+                <p>No contracts ready for deployment yet, compile a cairo contract</p>
+              </div>
             )}
       </Container>
     </>

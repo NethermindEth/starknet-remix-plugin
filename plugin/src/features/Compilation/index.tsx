@@ -38,6 +38,7 @@ import {
 } from '../../atoms/compilation'
 import useRemixClient from '../../hooks/useRemixClient'
 import { isEmpty } from '../../utils/misc'
+import { useIcon } from '../../hooks/useIcons'
 
 interface FileContentMap {
   file_name: string
@@ -76,7 +77,7 @@ const CompilationCard: React.FC<{
     <Container>
       <div className={'compilation-info flex-col text-center align-items-center'}>
         <div className={'icon'}>
-          <img src={'compile-icon.svg'} alt={'compile-icon'} />
+          <img src={useIcon('compile-icon.svg')} alt={'compile-icon'} />
         </div>
         <span>
           <p>Go into your file explorer and select a valid cairo file to compile</p>

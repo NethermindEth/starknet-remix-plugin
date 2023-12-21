@@ -1,6 +1,7 @@
 import React from 'react'
 
 import './styles.css'
+import { useIcon } from '../../hooks/useIcons'
 
 const sizeToDimenstions = (size: 'lg' | 'sm' | 'xs' | 'md' | 'xl'): {
   h: number
@@ -36,7 +37,7 @@ const Nethermind: React.FC<INethermind> = ({
       <img
         width={sz.w}
         height={sz.h}
-        src={'nethermind-logo.svg'}
+        src={useIcon('nethermind-logo.svg')}
       >
       </img>
     </a>
