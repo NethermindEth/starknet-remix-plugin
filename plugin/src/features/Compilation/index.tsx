@@ -20,7 +20,7 @@ import { asyncFetch } from '../../utils/async_fetch'
 import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 
 // Imported Atoms
-import cairoVersionAtom from '../../atoms/cairoVersion'
+import { cairoVersionAtom } from '../../atoms/cairoVersion'
 import {
   compiledContractsAtom,
   selectedCompiledContract
