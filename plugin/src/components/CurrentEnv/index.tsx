@@ -1,22 +1,32 @@
 import React from 'react'
 import './currentEnv.css'
 import { useAtomValue } from 'jotai'
-import { envAtom, envName } from '../../atoms/environment'
+import { envAtom, envName, selectedDevnetAccountAtom } from '../../atoms/environment'
 import { selectedAccountAtom } from '../../atoms/manualAccount'
 import { getShortenedHash } from '../../utils/utils'
 import { ethers } from 'ethers'
 import { DevnetStatus } from '../DevnetStatus'
+import { account } from '../../atoms/connection'
 
 export const CurrentEnv: React.FC = () => {
   const env = useAtomValue(envAtom)
 
-  const selectedAccount = useAtomValue(selectedAccountAtom)
+  const selectedAccountManual = useAtomValue(selectedAccountAtom)
+  const selectedAccountDevnet = useAtomValue(selectedDevnetAccountAtom)
+  const walletAccount = useAtomValue(account)
+  // const walletProvider = useAtomValue(provider)
 
-  const selectedAccountAddress = (selectedAccount != null)
-    ? getShortenedHash(selectedAccount?.address, 6, 4)
+  const selectedAccount = (env === 'wallet')
+    ? { address: walletAccount?.address, balance: 0 }
+    : (env === 'manual')
+        ? { address: selectedAccountManual?.address, balance: selectedAccountManual?.balance }
+        : { address: selectedAccountDevnet?.address, balance: selectedAccountDevnet?.initial_balance }
+
+  const selectedAccountAddress = (selectedAccount.address != null)
+    ? getShortenedHash(selectedAccount.address, 6, 4)
     : 'No account selected'
 
-  const selectedAccountBalance = ethers.utils.formatEther(selectedAccount?.balance ?? 0)
+  const selectedAccountBalance = ethers.utils.formatEther(selectedAccount.balance ?? 0)
 
   return (
     // <div>{ envName(env) }, { selectedAccountAddress }, { selectedAccountBalance } ETH </div>

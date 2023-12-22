@@ -1,7 +1,6 @@
 /* eslint-disable multiline-ternary */
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 
-import { constants } from 'starknet'
 import CompiledContracts from '../../components/CompiledContracts'
 import Container from '../../components/ui_components/Container'
 import storage from '../../utils/storage'
@@ -43,10 +42,6 @@ const Interaction: React.FC<InteractionProps> = (props) => {
   const env = useAtomValue(envAtom)
 
   const [isInvoking, setIsInvoking] = useAtom(isInvokingAtom)
-
-  const [chainId, setChainId] = useState<constants.StarknetChainId>(
-    constants.StarknetChainId.SN_GOERLI
-  )
 
   const [invokeTxHash, setInvokeTxHash] = useAtom(invokeTxHashAtom)
 
@@ -108,20 +103,6 @@ const Interaction: React.FC<InteractionProps> = (props) => {
   }, [invokeTxHash, invokeTxStatus.status])
 
   useEffect(() => {
-    if (provider !== null) {
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises
-      setTimeout(async () => {
-        try {
-          const chainId = await provider.getChainId()
-          setChainId(chainId)
-        } catch (error) {
-          console.log(error)
-        }
-      }, 1)
-    }
-  }, [provider])
-
-  useEffect(() => {
     const currNotifCount = storage.get('notifCount')
     if (currNotifCount === null || currNotifCount === undefined) {
       storage.set('notifCount', 0 as number)
@@ -137,10 +118,7 @@ const Interaction: React.FC<InteractionProps> = (props) => {
   // current chain using the current account
   const isAccountAndContractValid =
     isContractSelected &&
-    account != null &&
-    selectedContract.deployedInfo.some(
-      (info) => info.address === account.address && info.chainId === chainId
-    )
+    account != null
 
   const handleCallBack = async (res: CallbackReturnType): Promise<void> => {
     // Set remix icon status to loading while interacting with the contract
