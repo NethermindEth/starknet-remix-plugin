@@ -948,8 +948,10 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       casm,
       path,
       deployedInfo: [],
-      address: ''
+      address: '',
+      declaredInfo: []
     }
+
     return contract
   }
 

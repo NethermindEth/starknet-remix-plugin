@@ -15,7 +15,7 @@ import { getExplorerUrl, getShortenedHash, trimStr } from '../../utils/utils'
 import { MdRefresh, MdCheckCircleOutline } from 'react-icons/md'
 import copy from 'copy-to-clipboard'
 import { useCurrentExplorer } from '../ExplorerSelector'
-import { useAtom, useAtomValue } from 'jotai'
+import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 
 import transactionsAtom from '../../atoms/transactions'
 import {
