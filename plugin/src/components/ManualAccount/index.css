@@ -20,6 +20,12 @@
   align-items: center;
 }
 
+.account-deploy {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .manual-balance-wrapper {
   display: flex;
   justify-content: space-between;

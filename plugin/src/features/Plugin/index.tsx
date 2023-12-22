@@ -28,6 +28,7 @@ import * as Tabs from '@radix-ui/react-tabs'
 import { Settings } from '../../components/Settings'
 import { versionsAtom, cairoVersionAtom } from '../../atoms/cairoVersion'
 import { apiUrl } from '../../utils/network'
+import { StarknetProvider } from '../../components/starknet/starknet-provider'
 export type AccordianTabs =
   | 'compile'
   | 'deploy'
@@ -185,7 +186,7 @@ const Plugin: React.FC = () => {
   }, [])
 
   return (
-    <>
+    <StarknetProvider>
       <div className='plugin-wrapper'>
         <div className='plugin-main-wrapper'>
           <div>
@@ -312,7 +313,7 @@ const Plugin: React.FC = () => {
           </div>
           <Footer />
       </div>
-    </>
+    </StarknetProvider>
   )
 }
 

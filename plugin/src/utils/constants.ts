@@ -2,7 +2,9 @@ import { constants } from 'starknet'
 
 const devnetUrl = 'http://127.0.0.1:5050'
 
-type Network = 'goerli' | 'mainnet'
+type Network =
+  | 'goerli'
+  | 'mainnet'
 
 const networks = [
   { name: 'Testnet', value: 'goerli' },

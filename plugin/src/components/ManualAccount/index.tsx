@@ -28,6 +28,8 @@ import useAccount from '../../hooks/useAccount'
 import useProvider from '../../hooks/useProvider'
 import useRemixClient from '../../hooks/useRemixClient'
 import { getProvider } from '../../utils/misc'
+import { declTxHashAtom, deployTxHashAtom } from '../../atoms/deployment'
+import { invokeTxHashAtom } from '../../atoms/interaction'
 
 import * as D from '../ui_components/Dropdown'
 import { BsChevronDown } from 'react-icons/bs'
@@ -47,6 +49,10 @@ const ManualAccount: React.FC<{
 
   const { account, setAccount } = useAccount()
   const { provider, setProvider } = useProvider()
+
+  const setDeclTxHash = useSetAtom(declTxHashAtom)
+  const setDeployTxHash = useSetAtom(deployTxHashAtom)
+  const setInvokeTxHash = useSetAtom(invokeTxHashAtom)
 
   const [accountDeploying, setAccountDeploying] = useState(false)
 
@@ -96,6 +102,9 @@ const ManualAccount: React.FC<{
               selectedAccount.private_key
             )
           )
+          setDeclTxHash('')
+          setDeployTxHash('')
+          setInvokeTxHash('')
         }
       }
       return
@@ -106,6 +115,9 @@ const ManualAccount: React.FC<{
         setAccount(
           new Account(provider, accounts[0].address, accounts[0].private_key)
         )
+        setDeclTxHash('')
+        setDeployTxHash('')
+        setInvokeTxHash('')
       }
     } else {
       setSelectedAccount(null)
@@ -199,6 +211,9 @@ const ManualAccount: React.FC<{
           selectedAccount.private_key
         )
       )
+      setDeclTxHash('')
+      setDeployTxHash('')
+      setInvokeTxHash('')
     }
   }
 
@@ -444,7 +459,7 @@ const ManualAccount: React.FC<{
       </D.Root>
 
       <button
-        className="btn btn-primary btn-block d-block w-100-btn text-break remixui_disabled"
+        className="btn btn-primary btn-block d-block w-100-btn text-break remixui_disabled rounded"
         style={{
           cursor: `${
             (selectedAccount?.deployed_networks.includes(networkName) ??
@@ -481,10 +496,10 @@ const ManualAccount: React.FC<{
           : selectedAccount?.deployed_networks.includes(networkName) ??
           false
             ? (
-          <>
+          <div className='account-deploy'>
             <MdCheckCircleOutline color="#0fd543" size={18} />
             <span style={{ paddingLeft: '0.5rem' }}>Account Deployed</span>
-          </>
+          </div>
               )
             : (
                 'Deploy Account'
