@@ -1,5 +1,7 @@
 import { atom } from 'jotai'
 
-const cairoVersion = atom<string>('2.3.1')
+const cairoVersionAtom = atom<string>('v2.3.1')
 
-export default cairoVersion
+const versionsAtom = atom<string[]>([])
+
+export { cairoVersionAtom, versionsAtom }

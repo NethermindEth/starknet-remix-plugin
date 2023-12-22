@@ -27,7 +27,7 @@ export const AccordionTrigger = React.forwardRef<any, any>(
 export const AccordionContent = React.forwardRef<any, any>(
   ({ children, className, ...props }, forwardedRef) => (
     <AccordionPrimitive.Content
-      className={'AccordionContent bg-primary'}
+      className={'AccordionContent'}
       {...props}
       ref={forwardedRef}
     >
@@ -43,15 +43,17 @@ interface IAccordian {
   defaultValue: any
   value?: any
   children: React.ReactNode
+  className?: string
 }
 const Accordian: React.FC<IAccordian> = ({
   type = 'single',
   children,
   defaultValue,
-  value
+  value,
+  className
 }) => (
   <AccordionPrimitive.Root
-    className="AccordionRoot"
+    className={className ?? 'AccordionRoot'}
     type={type}
     value={value}
     defaultValue={defaultValue}

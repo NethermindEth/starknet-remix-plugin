@@ -33,9 +33,9 @@
 
 .network-dropdown-trigger {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
+  width: 100%;
 }
 
 
@@ -48,14 +48,20 @@
 .selectors-wrapper {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
+    justify-content: space-between;
+
+    border: 1px solid var(--secondary);
+    background: transparent;
+    border-radius: 4px !important;
+
+    width: 100% !important;
+}
+
+.selectors-wrapper-root {
+    width: calc(100%);
+    margin: 0;
+    padding: 0;
 }
 
 .inline-root-wrapper {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    gap: 0.5rem;
-    flex-wrap: wrap;
 }

@@ -1,11 +1,26 @@
 .starknet-connection-component {
-  background-color: var(--body-bg);
+  background-color: var(--light);
+  border-radius: 8px;
+}
+
+.tabs-content-env {
+  padding: 16px 16px 16px;
+  border-top: 1px solid var(--secondary);
 }
 
 .wallet-wrapper {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.tab-list {
+  font-size: smaller;
+  font-weight: bold;
+}
+
+.tab-header-env {
+  padding: 8px 0 0 0;
 }
 
 .wallet-wrapper > p {
@@ -70,7 +85,79 @@
   align-items: center;
   padding-right: 1rem;
 }
+
 .trigger-env > p {
   margin: 0;
   text-shadow: 2px 2px 3px var(--accentColor);
 }
+
+.accordian-env {
+  .AccordionContentText {
+      padding: 0 !important;
+  }
+
+  .accordian-trigger-env {
+    margin-bottom: 16px !important;
+    border-radius: 8px !important;
+  }
+
+  .AccordionItem {
+    overflow: hidden;
+    margin-top: 1px;
+  }
+
+  .AccordionContent {
+    position: fixed;
+    width: calc(100% - 28px);
+
+    box-shadow: 0 0 0 1px var(--secondary);
+
+    border-radius: 8px;
+
+    margin-top: 8px !important;
+  }
+
+  .accordian-item-env {
+    gap: 16px;
+  }
+
+  .AccordionItem:focus-within {
+    position: relative;
+    z-index: 1;
+    box-shadow: 0 0 0 2px var(--secondary);
+  }
+
+  .AccordionTrigger:focus {
+    outline: none;
+  }
+
+  .AccordionTrigger:hover {
+    background-color: var(--accordian-bg-color) !important;
+    color: var(--text);
+  }
+
+  .AccordionContent {
+    overflow: hidden;
+    font-size: 1rem;
+    color: var(--text);
+    background-color: transparent !important;
+  }
+
+  .AccordionContent[data-state='open'] {
+    animation: slideDown 300ms cubic-bezier(0.87, 0, 0.13, 1);
+
+    background-color: transparent !important;
+  }
+
+  .AccordionContent {
+    margin: 0 10px;
+  }
+
+
+  .AccordionTrigger[data-state='open'] {
+    border-bottom-left-radius: var(--accordian-border-radius);
+    border-bottom-right-radius: var(--accordian-border-radius);
+  }
+
+}
+

@@ -1,4 +1,10 @@
 /* reset */
+
+:root {
+  --accordian-border-radius: 8px;
+  --accordian-bg-color: var(--light);
+}
+
 button,
 h3 {
   all: unset;
@@ -36,8 +42,10 @@ h3 {
 }
 
 .AccordionTrigger {
+  * {
+    outline: none !important;
+  }
   font-family: inherit;
-  padding: 0 20px;
   min-height: 45px;
   flex: 1;
   display: flex;
@@ -48,11 +56,26 @@ h3 {
   line-height: 1;
   color: var(--text);
   transition: all 0.1s ease;
-  box-shadow: 0 1px 0 var(--secondary);
+  background-color: var(--accordian-bg-color) !important;
+
+  border-radius: var(--accordian-border-radius);
+
+  padding: 8px 16px 8px 16px;
+
+  margin: 10px 10px 0 10px;
+}
+
+.AccordionTrigger:focus {
+  outline: none;
+}
+
+.AccordionTrigger[data-state='open'] {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
 .AccordionTrigger:hover {
-  background-color: var(--secondary) !important;
+  background-color: var(--accordian-bg-color) !important;
   color: var(--text);
 }
 
@@ -60,16 +83,22 @@ h3 {
   overflow: hidden;
   font-size: 1rem;
   color: var(--text);
+  background-color: var(--accordian-bg-color) !important;
+  margin: 0 10px;
 }
 .AccordionContent[data-state='open'] {
   animation: slideDown 300ms cubic-bezier(0.87, 0, 0.13, 1);
+
+  border-bottom-left-radius: var(--accordian-border-radius);
+  border-bottom-right-radius: var(--accordian-border-radius);
 }
+
 .AccordionContent[data-state='closed'] {
   animation: slideUp 300ms cubic-bezier(0.87, 0, 0.13, 1);
 }
 
 .AccordionContentText {
-  padding: 15px 20px;
+  padding: 15px 6px;
 }
 
 .AccordionChevron {

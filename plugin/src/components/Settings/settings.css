@@ -1,0 +1,38 @@
+.settings-wrapper {
+    padding: 16px;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+
+    gap: 16px;
+
+}
+
+
+.settings-box {
+    display: grid;
+    grid-template-columns: 3fr 1fr 4fr;
+
+    align-items: center;
+    font-size: 14px;
+
+    border-bottom: 1px solid var(--light);
+
+    padding: 8px;
+
+    width: 100%;
+}
+
+.settings-box-header {
+    font-weight: bold;
+}
+
+.settings-box-content {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+
+    width: 100%;
+}

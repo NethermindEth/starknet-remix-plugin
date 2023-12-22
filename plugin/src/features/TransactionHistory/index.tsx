@@ -12,7 +12,7 @@ const TransactionHistory: React.FC<IExplorerSelector> = (props) => {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
         {transactions.length === 0
           ? (
-          <div>No transactions yet</div>
+          <div className={'w-100 text-center font-bold pt-4'}>No transactions yet</div>
             )
           : (
               transactions.map((transaction, index) => {
