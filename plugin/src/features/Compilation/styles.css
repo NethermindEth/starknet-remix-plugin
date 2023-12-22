@@ -27,3 +27,28 @@
   white-space: nowrap;
   text-overflow: ellipsis;
 }
+
+.compilation-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  height: 100%;
+  width: 100%;
+  color: var(--text);
+
+  * {
+    margin-bottom: 5px;
+  }
+}
+
+.compile-button:disabled {
+  background-color: var(--secondary) !important;
+  color: var(--text) !important;
+}
+
+.rounded-button {
+    border-radius: 4px !important;
+    color: var(--text) !important;
+}

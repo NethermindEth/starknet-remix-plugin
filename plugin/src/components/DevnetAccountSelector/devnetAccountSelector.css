@@ -6,7 +6,9 @@
 
 .devnet-account-selector-trigger {
   width: 100%;
-  border: 1px solid var(--primary);
+  border-radius: 4px;
+  border: 1px solid var(--secondary);
+  background: transparent;
 }
 
 .text-copied {

@@ -12,18 +12,22 @@ import Accordian, {
   AccordionTrigger
 } from '../../components/ui_components/Accordian'
 import TransactionHistory from '../TransactionHistory'
-import CairoVersion from '../CairoVersion'
+import Footer from '../Footer'
 import StateAction from '../../components/StateAction'
 import BackgroundNotices from '../../components/BackgroundNotices'
-import ExplorerSelector, {
+import {
   useCurrentExplorer
 } from '../../components/ExplorerSelector'
-import { useAtomValue, useSetAtom } from 'jotai'
+import { useAtomValue, useSetAtom, useAtom } from 'jotai'
 import { isCompilingAtom, statusAtom } from '../../atoms/compilation'
 import { deploymentAtom } from '../../atoms/deployment'
 import { pluginLoaded as atomPluginLoaded } from '../../atoms/remixClient'
 import useRemixClient from '../../hooks/useRemixClient'
 import { fetchGitHubFilesRecursively } from '../../utils/initial_scarb_codes'
+import * as Tabs from '@radix-ui/react-tabs'
+import { Settings } from '../../components/Settings'
+import { versionsAtom, cairoVersionAtom } from '../../atoms/cairoVersion'
+import { apiUrl } from '../../utils/network'
 import { StarknetProvider } from '../../components/starknet/starknet-provider'
 export type AccordianTabs =
   | 'compile'
@@ -56,10 +60,56 @@ const Plugin: React.FC = () => {
     }
   }
 
+  const setCairoVersion = useSetAtom(cairoVersionAtom)
+  const [getVersions, setVersions] = useAtom(versionsAtom)
+  const { remixClient } = useRemixClient()
+
+  useEffect(() => {
+    const fetchCairoVersions = async (): Promise<void> => {
+      try {
+        if (apiUrl !== undefined) {
+          const response = await fetch(
+              `${apiUrl}/cairo_versions`,
+              {
+                method: 'GET',
+                headers: {
+                  'Content-Type': 'application/octet-stream'
+                },
+                redirect: 'follow'
+              }
+          )
+          const versions = JSON.parse(await response.text())
+          versions.sort()
+          setVersions(versions)
+        }
+      } catch (e) {
+        await remixClient.call('notification' as any, 'toast', '🔴 Failed to fetch cairo versions from the compilation server')
+        console.error(e)
+        await remixClient.terminal.log(`🔴 Failed to fetch cairo versions from the compilation server ${e as string}` as any)
+      }
+    }
+
+    setTimeout(() => {
+      const fetchCairo = async (): Promise<void> => {
+        await fetchCairoVersions()
+
+        if (getVersions.length > 0) {
+          setCairoVersion(getVersions[getVersions.length - 1])
+        }
+      }
+      fetchCairo().catch(e => { console.error(e) })
+    }, 10000)
+  }, [remixClient])
+
+  useEffect(() => {
+    if (getVersions.length > 0) {
+      setCairoVersion(getVersions[getVersions.length - 1])
+    }
+  }, [remixClient, getVersions])
+
   const explorerHook = useCurrentExplorer()
 
   const setPluginLoaded = useSetAtom(atomPluginLoaded)
-  const { remixClient } = useRemixClient()
 
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -137,120 +187,131 @@ const Plugin: React.FC = () => {
 
   return (
     <StarknetProvider>
-      <div className="plugin-wrapper">
-        <div className="plugin-main-wrapper">
-          <CairoVersion />
-          <Accordian
-            type="single"
-            value={currentAccordian}
-            defaultValue={'compile'}
-          >
-
-            <AccordianItem value="compile">
-              <AccordionTrigger
-                onClick={() => {
-                  handleTabView('compile')
-                }}
-              >
-                <span
-                  className="d-flex align-items-center"
-                  style={{ gap: '0.5rem' }}
-                >
-                  <p style={{ all: 'unset' }}>Compile</p>
-                  <StateAction
-                    value={
-                      isCompiling
-                        ? 'loading'
-                        : status === 'done'
-                          ? 'success'
-                          : status === 'failed' ? 'error' : ''
-                    }
-                  />
-                </span>
-              </AccordionTrigger>
-              <AccordionContent>
-                <Compilation setAccordian={setCurrentAccordian} />
-              </AccordionContent>
-            </AccordianItem>
-
-            <AccordianItem value="deploy">
-              <AccordionTrigger
-                onClick={() => {
-                  handleTabView('deploy')
-                }}
-              >
-                <span
-                  className="d-flex align-items-center"
-                  style={{ gap: '0.5rem' }}
-                >
-                  <p style={{ all: 'unset' }}>Deploy</p>
-                  <StateAction
-                    value={
-                      isDeploying
-                        ? 'loading'
-                        : deployStatus === 'error'
-                          ? 'error'
-                          : deployStatus === 'done'
-                            ? 'success'
-                            : ''
-                    }
-                  />
-                </span>
-              </AccordionTrigger>
-              <AccordionContent>
-                <Deployment setActiveTab={setCurrentAccordian} />
-              </AccordionContent>
-            </AccordianItem>
-            <AccordianItem value="interaction">
-              <AccordionTrigger
-                onClick={() => {
-                  handleTabView('interaction')
-                }}
-              >
-                <span
-                  className="d-flex align-items-center"
-                  style={{ gap: '0.5rem' }}
-                >
-                  <p style={{ all: 'unset' }}>Interact</p>
-                  <StateAction
-                    value={interactionStatus}
-                  />
-                </span>
-              </AccordionTrigger>
-              <AccordionContent>
-                <Interaction setInteractionStatus={setInteractionStatus} />
-              </AccordionContent>
-            </AccordianItem>
-            <AccordianItem value="transactions">
-              <AccordionTrigger
-                onClick={() => {
-                  handleTabView('transactions')
-                }}
-              >
-                <span
-                  className="d-flex align-items-center"
-                  style={{ gap: '0.5rem' }}
-                >
-                  <p style={{ all: 'unset' }}> Transactions</p>
-                  <ExplorerSelector
-                    path=""
-                    isTextVisible={false}
-                    controlHook={explorerHook}
-                  />
-                </span>
-              </AccordionTrigger>
-              <AccordionContent>
-                <TransactionHistory controlHook={explorerHook} />
-              </AccordionContent>
-            </AccordianItem>
-          </Accordian>
-          <div className="mt-5">
-            <BackgroundNotices />
+      <div className='plugin-wrapper'>
+        <div className='plugin-main-wrapper'>
+          <div>
+            <Environment />
           </div>
-        </div>
-        <div>
-          <Environment />
-        </div>
+
+          <Tabs.Root defaultValue={'home'}>
+            {/* <Tabs.List> */}
+            {/*  <Tabs.Trigger value='home'>Home</Tabs.Trigger> */}
+            {/*  <Tabs.Trigger value='transactions'>Transactions</Tabs.Trigger> */}
+            {/*  <Tabs.Trigger value='info'>Info</Tabs.Trigger> */}
+            {/* </Tabs.List> */}
+
+            {/* apply styles */}
+            <Tabs.List className={'flex justify-between rounded tab-list'}>
+              <div className={'tabs-trigger'}></div>
+              <Tabs.Trigger value={'home'} className={'tabs-trigger'}>Home</Tabs.Trigger>
+              <Tabs.Trigger value={'transactions'} className={'tabs-trigger'}>Transactions</Tabs.Trigger>
+              <Tabs.Trigger value={'info'} className={'tabs-trigger'}>Info</Tabs.Trigger>
+              <Tabs.Trigger value={'settings'} className={'tabs-trigger'}>Settings</Tabs.Trigger>
+              <div className={'tabs-trigger'}></div>
+            </Tabs.List>
+
+            <Tabs.Content value='home'>
+              <Accordian
+                  type='single'
+                  value={currentAccordian}
+                  defaultValue={'compile'}
+              >
+                <AccordianItem value='compile'>
+                  <AccordionTrigger
+                      onClick={() => {
+                        handleTabView('compile')
+                      }}
+                  >
+                  <span
+                      className='d-flex align-items-center'
+                      style={{ gap: '0.5rem' }}
+                  >
+                    <span className={'accordian-list-number'}>1</span>
+                    <p style={{ all: 'unset' }}>Compile</p>
+                    <StateAction
+                        value={
+                          isCompiling
+                            ? 'loading'
+                            : status === 'done'
+                              ? 'success'
+                              : status === 'failed' ? 'error' : ''
+                        }
+                    />
+                  </span>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <Compilation setAccordian={setCurrentAccordian} />
+                  </AccordionContent>
+                </AccordianItem>
+
+                <AccordianItem value='deploy'>
+                  <AccordionTrigger
+                      onClick={() => {
+                        handleTabView('deploy')
+                      }}
+                  >
+                  <span
+                      className='d-flex align-items-center'
+                      style={{ gap: '0.5rem' }}
+                  >
+                    <span className={'accordian-list-number'}>2</span>
+                    <p style={{ all: 'unset' }}>Deploy</p>
+                    <StateAction
+                        value={
+                          isDeploying
+                            ? 'loading'
+                            : deployStatus === 'error'
+                              ? 'error'
+                              : deployStatus === 'done'
+                                ? 'success'
+                                : ''
+                        }
+                    />
+                  </span>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <Deployment setActiveTab={setCurrentAccordian} />
+                  </AccordionContent>
+                </AccordianItem>
+                <AccordianItem value='interaction'>
+                  <AccordionTrigger
+                      onClick={() => {
+                        handleTabView('interaction')
+                      }}
+                    >
+                    <span
+                        className='d-flex align-items-center'
+                        style={{ gap: '0.5rem' }}
+                    >
+                      <span className={'accordian-list-number'}>3</span>
+                      <p style={{ all: 'unset' }}>Interact</p>
+                      <StateAction
+                          value={interactionStatus}
+                      />
+                    </span>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <Interaction setInteractionStatus={setInteractionStatus} />
+                    </AccordionContent>
+                  </AccordianItem>
+                </Accordian>
+              </Tabs.Content>
+
+              <Tabs.Content value='transactions'>
+                <TransactionHistory controlHook={explorerHook} />
+              </Tabs.Content>
+
+              <Tabs.Content value='info'>
+                <BackgroundNotices />
+              </Tabs.Content>
+
+              <Tabs.Content value={'settings'}>
+                <Settings />
+              </Tabs.Content>
+            </Tabs.Root>
+            <div className={'blank-placeholder'}></div>
+          </div>
+          <Footer />
       </div>
     </StarknetProvider>
   )

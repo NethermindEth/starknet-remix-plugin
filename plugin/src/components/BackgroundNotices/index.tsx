@@ -10,7 +10,7 @@ const Notices = [
 
 const BackgroundNotices: React.FC = () => {
   return (
-    <div className='bg-transparent'>
+    <div className='bg-transparent bg-notices-root'>
       <p className="text-center text-md bg-notices-text">Notices</p>
       {
         <ul className="list-group">

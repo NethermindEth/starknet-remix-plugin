@@ -1,0 +1,21 @@
+.current-env-root {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+.chain-info-box {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    font-size: 12px;
+}
+
+.chain-name {
+    font-weight: 700;
+    color: var(--text);
+}
+
+.chain-account-info {
+
+}

@@ -1,0 +1,38 @@
+.version-wrapper {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin: 0 16px;
+    padding-top: 10px;
+    border-top: 1px solid var(--light);
+}
+
+.version-right {
+    justify-self: end; /* This line ensures that .version-right aligns to the right */
+    display: flex;
+    flex-direction: column;
+}
+
+.nethermind-powered {
+    align-self: end;
+    display: flex;
+    flex-direction: column;
+}
+
+.nethermind-powered span {
+    margin-bottom: 5px;
+}
+
+.nethermind-powered img {
+    filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%);
+    transition: filter 0.5s;
+}
+
+.nethermind-powered img:hover {
+    filter: none;
+    transition: filter 0.5s;
+}
+/*316*/
+.plugin-version {
+    border: none;
+}

@@ -1,9 +1,10 @@
 .manual-root-wrapper {
   width: 100%;
   overflow: hidden;
-  gap: 1rem;
+  gap: 16px !important;
   display: flex;
   flex-direction: column;
+  padding: 16px;
 }
 
 .manual-root-wrapper p {
@@ -15,7 +16,7 @@
 .network-selection-wrapper {
   width: 100%;
   display: grid;
-  grid-template-columns: 8fr 2fr;
+  grid-template-columns: 90fr 2fr 10fr;
   align-items: center;
 }
 
@@ -30,12 +31,6 @@
   justify-content: space-between;
   flex-wrap: wrap;
   align-items: center;
-  padding: 0rem 0.2rem;
-  margin-bottom: 1rem;
-}
-
-.manual-balance-wrapper * {
-  margin: 0;
 }
 
 .btn-refresh[data-refreshing='true'] svg {
@@ -51,4 +46,40 @@
   justify-content: space-between;
   flex-wrap: wrap;
   align-items: center;
+}
+
+.info-box-manual-account {
+  font-size: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.info-box-label {
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.info-box-value {
+  width: 50%;
+}
+
+.info-box-copy-btn {
+  align-items: center;
+}
+
+.add-account-btn {
+  height: 100%;
+}
+
+.w-100-btn {
+  width: calc(100% - 16px) !important;
+  font-size: 14px !important;
+  text-align: center !important;
+  justify-content: center !important;
+}
+
+.info-box-manual-account {
+  padding: 0;
+  margin: 0;
 }

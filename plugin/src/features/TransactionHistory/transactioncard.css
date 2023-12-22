@@ -1,15 +1,12 @@
 /* Card Css */
 
 .maincard {
-  border: 1px solid var(--secondary);
   display: grid;
-  padding: 1rem;
-  gap: 0.5rem;
-  border-radius: 0.5rem;
-  grid-template-areas:
-    'a a b b'
-    'c c c c'
-    'd d d d';
+  grid-template-columns: 70% 30%;
+  background: var(--light);
+  border-radius: 6px;
+  white-space: nowrap;
+  align-items: center;
 }
 
 .tag-wrapper {
@@ -18,22 +15,44 @@
   flex-wrap: wrap;
 }
 
+.txn-info-1 {
+  font-size: 14px;
+  align-content: center;
+  align-items: center;
+}
+
+.txn-info-2 {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  align-content: center;
+  padding: 10px;
+  font-size: 10px;
+}
+
+.tag {
+  margin-top: 3px;
+}
+
 .account-wrapper {
   grid-area: b;
   width: 100%;
   max-width: 100%;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
   overflow: hidden;
   gap: 0.5rem;
+}
+
+.account-wrapper, .txn-wrapper {
+  padding: 0.5rem;
 }
 
 .account-wrapper p {
   text-overflow: ellipsis;
   margin: 0;
   display: block;
-  font-weight: 600;
 }
 
 .account-wrapper a {
@@ -48,9 +67,17 @@
 .txn-wrapper {
   grid-area: c;
   display: flex;
-  flex-direction: column;
   max-width: 100%;
   overflow: hidden;
+  justify-content: space-between;
+}
+
+.txn-wrapper, .account-wrapper {
+  align-content: center;
+}
+
+.label-tx {
+  font-weight: bold;
 }
 
 .txn-wrapper p {
@@ -78,39 +105,32 @@
 
 .tag {
   border: 1px solid;
-  border-color: var(--white);
   border-radius: 0.5rem;
-  font-size: 0.8rem;
+  font-size: 0.5rem;
   text-transform: uppercase;
 }
 
 .tag-declare {
   border-color: var(--green);
-  color: var(--green);
 }
 
 .tag-invoke {
   border-color: var(--indigo);
-  color: var(--indigo);
 }
 
 .tag-deploy {
   border-color: var(--teal);
-  color: var(--teal);
 }
 
 .tag-deployAccount {
   border-color: var(--yellow);
-  color: var(--yellow);
 }
 
 
 .tag-localDevnet {
-  border-color: var(--orange);
-  color: var(--orange);
+  background: var(--bgPrimary);
 }
 
 .tag-remoteDevnet {
-  border-color: var(--yellow);
-  color: var(--yellow);
+  background: var(--bgPrimary);
 }

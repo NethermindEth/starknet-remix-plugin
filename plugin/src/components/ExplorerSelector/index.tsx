@@ -4,6 +4,7 @@ import { networkExplorerUrls as EXPLORERS } from '../../utils/constants'
 
 import './index.css'
 import { type IExplorerSelector, type IUseCurrentExplorer } from '../../utils/misc'
+import { BsChevronDown } from 'react-icons/bs'
 
 const VOYAGER_LOGO = 'https://voyager.online/favicons/favicon-32x32.png'
 const STARKSCAN_LOGO = 'https://starkscan.co/img/company/favicon.ico'
@@ -35,19 +36,24 @@ const ExplorerSelector: React.FC<IExplorerSelector> = ({
   const { explorer, setExplorer } = controlHook
   return (
     <div
-      className={`${isInline !== undefined && isInline ? 'inline-root-wrapper' : ''}`}
+      className={'flex selectors-wrapper-root'}
       onClick={(e) => {
         e.stopPropagation()
       }}
     >
-      <div className="selectors-wrapper">
+      <div className="selectors-wrapper p-1">
         <D.Root>
           <D.Trigger>
             <div className="network-dropdown-trigger">
-              <img
-                className="img-explorer-logo"
-                src={explorerToLogo(explorer)}
-              />
+              <div>{controlHook.explorer}</div>
+              <div className={'flex flex-row justify-between align-items-center'}>
+                <img
+                  className="img-explorer-logo"
+                  src={explorerToLogo(explorer)}
+                />
+                <div className={'blank pl-1'}></div>
+                <BsChevronDown/>
+              </div>
             </div>
           </D.Trigger>
           <D.Portal>

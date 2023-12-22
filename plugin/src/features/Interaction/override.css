@@ -1,15 +1,32 @@
 /* Overriding Package's CSS */
 :root {
+    --abi-form-bg-color: var(--light);
+
     .tab-trigger {
-        background-color: var(--bgPrimary);
         padding: 0.5rem !important;
-        margin: 0;
+        margin: 0.5rem !important;
+        background: transparent !important;
+        border-radius: 4px !important;
+    }
+
+    .tab-trigger:hover {
+        background: var(--body-bg) !important;
+    }
+
+    .tab-trigger:focus {
+        outline: none;
     }
 
     .function-root {
-        background-color: var(--bgPrimary);
+        padding: 0.3rem !important;
+    }
 
-        padding: 0.5rem !important;
+    .function-root, .tab-trigger, .function-header {
+        background-color: var(--abi-form-bg-color);
+    }
+
+    .function-root {
+        border-bottom: 2px solid var(--bgPrimary);
     }
 
     .tag-blue {
@@ -19,7 +36,7 @@
 
     .function-header {
         padding: var(--space-xs);
-        background-color: var(--bgPrimary);
+        padding-top: 0;
         border-radius: 0.2rem;
     }
 
@@ -43,15 +60,6 @@
         background-color: var(--info) !important;
     }
 
-    .function-form-input {
-        background-color: var(--bgPrimary);
-        color: var(--text);
-    }
-
-    .function-form-input-wrapper {
-        border: 1px solid var(--secondary);
-    }
-
     .function-struct {
         background-color: var(--bgPrimary);
         box-shadow: none;
@@ -67,6 +75,7 @@
         box-sizing: border-box;
         margin: 0;
         padding: 10px;
+        border-radius: 4px !important;
     }
 
     .tooltip-input-final-value {
