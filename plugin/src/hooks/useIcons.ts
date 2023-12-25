@@ -28,5 +28,5 @@ export const useIcon = (name: string): string => {
     }
   }, [remixClient])
 
-  return `public/${remixTheme}-${name}`
+  return `/${remixTheme}-${name}`
 }
