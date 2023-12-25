@@ -16,11 +16,7 @@ import { declTxHashAtom, deployTxHashAtom } from '../../atoms/deployment'
 import { invokeTxHashAtom } from '../../atoms/interaction'
 import { useSetAtom } from 'jotai'
 
-interface WalletProps {
-  setPrevEnv: (newEnv: Env) => void
-}
-
-const Wallet: React.FC<WalletProps> = (props) => {
+const Wallet: React.FC = () => {
   const [showCopied, setCopied] = useState(false)
 
   const { status, account, connector, chainId } = useAccount()

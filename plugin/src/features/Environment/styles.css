@@ -108,6 +108,9 @@
 
   .AccordionContent {
     position: fixed;
+
+    z-index: 10;
+
     width: calc(100% - 28px);
 
     box-shadow: 0 0 0 1px var(--secondary);

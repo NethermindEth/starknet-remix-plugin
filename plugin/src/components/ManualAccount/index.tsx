@@ -38,9 +38,7 @@ import { BsChevronDown } from 'react-icons/bs'
 // Account address selection
 // network selection drop down
 
-const ManualAccount: React.FC<{
-  prevEnv: Env
-}> = ({ prevEnv }) => {
+const ManualAccount: React.FC = () => {
   const OZaccountClassHash =
     '0x2794ce20e5f2ff0d40e632cb53845b9f4e526ebd8471983f7dbd355b721d5a'
 
