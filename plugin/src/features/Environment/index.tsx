@@ -1,5 +1,5 @@
 /* eslint-disable multiline-ternary */
-import React, { useState } from 'react'
+import React from 'react'
 import DevnetAccountSelector from '../../components/DevnetAccountSelector'
 import './styles.css'
 
@@ -7,12 +7,11 @@ import EnvironmentSelector from '../../components/EnvironmentSelector'
 import Wallet from '../../components/Wallet'
 import ManualAccount from '../../components/ManualAccount'
 import { useAtom } from 'jotai'
-import { type Env, envAtom } from '../../atoms/environment'
+import { envAtom } from '../../atoms/environment'
 import * as Tabs from '@radix-ui/react-tabs'
 import Accordian, { AccordianItem, AccordionContent, AccordionTrigger } from '../../components/ui_components/Accordian'
 import { CurrentEnv } from '../../components/CurrentEnv'
 import { DevnetStatus } from '../../components/DevnetStatus'
-import useRemixClient from "../../hooks/useRemixClient";
 
 const Environment: React.FC = () => {
   const [env, setEnv] = useAtom(envAtom)
@@ -27,7 +26,7 @@ const Environment: React.FC = () => {
 
         <AccordionContent className={'accordian-content-env'}>
           <div className="starknet-connection-component">
-            <Tabs.Root defaultValue={ env == 'manual' ? 'test-accounts' : 'environment' } onValueChange={
+            <Tabs.Root defaultValue={ env === 'manual' ? 'test-accounts' : 'environment' } onValueChange={
               (e: any) => {
                 if (e === 'environment') {
                   setEnv('remoteDevnet')
