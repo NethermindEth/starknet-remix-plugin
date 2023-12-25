@@ -23,7 +23,7 @@ import {
   networkAtom,
   selectedAccountAtom
 } from '../../atoms/manualAccount'
-import { type Env, envAtom } from '../../atoms/environment'
+import { envAtom } from '../../atoms/environment'
 import useAccount from '../../hooks/useAccount'
 import useProvider from '../../hooks/useProvider'
 import useRemixClient from '../../hooks/useRemixClient'
@@ -34,13 +34,7 @@ import { invokeTxHashAtom } from '../../atoms/interaction'
 import * as D from '../ui_components/Dropdown'
 import { BsChevronDown } from 'react-icons/bs'
 
-// TODOS: move state parts to contexts
-// Account address selection
-// network selection drop down
-
-const ManualAccount: React.FC<{
-  prevEnv: Env
-}> = ({ prevEnv }) => {
+const ManualAccount: React.FC = () => {
   const OZaccountClassHash =
     '0x2794ce20e5f2ff0d40e632cb53845b9f4e526ebd8471983f7dbd355b721d5a'
 

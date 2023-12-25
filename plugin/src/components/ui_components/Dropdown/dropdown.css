@@ -5,6 +5,7 @@ button {
 
 .DropdownMenuContent,
 .DropdownMenuSubContent {
+    z-index: 1000;
     min-width: 220px;
     border: 1px solid var(--light);
     border-radius: 6px;

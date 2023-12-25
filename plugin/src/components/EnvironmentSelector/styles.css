@@ -6,4 +6,5 @@
     border: 1px solid var(--secondary);
     background: transparent;
     border-radius: 4px !important;
+    color: var(--text) !important;
 }

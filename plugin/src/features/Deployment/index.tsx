@@ -200,7 +200,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     }
   }, [deployTxHash, deployTxStatus.status])
 
-  const declare = async (): Promise<void> => {
+  const declareContract = async (): Promise<void> => {
     setIsDeclaring(true)
     remixClient.emit('statusChanged', {
       key: 'loading',
@@ -416,7 +416,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 
   const handleDeclare = (event: any): void => {
     event.preventDefault()
-    declare().catch((error) => {
+    declareContract().catch((error) => {
       console.log('Error during declaration:', error)
     })
   }

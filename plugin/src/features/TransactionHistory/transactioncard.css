@@ -2,7 +2,7 @@
 
 .maincard {
   display: grid;
-  grid-template-columns: 70% 30%;
+  grid-template-columns: 65% 35%;
   background: var(--light);
   border-radius: 6px;
   white-space: nowrap;
