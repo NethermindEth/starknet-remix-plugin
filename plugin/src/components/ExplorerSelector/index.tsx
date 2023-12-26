@@ -1,10 +1,12 @@
-import React, { useState } from 'react'
+import React from 'react'
 import * as D from '../ui_components/Dropdown'
 import { networkExplorerUrls as EXPLORERS } from '../../utils/constants'
 
 import './index.css'
 import { type IExplorerSelector, type IUseCurrentExplorer } from '../../utils/misc'
 import { BsChevronDown } from 'react-icons/bs'
+import { useAtom } from 'jotai'
+import { currentExplorerAtom } from '../../atoms/explorer'
 
 const VOYAGER_LOGO = 'https://voyager.online/favicons/favicon-32x32.png'
 const STARKSCAN_LOGO = 'https://starkscan.co/img/company/favicon.ico'
@@ -21,7 +23,7 @@ const explorerToLogo = (explorer: keyof typeof EXPLORERS): string => {
 
 export const useCurrentExplorer = (): IUseCurrentExplorer => {
   const [currentExplorerKey, setCurrentExplorerKey] =
-    useState<keyof typeof EXPLORERS>('voyager')
+    useAtom(currentExplorerAtom)
 
   return {
     explorer: currentExplorerKey,
