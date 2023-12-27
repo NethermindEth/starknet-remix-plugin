@@ -105,4 +105,68 @@
     .function-form-input-wrapper {
         padding-bottom: 10px !important;
     }
+
+    .function-array-root {
+        background: var(--abi-form-bg-color);
+        padding: 0 !important;
+    }
+
+    .array-core-item {
+        background: var(--abi-form-bg-color);
+
+    /*    remove shadow */
+        box-shadow: none;
+
+        border-bottom: 1px solid var(--secondary) !important;
+        border-radius: 4px !important;
+
+        padding: 4px !important;
+
+        .array-core-item-delete {
+            line-height: normal !important;
+        }
+        .function-form-input-wrapper {
+            border: 1px solid var(--secondary) !important;
+            padding: 4px !important;
+            border-radius: 4px !important;
+
+            input {
+                border-radius: 8px;
+                background: transparent;
+            }
+        }
+
+        label {
+            margin: 10px 0 !important;
+
+            gap: 8px !important;
+        }
+    }
+
+    .function-array-header {
+        background: var(--abi-form-bg-color);
+
+        display: grid !important;
+        grid-template-columns: 2fr 1fr;
+
+        align-items: center;
+        align-content: center;
+
+        .array-title {
+            font-size: 14px !important;
+
+            color: var(--text);
+            font-weight: bold;
+
+        }
+
+        button {
+            font-size: 12px !important;
+
+            line-height: normal !important;
+            padding: 8px !important;
+        }
+    }
+
+
 }
