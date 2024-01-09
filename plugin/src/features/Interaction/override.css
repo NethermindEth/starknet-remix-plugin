@@ -104,6 +104,19 @@
 
     .function-form-input-wrapper {
         padding-bottom: 10px !important;
+        border: 1px solid var(--secondary) !important;
+
+        border-radius: 4px;
+    }
+
+    .function-form-input {
+        background: transparent;
+        color: var(--text);
+    }
+
+    .input-tag {
+        margin: 0 !important;
+        padding: 0.1rem 0.5rem !important;
     }
 
     .function-array-root {
@@ -167,6 +180,7 @@
             padding: 8px !important;
         }
     }
+
 
 
 }
