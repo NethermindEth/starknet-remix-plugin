@@ -49,3 +49,42 @@
 .blank-placeholder {
   min-height: 150px;
 }
+
+.plugin-version {
+  border: none;
+
+/*  make uppercase */
+
+  /* XS Body-Regular */
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 18px; /* 150% */
+
+  margin: 0;
+}
+
+.plugin-version-wrapper {
+  display: flex;
+  flex-direction: row;
+  margin: 0 16px;
+  padding-top: 3px;
+  border-top: 1px solid var(--light);
+
+  gap: 8px;
+}
+
+.plugin-version-label {
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 18px; /* 180% */
+  letter-spacing: 0.6px;
+
+  background-color: var(--light);
+  padding: 2px;
+
+  border-radius: 3px;
+
+  margin: 0;
+}
