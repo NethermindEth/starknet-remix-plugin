@@ -8,9 +8,16 @@
 }
 
 .version-right {
-    justify-self: end; /* This line ensures that .version-right aligns to the right */
+    justify-self: end;
     display: flex;
     flex-direction: column;
+}
+
+.version-left {
+    justify-self: end;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
 }
 
 .nethermind-powered {

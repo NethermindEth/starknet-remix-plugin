@@ -64,6 +64,9 @@ const Plugin: React.FC = () => {
   const [getVersions, setVersions] = useAtom(versionsAtom)
   const { remixClient } = useRemixClient()
 
+  const envViteVersion: string | undefined = import.meta.env.VITE_VERSION
+  const pluginVersion = envViteVersion !== undefined ? `v${envViteVersion}` : 'v0.2.5'
+
   useEffect(() => {
     const fetchCairoVersions = async (): Promise<void> => {
       try {
@@ -189,6 +192,14 @@ const Plugin: React.FC = () => {
     <StarknetProvider>
       <div className='plugin-wrapper'>
         <div className='plugin-main-wrapper'>
+          <div className={'plugin-version-wrapper'}>
+            <div className={'plugin-version-label'}>
+              ALPHA
+            </div>
+            <div className={'plugin-version'}>
+              Using {pluginVersion}
+            </div>
+          </div>
           <div>
             <Environment />
           </div>
