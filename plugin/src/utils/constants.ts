@@ -4,41 +4,49 @@ const devnetUrl = 'http://127.0.0.1:5050'
 
 type Network =
   | 'goerli'
+  | 'sepolia'
   | 'mainnet'
 
 const networks = [
   { name: 'Testnet', value: 'goerli' },
+  { name: 'Sepolia', value: 'sepolia' },
   { name: 'Mainnet', value: 'mainnet' }
 ]
 
 const networkExplorerUrls = {
   voyager: {
     goerli: 'https://goerli.voyager.online',
+    sepolia: 'https://sepolia.voyager.online',
     mainnet: 'https://voyager.online'
   },
   starkscan: {
     goerli: 'https://testnet.starkscan.co',
+    sepolia: 'https://sepolia.starkscan.co',
     mainnet: 'https://starkscan.co'
   }
 }
 
 const networkEquivalents = new Map([
   ['goerli', constants.StarknetChainId.SN_GOERLI],
+  ['sepolia', constants.StarknetChainId.SN_SEPOLIA],
   ['mainnet', constants.StarknetChainId.SN_MAIN]
 ])
 
 const networkEquivalentsRev = new Map([
   [constants.StarknetChainId.SN_GOERLI, 'goerli'],
+  [constants.StarknetChainId.SN_SEPOLIA, 'sepolia'],
   [constants.StarknetChainId.SN_MAIN, 'mainnet']
 ])
 
 const networkNameEquivalents = new Map([
   ['goerli', constants.NetworkName.SN_GOERLI],
+  ['sepolia', constants.NetworkName.SN_SEPOLIA],
   ['mainnet', constants.NetworkName.SN_MAIN]
 ])
 
 const networkNameEquivalentsRev = new Map([
   [constants.NetworkName.SN_GOERLI, 'goerli'],
+  [constants.NetworkName.SN_SEPOLIA, 'sepolia'],
   [constants.NetworkName.SN_MAIN, 'mainnet']
 ])
 

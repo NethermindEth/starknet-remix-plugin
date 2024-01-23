@@ -401,7 +401,7 @@ const ManualAccount: React.FC = () => {
         </div>
       )}
 
-      {selectedAccount != null && networkName === 'goerli' && (
+      {selectedAccount != null && (networkName === 'goerli' || networkName === 'sepolia') && (
         <button
           className="btn btn-primary w-100-btn"
           onClick={() => {
@@ -417,7 +417,7 @@ const ManualAccount: React.FC = () => {
               })
             setTimeout(() => {
               window?.open(
-                'https://faucet.goerli.starknet.io/',
+                `https://faucet.${networkName}.starknet.io/`,
                 '_blank',
                 'noopener noreferrer'
               )
