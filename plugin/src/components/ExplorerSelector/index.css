@@ -51,9 +51,7 @@
     align-items: center;
     justify-content: space-between;
 
-    border: 1px solid var(--secondary);
     background: transparent;
-    border-radius: 4px !important;
 
     width: 100% !important;
 }

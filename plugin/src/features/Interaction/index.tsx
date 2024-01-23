@@ -318,7 +318,7 @@ const Interaction: React.FC<InteractionProps> = (props) => {
       {contracts.length > 0 && selectedContract != null ? (
         <CompiledContracts show="contract" />
       ) : (
-        <div>
+        <div className={'mt-3 text-center font-bold'}>
           <p>No compiled contracts to interact with... Yet.</p>
         </div>
       )}

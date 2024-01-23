@@ -1,13 +1,12 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { devnets } from '../../utils/network'
 
 import './styles.css'
 import { devnetAtom, envAtom } from '../../atoms/environment'
 import { useAtom, useSetAtom } from 'jotai'
 import useProvider from '../../hooks/useProvider'
-import * as D from '../../components/ui_components/Dropdown'
 import { BsChevronDown } from 'react-icons/bs'
-
+import * as Select from '../../components/ui_components/Select'
 const EnvironmentSelector: React.FC = () => {
   const { setProvider } = useProvider()
   const [env, setEnv] = useAtom(envAtom)
@@ -44,45 +43,33 @@ const EnvironmentSelector: React.FC = () => {
     }
   }
 
-  const [dropdownControl, setDropdownControl] = useState(false)
-
   return (
     <div className="environment-selector-wrapper">
-      <D.Root open={dropdownControl} onOpenChange={(e) => { setDropdownControl(e) }}>
-        <D.Trigger>
-          <div className="flex flex-row justify-content-space-between align-items-center p-2 br-1 devnet-trigger-wrapper">
-            <label className='text-light text-sm m-0'>{getActiveEnv(env)}</label>
-            <BsChevronDown style={{
-              transform: dropdownControl ? 'rotate(180deg)' : 'none',
-              transition: 'all 0.3s ease'
-            }} />
-          </div>
-        </D.Trigger>
-        <D.Portal>
-          <D.Content>
-            <D.Item
-              key={'0wallet'}
-              onClick={() => {
-                handleEnvironmentChange('0')
-              }}
-            >
-              Wallet
-            </D.Item>
-            {devnets.map((devnet, i) => {
-              return (
-                <D.Item
-                  key={i.toString() + devnet?.name}
-                  onClick={() => {
-                    handleEnvironmentChange((i + 1).toString())
-                  }}
-                >
-                  {devnet?.name}
-                </D.Item>
-              )
-            })}
-          </D.Content>
-        </D.Portal>
-      </D.Root>
+      <Select.Root onValueChange={handleEnvironmentChange}>
+        <Select.Trigger className="flex flex-row justify-content-space-between align-items-center p-2 br-1 devnet-trigger-wrapper">
+          <Select.Value placeholder={getActiveEnv(env)}>
+            {getActiveEnv(env)}
+          </Select.Value>
+          <Select.Icon>
+            <BsChevronDown />
+          </Select.Icon>
+        </Select.Trigger>
+
+        <Select.Portal>
+          <Select.Content>
+            <Select.Viewport>
+              <Select.Item value="0" className="text-light text-sm m-0">
+                <Select.ItemText>Wallet</Select.ItemText>
+              </Select.Item>
+              {devnets.map((devnet, i) => (
+                  <Select.Item key={i.toString() + devnet?.name} value={(i + 1).toString()}>
+                    <Select.ItemText>{devnet?.name}</Select.ItemText>
+                  </Select.Item>
+              ))}
+            </Select.Viewport>
+          </Select.Content>
+        </Select.Portal>
+      </Select.Root>
     </div>
   )
 }

@@ -1,5 +1,4 @@
 import React from 'react'
-import * as D from '../ui_components/Dropdown'
 import { networkExplorerUrls as EXPLORERS } from '../../utils/constants'
 
 import './index.css'
@@ -7,6 +6,7 @@ import { type IExplorerSelector, type IUseCurrentExplorer } from '../../utils/mi
 import { BsChevronDown } from 'react-icons/bs'
 import { useAtom } from 'jotai'
 import { currentExplorerAtom } from '../../atoms/explorer'
+import * as Select from '../ui_components/Select'
 
 const VOYAGER_LOGO = 'https://voyager.online/favicons/favicon-32x32.png'
 const STARKSCAN_LOGO = 'https://starkscan.co/img/company/favicon.ico'
@@ -43,43 +43,41 @@ const ExplorerSelector: React.FC<IExplorerSelector> = ({
         e.stopPropagation()
       }}
     >
-      <div className="selectors-wrapper p-1">
-        <D.Root>
-          <D.Trigger>
-            <div className="network-dropdown-trigger">
+      <div className="selectors-wrapper">
+        <Select.Root value={explorer} onValueChange={(value) => { setExplorer(value as any) }}>
+          <Select.Trigger className="network-dropdown-trigger">
+            <Select.Value>
               <div>{controlHook.explorer}</div>
+            </Select.Value>
+            <Select.Icon>
               <div className={'flex flex-row justify-between align-items-center'}>
                 <img
-                  className="img-explorer-logo"
-                  src={explorerToLogo(explorer)}
+                    className="img-explorer-logo"
+                    src={explorerToLogo(controlHook.explorer)}
                 />
                 <div className={'blank pl-1'}></div>
-                <BsChevronDown/>
+                <BsChevronDown />
               </div>
-            </div>
-          </D.Trigger>
-          <D.Portal>
-            <D.Content>
-              {Object.keys(EXPLORERS).map((v, i) => {
-                return (
-                  <D.Item
-                    className="styled-dropdown-item"
-                    key={i}
-                    onClick={() => {
-                      setExplorer(v as keyof typeof EXPLORERS)
-                    }}
-                  >
-                    <img
-                      className="img-explorer-logo"
-                      src={explorerToLogo(v as keyof typeof EXPLORERS)}
-                    />
-                    <p>{v}</p>
-                  </D.Item>
-                )
-              })}
-            </D.Content>
-          </D.Portal>
-        </D.Root>
+            </Select.Icon>
+          </Select.Trigger>
+          <Select.Portal>
+            <Select.Content>
+              <Select.Viewport>
+                {Object.keys(EXPLORERS).map((v, i) => (
+                    <Select.Item value={v} key={v} className="styled-dropdown-item">
+                      <Select.ItemText>
+                        <img
+                            className="img-explorer-logo"
+                            src={explorerToLogo(v as any)}
+                        />
+                        <p>{v}</p>
+                      </Select.ItemText>
+                    </Select.Item>
+                ))}
+              </Select.Viewport>
+            </Select.Content>
+          </Select.Portal>
+        </Select.Root>
       </div>
     </div>
   )

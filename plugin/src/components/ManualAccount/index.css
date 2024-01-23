@@ -14,10 +14,18 @@
 }
 
 .network-selection-wrapper {
-  width: 100%;
-  display: grid;
-  grid-template-columns: 90fr 2fr 10fr;
+  display: flex;
   align-items: center;
+}
+
+.selector-wrapper {
+  flex-grow: 1;
+  margin-right: 36px;
+}
+
+.add-account-btn {
+  height: 100%;
+  flex-shrink: 0;
 }
 
 .account-deploy {
@@ -68,12 +76,16 @@
   align-items: center;
 }
 
-.add-account-btn {
-  height: 100%;
-}
-
 .w-100-btn {
   width: calc(100% - 16px) !important;
+  font-size: 14px !important;
+  text-align: center !important;
+  justify-content: center !important;
+}
+
+
+.w-100-btn-x2 {
+  width: calc(100% - 32px) !important;
   font-size: 14px !important;
   text-align: center !important;
   justify-content: center !important;

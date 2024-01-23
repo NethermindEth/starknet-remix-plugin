@@ -50,7 +50,7 @@ const Environment: React.FC = () => {
                           <div className="flex flex-column">
                             <label className="">Environment selection</label>
                             <div className="flex_dot">
-                              <EnvironmentSelector />
+                              <div className={'env-selector-wrapper'}><EnvironmentSelector /></div>
                               <DevnetStatus />
                             </div>
                           </div>

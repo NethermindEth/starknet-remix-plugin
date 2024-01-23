@@ -14,10 +14,10 @@ import { availableDevnetAccountsAtom, devnetAtom, envAtom, isDevnetAliveAtom, se
 import useAccount from '../../hooks/useAccount'
 import useProvider from '../../hooks/useProvider'
 import useRemixClient from '../../hooks/useRemixClient'
-import * as D from '../../components/ui_components/Dropdown'
 import { BsCheck, BsChevronDown } from 'react-icons/bs'
 import { declTxHashAtom, deployTxHashAtom } from '../../atoms/deployment'
 import { invokeTxHashAtom } from '../../atoms/interaction'
+import * as Select from '../../components/ui_components/Select'
 
 const DevnetAccountSelector: React.FC = () => {
   const { account, setAccount } = useAccount()
@@ -188,53 +188,40 @@ const DevnetAccountSelector: React.FC = () => {
     setAccountIdx(0)
   }, [env])
 
-  const [dropdownControl, setDropdownControl] = useState(false)
-
   return (
     <div className='mt-2'>
       <label className="">Devnet account selection</label>
       <div className="devnet-account-selector-wrapper">
-        <D.Root open={dropdownControl} onOpenChange={(e) => { setDropdownControl(e) }}>
-          <D.Trigger >
-            <div className='flex flex-row justify-content-space-between align-items-center p-2 br-1 devnet-account-selector-trigger'>
-              <label className='text-light text-sm m-0'>{(availableDevnetAccounts !== undefined && availableDevnetAccounts.length !== 0 && (availableDevnetAccounts[accountIdx]?.address) !== undefined)
-                ? getShortenedHash(
-                  availableDevnetAccounts[accountIdx]?.address,
-                  6,
-                  4
-                )
-                : 'No accounts found'}</label>
-              <BsChevronDown style={{
-                transform: dropdownControl ? 'rotate(180deg)' : 'none',
-                transition: 'all 0.3s ease'
-              }} />            </div>
-          </D.Trigger>
-          <D.Portal>
-            <D.Content>
-              {isDevnetAlive && (availableDevnetAccounts !== undefined && availableDevnetAccounts.length > 0)
-                ? availableDevnetAccounts.map((account, index) => {
-                  return (
-                    <D.Item onClick={() => { handleAccountChange(index) }} key={index}>
-                      {accountIdx === index && <BsCheck size={18} />}
-                      {`${getShortenedHash(
-                        account.address ?? '',
-                        6,
-                        4
-                      )} (${getRoundedNumber(
-                        weiToEth((env === 'localKatanaDevnet') ? account.balance : account.initial_balance),
-                        2
-                      )} ether)`}
-                    </D.Item>
-                  )
-                })
-                : ([
-                  <D.Item onClick={() => { handleAccountChange(-1) }} key={-1}>
-                    No accounts found
-                  </D.Item>
-                  ] as JSX.Element[])}
-            </D.Content>
-          </D.Portal>
-        </D.Root>
+        <Select.Root value={accountIdx.toString()} onValueChange={(value: string) => { handleAccountChange(parseInt(value)) }}>
+          <Select.Trigger className="flex flex-row justify-content-space-between align-items-center p-2 br-1 devnet-account-selector-trigger">
+            <Select.Value placeholder="No accounts found">
+              {(availableDevnetAccounts !== undefined && availableDevnetAccounts.length !== 0 && availableDevnetAccounts[accountIdx]?.address !== undefined)
+                ? getShortenedHash(availableDevnetAccounts[accountIdx]?.address, 6, 4)
+                : 'No accounts found'}
+            </Select.Value>
+            <Select.Icon>
+              <BsChevronDown />
+            </Select.Icon>
+          </Select.Trigger>
+          <Select.Portal>
+            <Select.Content>
+              <Select.Viewport>
+                {isDevnetAlive && (availableDevnetAccounts !== undefined && availableDevnetAccounts.length > 0)
+                  ? availableDevnetAccounts.map((account, index) => (
+                        <Select.Item value={index.toString()} key={index}>
+                          <Select.ItemText>
+                            <div className={'flex flex-row justify-content-space-between align-items-center'}>
+                              <div>{`${getShortenedHash(account.address ?? '', 6, 4)} (${getRoundedNumber(weiToEth((env === 'localKatanaDevnet') ? account.balance : account.initial_balance), 2)} ether)`}</div>
+                              {accountIdx === index && <BsCheck size={18} />}
+                            </div>
+                          </Select.ItemText>
+                        </Select.Item>
+                  ))
+                  : <Select.Item value="-1" key={-1}>No accounts found</Select.Item>}
+              </Select.Viewport>
+            </Select.Content>
+          </Select.Portal>
+        </Select.Root>
         <div className="position-relative">
           <button
             className="btn"
