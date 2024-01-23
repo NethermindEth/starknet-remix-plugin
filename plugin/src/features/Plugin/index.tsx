@@ -20,7 +20,7 @@ import {
 } from '../../components/ExplorerSelector'
 import { useAtomValue, useSetAtom, useAtom } from 'jotai'
 import { isCompilingAtom, statusAtom } from '../../atoms/compilation'
-import { deploymentAtom } from '../../atoms/deployment'
+import { deploymentAtom, isDelcaringAtom } from '../../atoms/deployment'
 import { pluginLoaded as atomPluginLoaded } from '../../atoms/remixClient'
 import useRemixClient from '../../hooks/useRemixClient'
 import { fetchGitHubFilesRecursively } from '../../utils/initial_scarb_codes'
@@ -44,6 +44,10 @@ const Plugin: React.FC = () => {
     isDeploying,
     deployStatus
   } = useAtomValue(deploymentAtom)
+
+  const isDeclaring = useAtomValue(isDelcaringAtom)
+
+  const isDeclaringOrDeploying = isDeploying || isDeclaring
 
   // Interaction state variables
   const [interactionStatus, setInteractionStatus] = useState<'loading' | 'success' | 'error' | ''>('')
@@ -269,7 +273,7 @@ const Plugin: React.FC = () => {
                     <p style={{ all: 'unset' }}>Deploy</p>
                     <StateAction
                         value={
-                          isDeploying
+                          isDeclaringOrDeploying
                             ? 'loading'
                             : deployStatus === 'error'
                               ? 'error'
