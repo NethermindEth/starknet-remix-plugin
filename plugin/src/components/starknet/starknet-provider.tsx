@@ -1,5 +1,5 @@
 import React from 'react'
-import { goerli, mainnet } from '@starknet-react/chains'
+import { sepolia, goerli, mainnet } from '@starknet-react/chains'
 import {
   StarknetConfig,
   publicProvider,
@@ -23,7 +23,7 @@ export function StarknetProvider ({ children }: { children: React.ReactNode }): 
 
   return (
     <StarknetConfig
-      chains={[mainnet, goerli]}
+      chains={[mainnet, goerli, sepolia]}
       provider={publicProvider()}
       connectors={connectors}
     >

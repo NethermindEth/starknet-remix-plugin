@@ -14,6 +14,10 @@ const getProvider = (network: string): RpcProvider => {
       return new RpcProvider({
         nodeUrl: 'https://rpc.starknet-testnet.lava.build'
       })
+    case 'sepolia':
+      return new RpcProvider({
+        nodeUrl: 'https://free-rpc.nethermind.io/sepolia-juno'
+      })
     case devnetUrl:
       return new RpcProvider({
         // TODO: Let user chose port eventually.
