@@ -62,6 +62,11 @@
   align-items: center;
 }
 
+.env-selector-wrapper {
+  margin-right: 20px;
+  width: 100%;
+}
+
 .env-testnet-btn {
   border: 1px solid var(--warning) !important;
   font-size: var(--font-sm) !important;

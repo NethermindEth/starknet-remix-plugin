@@ -3,7 +3,7 @@ import copy from 'copy-to-clipboard'
 import './wallet.css'
 import { MdCopyAll } from 'react-icons/md'
 import { type Network } from '../../utils/constants'
-import ExplorerSelector, { useCurrentExplorer } from '../ExplorerSelector'
+import { useCurrentExplorer } from '../ExplorerSelector'
 import { getExplorerUrl, trimStr } from '../../utils/utils'
 import { useAccount, useProvider } from '@starknet-react/core'
 import ConnectModal from '../starknet/connect'
@@ -65,16 +65,6 @@ const Wallet: React.FC = () => {
                 {' '}
                 {getChainName(chainId?.toString() ?? '')}
               </p>
-            </div>
-            <div className="account-network-wrapper">
-              <ExplorerSelector
-                path={`/contract/${(account?.address as string) ?? ''}`}
-                title={account?.address}
-                text="View"
-                isInline
-                isTextVisible={false}
-                controlHook={explorerHook}
-              />
             </div>
           </div>
           <div className="wallet-account-wrapper">

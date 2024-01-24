@@ -31,8 +31,8 @@ import { getProvider } from '../../utils/misc'
 import { declTxHashAtom, deployTxHashAtom } from '../../atoms/deployment'
 import { invokeTxHashAtom } from '../../atoms/interaction'
 
-import * as D from '../ui_components/Dropdown'
 import { BsChevronDown } from 'react-icons/bs'
+import * as Select from '../ui_components/Select'
 
 const ManualAccount: React.FC = () => {
   const OZaccountClassHash =
@@ -291,52 +291,54 @@ const ManualAccount: React.FC = () => {
   }
 
   const [balanceRefreshing, setBalanceRefreshing] = useState(false)
-  const [dropdownControl, setDropdownControl] = useState(false)
-  const [providerDropdownOpen, setProviderDropdownOpen] = useState(false)
 
   const explorerHook = useCurrentExplorer()
 
   return (
     <div className="manual-root-wrapper">
       <div className="network-selection-wrapper">
-        <D.Root open={dropdownControl} onOpenChange={setDropdownControl}>
-          <D.Trigger>
-            <div className="flex flex-row justify-content-space-between align-items-center p-2 br-1 devnet-trigger-wrapper">
-              <label className='text-light text-sm m-0'>
-                {(selectedAccount != null) ? trimStr(selectedAccount.address, 6) : 'Select Account'}
-              </label>
-              <BsChevronDown style={{
-                transform: dropdownControl ? 'rotate(180deg)' : 'none',
-                transition: 'all 0.3s ease'
-              }} />
-            </div>
-          </D.Trigger>
-          <D.Portal>
-            <D.Content>
-              {accounts.length > 0
-                ? (
-                    accounts.map((account, index) => (
-                      <D.Item
-                          key={index}
-                          onClick={() => { handleAccountChange(index) }}
-                      >
-                        {trimStr(account.address, 6)}
-                      </D.Item>
-                    ))
-                  )
-                : (
-                  <D.Item
-                      key={'no-account'}
-                      disabled
-                  >
-                    No account created yet
-                  </D.Item>
-                  )}
-            </D.Content>
-          </D.Portal>
-        </D.Root>
+        <div className={'selector-wrapper'}>
+          <Select.Root value={(selectedAccount != null) ? selectedAccount.address : ''} onValueChange={(value: string) => { handleAccountChange(accounts.findIndex(acc => acc.address === value)) }}>
+          <div>
+            <Select.Trigger>
+              <div className="flex flex-row justify-content-space-between align-items-center p-0">
+                <Select.Value placeholder='Select Account' >
+                  {(selectedAccount != null) ? trimStr(selectedAccount.address, 6) : 'Select Account'}
+                </Select.Value>
+                <Select.Icon>
+                  <div><BsChevronDown/></div>
+                </Select.Icon>
+              </div>
+            </Select.Trigger>
+          </div>
+          <Select.Portal>
+            <Select.Content>
+              <Select.Viewport>
+                {accounts.length > 0
+                  ? (
+                      accounts.map((account, index) => (
+                        <Select.Item value={account.address} key={account.address}>
+                          <Select.ItemText>
+                            {trimStr(account.address, 6)}
+                          </Select.ItemText>
+                        </Select.Item>
+                      ))
+                    )
+                  : (
+                    <Select.Item value="" key="no-account" disabled>
+                      <Select.ItemText>
+                        No account created yet
+                      </Select.ItemText>
+                    </Select.Item>
+                    )}
+              </Select.Viewport>
+            </Select.Content>
+          </Select.Portal>
+        </Select.Root>
+        </div>
 
-        <div></div>
+        {/* <div></div> */}
+
         <button
           className="btn btn-secondary add-account-btn"
           onClick={(e) => {
@@ -428,29 +430,31 @@ const ManualAccount: React.FC = () => {
         </button>
       )}
 
-      <D.Root open={providerDropdownOpen} onOpenChange={setProviderDropdownOpen}>
-        <D.Trigger>
-          <div className="flex flex-row justify-content-space-between align-items-center p-2 br-1 devnet-trigger-wrapper">
-            <label className='text-light text-sm m-0'>{networkName}</label>
-            <BsChevronDown style={{
-              transform: providerDropdownOpen ? 'rotate(180deg)' : 'none',
-              transition: 'all 0.3s ease'
-            }} />
-          </div>
-        </D.Trigger>
-        <D.Portal>
-          <D.Content>
-            {networkConstants.map((network) => (
-                <D.Item
-                    key={network.name + '$' + network.value}
-                    onClick={() => { handleProviderChange(network.value) }}
-                >
-                  {network.value}
-                </D.Item>
-            ))}
-          </D.Content>
-        </D.Portal>
-      </D.Root>
+      <Select.Root value={networkName} onValueChange={(value: string) => { handleProviderChange(value) }}>
+        <div className={'w-100-btn-x2'}>
+          <Select.Trigger>
+            <div className="flex flex-row justify-content-space-between align-items-center">
+              <Select.Value>{networkName}</Select.Value>
+              <Select.Icon>
+                <BsChevronDown/>
+              </Select.Icon>
+            </div>
+          </Select.Trigger>
+        </div>
+        <Select.Portal>
+          <Select.Content>
+            <Select.Viewport>
+              {networkConstants.map((network) => (
+                  <Select.Item value={network.value} key={network.name + '$' + network.value}>
+                    <Select.ItemText>
+                      {network.value}
+                    </Select.ItemText>
+                  </Select.Item>
+              ))}
+            </Select.Viewport>
+          </Select.Content>
+        </Select.Portal>
+      </Select.Root>
 
       <button
         className="btn btn-primary btn-block d-block w-100-btn text-break remixui_disabled rounded"

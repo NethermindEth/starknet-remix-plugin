@@ -1,10 +1,10 @@
 import React from 'react'
 import './settings.css'
-import * as D from '../ui_components/Dropdown'
 import { BsChevronDown } from 'react-icons/bs'
 import { useAtom, useAtomValue } from 'jotai'
 import { cairoVersionAtom, versionsAtom } from '../../atoms/cairoVersion'
 import ExplorerSelector, { useCurrentExplorer } from '../ExplorerSelector'
+import * as Select from '../ui_components/Select'
 
 export const Settings: React.FC = () => {
   const [cairoVersion, setCairoVersion] = useAtom(cairoVersionAtom)
@@ -18,28 +18,29 @@ export const Settings: React.FC = () => {
           <div className={'settings-box-header'}>Cairo Version</div>
           <div className={'blank'}></div>
           <div className={'settings-box-content'}>
-            <D.Root>
-              <D.Trigger>
-                <label className="flex flex-row justify-content-space-between align-items-center p-2 m-0 devnet-trigger-wrapper w-100">
-                  Using Cairo {cairoVersion} <BsChevronDown/>
-                </label>
-              </D.Trigger>
-              <D.Portal>
-                <D.Content>
-                  {getVersions.map((v, i) => (
-                      <D.Item
-                          key={i}
-                          onClick={() => {
-                            setCairoVersion(v)
-                          }}
-
-                      >
-                        {v}
-                      </D.Item>
-                  ))}
-                </D.Content>
-              </D.Portal>
-            </D.Root>
+            <Select.Root value={cairoVersion} onValueChange={setCairoVersion}>
+              <Select.Trigger className="flex flex-row justify-between align-items-center devnet-trigger-wrapper w-100">
+                <Select.Value>
+                  <div className="flex flex-column align-items-center m-0">
+                    <p>{cairoVersion}</p>
+                  </div>
+                </Select.Value>
+                <Select.Icon>
+                  <BsChevronDown />
+                </Select.Icon>
+              </Select.Trigger>
+              <Select.Portal>
+                <Select.Content>
+                  <Select.Viewport>
+                    {getVersions.map((v, i) => (
+                        <Select.Item value={v} key={v}>
+                          <Select.ItemText>{v}</Select.ItemText>
+                        </Select.Item>
+                    ))}
+                  </Select.Viewport>
+                </Select.Content>
+              </Select.Portal>
+            </Select.Root>
           </div>
         </div>
 

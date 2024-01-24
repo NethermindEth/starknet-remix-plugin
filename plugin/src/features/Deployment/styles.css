@@ -31,11 +31,6 @@
   cursor: pointer;
 }
 
-/* .constructor-label {
+.select-trigger-deployment {
+  width: calc(100% - 32px);
 }
-
-.constructor-label-wrapper {
-}
-
-.constructor-input {
-} */

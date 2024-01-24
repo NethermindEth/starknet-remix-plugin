@@ -80,7 +80,7 @@ const CompilationCard: React.FC<{
           <img src={useIcon('compile-icon.svg')} alt={'compile-icon'} />
         </div>
         <span>
-          <p>Go into your file explorer and select a valid cairo file to compile</p>
+          <p className={'text-no-break'}>Go into your file explorer and select a valid cairo file to compile</p>
         </span>
       </div>
       {activeTomlPath !== undefined && tomlPaths?.length > 0 && (

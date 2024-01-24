@@ -1,0 +1,66 @@
+/* Reset styles for button */
+button {
+    all: unset;
+    cursor: pointer;
+}
+
+/* Style the select trigger */
+.SelectTrigger {
+    padding: 10px 15px;
+    border-radius: 4px;
+    outline: none;
+    width: 100%;
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--text);
+    background-color: var(--bgPrimary);
+    border: 1px solid var(--secondary);
+}
+
+.SelectTrigger:focus {
+    box-shadow: 0 0 0 2px black;
+}
+
+/* Style the select content (dropdown box) */
+.SelectContent {
+    z-index: 1000;
+    padding: 5px;
+    border: 1px solid var(--light);
+    border-radius: 6px;
+    will-change: transform, opacity;
+    background-color: var(--bgPrimary);
+    overflow: auto;
+    animation: fadeInScaleUp 0.3s ease-out;
+}
+
+/* Style individual select items */
+.SelectItem {
+    padding: 8px 15px;
+    font-size: 13px;
+    line-height: 1;
+    color: var(--text);
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    position: relative;
+    user-select: none;
+    outline: none;
+    background: var(--bgPrimary);
+}
+
+.SelectItem:hover,
+.SelectItem[data-highlighted] {
+    border: 1px solid var(--secondary);
+}
+
+/* Keyframe animations */
+@keyframes fadeInScaleUp {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
