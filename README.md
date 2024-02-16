@@ -149,6 +149,7 @@ pnpm run serve;
 
 ```bash
 cd api;
+export VITE_URL=http://localhost:3000
 cargo run;
 ```
 
