@@ -350,7 +350,8 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
       for (let i = 0; i < allFilesKeys.length; i++) {
         if (allFilesKeys[i].endsWith('Scarb.toml')) {
-          resTomlPaths.push(currPath)
+          if (currPath !== '') resTomlPaths.push(currPath)
+          else resTomlPaths.push(workspacePath)
         }
 
         if (Object.values(allFilesValues[i])[0] as unknown as boolean) {
