@@ -37,10 +37,19 @@ export class RemixClient extends PluginClient {
         if (file !== null) {
           let fileContent = file.content
           if (file.fileName === 'Scarb.toml') {
-            fileContent = fileContent.concat('\ncasm = true')
+            fileContent = fileContent.concat('\ncasm = true\n')
           }
           await this.call('fileManager', 'setFile', `${file.path}/${file.fileName}`, fileContent)
         }
+      }
+      // write Scarb.toml at root level
+      try {
+        const endpoint = `https://raw.githubusercontent.com/${url}/main/Scarb.toml`
+        const response = await axios.get(endpoint)
+        const fileContent = response.data.concat('\ncasm = true\n')
+        await this.call('fileManager', 'setFile', 'Scarb.toml', fileContent)
+      } catch (error) {
+        console.error('Error writing Scarb.toml:', error)
       }
     } catch (error) {
       console.error('Error loading folder from GitHub:', error)
