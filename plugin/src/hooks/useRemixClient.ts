@@ -10,6 +10,10 @@ export class RemixClient extends PluginClient {
   loadFolderFromUrl (url: string, filePath: string | undefined): void {
     console.log('loadFolderFromUrl', url, filePath)
   }
+
+  loadFolderFromGithub (url: string, filePath: string | undefined): void {
+    console.log('loadFolderFromGithub', url, filePath)
+  }
 }
 const remixClient = createClient(new RemixClient())
 
