@@ -6,24 +6,19 @@ import axios from 'axios'
 export class RemixClient extends PluginClient {
   constructor () {
     super()
-    this.methods = ['loadFolderFromUrl']
+    this.methods = ['loadFolderFromUrl', 'loadFolderFromGithub']
   }
 
-  async loadFolderFromUrl (url: string, filePath: string | undefined): Promise<void> {
+  async loadFolderFromUrl (url: string): Promise<void> {
     try {
       await this.call('filePanel', 'createWorkspace', 'code-sample', false)
       // Fetch JSON data from the URL
       const response = await axios.get(url)
       const folderContent = response.data
 
-      // Check if filePath is provided, if not, set it to an empty string
-      filePath = filePath ?? ''
-
       // Iterate over each file in the folderContent
-      for (const [fileName, fileContent] of Object.entries(folderContent)) {
-        // Construct the full file path
-        const fullFilePath = `${filePath}/${fileName}`
-        await this.call('fileManager', 'setFile', fullFilePath, fileContent as string)
+      for (const [filePath, fileContent] of Object.entries(folderContent)) {
+        await this.call('fileManager', 'setFile', filePath, fileContent as string)
       }
 
       console.log('Folder loaded successfully.')
@@ -32,8 +27,8 @@ export class RemixClient extends PluginClient {
     }
   }
 
-  async loadFolderFromGithub (url: string, folderPath: string, filePath: string | undefined): Promise<void> {
-    console.log('loadFolderFromGithub', url, folderPath, filePath)
+  async loadFolderFromGithub (url: string, folderPath: string): Promise<void> {
+    console.log('loadFolderFromGithub', url, folderPath)
     try {
       await this.call('filePanel', 'createWorkspace', 'code-sample', false)
       const folder = await fetchGitHubFilesRecursively(url, folderPath)
@@ -42,9 +37,6 @@ export class RemixClient extends PluginClient {
         if (file !== null) {
           await this.call('fileManager', 'setFile', file.path, file.content)
         }
-      }
-      if (filePath !== undefined) {
-        await this.call('fileManager', 'switchFile', filePath)
       }
     } catch (error) {
       console.error('Error loading folder from GitHub:', error)
