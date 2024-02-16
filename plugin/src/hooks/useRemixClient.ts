@@ -35,7 +35,11 @@ export class RemixClient extends PluginClient {
       console.log('folder', folder)
       for (const file of folder) {
         if (file !== null) {
-          await this.call('fileManager', 'setFile', file.path, file.content)
+          let fileContent = file.content
+          if (file.fileName === 'Scarb.toml') {
+            fileContent = fileContent.concat('\ncasm = true')
+          }
+          await this.call('fileManager', 'setFile', `${file.path}/${file.fileName}`, fileContent)
         }
       }
     } catch (error) {
