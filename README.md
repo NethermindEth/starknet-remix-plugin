@@ -131,13 +131,18 @@ pnpm install;
 You need to be running both the server and the plugin in order to have a working environment.
 
 For your dev environment:
+
 ```bash
 cd plugin;
+export API_SERVICE_URL=http://localhost:8000
+export STARKNET_DEVNET_URL=http://localhost:5050
 pnpm run start;
 ```
 
 For an optimized build (will not listen to changes):
-```
+```bash
+export API_SERVICE_URL=http://localhost:8000
+export STARKNET_DEVNET_URL=http://localhost:5050
 pnpm run deploy;
 pnpm run serve;
 ```
@@ -150,6 +155,7 @@ cargo run;
 or alternatively, you can run the server in watch mode (with `cargo watch`):
 
 ```bash
+export VITE_URL=http://localhost:3000
 cargo install cargo-watch;
 cargo watch -x run;
 ```
