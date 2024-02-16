@@ -138,7 +138,21 @@ pub async fn do_compile_to_sierra(
         .wait_with_output()
         .map_err(ApiError::FailedToReadOutput)?;
 
-    // Process the output messages
+    let remix_file_path_without_hash = remix_file_path
+        .split('/')
+        .collect::<Vec<&str>>()
+        .split_first()
+        .ok_or(ApiError::FailedToParseString)?
+        .1
+        .join("/");
+
+    let sierra_remix_path_without_hash = sierra_remix_path
+        .split('/')
+        .collect::<Vec<&str>>()
+        .split_first()
+        .ok_or(ApiError::FailedToParseString)?
+        .1
+        .join("/");
 
     let message = String::from_utf8(output.stderr)
         .map_err(ApiError::UTF8Error)?
@@ -147,14 +161,14 @@ pub async fn do_compile_to_sierra(
                 .to_str()
                 .ok_or(ApiError::FailedToParseString)?
                 .to_string(),
-            &remix_file_path,
+            &remix_file_path_without_hash,
         )
         .replace(
             &sierra_path
                 .to_str()
                 .ok_or(ApiError::FailedToParseString)?
                 .to_string(),
-            &sierra_remix_path,
+            &sierra_remix_path_without_hash,
         );
 
     let status = match output.status.code() {
