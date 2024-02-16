@@ -5,10 +5,12 @@ on:
       - develop
     paths:
       - 'api/**'
+      - '.github/workflows/api-deploy.yml'
+      - 'DockerfileRocket'
 
 permissions:
-      id-token: write
-      contents: read
+  id-token: write
+  contents: read
 
 env:
   REGISTRY: "599564732950.dkr.ecr.us-east-2.amazonaws.com"
@@ -63,34 +65,34 @@ jobs:
           aws-region: us-east-2
           role-to-assume: arn:aws:iam::599564732950:role/Aws-GH-Action-Assume-Role-Starknet
           # role-session-name: GHStarknet
-    
+
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
         with:
           mask-password: 'true'
 
-#      - name: Update local Rust toolchains
-#        run: |
-#          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain stable -y
-#          rustup update
-#          rustup component add clippy
-#          rustup install nightly        
-#          sudo apt install musl-tools
-#          rustup target add x86_64-unknown-linux-musl
-          
+          #      - name: Update local Rust toolchains
+          #        run: |
+          #          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain stable -y
+          #          rustup update
+          #          rustup component add clippy
+          #          rustup install nightly
+          #          sudo apt install musl-tools
+          #          rustup target add x86_64-unknown-linux-musl
 
-#      - name: Toolchains info
-#        run: |
-#          cargo --version --verbose
-#          rustc --version
-#          cargo clippy --version          
 
-#      - name: Build
-#        run: |
-#          cd api
-#          cargo build --target=x86_64-unknown-linux-musl          
-#          ls ./target/debug/ -al
+      #      - name: Toolchains info
+      #        run: |
+      #          cargo --version --verbose
+      #          rustc --version
+      #          cargo clippy --version
+
+      #      - name: Build
+      #        run: |
+      #          cd api
+      #          cargo build --target=x86_64-unknown-linux-musl
+      #          ls ./target/debug/ -al
 
       - name: Build, tag, and push docker image to Amazon ECR
         env:
@@ -108,7 +110,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: Build
     steps:
-    
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
