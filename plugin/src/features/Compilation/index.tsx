@@ -851,8 +851,6 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
       const contractsToStore: Contract[] = []
 
-      console.log(scarbCompile.file_content_map_array)
-
       for (const file of scarbCompile.file_content_map_array) {
         if (file.file_name?.endsWith('.contract_class.json')) {
           const contractName: string = file.file_name.replace(
@@ -887,7 +885,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         }
       }
 
-      if (contractsToStore.length > 1) {
+      if (contractsToStore.length >= 1) {
         setSelectedContract(contractsToStore[0])
         setContracts([...contractsToStore, ...contracts])
       } else {
