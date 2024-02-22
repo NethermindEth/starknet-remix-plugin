@@ -50,7 +50,20 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     selectedCompiledContract
   )
 
-  const { isDeclaring, isDeploying, declStatus, notEnoughInputs, declTxHash, deployTxHash } = useAtomValue(deploymentAtom)
+  useEffect(() => {
+    if (contracts.length > 0) {
+      setSelectedContract(contracts[0])
+    }
+  }, [contracts])
+
+  const {
+    isDeclaring,
+    isDeploying,
+    declStatus,
+    notEnoughInputs,
+    declTxHash,
+    deployTxHash
+  } = useAtomValue(deploymentAtom)
 
   const setIsDeploying = useSetAtom(isDeployingAtom)
   const setDeployStatus = useSetAtom(deployStatusAtom)
