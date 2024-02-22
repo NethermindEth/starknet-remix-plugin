@@ -338,7 +338,6 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
     currPath: string
   ): Promise<string[]> {
     const resTomlPaths: string[] = []
-
     try {
       const allFiles = await remixClient.fileManager.readdir(
         workspacePath + '/' + currPath
@@ -351,7 +350,8 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       for (let i = 0; i < allFilesKeys.length; i++) {
         if (allFilesKeys[i].endsWith('Scarb.toml')) {
           if (currPath !== '') resTomlPaths.push(currPath)
-          else resTomlPaths.push(workspacePath)
+          else if (workspacePath !== '') resTomlPaths.push(workspacePath ?? 'Scarb.toml')
+          else resTomlPaths.push(allFilesKeys[i])
         }
 
         if (Object.values(allFilesValues[i])[0] as unknown as boolean) {
@@ -388,10 +388,9 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       try {
         if (currWorkspacePath === '') return
         const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
-
         setTomlPaths(allTomlPaths)
         if (activeTomlPath === '' || activeTomlPath === undefined) {
-          setActiveTomlPath(tomlPaths[0])
+          setActiveTomlPath(allTomlPaths[0])
         }
       } catch (e) {
         console.log('error: ', e)
@@ -408,14 +407,31 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     setTimeout(async () => {
+      remixClient.on('fileManager', 'fileSaved', (_: any) => {
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        setTimeout(async () => {
+          // get current workspace path
+          try {
+            if (currWorkspacePath !== '') {
+              const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
+              setTomlPaths(allTomlPaths)
+            }
+          } catch (e) {
+            console.log('error: ', e)
+          }
+        }, 100)
+      })
+
       remixClient.on('fileManager', 'fileAdded', (_: any) => {
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
         setTimeout(async () => {
           // get current workspace path
           try {
-            const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
+            if (currWorkspacePath !== '') {
+              const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
 
-            setTomlPaths(allTomlPaths)
+              setTomlPaths(allTomlPaths)
+            }
           } catch (e) {
             console.log('error: ', e)
           }
@@ -426,9 +442,11 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         setTimeout(async () => {
           // get current workspace path
           try {
-            const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
+            if (currWorkspacePath !== '') {
+              const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
 
-            setTomlPaths(allTomlPaths)
+              setTomlPaths(allTomlPaths)
+            }
           } catch (e) {
             console.log('error: ', e)
           }
@@ -439,9 +457,11 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         setTimeout(async () => {
           // get current workspace path
           try {
-            const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
+            if (currWorkspacePath !== '') {
+              const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
 
-            setTomlPaths(allTomlPaths)
+              setTomlPaths(allTomlPaths)
+            }
           } catch (e) {
             console.log('error: ', e)
           }
@@ -452,9 +472,11 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         setTimeout(async () => {
           // get current workspace path
           try {
-            const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
+            if (currWorkspacePath !== '') {
+              const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
 
-            setTomlPaths(allTomlPaths)
+              setTomlPaths(allTomlPaths)
+            }
           } catch (e) {
             console.log('error: ', e)
           }
@@ -465,9 +487,11 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
         setTimeout(async () => {
           // get current workspace path
           try {
-            const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
+            if (currWorkspacePath !== '') {
+              const allTomlPaths = await getTomlPaths(currWorkspacePath, '')
 
-            setTomlPaths(allTomlPaths)
+              setTomlPaths(allTomlPaths)
+            }
           } catch (e) {
             console.log('error: ', e)
           }
