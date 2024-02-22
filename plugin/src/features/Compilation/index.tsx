@@ -114,7 +114,7 @@ const CompilationCard: React.FC<{
                   className="text-break text-white"
                   style={{ fontFamily: 'inherit', fontSize: 'inherit' }}
                 >
-                  {activeTomlPath}
+                  {activeTomlPath !== '' ? activeTomlPath : currentWorkspacePath}
                 </label>
                 <BsChevronDown className={'ml-1'} />
                 </span>
@@ -130,7 +130,7 @@ const CompilationCard: React.FC<{
                         setActiveTomlPath(tomlPath)
                       }}
                     >
-                      {tomlPath}
+                      {tomlPath !== '' ? tomlPath : currentWorkspacePath}
                     </D.Item>
                   )
                 })}
@@ -349,9 +349,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
       for (let i = 0; i < allFilesKeys.length; i++) {
         if (allFilesKeys[i].endsWith('Scarb.toml')) {
-          if (currPath !== '') resTomlPaths.push(currPath)
-          else if (workspacePath !== '') resTomlPaths.push(workspacePath ?? 'Scarb.toml')
-          else resTomlPaths.push(allFilesKeys[i])
+          resTomlPaths.push(currPath)
         }
 
         if (Object.values(allFilesValues[i])[0] as unknown as boolean) {
