@@ -462,13 +462,22 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     address: string
   ): void => {
     if (account == null) return
+    const deployedInfoMap = new Map<string, boolean>()
     const deployedContract = {
       ...currentContract,
       address,
       deployedInfo: [
         ...currentContract.deployedInfo,
         { address: account.address, chainId }
-      ]
+      ].flatMap(deployment => {
+        const key = `${deployment.address}-${deployment.chainId}`
+        if (deployedInfoMap.has(key)) {
+          return []
+        } else {
+          deployedInfoMap.set(key, true)
+          return [deployment]
+        }
+      })
     }
     const updatedContracts = contracts.map((contract) => {
       if (contract.classHash === deployedContract.classHash) {
