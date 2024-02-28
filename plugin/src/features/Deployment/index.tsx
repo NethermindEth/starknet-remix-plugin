@@ -565,7 +565,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
                   </div>
                 </div>
               </button>
-            <ConstructorForm key = {selectedContract.compiledClassHash + selectedContract.sierraClassHash} abi={selectedContract.abi} callBackFn={handleDeploySubmit} />
+            <ConstructorForm abi={selectedContract.abi} callBackFn={handleDeploySubmit} />
             {account != null &&
               selectedContract.deployedInfo.some(
                 (info) =>

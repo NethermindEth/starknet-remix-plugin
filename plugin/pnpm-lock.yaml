@@ -93,8 +93,8 @@ dependencies:
     specifier: 5.26.1
     version: 5.26.1
   starknet-abi-forms:
-    specifier: ^0.1.5
-    version: 0.1.5(react-dom@18.2.0)(react@18.2.0)
+    specifier: ^0.1.6
+    version: 0.1.6(react-dom@18.2.0)(react@18.2.0)
   vite-plugin-svgr:
     specifier: ^4.2.0
     version: 4.2.0(typescript@4.9.5)(vite@4.5.1)
@@ -6205,8 +6205,8 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: false
 
-  /starknet-abi-forms@0.1.5(react-dom@18.2.0)(react@18.2.0):
-    resolution: {integrity: sha512-WPNu7So30ocvhbnat/PVPq/4e3pygLUhLz7ir7bFjLV6/LZVdAN+hQ4AiUnArgQBxBR/751XQsLbvKaFgL1z8A==}
+  /starknet-abi-forms@0.1.6(react-dom@18.2.0)(react@18.2.0):
+    resolution: {integrity: sha512-JdupNWKXD+K4cpMWD4n9INlIi39WgPaCRlB6zTHQ65wwpfuU0mrpnIWt+emoDdO6PL1T4C/D/I0b72WolyNDxw==}
     engines: {node: '>=14.0.0'}
     peerDependencies:
       react: '>=17'
