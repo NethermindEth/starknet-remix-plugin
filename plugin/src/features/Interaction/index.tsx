@@ -31,7 +31,15 @@ interface InteractionProps {
 
 const Interaction: React.FC<InteractionProps> = (props) => {
   const contracts = useAtomValue(compiledContractsAtom)
-  const selectedContract = useAtomValue(selectedCompiledContract)
+  const [selectedContract, setSelectedContract] = useAtom(
+    selectedCompiledContract
+  )
+
+  useEffect(() => {
+    if (contracts.length > 0) {
+      setSelectedContract(contracts[0])
+    }
+  }, [contracts])
 
   const { account } = useAccount()
   const { provider } = useProvider()
@@ -116,10 +124,8 @@ const Interaction: React.FC<InteractionProps> = (props) => {
 
   // boolean check if the selected contract is deployed on the
   // current chain using the current account
-  const isAccountAndContractValid =
-    isContractSelected &&
-    account != null
-
+  const isContractValid = isContractSelected
+  const isAccountConnected = account !== null
   const handleCallBack = async (res: CallbackReturnType): Promise<void> => {
     // Set remix icon status to loading while interacting with the contract
     remixClient.emit('statusChanged', {
@@ -323,7 +329,7 @@ const Interaction: React.FC<InteractionProps> = (props) => {
         </div>
       )}
 
-      {isContractSelected && isAccountAndContractValid ? (
+      {isContractSelected && isContractValid ? (
         <ABIForm
           key={selectedContract?.compiledClassHash + selectedContract?.address}
           abi={selectedContract?.abi}
@@ -331,8 +337,15 @@ const Interaction: React.FC<InteractionProps> = (props) => {
           callBackFn={handleCallBack}
         />
       ) : (
-        <p className={'mt-3 text-center font-bold'}> Selected contract is not deployed yet... </p>
+        <p className={'mt-3 text-center font-bold'}>
+          Selected contract is not deployed yet...
+        </p>
       )}
+      {!isAccountConnected ? (
+        <p className={'mt-3 text-center font-bold'}>
+          You did not connect any account to interact with the contracts.
+        </p>
+      ) : null}
     </Container>
   )
 }

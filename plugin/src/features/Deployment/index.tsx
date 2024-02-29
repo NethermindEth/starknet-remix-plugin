@@ -50,7 +50,20 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     selectedCompiledContract
   )
 
-  const { isDeclaring, isDeploying, declStatus, notEnoughInputs, declTxHash, deployTxHash } = useAtomValue(deploymentAtom)
+  useEffect(() => {
+    if (contracts.length > 0) {
+      setSelectedContract(contracts[0])
+    }
+  }, [contracts])
+
+  const {
+    isDeclaring,
+    isDeploying,
+    declStatus,
+    notEnoughInputs,
+    declTxHash,
+    deployTxHash
+  } = useAtomValue(deploymentAtom)
 
   const setIsDeploying = useSetAtom(isDeployingAtom)
   const setDeployStatus = useSetAtom(deployStatusAtom)
@@ -449,13 +462,22 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     address: string
   ): void => {
     if (account == null) return
+    const deployedInfoMap = new Map<string, boolean>()
     const deployedContract = {
       ...currentContract,
       address,
       deployedInfo: [
         ...currentContract.deployedInfo,
         { address: account.address, chainId }
-      ]
+      ].flatMap(deployment => {
+        const key = `${deployment.address}-${deployment.chainId}`
+        if (deployedInfoMap.has(key)) {
+          return []
+        } else {
+          deployedInfoMap.set(key, true)
+          return [deployment]
+        }
+      })
     }
     const updatedContracts = contracts.map((contract) => {
       if (contract.classHash === deployedContract.classHash) {
@@ -543,7 +565,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
                   </div>
                 </div>
               </button>
-            <ConstructorForm key = {selectedContract.compiledClassHash + selectedContract.sierraClassHash} abi={selectedContract.abi} callBackFn={handleDeploySubmit} />
+            <ConstructorForm abi={selectedContract.abi} callBackFn={handleDeploySubmit} />
             {account != null &&
               selectedContract.deployedInfo.some(
                 (info) =>
