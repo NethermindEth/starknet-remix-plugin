@@ -247,7 +247,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
             contract: selectedContract.sierra,
             classHash: selectedContract.classHash,
             compiledClassHash: selectedContract.compiledClassHash
-          })
+          }, { maxFee: 1e18 })
           await remixClient.call('terminal', 'log', {
             value: JSON.stringify(declareResponse, null, 2),
             type: 'info'
@@ -347,7 +347,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       const deployResponse = await account.deploy({
         classHash: classHash ?? selectedContract.classHash,
         constructorCalldata: calldata
-      })
+      }, { maxFee: 1e18 })
 
       await remixClient.call('terminal', 'log', {
         value: JSON.stringify(deployResponse, null, 2),
