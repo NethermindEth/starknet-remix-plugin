@@ -127,7 +127,7 @@ const ManualAccount: React.FC = () => {
         calldata: [account.address]
       })
       console.log(resp)
-      const balance = resp.result[0]
+      const balance = resp[0]
       const newAccount = { ...selectedAccount, balance }
       const newAccounts = accounts.map((acc) => {
         if (acc.address === selectedAccount.address) {
