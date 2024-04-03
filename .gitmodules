@@ -2,18 +2,15 @@
 	path = api/cairo
 	url = https://github.com/starkware-libs/cairo.git
 
-[submodule "api/cairo_compilers/v2.5.0"]
-	path = api/cairo_compilers/v2.5.0
+[submodule "api/cairo_compilers/v2.6.0"]
+	path = api/cairo_compilers/v2.6.0
 	url = https://github.com/starkware-libs/cairo
-[submodule "api/cairo_compilers/v2.5.1"]
-	path = api/cairo_compilers/v2.5.1
+[submodule "api/cairo_compilers/v2.6.1"]
+	path = api/cairo_compilers/v2.6.1
 	url = https://github.com/starkware-libs/cairo
-[submodule "api/cairo_compilers/v2.5.2"]
-	path = api/cairo_compilers/v2.5.2
+[submodule "api/cairo_compilers/v2.6.2"]
+	path = api/cairo_compilers/v2.6.2
 	url = https://github.com/starkware-libs/cairo
-[submodule "api/cairo_compilers/v2.5.3"]
-	path = api/cairo_compilers/v2.5.3
-	url = https://github.com/starkware-libs/cairo
-[submodule "api/cairo_compilers/v2.5.4"]
-	path = api/cairo_compilers/v2.5.4
+[submodule "api/cairo_compilers/v2.6.3"]
+	path = api/cairo_compilers/v2.6.3
 	url = https://github.com/starkware-libs/cairo
