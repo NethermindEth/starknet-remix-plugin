@@ -325,7 +325,7 @@ const ManualAccount: React.FC = () => {
                       ))
                     )
                   : (
-                    <Select.Item value="" key="no-account" disabled>
+                    <Select.Item value="no-account" key="no-account" disabled>
                       <Select.ItemText>
                         No account created yet
                       </Select.ItemText>

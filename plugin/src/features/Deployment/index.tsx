@@ -311,7 +311,8 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
           })
           throw new Error(
             error.message +
-              "\n Aborting deployment... Couldn't get declare infomation"
+              "\n Aborting deployment... Couldn't get declare infomation" +
+              '\n Please ensure that the Account is deployed on the chain'
           )
         }
       }
