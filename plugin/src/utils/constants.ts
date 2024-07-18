@@ -67,6 +67,8 @@ const licenses = [
   'Business Source License (BSL 1.1)'
 ]
 
+export const SCARB_VERSION_REF = 'c4c7c0bac3a30c23a4e2f1db145b967371b0e3c2'
+
 export {
   devnetUrl,
   networks,

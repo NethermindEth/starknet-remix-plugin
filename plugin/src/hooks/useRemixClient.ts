@@ -1,6 +1,7 @@
 import { PluginClient } from '@remixproject/plugin'
 import { createClient } from '@remixproject/plugin-webview'
 import { fetchGitHubFilesRecursively } from '../utils/initial_scarb_codes'
+import { SCARB_VERSION_REF } from '../utils/constants'
 import axios from 'axios'
 
 export class RemixClient extends PluginClient {
@@ -80,7 +81,8 @@ remixClient.onload().then(async () => {
     }
     const exampleRepo = await fetchGitHubFilesRecursively(
       'software-mansion/scarb',
-      'examples/starknet_multiple_contracts'
+      'examples/starknet_multiple_contracts',
+      SCARB_VERSION_REF
     )
 
     console.log('exampleRepo', exampleRepo)
