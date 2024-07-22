@@ -749,7 +749,6 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
       // const get all values of allFiles object
       const allFilesValues = Object.values(allFiles)
 
-      console.log('allFiles', allFiles)
       for (let i = 0; i < allFilesKeys.length; i++) {
         if (
           allFilesKeys[i].endsWith('Scarb.toml') ||
@@ -784,7 +783,6 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
           }
         }
         const checkVal = Object.values(allFilesValues[i])[0]
-        console.log('checkVal', checkVal, allFilesValues[i], checkVal === '', checkVal === null, checkVal === undefined, isEmpty(checkVal))
         // TODO(edwin): the check doesn't do anything
         if (!isEmpty(checkVal)) {
           await saveScarbWorkspace(workspacePath, allFilesKeys[i])
