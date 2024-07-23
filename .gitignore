@@ -51,3 +51,6 @@ override.tf.json
 terraform.rc
 
 .idea
+
+# Ignore the python virtualenv
+venv
