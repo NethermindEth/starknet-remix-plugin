@@ -779,10 +779,11 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
               'toast',
               'Could not reach cairo compilation server'
             )
-            throw new Error('Cairo Compilation Request Failed')
+            throw new Error('Request to save code failed')
           }
         }
         const checkVal = Object.values(allFilesValues[i])[0]
+        // TODO(edwin): the check doesn't do anything
         if (!isEmpty(checkVal)) {
           await saveScarbWorkspace(workspacePath, allFilesKeys[i])
         }
