@@ -115,7 +115,7 @@ impl<'r> FromRequest<'r> for RateLimited {
     async fn from_request(request: &'r Request<'_>) -> Outcome<Self, Self::Error> {
         let rate_limiter: &RateLimiter = match request.rocket().state() {
             None => {
-                return Outcome::Failure((
+                return Outcome::Error((
                     Status::InternalServerError,
                     ApiError::RateLimiterNotInState,
                 ))
@@ -124,13 +124,13 @@ impl<'r> FromRequest<'r> for RateLimited {
         };
 
         let client_ip = match request.client_ip() {
-            None => return Outcome::Failure((Status::BadRequest, ApiError::FailedToGetClientIp)),
+            None => return Outcome::Error((Status::BadRequest, ApiError::FailedToGetClientIp)),
             Some(x) => x,
         };
 
         match rate_limiter.do_rate_limit(client_ip) {
             Ok(_) => Outcome::Success(RateLimited),
-            Err(_) => Outcome::Failure((Status::TooManyRequests, ApiError::TooManyRequests)),
+            Err(_) => Outcome::Error((Status::TooManyRequests, ApiError::TooManyRequests)),
         }
     }
 }

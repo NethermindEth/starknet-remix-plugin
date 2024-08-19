@@ -1,3 +1,4 @@
+use rocket::yansi::Paint;
 use tracing_appender::rolling;
 
 use tracing_subscriber::fmt::writer::MakeWriterExt;
@@ -6,7 +7,6 @@ use tracing_subscriber::{prelude::*, EnvFilter};
 
 use tracing_subscriber::field::MakeExt;
 
-use rocket::yansi::Paint;
 use tracing_subscriber::Layer;
 
 pub enum LogType {
@@ -32,9 +32,9 @@ where
     let field_format = tracing_subscriber::fmt::format::debug_fn(|writer, field, value| {
         // We'll format the field name and value separated with a colon.
         if field.name() == "message" {
-            write!(writer, "{:?}", Paint::new(value).bold())
+            write!(writer, "{:?}", value.bold())
         } else {
-            write!(writer, "{}: {:?}", field, Paint::default(value).bold())
+            write!(writer, "{}: {:?}", field, value.bold())
         }
     })
     .delimited(", ")
@@ -51,8 +51,6 @@ where
 pub fn json_logging_layer<
     S: for<'a> tracing_subscriber::registry::LookupSpan<'a> + tracing::Subscriber,
 >() -> impl tracing_subscriber::Layer<S> {
-    Paint::disable();
-
     tracing_subscriber::fmt::layer()
         .json()
         // Configure the formatter to use `print!` rather than
