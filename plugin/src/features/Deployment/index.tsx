@@ -533,6 +533,18 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
                       info.chainId === chainId && info.env === env
                   )
                 }
+                title={
+                  isDeclaring
+                    ? 'Declaration in progress...'
+                    : account == null
+                      ? 'Account not connected'
+                      : selectedContract.declaredInfo.some(
+                        (info) => info.chainId === chainId && info.env === env
+                      )
+                        ? `Declared ${selectedContract.name}`
+                        : `Declare ${selectedContract.name}`
+                }
+
                 onClick={handleDeclare}
               >
                 <div className="d-flex align-items-center justify-content-center">
