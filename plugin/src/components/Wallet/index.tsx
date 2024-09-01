@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import copy from 'copy-to-clipboard'
 import './wallet.css'
-import { MdCopyAll, MdCheck  } from 'react-icons/md'
+import { MdCopyAll, MdCheck } from 'react-icons/md'
 import { type Network } from '../../utils/constants'
 import { useCurrentExplorer } from '../ExplorerSelector'
 import { getExplorerUrl, trimStr } from '../../utils/utils'
@@ -94,7 +94,7 @@ const Wallet: React.FC = () => {
                   }, 1000)
                 }}
               >
-                {showCopied ? <MdCheck /> :<MdCopyAll />}
+                {showCopied ? <MdCheck /> : <MdCopyAll />}
               </button>
             </span>
           </div>
