@@ -14,18 +14,17 @@ jobs:
         with:
           toolchain: nightly
           override: true
-      - run: rustup component add rustfmt --toolchain nightly
+          components: rustfmt
       - run: cd api && cargo +nightly fmt --all -- --check
 
   clippy:
     name: Clippy
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
         with:
-          toolchain: nightly
+          toolchain: stable
           override: true
-      - run: rustup component add clippy --toolchain nightly
-      - run: cd api && cargo +nightly clippy --all -- -D warnings
+          components: clippy
+      - run: cd api && cargo clippy --all -- -D warnings
