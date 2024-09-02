@@ -8,7 +8,7 @@ import { getExplorerUrl, trimStr } from '../../utils/utils'
 import { useAccount, useProvider, useNetwork } from '@starknet-react/core'
 import ConnectModal from '../starknet/connect'
 import DisconnectModal from '../starknet/disconnect'
-import { getChainName } from '../../utils/starknet'
+import { correctWalletAddress, getChainName } from '../../utils/starknet'
 import useAccountAtom from '../../hooks/useAccount'
 import useProviderAtom from '../../hooks/useProvider'
 import { declTxHashAtom, deployTxHashAtom } from '../../atoms/deployment'
@@ -19,10 +19,7 @@ const Wallet: React.FC = () => {
   const [showCopied, setCopied] = useState(false)
 
   const { status, account, address, connector } = useAccount()
-  const correctedAddress = address !== undefined ? address.slice(0, 2) + '0' + address.slice(2) : ''
-
   const { chain } = useNetwork()
-
   const { provider } = useProvider()
 
   const { setAccount } = useAccountAtom()
@@ -45,6 +42,7 @@ const Wallet: React.FC = () => {
     setInvokeTxHash('')
   }, [status])
 
+  const correctedAddress = correctWalletAddress(address)
   const explorerHook = useCurrentExplorer()
 
   return (
