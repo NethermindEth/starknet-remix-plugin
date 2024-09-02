@@ -1,16 +1,13 @@
 import React, { useEffect, useState } from 'react'
-
 import { type BigNumberish } from 'ethers'
+import { constants } from 'starknet'
+import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import CompiledContracts from '../../components/CompiledContracts'
-import {
-  type Contract
-} from '../../utils/types/contracts'
+import { type Contract } from '../../utils/types/contracts'
 import { getConstructor, getShortenedHash } from '../../utils/utils'
 import Container from '../../components/ui_components/Container'
 
 import { type AccordianTabs } from '../Plugin'
-import { constants } from 'starknet'
-import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import transactionsAtom from '../../atoms/transactions'
 
 import './styles.css'
@@ -78,7 +75,10 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   const env = useAtomValue(envAtom)
 
   const declTxStatus = useWaitForTransaction({ hash: declTxHash, watch: true })
-  const deployTxStatus = useWaitForTransaction({ hash: deployTxHash, watch: true })
+  const deployTxStatus = useWaitForTransaction({
+    hash: deployTxHash,
+    watch: true
+  })
 
   const [chainId, setChainId] = useState<constants.StarknetChainId>(
     constants.StarknetChainId.SN_GOERLI
@@ -108,52 +108,68 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     console.log('declTxHash', declTxHash, declTxStatus.status, env)
     if (declTxHash === '') {
       setIsDeclaring(false)
-      setDeclStatus('')
+      setDeclStatus('IDLE')
       return
     }
     if (env !== 'wallet') return
     if (declTxStatus.status === 'success') {
-      setDeclStatus('done')
+      setDeclStatus('DONE')
       setIsDeclaring(false)
       remixClient.emit('statusChanged', {
         key: 'succeed',
         type: 'success',
         title: `Contract ${selectedContract?.name ?? ''} declared!`
       })
-      remixClient.call('terminal', 'log', {
-        value: JSON.stringify(declTxStatus.data, null, 2),
-        type: 'info'
-      }).catch(() => {})
+      remixClient
+        .call('terminal', 'log', {
+          value: JSON.stringify(declTxStatus.data, null, 2),
+          type: 'info'
+        })
+        .catch(() => {})
 
-      remixClient.call('terminal', 'log', {
-        value: `--------------------- End getting declare contract: ${selectedContract?.name ?? ''} tx receipt ------------------`,
-        type: 'info'
-      }).catch(() => {})
+      remixClient
+        .call('terminal', 'log', {
+          value: `--------------------- End getting declare contract: ${
+            selectedContract?.name ?? ''
+          } tx receipt ------------------`,
+          type: 'info'
+        })
+        .catch(() => {})
     }
     if (declTxStatus.status === 'error') {
-      setDeclStatus('error')
+      setDeclStatus('ERROR')
       remixClient.emit('statusChanged', {
         key: 'failed',
         type: 'error',
         title: 'Declaration failed'
       })
-      remixClient.call('terminal', 'log', {
-        value: JSON.stringify(declTxStatus, null, 2),
-        type: 'info'
-      }).catch(() => {})
+      remixClient
+        .call('terminal', 'log', {
+          value: JSON.stringify(declTxStatus, null, 2),
+          type: 'info'
+        })
+        .catch(() => {})
 
-      remixClient.call('terminal', 'log', {
-        value: `--------------------- End getting declare contract: ${selectedContract?.name ?? ''} tx receipt ------------------`,
-        type: 'info'
-      }).catch(() => {})
+      remixClient
+        .call('terminal', 'log', {
+          value: `--------------------- End getting declare contract: ${
+            selectedContract?.name ?? ''
+          } tx receipt ------------------`,
+          type: 'info'
+        })
+        .catch(() => {})
       setIsDeclaring(false)
     }
     if (declTxStatus.status === 'pending') {
       if (isDeclaring) {
-        remixClient.call('terminal', 'log', {
-          value: `--------------------- Getting declare contract: ${selectedContract?.name ?? ''} tx receipt --------------------`,
-          type: 'info'
-        }).catch(() => {})
+        remixClient
+          .call('terminal', 'log', {
+            value: `--------------------- Getting declare contract: ${
+              selectedContract?.name ?? ''
+            } tx receipt --------------------`,
+            type: 'info'
+          })
+          .catch(() => {})
       }
     }
   }, [declTxHash, declTxStatus.status])
@@ -162,67 +178,76 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     console.log('deployTxHash', deployTxHash, deployTxStatus.status, env)
     if (deployTxHash === '') {
       setIsDeploying(false)
-      setDeployStatus('')
+      setDeployStatus('IDLE')
       return
     }
     if (env !== 'wallet') return
     if (deployTxStatus.status === 'success') {
-      setDeployStatus('done')
+      setDeployStatus('DONE')
       setIsDeploying(false)
       remixClient.emit('statusChanged', {
         key: 'succeed',
         type: 'success',
         title: `Contract ${selectedContract?.name ?? ''} deployed!`
       })
-      remixClient.call('terminal', 'log', {
-        value: JSON.stringify(deployTxStatus.data, null, 2),
-        type: 'info'
-      }).catch(() => {})
+      remixClient
+        .call('terminal', 'log', {
+          value: JSON.stringify(deployTxStatus.data, null, 2),
+          type: 'info'
+        })
+        .catch(() => {})
 
-      remixClient.call('terminal', 'log', {
-        value: `--------------------- End getting deploy contract: ${selectedContract?.name ?? ''} tx receipt ------------------`,
-        type: 'info'
-      }).catch(() => {})
-      setActiveTab('interaction')
+      remixClient
+        .call('terminal', 'log', {
+          value: `--------------------- End getting deploy contract: ${
+            selectedContract?.name ?? ''
+          } tx receipt ------------------`,
+          type: 'info'
+        })
+        .catch(() => {})
     }
     if (deployTxStatus.status === 'error') {
-      setDeployStatus('error')
+      setDeployStatus('ERROR')
       remixClient.emit('statusChanged', {
         key: 'failed',
         type: 'error',
         title: 'Deployment failed'
       })
-      remixClient.call('terminal', 'log', {
-        value: JSON.stringify(deployTxStatus, null, 2),
-        type: 'info'
-      }).catch(() => {})
+      remixClient
+        .call('terminal', 'log', {
+          value: JSON.stringify(deployTxStatus, null, 2),
+          type: 'info'
+        })
+        .catch(() => {})
 
-      remixClient.call('terminal', 'log', {
-        value: `--------------------- End getting deploy contract: ${selectedContract?.name ?? ''} tx receipt ------------------`,
-        type: 'info'
-      }).catch(() => {})
+      remixClient
+        .call('terminal', 'log', {
+          value: `--------------------- End getting deploy contract: ${
+            selectedContract?.name ?? ''
+          } tx receipt ------------------`,
+          type: 'info'
+        })
+        .catch(() => {})
       setIsDeploying(false)
     }
     if (deployTxStatus.status === 'pending') {
       if (isDeploying) {
-        remixClient.call('terminal', 'log', {
-          value: `--------------------- Getting deploy contract: ${selectedContract?.name ?? ''} tx receipt --------------------`,
-          type: 'info'
-        }).catch(() => {})
+        remixClient
+          .call('terminal', 'log', {
+            value: `--------------------- Getting deploy contract: ${
+              selectedContract?.name ?? ''
+            } tx receipt --------------------`,
+            type: 'info'
+          })
+          .catch(() => {})
       }
     }
   }, [deployTxHash, deployTxStatus.status])
 
   const declareContract = async (): Promise<void> => {
+    setDeclStatus('IDLE')
     setIsDeclaring(true)
-    remixClient.emit('statusChanged', {
-      key: 'loading',
-      type: 'info',
-      title: `Declaring ${selectedContract?.name ?? ''} ...`
-    })
-
     let updatedTransactions = transactions
-
     try {
       if (account === null || provider === null) {
         throw new Error('No account or provider selected!')
@@ -231,7 +256,12 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       if (selectedContract === null) {
         throw new Error('No contract selected for deployment!')
       }
-      setDeclStatus('Declaring...')
+      remixClient.emit('statusChanged', {
+        key: 'loading',
+        type: 'info',
+        title: `Declaring ${selectedContract?.name ?? ''} ...`
+      })
+      setDeclStatus('IN_PROGRESS')
       try {
         try {
           await account.getClassByHash(selectedContract.classHash)
@@ -245,7 +275,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
             )} already has been declared, you can proceed to deployment`
           )
           setIsDeclaring(false)
-          setDeclStatus('done')
+          setDeclStatus('DONE')
           remixClient.emit('statusChanged', {
             key: 'succeed',
             type: 'success',
@@ -256,11 +286,14 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
             value: `------------------------ Declaring contract: ${selectedContract.name} ------------------------`,
             type: 'info'
           })
-          const declareResponse = await account.declare({
-            contract: selectedContract.sierra,
-            classHash: selectedContract.classHash,
-            compiledClassHash: selectedContract.compiledClassHash
-          }, { maxFee: 1e18 })
+          const declareResponse = await account.declare(
+            {
+              contract: selectedContract.sierra,
+              classHash: selectedContract.classHash,
+              compiledClassHash: selectedContract.compiledClassHash
+            },
+            { maxFee: 1e18 }
+          )
           await remixClient.call('terminal', 'log', {
             value: JSON.stringify(declareResponse, null, 2),
             type: 'info'
@@ -287,7 +320,9 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
               value: `--------------------- Getting declare contract: ${selectedContract.name} tx receipt --------------------`,
               type: 'info'
             })
-            const txReceipt = await account.waitForTransaction(declareResponse.transaction_hash)
+            const txReceipt = await account.waitForTransaction(
+              declareResponse.transaction_hash
+            )
             await remixClient.call('terminal', 'log', {
               value: JSON.stringify(txReceipt, null, 2),
               type: 'info'
@@ -296,13 +331,13 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
               value: `--------------------- End getting declare contract: ${selectedContract.name} tx receipt ------------------`,
               type: 'info'
             })
-            setDeclStatus('done')
+            setDeclStatus('DONE')
             setIsDeclaring(false)
           }
         }
         setContractDeclaration(selectedContract)
       } catch (error) {
-        setDeclStatus('error')
+        setDeclStatus('ERROR')
         setIsDeclaring(false)
         if (error instanceof Error) {
           await remixClient.call('terminal', 'log', {
@@ -317,7 +352,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         }
       }
     } catch (error) {
-      setDeclStatus('error')
+      setDeclStatus('ERROR')
       setIsDeclaring(false)
       if (error instanceof Error) {
         await remixClient.call('terminal', 'log', {
@@ -334,12 +369,8 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   }
 
   const deploy = async (calldata: BigNumberish[]): Promise<void> => {
+    setDeployStatus('IDLE')
     setIsDeploying(true)
-    remixClient.emit('statusChanged', {
-      key: 'loading',
-      type: 'info',
-      title: `Deploying ${selectedContract?.name ?? ''} ...`
-    })
     const classHash = selectedContract?.classHash
     const updatedTransactions = transactions
     try {
@@ -350,18 +381,25 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       if (selectedContract === null) {
         throw new Error('No contract selected for deployment!')
       }
+      remixClient.emit('statusChanged', {
+        key: 'loading',
+        type: 'info',
+        title: `Deploying ${selectedContract?.name ?? ''} ...`
+      })
 
-      setDeployStatus('Deploying...')
-
+      setDeployStatus('IN_PROGRESS')
       await remixClient.call('terminal', 'log', {
         value: `------------------------ Deploying contract: ${selectedContract.name} ------------------------`,
         type: 'info'
       })
 
-      const deployResponse = await account.deploy({
-        classHash: classHash ?? selectedContract.classHash,
-        constructorCalldata: calldata
-      }, { maxFee: 1e18 })
+      const deployResponse = await account.deploy(
+        {
+          classHash: classHash ?? selectedContract.classHash,
+          constructorCalldata: calldata
+        },
+        { maxFee: 1e18 }
+      )
 
       await remixClient.call('terminal', 'log', {
         value: JSON.stringify(deployResponse, null, 2),
@@ -385,14 +423,16 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       ])
       if (env === 'wallet') setDeployTxHash(deployResponse.transaction_hash)
       else {
-        setDeployStatus('done')
+        setDeployStatus('DONE')
         setIsDeploying(false)
         await remixClient.call('terminal', 'log', {
           value: `--------------------- Getting deploy contract: ${selectedContract.name} tx receipt --------------------`,
           type: 'info'
         })
 
-        const txReceipt = await account.waitForTransaction(deployResponse.transaction_hash)
+        const txReceipt = await account.waitForTransaction(
+          deployResponse.transaction_hash
+        )
         await remixClient.call('terminal', 'log', {
           value: JSON.stringify(txReceipt, null, 2),
           type: 'info'
@@ -404,9 +444,12 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         })
         setActiveTab('interaction')
       }
-      setContractDeployment(selectedContract, deployResponse.contract_address[0])
+      setContractDeployment(
+        selectedContract,
+        deployResponse.contract_address[0]
+      )
     } catch (error) {
-      setDeployStatus('error')
+      setDeployStatus('ERROR')
       setIsDeploying(false)
       if (error instanceof Error) {
         await remixClient.call('terminal', 'log', {
@@ -443,10 +486,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
     if (account == null) return
     const declaredContract = {
       ...currentContract,
-      declaredInfo: [
-        ...currentContract.declaredInfo,
-        { chainId, env }
-      ]
+      declaredInfo: [...currentContract.declaredInfo, { chainId, env }]
     }
     const updatedContracts = contracts.map((contract) => {
       if (contract.classHash === declaredContract.classHash) {
@@ -470,7 +510,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
       deployedInfo: [
         ...currentContract.deployedInfo,
         { address: account.address, chainId }
-      ].flatMap(deployment => {
+      ].flatMap((deployment) => {
         const key = `${deployment.address}-${deployment.chainId}`
         if (deployedInfoMap.has(key)) {
           return []
@@ -496,89 +536,81 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
         {contracts.length > 0 && selectedContract != null
           ? (
           <div className="">
-            <div className={'compilation-info flex-col text-center align-items-center mb-2'}>
+            <div
+              className={
+                'compilation-info flex-col text-center align-items-center mb-2'
+              }
+            >
               <div className={'icon'}>
-                <img src={useIcon('deploy-icon.svg')} alt={'deploy-icon'}/>
+                <img src={useIcon('deploy-icon.svg')} alt={'deploy-icon'} />
               </div>
               <span className={'mt-1 mb-1'}>Deploy your selected contract</span>
             </div>
             <CompiledContracts show={'class'} />
             <button
-                className="btn btn-warning btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3 px-0 rounded"
-                style={{
-                  cursor: `${
-                    isDeclaring ||
-                    account == null ||
-                    selectedContract.declaredInfo.some(
-                      (info) =>
-                        info.chainId === chainId && info.env === env
-                    )
-                      ? 'not-allowed'
-                      : 'pointer'
-                  }`
-                }}
-                disabled={
+              className="btn btn-warning btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3 px-0 rounded"
+              style={{
+                cursor: `${
                   isDeclaring ||
                   account == null ||
                   selectedContract.declaredInfo.some(
-                    (info) =>
-                      info.chainId === chainId && info.env === env
+                    (info) => info.chainId === chainId && info.env === env
                   )
-                }
-                aria-disabled={
-                  isDeclaring ||
-                  account == null ||
-                  selectedContract.declaredInfo.some(
-                    (info) =>
-                      info.chainId === chainId && info.env === env
-                  )
-                }
-                title={
-                  isDeclaring
-                    ? 'Declaration in progress...'
-                    : account == null
-                      ? 'Account not connected'
-                      : selectedContract.declaredInfo.some(
+                    ? 'not-allowed'
+                    : 'pointer'
+                }`
+              }}
+              disabled={
+                isDeclaring ||
+                account == null ||
+                selectedContract.declaredInfo.some(
+                  (info) => info.chainId === chainId && info.env === env
+                )
+              }
+              aria-disabled={
+                isDeclaring ||
+                account == null ||
+                selectedContract.declaredInfo.some(
+                  (info) => info.chainId === chainId && info.env === env
+                )
+              }
+              onClick={handleDeclare}
+            >
+              <div className="d-flex align-items-center justify-content-center">
+                <div className="text-truncate overflow-hidden text-nowrap">
+                  {isDeclaring
+                    ? (
+                    <>
+                      <span style={{ paddingLeft: '0.5rem' }}>
+                        {declStatus}
+                      </span>
+                    </>
+                      )
+                    : (
+                    <div className="text-truncate overflow-hidden text-nowrap">
+                      {account !== null &&
+                      selectedContract.declaredInfo.some(
                         (info) => info.chainId === chainId && info.env === env
                       )
-                        ? `Declared ${selectedContract.name}`
-                        : `Declare ${selectedContract.name}`
-                }
-
-                onClick={handleDeclare}
-              >
-                <div className="d-flex align-items-center justify-content-center">
-                  <div className="text-truncate overflow-hidden text-nowrap">
-                    {isDeclaring
-                      ? (
-                      <>
-                        <span style={{ paddingLeft: '0.5rem' }}>
-                          {declStatus}
+                        ? (
+                        <span>
+                          {' '}
+                          Declared {selectedContract.name}{' '}
+                          <i className="bi bi-check"></i>
                         </span>
-                      </>
-                        )
-                      : (
-                      <div className="text-truncate overflow-hidden text-nowrap">
-                        {account !== null &&
-                        selectedContract.declaredInfo.some(
-                          (info) =>
-                            info.chainId === chainId && info.env === env
-                        )
-                          ? (
-                          <span>
-                            {' '}
-                            Declared {selectedContract.name} <i className="bi bi-check"></i>
-                          </span>
-                            )
-                          : (
-                          <span> Declare {selectedContract.name}</span>
-                            )}
-                      </div>
-                        )}
-                  </div>
+                          )
+                        : (
+                        <span> Declare {selectedContract.name}</span>
+                          )}
+                    </div>
+                      )}
                 </div>
-              </button>
-            <ConstructorForm abi={selectedContract.abi} callBackFn={handleDeploySubmit} />
+              </div>
+            </button>
+            <ConstructorForm
+              abi={selectedContract.abi}
+              callBackFn={handleDeploySubmit}
+            />
             {account != null &&
               selectedContract.deployedInfo.some(
                 (info) =>
@@ -607,16 +639,19 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
           </div>
             )
           : (
-              <div className={'flex flex-column justify-content-center align-items-center'}>
-                <div className={'icon mb-2'}>
-                  <img src={useIcon('deploy-icon.svg')} alt={'deploy-icon'}/>
-                </div>
-                <p>No contracts ready for deployment yet, compile a cairo contract</p>
-              </div>
+          <NoContractReadyView />
             )}
       </Container>
     </>
   )
 }
 
+const NoContractReadyView = (): JSX.Element => (
+  <div className={'flex flex-column justify-content-center align-items-center'}>
+    <div className={'icon mb-2'}>
+      <img src={useIcon('deploy-icon.svg')} alt={'deploy-icon'} />
+    </div>
+    <p>No contracts ready for deployment yet, compile a cairo contract</p>
+  </div>
+)
 export default Deployment
