@@ -46,7 +46,7 @@ const Plugin: React.FC = () => {
 
   // Interaction state variables
   const [interactionStatus, setInteractionStatus] = useState<
-    'loading' | 'success' | 'error' | ''
+  'loading' | 'success' | 'error' | ''
   >('')
 
   const [currentAccordian, setCurrentAccordian] =
@@ -257,10 +257,10 @@ const Plugin: React.FC = () => {
                           isCompiling
                             ? 'loading'
                             : status === 'done'
-                            ? 'success'
-                            : status === 'failed'
-                            ? 'error'
-                            : ''
+                              ? 'success'
+                              : status === 'failed'
+                                ? 'error'
+                                : ''
                         }
                       />
                     </span>
@@ -287,10 +287,10 @@ const Plugin: React.FC = () => {
                           isDeclaringOrDeploying
                             ? 'loading'
                             : deployStatus === 'ERROR'
-                            ? 'error'
-                            : deployStatus === 'DONE'
-                            ? 'success'
-                            : ''
+                              ? 'error'
+                              : deployStatus === 'DONE'
+                                ? 'success'
+                                : ''
                         }
                       />
                     </span>
