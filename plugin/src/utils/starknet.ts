@@ -56,3 +56,18 @@ function parse (value: any): string {
   if (typeof value === 'string') return value
   return BigNumber.from(value).toString()
 }
+
+export const correctWalletAddress = (address: string | undefined): string => {
+  if (address === undefined) return ''
+  if (!address.startsWith('0x')) {
+    throw new Error('Invalid address format')
+  }
+
+  const hexPart = address.slice(2)
+  if (hexPart.length === 64) {
+    return address
+  }
+
+  const paddedHexPart = hexPart.padStart(64, '0')
+  return '0x' + paddedHexPart
+}
