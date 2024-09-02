@@ -33,6 +33,7 @@ import {
 import { useWaitForTransaction } from '@starknet-react/core'
 import { type CallbackReturnType, ConstructorForm } from 'starknet-abi-forms'
 import { useIcon } from '../../hooks/useIcons'
+import { DeclareStatusLabels } from '../../utils/constants'
 interface DeploymentProps {
   setActiveTab: (tab: AccordianTabs) => void
 }
@@ -582,7 +583,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
                     ? (
                     <>
                       <span style={{ paddingLeft: '0.5rem' }}>
-                        {declStatus}
+                        {DeclareStatusLabels[declStatus]}
                       </span>
                     </>
                       )

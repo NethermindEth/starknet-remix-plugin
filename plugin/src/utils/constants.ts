@@ -1,11 +1,9 @@
 import { constants } from 'starknet'
+import { type Status } from '../atoms/deployment'
 
 const devnetUrl = 'http://127.0.0.1:5050'
 
-type Network =
-  | 'goerli'
-  | 'sepolia'
-  | 'mainnet'
+type Network = 'goerli' | 'sepolia' | 'mainnet'
 
 const networks = [
   { name: 'Testnet', value: 'goerli' },
@@ -82,3 +80,17 @@ export {
 }
 
 export type { Network }
+
+export const DeclareStatusLabels: Record<Status, string> = {
+  IDLE: 'Idle',
+  IN_PROGRESS: 'Declaring...',
+  ERROR: 'Error',
+  DONE: 'Done'
+}
+
+export const DeployStatusLabels: Record<Status, string> = {
+  IDLE: 'Idle',
+  IN_PROGRESS: 'Deploying...',
+  ERROR: 'Error',
+  DONE: 'Done'
+}
