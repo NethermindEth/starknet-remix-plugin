@@ -67,11 +67,17 @@ jobs:
           git add .scarb_version
           git commit -m "Update Scarb version to ${{ env.SCARB_VERSION }}"
 
-      - name: Push changes and create PR
+      - name: Push changes to new branch
+        if: env.update_required == 'true' && env.pr_exists == 'false'
+        run: |
+          git push origin update-scarb-${{ env.SCARB_VERSION }}
+
+      - name: Create PR
         if: env.update_required == 'true' && env.pr_exists == 'false'
         uses: peter-evans/create-pull-request@v5
         with:
           branch: update-scarb-${{ env.SCARB_VERSION }}
+          base: main  # Make sure this matches your default branch
           title: 'Update Scarb to version ${{ env.SCARB_VERSION }}'
           body: |
             A new version of Scarb has been released: **${{ env.SCARB_VERSION }}**.
