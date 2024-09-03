@@ -6,6 +6,9 @@ on:
         description: 'Version tag'
         required: true
         type: string
+  push:
+    paths:
+      - '.scarb-version'
 
 permissions:
       id-token: write
@@ -51,24 +54,11 @@ jobs:
         with:
           mask-password: 'true'
 
-      # - name: Update local Rust toolchain
-      #   run: |
-      #     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain stable -y
-      #     rustup update
-      #     rustup component add clippy
-      #     rustup install nightly          
-
-      # - name: Toolchain info
-      #   run: |
-      #     cargo --version --verbose
-      #     rustc --version
-      #     cargo clippy --version          
-
-      # - name: Build
-      #   run: |
-      #     cd api
-      #     cargo build           
-      #     ls ./target/debug/ -al
+      - name: Get Scarb version
+        id: get_scarb_version
+        run: |
+          SCARB_VERSION=$(cat .scarb_version) 
+          echo "scarb_version=${SCARB_VERSION}" >> $GITHUB_ENV
 
       - name: Build, tag, and push docker image to Amazon ECR
         env:
@@ -76,7 +66,7 @@ jobs:
           REPOSITORY: ${{ env.REPOSITORY }}
           IMAGE_TAG: ${{ inputs.version }}
         run: |
-          docker build -t $REGISTRY/$REPOSITORY:apiserver-$IMAGE_TAG -f ./DockerfileRocket .
+          docker build -t $REGISTRY/$REPOSITORY:apiserver-$IMAGE_TAG --build-arg=SCARB_VERSION=${{ env.scarb_version }} -f ./DockerfileRocket .
           docker push $REGISTRY/$REPOSITORY:apiserver-$IMAGE_TAG
     outputs:
       image-version: ${{ inputs.version }}
