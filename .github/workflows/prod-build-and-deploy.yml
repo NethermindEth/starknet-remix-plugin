@@ -6,9 +6,6 @@ on:
         description: 'Version tag'
         required: true
         type: string
-  push:
-    paths:
-      - '.scarb-version'
 
 permissions:
       id-token: write
