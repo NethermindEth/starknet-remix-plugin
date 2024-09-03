@@ -1,8 +1,9 @@
 name: (develop) Manual devnet deploy
 on:
   workflow_dispatch:
-  cron:
-    - '0 0 * * *' # Runs daily at midnight UTC
+  schedule:
+    cron:
+      - '0 0 * * *' # Runs daily at midnight UTC
   push:
     branches:
       - develop
