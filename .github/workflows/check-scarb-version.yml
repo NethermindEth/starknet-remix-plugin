@@ -38,6 +38,7 @@ jobs:
           else
             echo "No update required"
             echo "update_required=false" >> $GITHUB_ENV
+          fi
 
       - name: Check if PR already exists
         id: check_pr_exists
@@ -50,6 +51,7 @@ jobs:
           else
             echo "No PR exists."
             echo "pr_exists=false" >> $GITHUB_ENV
+          fi
 
       - name: Create a new branch for the update
         if: env.update_required == 'true' && env.pr_exists == 'false'
