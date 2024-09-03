@@ -7,9 +7,8 @@ on:
       - 'api/**'
       - '.github/workflows/api-deploy.yml'
       - 'DockerfileRocket'
-  cron:
-    - '0 0 * * *' # Runs daily at midnight UTC
-
+  schedule:
+    - cron: '0 0 * * *' # Runs daily at midnight UTC
 
 permissions:
   id-token: write
