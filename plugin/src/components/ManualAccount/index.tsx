@@ -12,7 +12,7 @@ import storage from '../../utils/storage'
 import './index.css'
 import { BiCopy, BiPlus } from 'react-icons/bi'
 import { getExplorerUrl, getShortenedHash, trimStr } from '../../utils/utils'
-import { MdRefresh, MdCheckCircleOutline } from 'react-icons/md'
+import { MdRefresh, MdCheckCircleOutline, MdCheck } from 'react-icons/md'
 import copy from 'copy-to-clipboard'
 import { useCurrentExplorer } from '../ExplorerSelector'
 import { useAtom, useAtomValue, useSetAtom } from 'jotai'
@@ -49,6 +49,7 @@ const ManualAccount: React.FC = () => {
   const setInvokeTxHash = useSetAtom(invokeTxHashAtom)
 
   const [accountDeploying, setAccountDeploying] = useState(false)
+  const [showCopied, setCopied] = useState(false)
 
   const { remixClient } = useRemixClient()
 
@@ -369,9 +370,15 @@ const ManualAccount: React.FC = () => {
           </span>
             <button
                 className="btn info-box-copy-btn"
-                onClick={() => copy(selectedAccount.address)}
+                onClick={() => {
+                  copy(selectedAccount.address)
+                  setCopied(true)
+                  setTimeout(() => {
+                    setCopied(false)
+                  }, 1000)
+                }}
             >
-              <BiCopy />
+              {showCopied ? <MdCheck /> : <BiCopy />}
             </button>
         </div>
       )}

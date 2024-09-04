@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react'
 import copy from 'copy-to-clipboard'
 import './wallet.css'
-import { MdCopyAll } from 'react-icons/md'
+import { MdCopyAll, MdCheck } from 'react-icons/md'
 import { type Network } from '../../utils/constants'
 import { useCurrentExplorer } from '../ExplorerSelector'
 import { getExplorerUrl, trimStr } from '../../utils/utils'
-import { useAccount, useProvider } from '@starknet-react/core'
+import { useAccount, useProvider, useNetwork } from '@starknet-react/core'
 import ConnectModal from '../starknet/connect'
 import DisconnectModal from '../starknet/disconnect'
-import { getChainName } from '../../utils/starknet'
+import { formatWalletAddress, getChainName } from '../../utils/starknet'
 import useAccountAtom from '../../hooks/useAccount'
 import useProviderAtom from '../../hooks/useProvider'
 import { declTxHashAtom, deployTxHashAtom } from '../../atoms/deployment'
@@ -18,8 +18,8 @@ import { useSetAtom } from 'jotai'
 const Wallet: React.FC = () => {
   const [showCopied, setCopied] = useState(false)
 
-  const { status, account, connector, chainId } = useAccount()
-
+  const { status, account, address, connector } = useAccount()
+  const { chain } = useNetwork()
   const { provider } = useProvider()
 
   const { setAccount } = useAccountAtom()
@@ -42,6 +42,7 @@ const Wallet: React.FC = () => {
     setInvokeTxHash('')
   }, [status])
 
+  const formattedAddress = formatWalletAddress(address)
   const explorerHook = useCurrentExplorer()
 
   return (
@@ -63,41 +64,36 @@ const Wallet: React.FC = () => {
               <p className="text"> {connector?.id}</p>
               <p className="text text-right text-secondary">
                 {' '}
-                {getChainName(chainId?.toString() ?? '')}
+                {getChainName(chain.id.toString() ?? '')}
               </p>
             </div>
           </div>
           <div className="wallet-account-wrapper">
-            <p className="text account" title={account?.address}>
+            <p className="text account" title={formattedAddress ?? ''}>
               <a
                 href={`${getExplorerUrl(
                   explorerHook.explorer,
-                  getChainName(chainId?.toString() ?? '') as Network
-                )}/contract/${(account?.address as string) ?? ''}`}
+                  getChainName(chain.id.toString() ?? '') as Network
+                )}/contract/${formattedAddress ?? ''}`}
                 target="_blank"
                 rel="noreferer noopener noreferrer"
               >
-                {trimStr(account?.address ?? '', 10)}
+                {trimStr(formattedAddress ?? '', 10)}
               </a>
             </p>
             <span style={{ position: 'relative' }}>
               <button
                 className="btn p-0"
                 onClick={() => {
-                  copy(account?.address ?? '')
+                  copy(formattedAddress ?? '')
                   setCopied(true)
                   setTimeout(() => {
                     setCopied(false)
                   }, 1000)
                 }}
               >
-                <MdCopyAll />
+                {showCopied ? <MdCheck /> : <MdCopyAll />}
               </button>
-              {showCopied && (
-                <p style={{ position: 'absolute', right: 0, minWidth: '70px' }}>
-                  Copied
-                </p>
-              )}
             </span>
           </div>
           <div className="wallet-actions">
