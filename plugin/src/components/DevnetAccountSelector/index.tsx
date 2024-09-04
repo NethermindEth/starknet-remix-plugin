@@ -6,7 +6,7 @@ import {
 import { getAccounts } from '../../utils/network'
 import React, { useEffect, useState } from 'react'
 import { Account, RpcProvider } from 'starknet'
-import { MdCopyAll, MdRefresh } from 'react-icons/md'
+import { MdCheck, MdCopyAll, MdRefresh } from 'react-icons/md'
 import './devnetAccountSelector.css'
 import copy from 'copy-to-clipboard'
 import { useAtom, useAtomValue, useSetAtom } from 'jotai'
@@ -233,11 +233,8 @@ const DevnetAccountSelector: React.FC = () => {
               }, 1000)
             }}
           >
-            <MdCopyAll />
+             {showCopied ? <MdCheck /> : <MdCopyAll />}
           </button>
-          {showCopied && (
-            <p className="position-absolute text-copied">Copied</p>
-          )}
         </div>
         <button
           className="btn refresh"
