@@ -57,7 +57,7 @@ function parse (value: any): string {
   return BigNumber.from(value).toString()
 }
 
-export const foprmatWalletAddress = (address: string | undefined): string|undefined => {
+export const foprmatWalletAddress = (address: string | undefined): string | undefined => {
   if (address === undefined) return undefined
   if (!address.startsWith('0x')) {
     throw new Error('Invalid address format')

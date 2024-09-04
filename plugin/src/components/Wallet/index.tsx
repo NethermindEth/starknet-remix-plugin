@@ -69,7 +69,7 @@ const Wallet: React.FC = () => {
             </div>
           </div>
           <div className="wallet-account-wrapper">
-            <p className="text account" title={formattedAddress ?? ""}>
+            <p className="text account" title={formattedAddress ?? ''}>
               <a
                 href={`${getExplorerUrl(
                   explorerHook.explorer,
