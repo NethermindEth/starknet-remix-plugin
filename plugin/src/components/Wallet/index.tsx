@@ -8,7 +8,7 @@ import { getExplorerUrl, trimStr } from '../../utils/utils'
 import { useAccount, useProvider, useNetwork } from '@starknet-react/core'
 import ConnectModal from '../starknet/connect'
 import DisconnectModal from '../starknet/disconnect'
-import { correctWalletAddress, getChainName } from '../../utils/starknet'
+import { foprmatWalletAddress, getChainName } from '../../utils/starknet'
 import useAccountAtom from '../../hooks/useAccount'
 import useProviderAtom from '../../hooks/useProvider'
 import { declTxHashAtom, deployTxHashAtom } from '../../atoms/deployment'
@@ -42,7 +42,7 @@ const Wallet: React.FC = () => {
     setInvokeTxHash('')
   }, [status])
 
-  const correctedAddress = correctWalletAddress(address)
+  const formattedAddress = foprmatWalletAddress(address)
   const explorerHook = useCurrentExplorer()
 
   return (
@@ -69,23 +69,23 @@ const Wallet: React.FC = () => {
             </div>
           </div>
           <div className="wallet-account-wrapper">
-            <p className="text account" title={correctedAddress}>
+            <p className="text account" title={formattedAddress ?? ""}>
               <a
                 href={`${getExplorerUrl(
                   explorerHook.explorer,
                   getChainName(chain.id.toString() ?? '') as Network
-                )}/contract/${(correctedAddress) ?? ''}`}
+                )}/contract/${formattedAddress ?? ''}`}
                 target="_blank"
                 rel="noreferer noopener noreferrer"
               >
-                {trimStr(correctedAddress ?? '', 10)}
+                {trimStr(formattedAddress ?? '', 10)}
               </a>
             </p>
             <span style={{ position: 'relative' }}>
               <button
                 className="btn p-0"
                 onClick={() => {
-                  copy(correctedAddress ?? '')
+                  copy(formattedAddress ?? '')
                   setCopied(true)
                   setTimeout(() => {
                     setCopied(false)
