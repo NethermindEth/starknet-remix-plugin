@@ -1,0 +1,85 @@
+name: Check Scarb Version
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Runs at midnight every day
+  workflow_dispatch: # Allows for manual triggering
+
+jobs:
+  check-scarb-version:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Get the latest version of Scarb
+        id: get_latest_version
+        run: |
+          SCARB_VERSION=$(curl -s https://api.github.com/repos/software-mansion/scarb/releases/latest | jq -r '.tag_name')
+          echo "SCARB_VERSION=${SCARB_VERSION}" >> $GITHUB_ENV
+
+      - name: Load previous Scarb version
+        id: load_previous_version
+        run: |
+          if [ -f .scarb_version ]; then
+            PREVIOUS_VERSION=$(cat .scarb_version)
+          else
+            PREVIOUS_VERSION="none"
+          fi
+          echo "PREVIOUS_VERSION=${PREVIOUS_VERSION}" >> $GITHUB_ENV
+
+      - name: Compare versions
+        id: compare_versions
+        run: |
+          if [ "$SCARB_VERSION" != "$PREVIOUS_VERSION" ]; then
+            echo "New version found: $SCARB_VERSION"
+            echo "update_required=true" >> $GITHUB_ENV
+          else
+            echo "No update required"
+            echo "update_required=false" >> $GITHUB_ENV
+          fi
+
+      - name: Check if PR already exists
+        id: check_pr_exists
+        if: env.update_required == 'true'
+        run: |
+          PR_EXIST=$(gh pr list --state=open --head update-scarb-${{ env.SCARB_VERSION }} | wc -l)
+          if [ "$PR_EXIST" -gt 0 ]; then
+            echo "PR already exists."
+            echo "pr_exists=true" >> $GITHUB_ENV
+          else
+            echo "No PR exists."
+            echo "pr_exists=false" >> $GITHUB_ENV
+          fi
+
+      - name: Create a new branch for the update
+        if: env.update_required == 'true' && env.pr_exists == 'false'
+        run: |
+          git checkout -b update-scarb-${{ env.SCARB_VERSION }}
+          echo "${{ env.SCARB_VERSION }}" > .scarb_version
+
+      - name: Commit changes
+        if: env.update_required == 'true' && env.pr_exists == 'false'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .scarb_version
+          git commit -m "Update Scarb version to ${{ env.SCARB_VERSION }}"
+
+      - name: Push changes to new branch
+        if: env.update_required == 'true' && env.pr_exists == 'false'
+        run: |
+          git push origin update-scarb-${{ env.SCARB_VERSION }}
+
+      - name: Create PR
+        if: env.update_required == 'true' && env.pr_exists == 'false'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          branch: update-scarb-${{ env.SCARB_VERSION }}
+          base: main  # Make sure this matches your default branch
+          title: 'Update Scarb to version ${{ env.SCARB_VERSION }}'
+          body: |
+            A new version of Scarb has been released: **${{ env.SCARB_VERSION }}**.
+            This PR updates the project with the latest version.
+          labels: 'scarb,update'
