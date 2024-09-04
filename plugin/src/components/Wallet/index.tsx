@@ -74,6 +74,7 @@ const Wallet: React.FC = () => {
                 href={`${getExplorerUrl(
                   explorerHook.explorer,
                   getChainName(chain.id.toString() ?? '') as Network
+                // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
                 )}/contract/${formattedAddress ?? ''}`}
                 target="_blank"
                 rel="noreferer noopener noreferrer"
