@@ -8,7 +8,7 @@ import { getExplorerUrl, trimStr } from '../../utils/utils'
 import { useAccount, useProvider, useNetwork } from '@starknet-react/core'
 import ConnectModal from '../starknet/connect'
 import DisconnectModal from '../starknet/disconnect'
-import { foprmatWalletAddress, getChainName } from '../../utils/starknet'
+import { formatWalletAddress, getChainName } from '../../utils/starknet'
 import useAccountAtom from '../../hooks/useAccount'
 import useProviderAtom from '../../hooks/useProvider'
 import { declTxHashAtom, deployTxHashAtom } from '../../atoms/deployment'
@@ -42,7 +42,7 @@ const Wallet: React.FC = () => {
     setInvokeTxHash('')
   }, [status])
 
-  const formattedAddress = foprmatWalletAddress(address)
+  const formattedAddress = formatWalletAddress(address)
   const explorerHook = useCurrentExplorer()
 
   return (
