@@ -15,9 +15,7 @@ import TransactionHistory from '../TransactionHistory'
 import Footer from '../Footer'
 import StateAction from '../../components/StateAction'
 import BackgroundNotices from '../../components/BackgroundNotices'
-import {
-  useCurrentExplorer
-} from '../../components/ExplorerSelector'
+import { useCurrentExplorer } from '../../components/ExplorerSelector'
 import { useAtomValue, useSetAtom, useAtom } from 'jotai'
 import { isCompilingAtom, statusAtom } from '../../atoms/compilation'
 import { deploymentAtom, isDelcaringAtom } from '../../atoms/deployment'
@@ -40,17 +38,16 @@ const Plugin: React.FC = () => {
   const isCompiling = useAtomValue(isCompilingAtom)
   const status = useAtomValue(statusAtom)
 
-  const {
-    isDeploying,
-    deployStatus
-  } = useAtomValue(deploymentAtom)
+  const { isDeploying, deployStatus } = useAtomValue(deploymentAtom)
 
   const isDeclaring = useAtomValue(isDelcaringAtom)
 
   const isDeclaringOrDeploying = isDeploying || isDeclaring
 
   // Interaction state variables
-  const [interactionStatus, setInteractionStatus] = useState<'loading' | 'success' | 'error' | ''>('')
+  const [interactionStatus, setInteractionStatus] = useState<
+  'loading' | 'success' | 'error' | ''
+  >('')
 
   const [currentAccordian, setCurrentAccordian] =
     useState<AccordianTabs>('compile')
@@ -69,30 +66,36 @@ const Plugin: React.FC = () => {
   const { remixClient } = useRemixClient()
 
   const envViteVersion: string | undefined = import.meta.env.VITE_VERSION
-  const pluginVersion = envViteVersion !== undefined ? `v${envViteVersion}` : 'v0.2.5'
+  const pluginVersion =
+    envViteVersion !== undefined ? `v${envViteVersion}` : 'v0.2.5'
 
   useEffect(() => {
     const fetchCairoVersions = async (): Promise<void> => {
       try {
         if (apiUrl !== undefined) {
-          const response = await fetch(
-              `${apiUrl}/cairo_versions`,
-              {
-                method: 'GET',
-                headers: {
-                  'Content-Type': 'application/octet-stream'
-                },
-                redirect: 'follow'
-              }
-          )
+          const response = await fetch(`${apiUrl}/cairo_versions`, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/octet-stream'
+            },
+            redirect: 'follow'
+          })
           const versions = JSON.parse(await response.text())
           versions.sort()
           setVersions(versions)
         }
       } catch (e) {
-        await remixClient.call('notification' as any, 'toast', '🔴 Failed to fetch cairo versions from the compilation server')
+        await remixClient.call(
+          'notification' as any,
+          'toast',
+          '🔴 Failed to fetch cairo versions from the compilation server'
+        )
         console.error(e)
-        await remixClient.terminal.log(`🔴 Failed to fetch cairo versions from the compilation server ${e as string}` as any)
+        await remixClient.terminal.log(
+          `🔴 Failed to fetch cairo versions from the compilation server ${
+            e as string
+          }` as any
+        )
       }
     }
 
@@ -104,7 +107,9 @@ const Plugin: React.FC = () => {
           setCairoVersion(getVersions[getVersions.length - 1])
         }
       }
-      fetchCairo().catch(e => { console.error(e) })
+      fetchCairo().catch((e) => {
+        console.error(e)
+      })
     }, 10000)
   }, [remixClient])
 
@@ -194,15 +199,11 @@ const Plugin: React.FC = () => {
 
   return (
     <StarknetProvider>
-      <div className='plugin-wrapper'>
-        <div className='plugin-main-wrapper'>
+      <div className="plugin-wrapper">
+        <div className="plugin-main-wrapper">
           <div className={'plugin-version-wrapper'}>
-            <div className={'plugin-version-label'}>
-              ALPHA
-            </div>
-            <div className={'plugin-version'}>
-              Using {pluginVersion}
-            </div>
+            <div className={'plugin-version-label'}>ALPHA</div>
+            <div className={'plugin-version'}>Using {pluginVersion}</div>
           </div>
           <div>
             <Environment />
@@ -218,115 +219,123 @@ const Plugin: React.FC = () => {
             {/* apply styles */}
             <Tabs.List className={'flex justify-between rounded tab-list'}>
               <div className={'tabs-trigger'}></div>
-              <Tabs.Trigger value={'home'} className={'tabs-trigger'}>Home</Tabs.Trigger>
-              <Tabs.Trigger value={'transactions'} className={'tabs-trigger'}>Transactions</Tabs.Trigger>
-              <Tabs.Trigger value={'info'} className={'tabs-trigger'}>Info</Tabs.Trigger>
-              <Tabs.Trigger value={'settings'} className={'tabs-trigger'}>Settings</Tabs.Trigger>
+              <Tabs.Trigger value={'home'} className={'tabs-trigger'}>
+                Home
+              </Tabs.Trigger>
+              <Tabs.Trigger value={'transactions'} className={'tabs-trigger'}>
+                Transactions
+              </Tabs.Trigger>
+              <Tabs.Trigger value={'info'} className={'tabs-trigger'}>
+                Info
+              </Tabs.Trigger>
+              <Tabs.Trigger value={'settings'} className={'tabs-trigger'}>
+                Settings
+              </Tabs.Trigger>
               <div className={'tabs-trigger'}></div>
             </Tabs.List>
 
-            <Tabs.Content value='home'>
+            <Tabs.Content value="home">
               <Accordian
-                  type='single'
-                  value={currentAccordian}
-                  defaultValue={'compile'}
+                type="single"
+                value={currentAccordian}
+                defaultValue={'compile'}
               >
-                <AccordianItem value='compile'>
+                <AccordianItem value="compile">
                   <AccordionTrigger
-                      onClick={() => {
-                        handleTabView('compile')
-                      }}
+                    onClick={() => {
+                      handleTabView('compile')
+                    }}
                   >
-                  <span
-                      className='d-flex align-items-center'
+                    <span
+                      className="d-flex align-items-center"
                       style={{ gap: '0.5rem' }}
-                  >
-                    <span className={'accordian-list-number'}>1</span>
-                    <p style={{ all: 'unset' }}>Compile</p>
-                    <StateAction
+                    >
+                      <span className={'accordian-list-number'}>1</span>
+                      <p style={{ all: 'unset' }}>Compile</p>
+                      <StateAction
                         value={
                           isCompiling
                             ? 'loading'
                             : status === 'done'
                               ? 'success'
-                              : status === 'failed' ? 'error' : ''
+                              : status === 'failed'
+                                ? 'error'
+                                : ''
                         }
-                    />
-                  </span>
+                      />
+                    </span>
                   </AccordionTrigger>
                   <AccordionContent>
                     <Compilation setAccordian={setCurrentAccordian} />
                   </AccordionContent>
                 </AccordianItem>
 
-                <AccordianItem value='deploy'>
+                <AccordianItem value="deploy">
                   <AccordionTrigger
-                      onClick={() => {
-                        handleTabView('deploy')
-                      }}
+                    onClick={() => {
+                      handleTabView('deploy')
+                    }}
                   >
-                  <span
-                      className='d-flex align-items-center'
+                    <span
+                      className="d-flex align-items-center"
                       style={{ gap: '0.5rem' }}
-                  >
-                    <span className={'accordian-list-number'}>2</span>
-                    <p style={{ all: 'unset' }}>Deploy</p>
-                    <StateAction
+                    >
+                      <span className={'accordian-list-number'}>2</span>
+                      <p style={{ all: 'unset' }}>Deploy</p>
+                      <StateAction
                         value={
                           isDeclaringOrDeploying
                             ? 'loading'
-                            : deployStatus === 'error'
+                            : deployStatus === 'ERROR'
                               ? 'error'
-                              : deployStatus === 'done'
+                              : deployStatus === 'DONE'
                                 ? 'success'
                                 : ''
                         }
-                    />
-                  </span>
+                      />
+                    </span>
                   </AccordionTrigger>
                   <AccordionContent>
                     <Deployment setActiveTab={setCurrentAccordian} />
                   </AccordionContent>
                 </AccordianItem>
-                <AccordianItem value='interaction'>
+                <AccordianItem value="interaction">
                   <AccordionTrigger
-                      onClick={() => {
-                        handleTabView('interaction')
-                      }}
-                    >
+                    onClick={() => {
+                      handleTabView('interaction')
+                    }}
+                  >
                     <span
-                        className='d-flex align-items-center'
-                        style={{ gap: '0.5rem' }}
+                      className="d-flex align-items-center"
+                      style={{ gap: '0.5rem' }}
                     >
                       <span className={'accordian-list-number'}>3</span>
                       <p style={{ all: 'unset' }}>Interact</p>
-                      <StateAction
-                          value={interactionStatus}
-                      />
+                      <StateAction value={interactionStatus} />
                     </span>
-                    </AccordionTrigger>
-                    <AccordionContent>
-                      <Interaction setInteractionStatus={setInteractionStatus} />
-                    </AccordionContent>
-                  </AccordianItem>
-                </Accordian>
-              </Tabs.Content>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <Interaction setInteractionStatus={setInteractionStatus} />
+                  </AccordionContent>
+                </AccordianItem>
+              </Accordian>
+            </Tabs.Content>
 
-              <Tabs.Content value='transactions'>
-                <TransactionHistory controlHook={explorerHook} />
-              </Tabs.Content>
+            <Tabs.Content value="transactions">
+              <TransactionHistory controlHook={explorerHook} />
+            </Tabs.Content>
 
-              <Tabs.Content value='info'>
-                <BackgroundNotices />
-              </Tabs.Content>
+            <Tabs.Content value="info">
+              <BackgroundNotices />
+            </Tabs.Content>
 
-              <Tabs.Content value={'settings'}>
-                <Settings />
-              </Tabs.Content>
-            </Tabs.Root>
-            <div className={'blank-placeholder'}></div>
-          </div>
-          <Footer />
+            <Tabs.Content value={'settings'}>
+              <Settings />
+            </Tabs.Content>
+          </Tabs.Root>
+          <div className={'blank-placeholder'}></div>
+        </div>
+        <Footer />
       </div>
     </StarknetProvider>
   )
