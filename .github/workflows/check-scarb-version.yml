@@ -68,11 +68,15 @@ jobs:
           git commit -m "Update Scarb version to ${{ env.SCARB_VERSION }}"
 
       - name: Push changes to new branch
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
         if: env.update_required == 'true' && env.pr_exists == 'false'
         run: |
           git push origin update-scarb-${{ env.SCARB_VERSION }}
 
       - name: Create PR
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
         if: env.update_required == 'true' && env.pr_exists == 'false'
         uses: peter-evans/create-pull-request@v5
         with:
