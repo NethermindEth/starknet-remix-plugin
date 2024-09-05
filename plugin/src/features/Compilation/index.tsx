@@ -653,6 +653,9 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
       if (contract != null) {
         setSelectedContract(contract)
+        const contractName = contract.name
+        const contractPath = contract.path
+        contracts.filter((contract) => contract.name !== contractName && contract.path !== contractPath)
         setContracts([contract, ...contracts])
       } else {
         if (selectedContract == null) setSelectedContract(contracts[0])
