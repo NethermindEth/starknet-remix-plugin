@@ -76,7 +76,7 @@ jobs:
 
       - name: Get the latest version of Scarb
         run: |
-          SCARB_VERSION=$(curl -s https://api.github.com/repos/software-mansion/scarb/releases/latest | jq -r '.tag_name')
+          SCARB_VERSION=$(curl -s https://api.github.com/repos/software-mansion/scarb/releases/latest | jq -r '.tag_name' | sed 's/v//')
           echo "SCARB_VERSION=${SCARB_VERSION}" >> $GITHUB_ENV
 
       - name: Build, tag, and push docker image to Amazon ECR
