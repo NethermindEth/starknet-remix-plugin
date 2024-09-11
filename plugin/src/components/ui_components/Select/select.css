@@ -53,6 +53,20 @@ button {
     border: 1px solid var(--secondary);
 }
 
+.SelectItemWithDelete {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    background: var(--bgPrimary);
+    color: var(--text);
+}
+
+.SelectItemWithDelete .deleteButton:hover{
+    border: 1px solid var(--secondary);
+}
+
+
 /* Keyframe animations */
 @keyframes fadeInScaleUp {
     from {

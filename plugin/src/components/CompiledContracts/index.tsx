@@ -6,14 +6,14 @@ import {
 import { useAtom } from 'jotai'
 import { compiledContractsAtom, selectedCompiledContract } from '../../atoms/compiledContracts'
 import * as Select from '../../components/ui_components/Select'
-import { ChevronDownIcon } from 'lucide-react'
+import { ChevronDownIcon, TrashIcon } from 'lucide-react'
 
 interface CompiledContractsProps {
   show: 'class' | 'contract'
 }
 
-const CompiledContracts: React.FC<CompiledContractsProps> = (props) => {
-  const [contracts] = useAtom(compiledContractsAtom)
+const CompiledContracts: React.FC<CompiledContractsProps> = (props): JSX.Element => {
+  const [contracts, setContracts] = useAtom(compiledContractsAtom)
   const [selectedContract, setSelectedContract] = useAtom(selectedCompiledContract)
 
   const [selectedContractIdx, setSelectedContractIdx] = useState('0')
@@ -22,6 +22,11 @@ const CompiledContracts: React.FC<CompiledContractsProps> = (props) => {
     console.log('handleCompiledContractSelectionChange', value)
     setSelectedContract(contracts[value as unknown as number])
     setSelectedContractIdx(value)
+  }
+
+  const handleDeleteContract = (event: React.MouseEvent<HTMLButtonElement>, index: number): void => {
+    event.stopPropagation()
+    setContracts((prevContracts) => prevContracts.filter((_, i) => i !== index))
   }
 
   return (
@@ -34,29 +39,50 @@ const CompiledContracts: React.FC<CompiledContractsProps> = (props) => {
               4
           )})`
             : 'Contract is not selected'}/>
-          <Select.Icon>
-            <ChevronDownIcon />
-          </Select.Icon>
-        </Select.Trigger>
-        <Select.Portal>
-          <Select.Content>
-            <Select.Viewport>
-              {contracts.map((contract, index) => (
-                  <Select.Item value={index.toString()} key={index}>
-                    <Select.ItemText>
-                      {`${getContractNameFromFullName(contract.name)} (${getShortenedHash(
+        <Select.Icon>
+          <ChevronDownIcon />
+        </Select.Icon>
+      </Select.Trigger>
+      <Select.Portal>
+        <Select.Content>
+          <Select.Viewport>
+            {contracts.map((contract, index) => (
+              <SelectItemWithDelete
+                key={index}
+                value={index.toString()}
+                onDelete={handleDeleteContract}
+                index={index}
+                isSelected={selectedContract?.classHash === contract.classHash}
+              >
+                {`${getContractNameFromFullName(contract.name)} (${getShortenedHash(
                           contract.classHash ?? '',
                           6,
                           4
                       )})`}
-                    </Select.ItemText>
-                  </Select.Item>
-              ))}
-            </Select.Viewport>
-          </Select.Content>
-        </Select.Portal>
-      </Select.Root>
+              </SelectItemWithDelete>
+            ))}
+          </Select.Viewport>
+        </Select.Content>
+      </Select.Portal>
+    </Select.Root>
   )
 }
+
+const SelectItemWithDelete = React.forwardRef(
+  ({ children, onDelete, index, value, isSelected, ...props }: any, ref: React.Ref<HTMLDivElement>): JSX.Element => (
+    <div className="SelectItemWithDelete">
+      <Select.Item {...props} ref={ref} value={value} className="w-full">
+        <Select.ItemText>{children}</Select.ItemText>
+      </Select.Item>
+
+        <button disabled={isSelected} title={isSelected === true ? 'Cannot delete selected item' : ''} onClick={(event) => onDelete(event, index)} className={`ml-2 p-1 rounded ${isSelected === true ? '' : 'deleteButton'}`}>
+          <TrashIcon size={16} />
+        </button>
+
+    </div>
+  )
+)
+
+SelectItemWithDelete.displayName = 'SelectItemWithDelete'
 
 export default CompiledContracts
