@@ -71,12 +71,12 @@ jobs:
         uses: ad-m/github-push-action@master
         if: env.update_required == 'true' && env.pr_exists == 'false'
         with:
-          github_token: ${{ secrets.GH_TOKEN_2 }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           branch: update-scarb-${{ env.SCARB_VERSION }}
           
       - name: Create PR
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_2 }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         if: env.update_required == 'true' && env.pr_exists == 'false'
         uses: peter-evans/create-pull-request@v5
         with:
