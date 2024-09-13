@@ -95,7 +95,7 @@ jobs:
         run: |
           gh pr create \
             --head update-scarb-${{ env.SCARB_VERSION }} \
-            --base main \
+            --base develop \
             --title "Update Scarb to version ${{ env.SCARB_VERSION }}" \
             --body "A new version of Scarb has been released: **${{ env.SCARB_VERSION }}**.\nThis PR updates the project with the latest version." \
             --label "scarb,update"
