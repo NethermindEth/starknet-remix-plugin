@@ -41,6 +41,7 @@ jobs:
           else
             echo "No update required"
             echo "update_required=false" >> $GITHUB_ENV
+          fi
 
       - name: Check if PR already exists
         id: check_pr_exists
