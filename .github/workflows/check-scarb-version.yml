@@ -88,15 +88,10 @@ jobs:
         run: |
           git push origin update-scarb-${{ env.SCARB_VERSION }}
 
-      - name: Authenticate with GitHub CLI
+      - name: Create Pull Request
         if: env.update_required == 'true' && env.pr_exists == 'false'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh auth login --with-token
-
-      - name: Create Pull Request
-        if: env.update_required == 'true' && env.pr_exists == 'false'
         run: |
           gh pr create \
             --head update-scarb-${{ env.SCARB_VERSION }} \
