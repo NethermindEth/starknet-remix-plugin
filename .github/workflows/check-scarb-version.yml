@@ -4,10 +4,9 @@ on:
   schedule:
     - cron: '0 0 * * *' # Runs at midnight every day
   workflow_dispatch: # Allows for manual triggering
+permissions: write-all
 
-jobs:
-  permissions: write-all
-  
+jobs:  
   check-scarb-version:
     runs-on: ubuntu-latest
 
