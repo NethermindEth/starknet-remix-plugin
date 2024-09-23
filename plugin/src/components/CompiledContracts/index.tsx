@@ -69,13 +69,13 @@ const CompiledContracts: React.FC<CompiledContractsProps> = (props): JSX.Element
 }
 
 const SelectItemWithDelete = React.forwardRef(
-  ({ children, onDelete, index, value, isSelected, ...props }: any, ref: React.Ref<HTMLDivElement>): JSX.Element => (
+  ({ children, onDelete, index, value, ...props }: any, ref: React.Ref<HTMLDivElement>): JSX.Element => (
     <div className="SelectItemWithDelete">
       <Select.Item {...props} ref={ref} value={value} className="w-full">
         <Select.ItemText>{children}</Select.ItemText>
       </Select.Item>
 
-        <button disabled={isSelected} title={isSelected === true ? 'Cannot delete selected item' : ''} onClick={(event) => onDelete(event, index)} className={`ml-2 p-1 rounded ${isSelected === true ? '' : 'deleteButton'}`}>
+        <button onClick={(event) => onDelete(event, index)} className={'ml-2 p-1 rounded deleteButton'}>
           <TrashIcon size={16} />
         </button>
 
