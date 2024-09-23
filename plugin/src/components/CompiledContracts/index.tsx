@@ -27,7 +27,16 @@ const CompiledContracts: React.FC<CompiledContractsProps> = (props): JSX.Element
   const handleDeleteContract = (event: React.MouseEvent<HTMLButtonElement>, index: number): void => {
     event.stopPropagation()
     setContracts((prevContracts) => prevContracts.filter((_, i) => i !== index))
+
+    if (contracts.length === 0) {
+      setSelectedContract(null)
+    } else {
+      setSelectedContract(contracts[0])
+      setSelectedContractIdx('0')
+    }
   }
+
+  if (contracts.length === 0) return <></>
 
   return (
       <Select.Root value={selectedContractIdx} onValueChange={(value) => { handleCompiledContractSelectionChange(value) }}>
