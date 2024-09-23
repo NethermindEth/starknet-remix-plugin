@@ -534,20 +534,18 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   return (
     <>
       <Container>
-        {contracts.length > 0 && selectedContract != null
-          ? (
           <div className="">
-            <div
-              className={
-                'compilation-info flex-col text-center align-items-center mb-2'
-              }
-            >
-              <div className={'icon'}>
-                <img src={useIcon('deploy-icon.svg')} alt={'deploy-icon'} />
+          <div className="compilation-info flex-col text-center align-items-center mb-2">
+            <div className="icon">
+              <img src={useIcon('deploy-icon.svg')} alt="deploy-icon" />
               </div>
-              <span className={'mt-1 mb-1'}>Deploy your selected contract</span>
+            <span className="mt-1 mb-1">{contracts.length > 0 && selectedContract !== null ? 'Deploy your selected contract' : 'No contracts ready for deployment yet, compile a cairo contract'}</span>
             </div>
             <CompiledContracts show={'class'} />
+
+          {contracts.length > 0 && selectedContract !== null
+            ? (
+            <div>
             <button
               className="btn btn-warning btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3 px-0 rounded"
               style={{
@@ -640,19 +638,12 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
           </div>
             )
           : (
-          <NoContractReadyView />
+           <></>
             )}
+        </div>
       </Container>
     </>
   )
 }
 
-const NoContractReadyView = (): JSX.Element => (
-  <div className={'flex flex-column justify-content-center align-items-center'}>
-    <div className={'icon mb-2'}>
-      <img src={useIcon('deploy-icon.svg')} alt={'deploy-icon'} />
-    </div>
-    <p>No contracts ready for deployment yet, compile a cairo contract</p>
-  </div>
-)
 export default Deployment
