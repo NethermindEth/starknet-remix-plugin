@@ -534,112 +534,112 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   return (
     <>
       <Container>
-          <div className="">
+        <div className="">
           <div className="compilation-info flex-col text-center align-items-center mb-2">
             <div className="icon">
               <img src={useIcon('deploy-icon.svg')} alt="deploy-icon" />
-              </div>
-            <span className="mt-1 mb-1">{contracts.length > 0 && selectedContract !== null ? 'Deploy your selected contract' : 'No contracts ready for deployment yet, compile a cairo contract'}</span>
             </div>
-            <CompiledContracts show={'class'} />
+            <span className="mt-1 mb-1">{contracts.length > 0 && selectedContract !== null ? 'Deploy your selected contract' : 'No contracts ready for deployment yet, compile a cairo contract'}</span>
+          </div>
+          <CompiledContracts show={'class'} />
 
           {contracts.length > 0 && selectedContract !== null
             ? (
             <div>
-            <button
-              className="btn btn-warning btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3 px-0 rounded"
-              style={{
-                cursor: `${
+              <button
+                className="btn btn-warning btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3 px-0 rounded"
+                style={{
+                  cursor: `${
+                  isDeclaring ||
+                    account == null ||
+                    selectedContract.declaredInfo.some(
+                      (info) => info.chainId === chainId && info.env === env
+                    )
+                    ? 'not-allowed'
+                    : 'pointer'
+                }`
+                }}
+                disabled={
                   isDeclaring ||
                   account == null ||
                   selectedContract.declaredInfo.some(
                     (info) => info.chainId === chainId && info.env === env
                   )
-                    ? 'not-allowed'
-                    : 'pointer'
-                }`
-              }}
-              disabled={
-                isDeclaring ||
-                account == null ||
-                selectedContract.declaredInfo.some(
-                  (info) => info.chainId === chainId && info.env === env
-                )
-              }
-              aria-disabled={
-                isDeclaring ||
-                account == null ||
-                selectedContract.declaredInfo.some(
-                  (info) => info.chainId === chainId && info.env === env
-                )
-              }
-              onClick={handleDeclare}
-            >
-              <div className="d-flex align-items-center justify-content-center">
-                <div className="text-truncate overflow-hidden text-nowrap">
-                  {isDeclaring
-                    ? (
+                }
+                aria-disabled={
+                  isDeclaring ||
+                  account == null ||
+                  selectedContract.declaredInfo.some(
+                    (info) => info.chainId === chainId && info.env === env
+                  )
+                }
+                onClick={handleDeclare}
+              >
+                <div className="d-flex align-items-center justify-content-center">
+                  <div className="text-truncate overflow-hidden text-nowrap">
+                    {isDeclaring
+                      ? (
                     <>
                       <span style={{ paddingLeft: '0.5rem' }}>
                         {DeclareStatusLabels[declStatus]}
                       </span>
                     </>
-                      )
-                    : (
-                    <div className="text-truncate overflow-hidden text-nowrap">
-                      {account !== null &&
-                      selectedContract.declaredInfo.some(
-                        (info) => info.chainId === chainId && info.env === env
-                      )
-                        ? (
-                        <span>
+                        )
+                      : (
+                      <div className="text-truncate overflow-hidden text-nowrap">
+                        {account !== null &&
+                        selectedContract.declaredInfo.some(
+                          (info) => info.chainId === chainId && info.env === env
+                        )
+                          ? (
+                          <span>
                           {' '}
-                          Declared {selectedContract.name}{' '}
-                          <i className="bi bi-check"></i>
-                        </span>
-                          )
-                        : (
-                        <span> Declare {selectedContract.name}</span>
-                          )}
-                    </div>
-                      )}
+                            Declared {selectedContract.name}{' '}
+                            <i className="bi bi-check"></i>
+                          </span>
+                            )
+                          : (
+                          <span> Declare {selectedContract.name}</span>
+                            )}
+                      </div>
+                        )}
+                  </div>
                 </div>
-              </div>
-            </button>
-            <ConstructorForm
-              abi={selectedContract.abi}
-              callBackFn={handleDeploySubmit}
-            />
-            {account != null &&
-              selectedContract.deployedInfo.some(
-                (info) =>
-                  info.address === account.address && info.chainId === chainId
-              ) && (
-                <div className="mt-3">
-                  <label style={{ display: 'block' }}>
-                    Contract deployed! See{' '}
-                    <a
-                      href="/"
-                      className="text-info"
-                      onClick={(e) => {
-                        e.preventDefault()
-                        setActiveTab('interaction')
-                      }}
-                    >
-                      Interact
-                    </a>{' '}
-                    for more!
-                  </label>
-                </div>
-            )}
-            {notEnoughInputs && (
-              <label>Please fill out all constructor fields!</label>
-            )}
-          </div>
-            )
-          : (
+              </button>
+              <ConstructorForm
+                abi={selectedContract.abi}
+                callBackFn={handleDeploySubmit}
+              />
+              {account != null &&
+                selectedContract.deployedInfo.some(
+                  (info) =>
+                    info.address === account.address && info.chainId === chainId
+                ) && (
+                  <div className="mt-3">
+                    <label style={{ display: 'block' }}>
+                      Contract deployed! See{' '}
+                      <a
+                        href="/"
+                        className="text-info"
+                        onClick={(e) => {
+                          e.preventDefault()
+                          setActiveTab('interaction')
+                        }}
+                      >
+                        Interact
+                      </a>{' '}
+                      for more!
+                    </label>
+                  </div>
+              )}
+              {notEnoughInputs && (
+                <label>Please fill out all constructor fields!</label>
+              )}
+            </div>
+              )
+            : (
            <></>
-            )}
+              )}
         </div>
       </Container>
     </>
