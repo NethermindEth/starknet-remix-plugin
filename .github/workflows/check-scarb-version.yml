@@ -4,6 +4,9 @@ on:
   schedule:
     - cron: '0 0 * * *' # Runs at midnight every day
   workflow_dispatch: # Allows for manual triggering
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
   check-scarb-version:
@@ -53,37 +56,46 @@ jobs:
             echo "pr_exists=false" >> $GITHUB_ENV
           fi
 
+      - name: Check if branch already exists
+        id: check_branch_exists
+        if: env.update_required == 'true'
+        run: |
+          BRANCH_EXIST=$(git ls-remote --heads origin update-scarb-${{ env.SCARB_VERSION }} | wc -l)
+          if [ "$BRANCH_EXIST" -gt 0 ]; then
+            echo "Branch already exists."
+            echo "branch_exists=true" >> $GITHUB_ENV
+          else
+            echo "Branch does not exist."
+            echo "branch_exists=false" >> $GITHUB_ENV
+          fi
+
       - name: Create a new branch for the update
-        if: env.update_required == 'true' && env.pr_exists == 'false'
+        if: env.update_required == 'true' && env.pr_exists == 'false' && env.branch_exists == 'false'
         run: |
           git checkout -b update-scarb-${{ env.SCARB_VERSION }}
           echo "${{ env.SCARB_VERSION }}" > .scarb_version
 
       - name: Commit changes
-        if: env.update_required == 'true' && env.pr_exists == 'false'
+        if: env.update_required == 'true' && env.pr_exists == 'false' && env.branch_exists == 'false'
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add .scarb_version
           git commit -m "Update Scarb version to ${{ env.SCARB_VERSION }}"
-          
+
       - name: Push changes to new branch
-        uses: ad-m/github-push-action@master
+        if: env.update_required == 'true' && env.pr_exists == 'false' && env.branch_exists == 'false'
+        run: |
+          git push origin update-scarb-${{ env.SCARB_VERSION }}
+
+      - name: Create Pull Request
         if: env.update_required == 'true' && env.pr_exists == 'false'
-        with:
-          github_token: ${{ secrets.GH_TOKEN_2 }}
-          branch: update-scarb-${{ env.SCARB_VERSION }}
-          
-      - name: Create PR
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN_2 }}
-        if: env.update_required == 'true' && env.pr_exists == 'false'
-        uses: peter-evans/create-pull-request@v5
-        with:
-          branch: update-scarb-${{ env.SCARB_VERSION }}
-          base: main  # Make sure this matches your default branch
-          title: 'Update Scarb to version ${{ env.SCARB_VERSION }}'
-          body: |
-            A new version of Scarb has been released: **${{ env.SCARB_VERSION }}**.
-            This PR updates the project with the latest version.
-          labels: 'scarb,update'
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \
+            --head update-scarb-${{ env.SCARB_VERSION }} \
+            --base develop \
+            --title "Update Scarb to version ${{ env.SCARB_VERSION }}" \
+            --body "A new version of Scarb has been released: **${{ env.SCARB_VERSION }}**.\nThis PR updates the project with the latest version." \
+            --label "scarb,update"
