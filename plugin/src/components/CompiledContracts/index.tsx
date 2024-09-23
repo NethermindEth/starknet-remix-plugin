@@ -20,7 +20,7 @@ const CompiledContracts: React.FC<CompiledContractsProps> = (props): JSX.Element
 
   const handleCompiledContractSelectionChange = (value: string): void => {
     console.log('handleCompiledContractSelectionChange', value)
-    setSelectedContract(contracts[value as unknown as number])
+    setSelectedContract(contracts[parseInt(value)])
     setSelectedContractIdx(value)
   }
 
