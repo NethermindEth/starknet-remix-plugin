@@ -539,7 +539,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
             <div className="icon">
               <img src={useIcon('deploy-icon.svg')} alt="deploy-icon" />
             </div>
-            <span className="mt-1 mb-1">{contracts.length > 0 && selectedContract !== null ? 'Deploy your selected contract' : 'No contracts ready for deployment yet, compile a cairo contract'}</span>
+            <span className="mt-1 mb-1 text-no-break">{contracts.length > 0 && selectedContract !== null ? 'Deploy your selected contract' : 'No contracts ready for deployment yet, compile a cairo contract'}</span>
           </div>
           <CompiledContracts show={'class'} />
 
