@@ -54,7 +54,7 @@ jobs:
       - name: Get Scarb version
         id: get_scarb_version
         run: |
-          SCARB_VERSION=$(cat .scarb-version) 
+          SCARB_VERSION=$(cat .scarb-version | sed 's/v//') 
           echo "scarb_version=${SCARB_VERSION}" >> $GITHUB_ENV
 
       - name: Build, tag, and push docker image to Amazon ECR
