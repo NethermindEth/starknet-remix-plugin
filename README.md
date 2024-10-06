@@ -147,6 +147,7 @@ pnpm run deploy;
 pnpm run serve;
 ```
 
+Depending on cairo compiler +nightly may be necessary to run locally
 ```bash
 cd api;
 export VITE_URL=http://localhost:3000

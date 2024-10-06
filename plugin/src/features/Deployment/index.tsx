@@ -480,7 +480,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
   }
 
   const handleDeploySubmit = (data: CallbackReturnType): void => {
-    handleDeploy(data.starknetjs as BigNumberish[])
+    handleDeploy(data?.starknetjs ?? (data.raw as BigNumberish[]))
   }
 
   const setContractDeclaration = (currentContract: Contract): void => {
