@@ -46,12 +46,28 @@ button {
     user-select: none;
     outline: none;
     background: var(--bgPrimary);
+    border: 1px solid var(--bgPrimary);
 }
 
 .SelectItem:hover,
 .SelectItem[data-highlighted] {
     border: 1px solid var(--secondary);
 }
+
+.SelectItemWithDelete {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    background: var(--bgPrimary);
+    color: var(--text);
+    border: 1px solid var(--bgPrimary);
+}
+
+.SelectItemWithDelete .deleteButton:hover{
+    border: 1px solid var(--secondary);
+}
+
 
 /* Keyframe animations */
 @keyframes fadeInScaleUp {
