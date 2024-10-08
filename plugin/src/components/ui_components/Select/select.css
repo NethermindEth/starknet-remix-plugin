@@ -46,6 +46,7 @@ button {
     user-select: none;
     outline: none;
     background: var(--bgPrimary);
+    border: 1px solid var(--bgPrimary);
 }
 
 .SelectItem:hover,
@@ -60,6 +61,7 @@ button {
     position: relative;
     background: var(--bgPrimary);
     color: var(--text);
+    border: 1px solid var(--bgPrimary);
 }
 
 .SelectItemWithDelete .deleteButton:hover{
