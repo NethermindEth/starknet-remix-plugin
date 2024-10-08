@@ -25,8 +25,8 @@ jobs:
       - name: Load previous Scarb version
         id: load_previous_version
         run: |
-          if [ -f .scarb_version ]; then
-            PREVIOUS_VERSION=$(cat .scarb_version)
+          if [ -f .scarb-version ]; then
+            PREVIOUS_VERSION=$(cat .scarb-version)
           else
             PREVIOUS_VERSION="none"
           fi
@@ -73,14 +73,14 @@ jobs:
         if: env.update_required == 'true' && env.pr_exists == 'false' && env.branch_exists == 'false'
         run: |
           git checkout -b update-scarb-${{ env.SCARB_VERSION }}
-          echo "${{ env.SCARB_VERSION }}" > .scarb_version
+          echo "${{ env.SCARB_VERSION }}" > .scarb-version
 
       - name: Commit changes
         if: env.update_required == 'true' && env.pr_exists == 'false' && env.branch_exists == 'false'
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add .scarb_version
+          git add .scarb-version
           git commit -m "Update Scarb version to ${{ env.SCARB_VERSION }}"
 
       - name: Push changes to new branch

@@ -1,6 +1,6 @@
 git rm -r api/cairo_compilers/v*
 
-versions=(2.6.0 2.6.1 2.6.2 2.6.3 2.7.0)
+versions=(2.6.0 2.6.1 2.6.2 2.6.3 2.7.0 2.8.2)
 
 for version in "${versions[@]}"
 do
