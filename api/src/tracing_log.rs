@@ -1,3 +1,4 @@
+use anyhow::Context;
 use rocket::yansi::Paint;
 use tracing_appender::rolling;
 
@@ -99,7 +100,7 @@ pub fn filter_layer(level: LogLevel) -> EnvFilter {
     tracing_subscriber::filter::EnvFilter::try_new(filter_str).expect("filter string must parse")
 }
 
-pub fn init_logger() -> Result<(), Box<dyn std::error::Error>> {
+pub fn init_logger() -> anyhow::Result<()> {
     // Log all `tracing` events to files prefixed with `debug`.
     // Rolling these files every day
     let debug_file = rolling::daily("./logs", "debug").with_max_level(tracing::Level::TRACE);
@@ -128,7 +129,7 @@ pub fn init_logger() -> Result<(), Box<dyn std::error::Error>> {
                     .with(default_logging_layer())
                     .with(filter_layer(log_level)),
             )
-            .unwrap();
+            .context("Unable to to set LogType::Formatted as default")?;
         }
         LogType::Json => {
             tracing::subscriber::set_global_default(
@@ -137,7 +138,7 @@ pub fn init_logger() -> Result<(), Box<dyn std::error::Error>> {
                     .with(filter_layer(log_level))
                     .with(rolling_files),
             )
-            .unwrap();
+            .context("Unable to to set LogType::Json as default")?;
         }
     };
 

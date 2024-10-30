@@ -1,11 +1,12 @@
-use crate::types::{ApiError, Result};
+use crate::errors::{ApiError, Result};
 use crate::utils::lib::get_file_path;
 use rocket::data::ToByteUnit;
 use rocket::tokio::fs;
 use rocket::Data;
 use std::path::PathBuf;
-use tracing::info;
+use tracing::{info, instrument};
 
+#[instrument(skip(file))]
 #[post("/save_code/<remix_file_path..>", data = "<file>")]
 pub async fn save_code(file: Data<'_>, remix_file_path: PathBuf) -> String {
     info!("/save_code/{:?}", remix_file_path);

@@ -1,7 +1,5 @@
 use std::io::Error as IoError;
 
-pub type Result<T> = std::result::Result<T, ApiError>;
-
 #[derive(Debug, thiserror::Error)]
 pub enum ApiError {
     #[error("Failed to execute command: {0}")]
@@ -35,3 +33,5 @@ pub enum ApiError {
     #[error("Error while trying to unlock mutex")]
     MutexUnlockError,
 }
+
+pub type Result<T, E = ApiError> = std::result::Result<T, E>;

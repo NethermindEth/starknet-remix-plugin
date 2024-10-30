@@ -1,4 +1,4 @@
-use crate::types::{ApiError, Result};
+use crate::errors::{ApiError, Result};
 use crate::utils::lib::CAIRO_COMPILERS_DIR;
 use rocket::tokio::fs::read_dir;
 use std::path::Path;

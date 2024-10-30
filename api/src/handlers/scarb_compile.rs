@@ -1,8 +1,8 @@
+use crate::errors::{ApiError, Result};
 use crate::handlers::get_files_recursive;
 use crate::handlers::process::{do_process_command, fetch_process_result};
 use crate::handlers::types::{ApiCommand, ApiCommandResult, ScarbCompileResponse};
 use crate::rate_limiter::RateLimited;
-use crate::types::{ApiError, Result};
 use crate::utils::lib::get_file_path;
 use crate::worker::WorkerEngine;
 use rocket::serde::json;
@@ -12,7 +12,7 @@ use std::path::PathBuf;
 use std::process::{Command, Stdio};
 use tracing::{debug, info, instrument};
 
-#[instrument]
+#[instrument(skip(_rate_limited))]
 #[get("/compile-scarb/<remix_file_path..>")]
 pub async fn scarb_compile(
     remix_file_path: PathBuf,
@@ -28,7 +28,7 @@ pub async fn scarb_compile(
     })
 }
 
-#[instrument]
+#[instrument(skip(engine, _rate_limited))]
 #[get("/compile-scarb-async/<remix_file_path..>")]
 pub async fn scarb_compile_async(
     remix_file_path: PathBuf,
@@ -39,7 +39,7 @@ pub async fn scarb_compile_async(
     do_process_command(ApiCommand::ScarbCompile { remix_file_path }, engine)
 }
 
-#[instrument]
+#[instrument(skip(engine))]
 #[get("/compile-scarb-result/<process_id>")]
 pub async fn get_scarb_compile_result(process_id: String, engine: &State<WorkerEngine>) -> String {
     info!("/compile-scarb-result/{:?}", process_id);

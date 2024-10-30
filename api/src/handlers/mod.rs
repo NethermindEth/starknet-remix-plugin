@@ -8,17 +8,18 @@ pub mod scarb_compile;
 pub mod scarb_test;
 pub mod types;
 
+use rocket::serde::json::Json;
+use std::path::Path;
+use tracing::info;
+use tracing::instrument;
+
+use crate::errors::{ApiError, Result};
 use crate::handlers::cairo_version::do_cairo_version;
 use crate::handlers::compile_casm::do_compile_to_casm;
 use crate::handlers::compile_sierra::do_compile_to_sierra;
 use crate::handlers::scarb_compile::do_scarb_compile;
 use crate::handlers::scarb_test::do_scarb_test;
 use crate::handlers::types::{ApiCommand, ApiCommandResult, FileContentMap};
-use crate::types::{ApiError, Result};
-use rocket::serde::json::Json;
-use std::path::Path;
-use tracing::info;
-use tracing::instrument;
 
 #[instrument]
 #[get("/health")]

@@ -1,15 +1,16 @@
-use crate::handlers::process::{do_process_command, fetch_process_result};
-use crate::handlers::types::{ApiCommand, ApiCommandResult};
-use crate::rate_limiter::RateLimited;
-use crate::types::{ApiError, Result};
-use crate::utils::lib::DEFAULT_CAIRO_DIR;
-use crate::worker::WorkerEngine;
 use rocket::State;
 use std::process::{Command, Stdio};
 use tracing::{error, info, instrument};
 
+use crate::errors::{ApiError, Result};
+use crate::handlers::process::{do_process_command, fetch_process_result};
+use crate::handlers::types::{ApiCommand, ApiCommandResult};
+use crate::rate_limiter::RateLimited;
+use crate::utils::lib::DEFAULT_CAIRO_DIR;
+use crate::worker::WorkerEngine;
+
 // Read the version from the cairo Cargo.toml file.
-#[instrument]
+#[instrument(skip(_rate_limited))]
 #[get("/cairo_version")]
 pub async fn cairo_version(_rate_limited: RateLimited) -> String {
     info!("/cairo_version");
@@ -17,7 +18,7 @@ pub async fn cairo_version(_rate_limited: RateLimited) -> String {
 }
 
 // Read the version from the cairo Cargo.toml file.
-#[instrument]
+#[instrument(skip(engine, _rate_limited))]
 #[get("/cairo_version_async")]
 pub async fn cairo_version_async(
     engine: &State<WorkerEngine>,
@@ -27,7 +28,7 @@ pub async fn cairo_version_async(
     do_process_command(ApiCommand::CairoVersion, engine)
 }
 
-#[instrument]
+#[instrument(skip(engine))]
 #[get("/cairo_version_result/<process_id>")]
 pub async fn get_cairo_version_result(process_id: String, engine: &State<WorkerEngine>) -> String {
     fetch_process_result(process_id, engine, |result| match result {

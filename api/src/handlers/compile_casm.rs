@@ -1,7 +1,7 @@
+use crate::errors::{ApiError, Result};
 use crate::handlers::process::{do_process_command, fetch_process_result};
 use crate::handlers::types::{ApiCommand, ApiCommandResult, CompileResponse};
 use crate::rate_limiter::RateLimited;
-use crate::types::{ApiError, Result};
 use crate::utils::lib::{get_file_ext, get_file_path, CAIRO_COMPILERS_DIR, CASM_ROOT};
 use crate::worker::WorkerEngine;
 use rocket::fs::NamedFile;
@@ -13,7 +13,7 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use tracing::{debug, info, instrument};
 
-#[instrument]
+#[instrument(skip(_rate_limited))]
 #[get("/compile-to-casm/<version>/<remix_file_path..>")]
 pub async fn compile_to_casm(
     version: String,
@@ -33,7 +33,7 @@ pub async fn compile_to_casm(
         })
 }
 
-#[instrument]
+#[instrument(skip(engine, _rate_limited))]
 #[get("/compile-to-casm-async/<version>/<remix_file_path..>")]
 pub async fn compile_to_casm_async(
     version: String,
@@ -51,7 +51,7 @@ pub async fn compile_to_casm_async(
     )
 }
 
-#[instrument]
+#[instrument(skip(engine))]
 #[get("/compile-to-casm-result/<process_id>")]
 pub async fn compile_to_casm_result(process_id: String, engine: &State<WorkerEngine>) -> String {
     info!("/compile-to-casm-result/{:?}", process_id);

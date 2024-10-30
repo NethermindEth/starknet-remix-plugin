@@ -1,6 +1,6 @@
+use crate::errors::ApiError;
 use crate::handlers;
 use crate::handlers::types::{ApiCommand, ApiCommandResult};
-use crate::types::ApiError;
 use crate::utils::lib::DURATION_TO_PURGE;
 use crossbeam_queue::ArrayQueue;
 use crossbeam_skiplist::SkipMap;
