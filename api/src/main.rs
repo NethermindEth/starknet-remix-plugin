@@ -26,7 +26,7 @@ use prometheus::Registry;
 use rocket::{Build, Config, Rocket};
 use std::env;
 use std::net::Ipv4Addr;
-use tracing::info;
+use tracing::{info, instrument};
 
 use crate::cors::CORS;
 use crate::metrics::{initialize_metrics, Metrics};
@@ -52,6 +52,7 @@ fn create_metrics_server(registry: Registry) -> Rocket<Build> {
         .mount("/", routes![metrics::metrics])
 }
 
+#[instrument(skip(metrics))]
 fn create_app(metrics: Metrics) -> Rocket<Build> {
     let number_of_workers = match std::env::var("WORKER_THREADS") {
         Ok(v) => v.parse::<u32>().unwrap_or(2u32),
@@ -64,8 +65,7 @@ fn create_app(metrics: Metrics) -> Rocket<Build> {
     };
 
     // Launch the worker processes
-    let mut engine = WorkerEngine::new(number_of_workers, queue_size);
-
+    let mut engine = WorkerEngine::new(number_of_workers, queue_size, metrics.clone());
     engine.start();
 
     info!("Number of workers: {}", number_of_workers);

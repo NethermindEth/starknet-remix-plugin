@@ -1,6 +1,7 @@
 use crate::errors::ApiError;
 use crate::handlers;
 use crate::handlers::types::{ApiCommand, ApiCommandResult};
+use crate::metrics::Metrics;
 use crate::utils::lib::DURATION_TO_PURGE;
 use crossbeam_queue::ArrayQueue;
 use crossbeam_skiplist::SkipMap;
@@ -45,10 +46,11 @@ pub struct WorkerEngine {
     pub arc_timestamps_to_purge: Arc<ArrayQueue<(Uuid, Timestamp)>>,
     pub is_supervisor_enabled: Arc<Mutex<bool>>,
     pub supervisor_thread: Arc<Option<JoinHandle<()>>>,
+    pub metrics: Metrics,
 }
 
 impl WorkerEngine {
-    pub fn new(num_workers: u32, queue_capacity: usize) -> Self {
+    pub fn new(num_workers: u32, queue_capacity: usize, metrics: Metrics) -> Self {
         // Create a queue instance
 
         let queue: ArrayQueue<(Uuid, ApiCommand)> = ArrayQueue::new(queue_capacity);
@@ -76,6 +78,7 @@ impl WorkerEngine {
             supervisor_thread: Arc::new(None),
             arc_timestamps_to_purge,
             is_supervisor_enabled,
+            metrics,
         }
     }
 
@@ -85,8 +88,11 @@ impl WorkerEngine {
             let arc_clone = self.arc_command_queue.clone();
             let arc_states = self.arc_process_states.clone();
             let arc_timestamps_to_purge = self.arc_timestamps_to_purge.clone();
+            let metrics_copy = self.metrics.clone();
+
             self.worker_threads.push(tokio::spawn(async move {
-                WorkerEngine::worker(arc_clone, arc_states, arc_timestamps_to_purge).await;
+                WorkerEngine::worker(arc_clone, arc_states, arc_timestamps_to_purge, metrics_copy)
+                    .await;
             }));
         }
 
@@ -183,6 +189,7 @@ impl WorkerEngine {
         arc_command_queue: Arc<ArrayQueue<(Uuid, ApiCommand)>>,
         arc_process_states: Arc<ProcessStateMap>,
         arc_timestamps_to_purge: Arc<ArrayQueue<(Uuid, Timestamp)>>,
+        metrics: Metrics,
     ) {
         info!("Starting worker thread...");
         'worker_loop: loop {
@@ -199,7 +206,7 @@ impl WorkerEngine {
                             // update process state
                             arc_process_states.insert(process_id, ProcessState::Running);
 
-                            match handlers::dispatch_command(command).await {
+                            match handlers::dispatch_command(command, &metrics).await {
                                 Ok(result) => {
                                     arc_process_states
                                         .insert(process_id, ProcessState::Completed(result));

@@ -1,9 +1,3 @@
-use crate::errors::{ApiError, Result};
-use crate::handlers::process::{do_process_command, fetch_process_result};
-use crate::handlers::types::{ApiCommand, ApiCommandResult, CompileResponse};
-use crate::rate_limiter::RateLimited;
-use crate::utils::lib::{get_file_ext, get_file_path, CAIRO_COMPILERS_DIR, CASM_ROOT};
-use crate::worker::WorkerEngine;
 use rocket::fs::NamedFile;
 use rocket::serde::json;
 use rocket::serde::json::Json;
@@ -13,24 +7,38 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use tracing::{debug, info, instrument};
 
-#[instrument(skip(_rate_limited))]
+use crate::errors::{ApiError, Result};
+use crate::handlers::process::{do_process_command, fetch_process_result};
+use crate::handlers::types::{ApiCommand, ApiCommandResult, CompileResponse};
+use crate::handlers::utils::do_metered_action;
+use crate::metrics::COMPILATION_LABEL_VALUE;
+use crate::rate_limiter::RateLimited;
+use crate::utils::lib::{get_file_ext, get_file_path, CAIRO_COMPILERS_DIR, CASM_ROOT};
+use crate::worker::WorkerEngine;
+
+#[instrument(skip(engine, _rate_limited))]
 #[get("/compile-to-casm/<version>/<remix_file_path..>")]
 pub async fn compile_to_casm(
     version: String,
     remix_file_path: PathBuf,
+    engine: &State<WorkerEngine>,
     _rate_limited: RateLimited,
 ) -> Json<CompileResponse> {
     info!("/compile-to-casm/{:?}", remix_file_path);
-    do_compile_to_casm(version.clone(), remix_file_path)
-        .await
-        .unwrap_or_else(|e| {
-            Json(CompileResponse {
-                file_content: "".to_string(),
-                message: format!("Failed to compile to casm: {:?}", e),
-                status: "CompilationFailed".to_string(),
-                cairo_version: version,
-            })
+    do_metered_action(
+        do_compile_to_casm(version.clone(), remix_file_path),
+        COMPILATION_LABEL_VALUE,
+        &engine.metrics,
+    )
+    .await
+    .unwrap_or_else(|e| {
+        Json(CompileResponse {
+            file_content: "".to_string(),
+            message: format!("Failed to compile to casm: {:?}", e),
+            status: "CompilationFailed".to_string(),
+            cairo_version: version,
         })
+    })
 }
 
 #[instrument(skip(engine, _rate_limited))]

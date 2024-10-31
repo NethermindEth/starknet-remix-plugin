@@ -1,10 +1,3 @@
-use crate::errors::{ApiError, Result};
-use crate::handlers::get_files_recursive;
-use crate::handlers::process::{do_process_command, fetch_process_result};
-use crate::handlers::types::{ApiCommand, ApiCommandResult, ScarbCompileResponse};
-use crate::rate_limiter::RateLimited;
-use crate::utils::lib::get_file_path;
-use crate::worker::WorkerEngine;
 use rocket::serde::json;
 use rocket::serde::json::Json;
 use rocket::State;
@@ -12,14 +5,31 @@ use std::path::PathBuf;
 use std::process::{Command, Stdio};
 use tracing::{debug, info, instrument};
 
-#[instrument(skip(_rate_limited))]
+use crate::errors::{ApiError, Result};
+use crate::handlers::get_files_recursive;
+use crate::handlers::process::{do_process_command, fetch_process_result};
+use crate::handlers::types::{ApiCommand, ApiCommandResult, ScarbCompileResponse};
+use crate::handlers::utils::do_metered_action;
+use crate::metrics::{COMPILATION_LABEL_VALUE};
+use crate::rate_limiter::RateLimited;
+use crate::utils::lib::get_file_path;
+use crate::worker::WorkerEngine;
+
+#[instrument(skip(engine, _rate_limited))]
 #[get("/compile-scarb/<remix_file_path..>")]
 pub async fn scarb_compile(
     remix_file_path: PathBuf,
+    engine: &State<WorkerEngine>,
     _rate_limited: RateLimited,
 ) -> Json<ScarbCompileResponse> {
     info!("/compile-scarb/{:?}", remix_file_path);
-    do_scarb_compile(remix_file_path).await.unwrap_or_else(|e| {
+    do_metered_action(
+        do_scarb_compile(remix_file_path),
+        COMPILATION_LABEL_VALUE,
+        &engine.metrics,
+    )
+    .await
+    .unwrap_or_else(|e| {
         Json(ScarbCompileResponse {
             file_content_map_array: vec![],
             message: format!("Failed to compile to scarb: {:?}", e),

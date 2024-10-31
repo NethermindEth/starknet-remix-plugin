@@ -1,14 +1,11 @@
 use anyhow::Context;
 use rocket::yansi::Paint;
 use tracing_appender::rolling;
-
+use tracing_subscriber::field::MakeExt;
 use tracing_subscriber::fmt::writer::MakeWriterExt;
 use tracing_subscriber::registry::LookupSpan;
-use tracing_subscriber::{prelude::*, EnvFilter};
-
-use tracing_subscriber::field::MakeExt;
-
 use tracing_subscriber::Layer;
+use tracing_subscriber::{prelude::*, EnvFilter};
 
 pub enum LogType {
     Formatted,
@@ -113,12 +110,13 @@ pub fn init_logger() -> anyhow::Result<()> {
     let rolling_files = tracing_subscriber::fmt::layer()
         .json()
         .with_writer(all_files)
-        .with_ansi(false);
+        .with_ansi(false)
+        .with_filter(filter_layer(LogLevel::Debug));
 
     let log_type = LogType::from(std::env::var("LOG_TYPE").unwrap_or_else(|_| "json".to_string()));
     let log_level = LogLevel::from(
         std::env::var("LOG_LEVEL")
-            .unwrap_or_else(|_| "debug".to_string())
+            .unwrap_or_else(|_| "normal".to_string())
             .as_str(),
     );
 
@@ -134,8 +132,7 @@ pub fn init_logger() -> anyhow::Result<()> {
         LogType::Json => {
             tracing::subscriber::set_global_default(
                 tracing_subscriber::registry()
-                    .with(json_logging_layer())
-                    .with(filter_layer(log_level))
+                    .with(json_logging_layer().with_filter(filter_layer(log_level)))
                     .with(rolling_files),
             )
             .context("Unable to to set LogType::Json as default")?;
