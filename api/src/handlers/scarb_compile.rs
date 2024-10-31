@@ -10,7 +10,7 @@ use crate::handlers::get_files_recursive;
 use crate::handlers::process::{do_process_command, fetch_process_result};
 use crate::handlers::types::{ApiCommand, ApiCommandResult, ScarbCompileResponse};
 use crate::handlers::utils::do_metered_action;
-use crate::metrics::{COMPILATION_LABEL_VALUE};
+use crate::metrics::COMPILATION_LABEL_VALUE;
 use crate::rate_limiter::RateLimited;
 use crate::utils::lib::get_file_path;
 use crate::worker::WorkerEngine;

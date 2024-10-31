@@ -11,8 +11,9 @@ pub mod utils;
 pub mod worker;
 
 use anyhow::Context;
-use handlers::cairo_version::{cairo_version, cairo_version_async, get_cairo_version_result};
-use handlers::cairo_versions::cairo_versions;
+use handlers::cairo_version::{
+    cairo_version, cairo_version_async, cairo_versions, get_cairo_version_result,
+};
 use handlers::compile_casm::{compile_to_casm, compile_to_casm_async, compile_to_casm_result};
 use handlers::compile_sierra::{
     compile_to_siera_async, compile_to_sierra, get_siera_compile_result,
@@ -21,6 +22,7 @@ use handlers::process::get_process_status;
 use handlers::save_code::save_code;
 use handlers::scarb_compile::{get_scarb_compile_result, scarb_compile, scarb_compile_async};
 use handlers::scarb_test::{get_scarb_test_result, scarb_test_async};
+use handlers::utils::on_plugin_launched;
 use handlers::{health, who_is_this};
 use prometheus::Registry;
 use rocket::{Build, Config, Rocket};
@@ -100,6 +102,7 @@ fn create_app(metrics: Metrics) -> Rocket<Build> {
                 who_is_this,
                 get_scarb_test_result,
                 scarb_test_async,
+                on_plugin_launched,
             ],
         )
 }

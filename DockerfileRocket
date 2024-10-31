@@ -37,10 +37,11 @@ ENV PATH="/root/.local/bin:${PATH}"
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain stable -y
 RUN whoami
 ENV PATH="/root/.cargo/bin:${PATH}"
-RUN git submodule update --init
 
 # copy Remix plugin source
 COPY . /opt/app
+RUN git submodule update --init
+
 # Build the API service
 WORKDIR /opt/app/api
 

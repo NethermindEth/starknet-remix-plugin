@@ -1,5 +1,4 @@
 pub mod cairo_version;
-pub mod cairo_versions;
 pub mod compile_casm;
 pub mod compile_sierra;
 pub mod process;
@@ -7,7 +6,7 @@ pub mod save_code;
 pub mod scarb_compile;
 pub mod scarb_test;
 pub mod types;
-mod utils;
+pub mod utils;
 
 use rocket::serde::json::Json;
 use std::path::Path;

@@ -1,10 +1,17 @@
 use rocket::serde::json::Json;
 use std::future::Future;
 use std::time::Instant;
+use tracing::instrument;
 
 use crate::errors::Result;
 use crate::handlers::types::Successable;
-use crate::metrics::{Metrics};
+use crate::metrics::Metrics;
+
+#[instrument]
+#[post("/on-plugin-launched")]
+pub async fn on_plugin_launched() {
+    tracing::info!("/on-plugin-launched");
+}
 
 pub(crate) async fn do_metered_action<T: Successable>(
     action: impl Future<Output = Result<Json<T>>>,

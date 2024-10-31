@@ -1,4 +1,6 @@
+use rocket::tokio::fs::read_dir;
 use rocket::State;
+use std::path::Path;
 use std::process::{Command, Stdio};
 use tracing::{error, info, instrument};
 
@@ -6,7 +8,7 @@ use crate::errors::{ApiError, Result};
 use crate::handlers::process::{do_process_command, fetch_process_result};
 use crate::handlers::types::{ApiCommand, ApiCommandResult};
 use crate::rate_limiter::RateLimited;
-use crate::utils::lib::DEFAULT_CAIRO_DIR;
+use crate::utils::lib::{CAIRO_COMPILERS_DIR, DEFAULT_CAIRO_DIR};
 use crate::worker::WorkerEngine;
 
 // Read the version from the cairo Cargo.toml file.
@@ -66,4 +68,30 @@ pub fn do_cairo_version() -> Result<String> {
             Err(ApiError::UTF8Error(e))
         }
     }
+}
+
+#[instrument]
+#[get("/cairo_versions")]
+pub async fn cairo_versions() -> String {
+    do_cairo_versions()
+        .await
+        .unwrap_or_else(|e| format!("Failed to get cairo versions: {:?}", e))
+}
+
+/// Get cairo versions
+pub async fn do_cairo_versions() -> crate::errors::Result<String> {
+    let path = Path::new(CAIRO_COMPILERS_DIR);
+
+    let mut dir = read_dir(path).await.map_err(ApiError::FailedToReadDir)?;
+    let mut result = vec![];
+
+    while let Ok(Some(entry)) = dir.next_entry().await {
+        let entry = entry;
+        let path = entry.path();
+        if path.is_dir() {
+            result.push(entry.file_name().to_string_lossy().to_string());
+        }
+    }
+
+    Ok(format!("{:?}", result))
 }
