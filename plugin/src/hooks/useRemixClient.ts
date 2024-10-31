@@ -1,16 +1,20 @@
 import { PluginClient } from '@remixproject/plugin'
 import { createClient } from '@remixproject/plugin-webview'
-import { fetchGitHubFilesRecursively } from '../utils/initial_scarb_codes'
+import {
+  fetchGitHubFilesRecursively,
+  type RemixFileInfo
+} from '../utils/initial_scarb_codes'
 import { SCARB_VERSION_REF } from '../utils/constants'
 import axios from 'axios'
+import { apiUrl } from '../utils/network'
 
 export class RemixClient extends PluginClient {
-  constructor () {
+  constructor() {
     super()
     this.methods = ['loadFolderFromUrl', 'loadFolderFromGithub']
   }
 
-  async loadFolderFromUrl (url: string): Promise<void> {
+  async loadFolderFromUrl(url: string): Promise<void> {
     try {
       await this.call('filePanel', 'createWorkspace', 'code-sample', false)
       // Fetch JSON data from the URL
@@ -19,7 +23,12 @@ export class RemixClient extends PluginClient {
 
       // Iterate over each file in the folderContent
       for (const [filePath, fileContent] of Object.entries(folderContent)) {
-        await this.call('fileManager', 'setFile', filePath, fileContent as string)
+        await this.call(
+          'fileManager',
+          'setFile',
+          filePath,
+          fileContent as string
+        )
       }
 
       console.log('Folder loaded successfully.')
@@ -28,7 +37,7 @@ export class RemixClient extends PluginClient {
     }
   }
 
-  async loadFolderFromGithub (url: string, folderPath: string): Promise<void> {
+  async loadFolderFromGithub(url: string, folderPath: string): Promise<void> {
     console.log('loadFolderFromGithub', url, folderPath)
     try {
       await this.call('filePanel', 'createWorkspace', 'code-sample', false)
@@ -40,7 +49,12 @@ export class RemixClient extends PluginClient {
           if (file.fileName === 'Scarb.toml') {
             fileContent = fileContent.concat('\ncasm = true\n')
           }
-          await this.call('fileManager', 'setFile', `${file.path}/${file.fileName}`, fileContent)
+          await this.call(
+            'fileManager',
+            'setFile',
+            `${file.path}/${file.fileName}`,
+            fileContent
+          )
         }
       }
       // write Scarb.toml at root level
@@ -59,70 +73,91 @@ export class RemixClient extends PluginClient {
 }
 const remixClient = createClient(new RemixClient())
 
-remixClient.onload().then(async () => {
-  const workspaces = await remixClient.filePanel.getWorkspaces()
+async function remixWriteFiles(files: RemixFileInfo[]): Promise<void> {
+  for (const file of files) {
+    const filePath =
+      file?.path
+        .replace('examples/starknet_multiple_contracts/', '')
+        .replace('examples/starknet_multiple_contracts', '') ?? ''
 
-  const workspaceLets: Array<{ name: string, isGitRepo: boolean }> =
-                        JSON.parse(JSON.stringify(workspaces))
-
-  if (
-    !workspaceLets.some(
-      (workspaceLet) => workspaceLet.name === 'cairo_scarb_sample'
-    )
-  ) {
-    await remixClient.filePanel.createWorkspace(
-      'cairo_scarb_sample',
-      true
-    )
-    try {
-      await remixClient.fileManager.mkdir('hello_world')
-    } catch (e) {
-      console.log(e)
+    let fileContent: string = file?.content ?? ''
+    if (file != null && file.fileName === 'Scarb.toml') {
+      fileContent = fileContent.concat('\ncasm = true')
     }
-    const exampleRepo = await fetchGitHubFilesRecursively(
-      'software-mansion/scarb',
-      'examples/starknet_multiple_contracts',
-      SCARB_VERSION_REF
-    )
 
-    console.log('exampleRepo', exampleRepo)
-
-    try {
-      for (const file of exampleRepo) {
-        const filePath = file?.path
-          .replace('examples/starknet_multiple_contracts/', '')
-          .replace('examples/starknet_multiple_contracts', '') ?? ''
-
-        let fileContent: string = file?.content ?? ''
-
-        if (file != null && file.fileName === 'Scarb.toml') {
-          fileContent = fileContent.concat('\ncasm = true')
-        }
-
+    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+    await remixClient.fileManager.writeFile(
+      `hello_world/${
         // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-        await remixClient.fileManager.writeFile(
-                                    `hello_world/${
-                                    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                                    filePath
-                                    // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                                    }/${file?.fileName}`,
-                                    fileContent
-        )
-      }
-    } catch (e) {
-      if (e instanceof Error) {
-        await remixClient.call('notification' as any, 'alert', {
-          id: 'starknetRemixPluginAlert',
-          title: 'Please check the write file permission',
-          message: e.message + '\n' + 'Did you provide the write file permission?'
-        })
-      }
-      console.log(e)
-    }
+        filePath
+        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+      }/${file?.fileName}`,
+      fileContent
+    )
   }
-}).catch((error) => {
-  console.error('Error loading remix client:', error)
-})
+}
+
+remixClient
+  .onload()
+  .then(async () => {
+    const workspaces = await remixClient.filePanel.getWorkspaces()
+
+    const workspaceLets: Array<{ name: string; isGitRepo: boolean }> =
+      JSON.parse(JSON.stringify(workspaces))
+
+    if (
+      !workspaceLets.some(
+        (workspaceLet) => workspaceLet.name === 'cairo_scarb_sample'
+      )
+    ) {
+      await remixClient.filePanel.createWorkspace('cairo_scarb_sample', true)
+      try {
+        await remixClient.fileManager.mkdir('hello_world')
+      } catch (e) {
+        console.log(e)
+      }
+      const exampleRepo = await fetchGitHubFilesRecursively(
+        'software-mansion/scarb',
+        'examples/starknet_multiple_contracts',
+        SCARB_VERSION_REF
+      )
+
+      try {
+        console.log('exampleRepo', exampleRepo)
+        await remixWriteFiles(exampleRepo)
+      } catch (e) {
+        if (e instanceof Error) {
+          await remixClient.call('notification' as any, 'alert', {
+            id: 'starknetRemixPluginAlert',
+            title: 'Please check the write file permission',
+            message:
+              e.message + '\n' + 'Did you provide the write file permission?'
+          })
+        }
+        console.log(e)
+      }
+
+      try {
+        const response = await fetch(`${apiUrl}/on-plugin-launched`, {
+          method: 'POST',
+          redirect: 'follow',
+          headers: {
+            'Content-Type': 'application/octet-stream'
+          }
+        })
+
+        console.log('on-plugin-launched')
+        if (!response.ok) {
+          console.log('Could not post on launch')
+        }
+      } catch (error) {
+        console.log('Could not post on launch', error)
+      }
+    }
+  })
+  .catch((error) => {
+    console.error('Error loading remix client:', error)
+  })
 
 const useRemixClient = (): {
   remixClient: typeof remixClient

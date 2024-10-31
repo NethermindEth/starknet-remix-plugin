@@ -12,6 +12,8 @@
   },
   "plugins": ["react"],
   "rules": {
-    "semi": [2, "never"]
+    "semi": [2, "never"],
+    "@typescript-eslint/space-before-function-paren": "off",
+    "@typescript-eslint/member-delimiter-style": "off"
   }
 }
