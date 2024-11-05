@@ -37,14 +37,16 @@ pub(crate) async fn do_metered_action<T: Successable>(
             } else {
                 metrics
                     .action_failures_total
-                    .with_label_values(&[action_label_value]);
+                    .with_label_values(&[action_label_value])
+                    .inc();
                 Ok(val)
             }
         }
         Err(err) => {
             metrics
                 .action_failures_total
-                .with_label_values(&[action_label_value]);
+                .with_label_values(&[action_label_value])
+                .inc();
             Err(err)
         }
     }

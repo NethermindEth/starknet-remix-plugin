@@ -55,7 +55,7 @@ impl Metrics {
             "/compile-scarb"
             | "/compile-scarb-async"
             | "/compile-to-sierra"
-            | "compile-to-sierra-async" => self
+            | "/compile-to-sierra-async" => self
                 .action_total
                 .with_label_values(&[COMPILATION_LABEL_VALUE])
                 .inc(),
