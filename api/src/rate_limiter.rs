@@ -1,4 +1,4 @@
-use crate::types::{ApiError, Result};
+use crate::errors::{ApiError, Result};
 use crate::utils::lib::timestamp;
 use crate::worker::Timestamp;
 use crossbeam_queue::ArrayQueue;

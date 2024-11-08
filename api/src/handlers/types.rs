@@ -1,6 +1,10 @@
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
+pub trait Successable {
+    fn is_successful(&self) -> bool;
+}
+
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(crate = "rocket::serde")]
 pub struct CompileResponse {
@@ -8,6 +12,12 @@ pub struct CompileResponse {
     pub message: String,
     pub file_content: String,
     pub cairo_version: String,
+}
+
+impl Successable for CompileResponse {
+    fn is_successful(&self) -> bool {
+        self.message == "Success"
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -21,6 +31,12 @@ pub struct ScarbCompileResponse {
     pub status: String,
     pub message: String,
     pub file_content_map_array: Vec<FileContentMap>,
+}
+
+impl Successable for ScarbCompileResponse {
+    fn is_successful(&self) -> bool {
+        self.message == "Success"
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]

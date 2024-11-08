@@ -1,5 +1,4 @@
 pub mod cairo_version;
-pub mod cairo_versions;
 pub mod compile_casm;
 pub mod compile_sierra;
 pub mod process;
@@ -7,18 +6,22 @@ pub mod save_code;
 pub mod scarb_compile;
 pub mod scarb_test;
 pub mod types;
+pub mod utils;
 
+use rocket::serde::json::Json;
+use std::path::Path;
+use tracing::info;
+use tracing::instrument;
+
+use crate::errors::{ApiError, Result};
 use crate::handlers::cairo_version::do_cairo_version;
 use crate::handlers::compile_casm::do_compile_to_casm;
 use crate::handlers::compile_sierra::do_compile_to_sierra;
 use crate::handlers::scarb_compile::do_scarb_compile;
 use crate::handlers::scarb_test::do_scarb_test;
 use crate::handlers::types::{ApiCommand, ApiCommandResult, FileContentMap};
-use crate::types::{ApiError, Result};
-use rocket::serde::json::Json;
-use std::path::Path;
-use tracing::info;
-use tracing::instrument;
+use crate::handlers::utils::do_metered_action;
+use crate::metrics::{Metrics, COMPILATION_LABEL_VALUE};
 
 #[instrument]
 #[get("/health")]
@@ -34,14 +37,20 @@ pub async fn who_is_this() -> &'static str {
     "Who are you?"
 }
 
-pub async fn dispatch_command(command: ApiCommand) -> Result<ApiCommandResult> {
+pub async fn dispatch_command(command: ApiCommand, metrics: &Metrics) -> Result<ApiCommandResult> {
     match command {
         ApiCommand::CairoVersion => match do_cairo_version() {
             Ok(result) => Ok(ApiCommandResult::CairoVersion(result)),
             Err(e) => Err(e),
         },
         ApiCommand::ScarbCompile { remix_file_path } => {
-            match do_scarb_compile(remix_file_path).await {
+            match do_metered_action(
+                do_scarb_compile(remix_file_path),
+                COMPILATION_LABEL_VALUE,
+                metrics,
+            )
+            .await
+            {
                 Ok(result) => Ok(ApiCommandResult::ScarbCompile(result.into_inner())),
                 Err(e) => Err(e),
             }
@@ -58,7 +67,13 @@ pub async fn dispatch_command(command: ApiCommand) -> Result<ApiCommandResult> {
         ApiCommand::CasmCompile {
             remix_file_path,
             version,
-        } => match do_compile_to_casm(version, remix_file_path).await {
+        } => match do_metered_action(
+            do_compile_to_casm(version, remix_file_path),
+            COMPILATION_LABEL_VALUE,
+            metrics,
+        )
+        .await
+        {
             Ok(Json(compile_response)) => Ok(ApiCommandResult::CasmCompile(compile_response)),
             Err(e) => Err(e),
         },

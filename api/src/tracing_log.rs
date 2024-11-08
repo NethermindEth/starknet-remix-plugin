@@ -1,13 +1,11 @@
+use anyhow::Context;
 use rocket::yansi::Paint;
 use tracing_appender::rolling;
-
+use tracing_subscriber::field::MakeExt;
 use tracing_subscriber::fmt::writer::MakeWriterExt;
 use tracing_subscriber::registry::LookupSpan;
-use tracing_subscriber::{prelude::*, EnvFilter};
-
-use tracing_subscriber::field::MakeExt;
-
 use tracing_subscriber::Layer;
+use tracing_subscriber::{prelude::*, EnvFilter};
 
 pub enum LogType {
     Formatted,
@@ -99,7 +97,7 @@ pub fn filter_layer(level: LogLevel) -> EnvFilter {
     tracing_subscriber::filter::EnvFilter::try_new(filter_str).expect("filter string must parse")
 }
 
-pub fn init_logger() -> Result<(), Box<dyn std::error::Error>> {
+pub fn init_logger() -> anyhow::Result<()> {
     // Log all `tracing` events to files prefixed with `debug`.
     // Rolling these files every day
     let debug_file = rolling::daily("./logs", "debug").with_max_level(tracing::Level::TRACE);
@@ -112,12 +110,13 @@ pub fn init_logger() -> Result<(), Box<dyn std::error::Error>> {
     let rolling_files = tracing_subscriber::fmt::layer()
         .json()
         .with_writer(all_files)
-        .with_ansi(false);
+        .with_ansi(false)
+        .with_filter(filter_layer(LogLevel::Debug));
 
     let log_type = LogType::from(std::env::var("LOG_TYPE").unwrap_or_else(|_| "json".to_string()));
     let log_level = LogLevel::from(
         std::env::var("LOG_LEVEL")
-            .unwrap_or_else(|_| "debug".to_string())
+            .unwrap_or_else(|_| "normal".to_string())
             .as_str(),
     );
 
@@ -128,16 +127,15 @@ pub fn init_logger() -> Result<(), Box<dyn std::error::Error>> {
                     .with(default_logging_layer())
                     .with(filter_layer(log_level)),
             )
-            .unwrap();
+            .context("Unable to to set LogType::Formatted as default")?;
         }
         LogType::Json => {
             tracing::subscriber::set_global_default(
                 tracing_subscriber::registry()
-                    .with(json_logging_layer())
-                    .with(filter_layer(log_level))
+                    .with(json_logging_layer().with_filter(filter_layer(log_level)))
                     .with(rolling_files),
             )
-            .unwrap();
+            .context("Unable to to set LogType::Json as default")?;
         }
     };
 

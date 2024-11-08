@@ -1,7 +1,7 @@
+use crate::errors::{ApiError, Result};
 use crate::handlers::process::{do_process_command, fetch_process_result};
 use crate::handlers::types::{ApiCommand, ApiCommandResult, CompileResponse};
 use crate::rate_limiter::RateLimited;
-use crate::types::{ApiError, Result};
 use crate::utils::lib::{get_file_ext, get_file_path, CAIRO_COMPILERS_DIR, SIERRA_ROOT};
 use crate::worker::WorkerEngine;
 use rocket::fs::NamedFile;
@@ -13,7 +13,7 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use tracing::{debug, info, instrument};
 
-#[instrument]
+#[instrument(skip(_rate_limited))]
 #[get("/compile-to-sierra/<version>/<remix_file_path..>")]
 pub async fn compile_to_sierra(
     version: String,
@@ -35,7 +35,7 @@ pub async fn compile_to_sierra(
     }
 }
 
-#[instrument]
+#[instrument(skip(engine, _rate_limited))]
 #[get("/compile-to-sierra-async/<version>/<remix_file_path..>")]
 pub async fn compile_to_siera_async(
     version: String,
@@ -53,7 +53,7 @@ pub async fn compile_to_siera_async(
     )
 }
 
-#[instrument]
+#[instrument(skip(engine))]
 #[get("/compile-to-sierra-result/<process_id>")]
 pub async fn get_siera_compile_result(process_id: String, engine: &State<WorkerEngine>) -> String {
     info!("/compile-to-sierra-result");

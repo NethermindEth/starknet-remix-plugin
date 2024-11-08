@@ -4,7 +4,7 @@ use rocket::State;
 use tracing::{info, instrument};
 use uuid::Uuid;
 
-#[instrument]
+#[instrument(skip(engine))]
 #[get("/process_status/<process_id>")]
 pub async fn get_process_status(process_id: String, engine: &State<WorkerEngine>) -> String {
     info!("/process_status/{:?}", process_id);

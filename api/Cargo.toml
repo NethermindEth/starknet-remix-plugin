@@ -6,6 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+anyhow = "1.0.91"
 rocket = { version = "0.5.1", features = ["json"] }
 serde = { version = "1.0.189", features = ["derive"] }
 tracing = "^0.1"
@@ -18,3 +19,4 @@ crossbeam-skiplist = "0.1.1"
 fmt = "0.1.0"
 thiserror = "1.0.50"
 chrono = "0.4.31"
+prometheus = "0.13.4"
