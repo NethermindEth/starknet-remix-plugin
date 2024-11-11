@@ -97,11 +97,31 @@ async function remixWriteFiles(files: RemixFileInfo[]): Promise<void> {
   }
 }
 
+async function onPluginLaunched(): Promise<void> {
+  try {
+    const response = await fetch(`${apiUrl}/on-plugin-launched`, {
+      method: 'POST',
+      redirect: 'follow',
+      headers: {
+        'Content-Type': 'application/octet-stream'
+      }
+    })
+
+    console.log('on-plugin-launched')
+    if (!response.ok) {
+      console.log('Could not post on launch')
+    }
+  } catch (error) {
+    console.log('Could not post on launch', error)
+  }
+}
+
 remixClient
   .onload()
   .then(async () => {
-    const workspaces = await remixClient.filePanel.getWorkspaces()
+    await onPluginLaunched()
 
+    const workspaces = await remixClient.filePanel.getWorkspaces()
     const workspaceLets: Array<{ name: string; isGitRepo: boolean }> =
       JSON.parse(JSON.stringify(workspaces))
 
@@ -135,23 +155,6 @@ remixClient
           })
         }
         console.log(e)
-      }
-
-      try {
-        const response = await fetch(`${apiUrl}/on-plugin-launched`, {
-          method: 'POST',
-          redirect: 'follow',
-          headers: {
-            'Content-Type': 'application/octet-stream'
-          }
-        })
-
-        console.log('on-plugin-launched')
-        if (!response.ok) {
-          console.log('Could not post on launch')
-        }
-      } catch (error) {
-        console.log('Could not post on launch', error)
       }
     }
   })
