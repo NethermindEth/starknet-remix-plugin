@@ -1,7 +1,7 @@
 use rocket::serde::json::Json;
 use std::future::Future;
 use std::time::Instant;
-use tracing::instrument;
+use tracing::{info, instrument};
 
 use crate::errors::Result;
 use crate::handlers::types::Successable;
@@ -10,7 +10,7 @@ use crate::metrics::Metrics;
 #[instrument]
 #[post("/on-plugin-launched")]
 pub async fn on_plugin_launched() {
-    tracing::info!("/on-plugin-launched");
+    info!("/on-plugin-launched");
 }
 
 pub(crate) async fn do_metered_action<T: Successable>(
@@ -29,12 +29,14 @@ pub(crate) async fn do_metered_action<T: Successable>(
     match result {
         Ok(val) => {
             if val.is_successful() {
+                debug!("action successful: {}", action_label_value);
                 metrics
                     .action_successes_total
                     .with_label_values(&[action_label_value])
                     .inc();
                 Ok(val)
             } else {
+                debug!("action failed: {}", action_label_value);
                 metrics
                     .action_failures_total
                     .with_label_values(&[action_label_value])
@@ -43,6 +45,7 @@ pub(crate) async fn do_metered_action<T: Successable>(
             }
         }
         Err(err) => {
+            debug!("action failed: {}, with: {}", action_label_value, err);
             metrics
                 .action_failures_total
                 .with_label_values(&[action_label_value])

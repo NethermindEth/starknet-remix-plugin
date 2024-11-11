@@ -51,15 +51,16 @@ impl Fairing for Metrics {
 
 impl Metrics {
     fn update_metrics(&self, req: &mut Request<'_>) {
-        match req.uri().path().as_str() {
-            "/compile-scarb"
-            | "/compile-scarb-async"
-            | "/compile-to-sierra"
-            | "/compile-to-sierra-async" => self
+        let method = req.uri().path().segments().next().unwrap_or_default();
+        match method {
+            "compile-scarb"
+            | "compile-scarb-async"
+            | "compile-to-sierra"
+            | "compile-to-sierra-async" => self
                 .action_total
                 .with_label_values(&[COMPILATION_LABEL_VALUE])
                 .inc(),
-            "/on-plugin-launched" => self.plugin_launches_total.inc(),
+            "on-plugin-launched" => self.plugin_launches_total.inc(),
             _ => {}
         }
     }

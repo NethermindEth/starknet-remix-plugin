@@ -16,7 +16,7 @@ pub struct CompileResponse {
 
 impl Successable for CompileResponse {
     fn is_successful(&self) -> bool {
-        self.message == "Success"
+        self.status == "Success"
     }
 }
 
@@ -35,7 +35,7 @@ pub struct ScarbCompileResponse {
 
 impl Successable for ScarbCompileResponse {
     fn is_successful(&self) -> bool {
-        self.message == "Success"
+        self.status == "Success"
     }
 }
 
