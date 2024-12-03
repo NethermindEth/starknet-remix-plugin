@@ -14,10 +14,7 @@ use anyhow::Context;
 use handlers::cairo_version::{
     cairo_version, cairo_version_async, cairo_versions, get_cairo_version_result,
 };
-use handlers::compile_casm::{compile_to_casm, compile_to_casm_async, compile_to_casm_result};
-use handlers::compile_sierra::{
-    compile_to_siera_async, compile_to_sierra, get_siera_compile_result,
-};
+use handlers::compile::{compile_async, get_compile_result};
 use handlers::process::get_process_status;
 use handlers::save_code::save_code;
 use handlers::scarb_compile::{get_scarb_compile_result, scarb_compile, scarb_compile_async};
@@ -83,12 +80,8 @@ fn create_app(metrics: Metrics) -> Rocket<Build> {
         .mount(
             "/",
             routes![
-                compile_to_sierra,
-                compile_to_siera_async,
-                get_siera_compile_result,
-                compile_to_casm,
-                compile_to_casm_async,
-                compile_to_casm_result,
+                compile_async,
+                get_compile_result,
                 scarb_compile,
                 scarb_compile_async,
                 get_scarb_compile_result,

@@ -1,6 +1,6 @@
-import { atom } from 'jotai'
+import { atom } from "jotai";
 
 // Is plugin loaded
-const pluginLoaded = atom<boolean>(true)
+const pluginLoaded = atom<boolean>(true);
 
-export { pluginLoaded }
+export { pluginLoaded };

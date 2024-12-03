@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
-pub trait Successable {
+pub trait Successful {
     fn is_successful(&self) -> bool;
 }
 
@@ -11,16 +11,15 @@ pub struct CompileResponse {
     pub status: String,
     pub message: String,
     pub file_content: String,
-    pub cairo_version: String,
 }
 
-impl Successable for CompileResponse {
+impl Successful for CompileResponse {
     fn is_successful(&self) -> bool {
         self.status == "Success"
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct FileContentMap {
     pub file_name: String,
     pub file_content: String,
@@ -33,7 +32,7 @@ pub struct ScarbCompileResponse {
     pub file_content_map_array: Vec<FileContentMap>,
 }
 
-impl Successable for ScarbCompileResponse {
+impl Successful for ScarbCompileResponse {
     fn is_successful(&self) -> bool {
         self.status == "Success"
     }
@@ -45,16 +44,27 @@ pub struct ScarbTestResponse {
     pub message: String,
 }
 
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
+#[serde(crate = "rocket::serde")]
+pub struct CompilationRequest {
+    pub files: Vec<FileContentMap>,
+}
+
+impl CompilationRequest {
+    pub fn has_scarb_toml(&self) -> bool {
+        self.files.iter().any(|f| &f.file_name == "Scarb.toml")
+    }
+
+    pub fn file_names(&self) -> Vec<String> {
+        self.files.iter().map(|f| f.file_name.clone()).collect()
+    }
+}
+
 #[derive(Debug)]
 pub enum ApiCommand {
     CairoVersion,
-    SierraCompile {
-        remix_file_path: PathBuf,
-        version: String,
-    },
-    CasmCompile {
-        remix_file_path: PathBuf,
-        version: String,
+    Compile {
+        compilation_request: CompilationRequest,
     },
     ScarbCompile {
         remix_file_path: PathBuf,
@@ -69,8 +79,7 @@ pub enum ApiCommand {
 #[derive(Debug)]
 pub enum ApiCommandResult {
     CairoVersion(String),
-    CasmCompile(CompileResponse),
-    SierraCompile(CompileResponse),
+    Compile(ScarbCompileResponse),
     ScarbCompile(ScarbCompileResponse),
     ScarbTest(ScarbTestResponse),
     #[allow(dead_code)]

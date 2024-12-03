@@ -2,6 +2,8 @@ use std::io::Error as IoError;
 
 #[derive(Debug, thiserror::Error)]
 pub enum ApiError {
+    #[error("Compilation timed out")]
+    CompilationTimeout,
     #[error("Failed to execute command: {0}")]
     FailedToExecuteCommand(IoError),
     #[error("Failed to read output: {0}")]
@@ -32,6 +34,10 @@ pub enum ApiError {
     TooManyRequests,
     #[error("Error while trying to unlock mutex")]
     MutexUnlockError,
+    #[error("Failed to initialize directories: {0}")]
+    FailedToInitializeDirectories(String),
+    #[error("Failed to write file: {0}")]
+    FailedToWriteFile(String),
 }
 
 pub type Result<T, E = ApiError> = std::result::Result<T, E>;

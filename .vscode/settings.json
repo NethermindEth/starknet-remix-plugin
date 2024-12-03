@@ -10,5 +10,10 @@
   ],
   "eslint.workingDirectories": [
     "./plugin"
+  ],
+  "cSpell.words": [
+    "gibibytes",
+    "scarb",
+    "skiplist"
   ]
 }
