@@ -20,7 +20,6 @@ const getProvider = (network: string): RpcProvider => {
 			});
 		case devnetUrl:
 			return new RpcProvider({
-				// TODO: Let user chose port eventually.
 				nodeUrl: devnetUrl
 			});
 		default:
@@ -46,9 +45,3 @@ interface IUseCurrentExplorer {
 }
 
 export { getProvider, type IExplorerSelector, type IUseCurrentExplorer };
-
-function isEmpty(str: string | undefined): boolean {
-	return str === "" || str === null || str === undefined;
-}
-
-export { isEmpty };

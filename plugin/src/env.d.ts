@@ -6,7 +6,6 @@ interface ImportMetaEnv {
 	readonly VITE_DEVNET_URL: string;
 	readonly VITE_REMOTE_DEVNET_URL: string;
 	readonly VITE_VERSION: string;
-	// more env variables...
 }
 
 interface ImportMeta {

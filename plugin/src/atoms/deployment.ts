@@ -2,8 +2,8 @@ import { atom } from "jotai";
 import { type CallDataObject, type Input } from "../utils/types/contracts";
 
 export type Status = "IDLE" | "IN_PROGRESS" | "ERROR" | "DONE";
-const isDeployingAtom = atom<boolean>(false);
 
+const isDeployingAtom = atom<boolean>(false);
 const deployStatusAtom = atom<Status>("IDLE");
 
 const isDelcaringAtom = atom<boolean>(false);
@@ -57,19 +57,19 @@ const deploymentAtom = atom(
 				break;
 			case "deployStatus":
 				typeof newValue?.value === "string" &&
-					set(deployStatusAtom, newValue?.value as Status);
+			set(deployStatusAtom, newValue?.value as Status);
 				break;
 			case "isDeclaring":
 				typeof newValue?.value === "boolean" && set(isDelcaringAtom, newValue?.value);
 				break;
 			case "declStatus":
 				typeof newValue?.value === "string" &&
-					set(declStatusAtom, newValue?.value as Status);
+			set(declStatusAtom, newValue?.value as Status);
 				break;
 			case "constructorCalldata":
 				typeof newValue?.value === "object" &&
-					!Array.isArray(newValue?.value) &&
-					set(constructorCalldataAtom, newValue?.value);
+			!Array.isArray(newValue?.value) &&
+			set(constructorCalldataAtom, newValue?.value);
 				break;
 			case "constructorInputs":
 				Array.isArray(newValue?.value) && set(constructorInputsAtom, newValue?.value);

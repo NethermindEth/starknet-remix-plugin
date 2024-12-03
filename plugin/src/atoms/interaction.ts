@@ -1,4 +1,7 @@
 import { atom } from "jotai";
 
-export const invokeTxHashAtom = atom<string>("");
-export const isInvokingAtom = atom<boolean>(false);
+const invokeTxHashAtom = atom<string>("");
+
+const isInvokingAtom = atom<boolean>(false);
+
+export { invokeTxHashAtom, isInvokingAtom };

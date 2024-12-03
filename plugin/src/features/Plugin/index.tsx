@@ -6,34 +6,32 @@ import "./styles.css";
 import Compilation from "../Compilation";
 import Deployment from "../Deployment";
 import Interaction from "../Interaction";
-import Accordian, {
-	AccordianItem,
-	AccordionContent,
-	AccordionTrigger
-} from "../../components/ui_components/Accordian";
+import Accordian, { AccordianItem, AccordionContent, AccordionTrigger } from "../../components/ui_components/Accordian";
 import TransactionHistory from "../TransactionHistory";
 import Footer from "../Footer";
 import StateAction from "../../components/StateAction";
 import BackgroundNotices from "../../components/BackgroundNotices";
 import { useCurrentExplorer } from "../../components/ExplorerSelector";
-import { useAtomValue, useSetAtom, useAtom } from "jotai";
-import { isCompilingAtom, statusAtom } from "../../atoms/compilation";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { deploymentAtom, isDelcaringAtom } from "../../atoms/deployment";
 import { pluginLoaded as atomPluginLoaded } from "../../atoms/remixClient";
 import useRemixClient from "../../hooks/useRemixClient";
-// import { fetchGitHubFilesRecursively } from '../../utils/initial_scarb_codes'
 import * as Tabs from "@radix-ui/react-tabs";
 import { Settings } from "../../components/Settings";
-import { versionsAtom, cairoVersionAtom } from "../../atoms/cairoVersion";
+import { cairoVersionAtom, versionsAtom } from "../../atoms/cairoVersion";
 import { apiUrl } from "../../utils/network";
 import { StarknetProvider } from "../../components/starknet/starknet-provider";
+import { compilationAtom, CompilationStatus } from "../../atoms/compilation";
+
 export type AccordianTabs = "compile" | "deploy" | "interaction" | "transactions" | "";
 
 const Plugin: React.FC = () => {
-	const isCompiling = useAtomValue(isCompilingAtom);
-	const status = useAtomValue(statusAtom);
+	const { status } = useAtomValue(compilationAtom);
 
-	const { isDeploying, deployStatus } = useAtomValue(deploymentAtom);
+	const {
+		isDeploying,
+		deployStatus
+	} = useAtomValue(deploymentAtom);
 
 	const isDeclaring = useAtomValue(isDelcaringAtom);
 
@@ -247,11 +245,11 @@ const Plugin: React.FC = () => {
 											<p style={{ all: "unset" }}>Compile</p>
 											<StateAction
 												value={
-													isCompiling
+													status === CompilationStatus.Compiling
 														? "loading"
-														: status === "done"
+														: status === CompilationStatus.Success
 															? "success"
-															: status === "failed"
+															: status === CompilationStatus.Error
 																? "error"
 																: ""
 												}

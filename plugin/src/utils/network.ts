@@ -56,40 +56,11 @@ const getAccounts = async (
 	}
 };
 
-const getAccountBalance = async (
-	address: string,
-	customDevnetUrl: string = devnetUrl
-): Promise<any> => {
-	const response = await fetch(`${customDevnetUrl}/account_balance?address=${address}`);
-	const account = await response.json();
-	return account.balance;
-};
-
-const getDevnetUrl = (network: string): string => {
-	const devnet = devnets.find((devnet) => devnet.name === network);
-	if (devnet == null) throw new Error("Devnet not found");
-	return devnet.url;
-};
-
-const getDevnetName = (url: string): string => {
-	const devnet = devnets.find((devnet) => devnet.url === url);
-	if (devnet == null) throw new Error("Devnet not found");
-	return devnet.name;
-};
-
-const getDevnetIndex = (devnets: Devnet[], devnet: Devnet): number => {
-	return devnets.findIndex((item) => item.name === devnet.name);
-};
-
 export {
 	apiUrl,
 	devnetUrl,
 	devnets,
-	getAccounts,
-	getAccountBalance,
-	getDevnetUrl,
-	getDevnetName,
-	getDevnetIndex
+	getAccounts
 };
 
 export type { Devnet, DevnetAccount };

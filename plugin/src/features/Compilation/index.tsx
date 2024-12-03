@@ -1,12 +1,9 @@
 /* eslint-disable multiline-ternary */
 import React, { useEffect } from "react";
-import { apiUrl } from "../../utils/network";
-import { artifactFilename, artifactFolder, getFileExtension, getFileNameFromPath } from "../../utils/utils";
+import { artifactFilename, artifactFolder, getFileNameFromPath } from "../../utils/utils";
 import "./styles.css";
 import { hash } from "starknet";
 import Container from "../../components/ui_components/Container";
-import storage from "../../utils/storage";
-import { ethers } from "ethers";
 import { type AccordianTabs } from "../Plugin";
 import * as D from "../../components/ui_components/Dropdown";
 import { BsChevronDown } from "react-icons/bs";
@@ -20,21 +17,15 @@ import { asyncFetch } from "../../utils/async_fetch";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 
 // Imported Atoms
-import { cairoVersionAtom } from "../../atoms/cairoVersion";
 import { compiledContractsAtom, selectedCompiledContract } from "../../atoms/compiledContracts";
 import {
 	activeTomlPathAtom,
 	compilationAtom,
 	currentFilenameAtom,
-	hashDirAtom,
-	isCompilingAtom,
-	isValidCairoAtom,
-	noFileSelectedAtom,
 	statusAtom,
 	tomlPathsAtom
 } from "../../atoms/compilation";
 import useRemixClient from "../../hooks/useRemixClient";
-import { isEmpty } from "../../utils/misc";
 import { useIcon } from "../../hooks/useIcons";
 
 interface FileContentMap {
@@ -73,7 +64,7 @@ const CompilationCard: React.FC<{
 
 	const setActiveTomlPath = useSetAtom(activeTomlPathAtom);
 
-	const isCurrentFileName = isEmpty(currentFilename);
+	const isCurrentFileName = currentFilename === "" || currentFilename === null || currentFilename === undefined;
 
 	return (
 		<Container>
@@ -199,26 +190,18 @@ interface CompilationProps {
 
 const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 	const { remixClient } = useRemixClient();
-	const cairoVersion = useAtomValue(cairoVersionAtom);
 
 	const [contracts, setContracts] = useAtom(compiledContractsAtom);
 	const [selectedContract, setSelectedContract] = useAtom(selectedCompiledContract);
 
 	const {
 		currentFilename,
-		isCompiling,
-		isValidCairo,
-		noFileSelected,
 		hashDir,
 		tomlPaths,
 		activeTomlPath
 	} = useAtomValue(compilationAtom);
 
 	const setStatus = useSetAtom(statusAtom);
-	const setHashDir = useSetAtom(hashDirAtom);
-	const setNoFileSelected = useSetAtom(noFileSelectedAtom);
-	const setIsValidCairo = useSetAtom(isValidCairoAtom);
-	const setIsCompiling = useSetAtom(isCompilingAtom);
 	const setCurrentFilename = useSetAtom(currentFilenameAtom);
 	const setTomlPaths = useSetAtom(tomlPathsAtom);
 	const setActiveTomlPath = useSetAtom(activeTomlPathAtom);
@@ -226,111 +209,43 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 	const [currWorkspacePath, setCurrWorkspacePath] = React.useState<string>("");
 
 	useEffect(() => {
-		// read hashDir from localStorage
-		const hashDir = storage.get("hashDir");
-		if (hashDir != null) {
-			setHashDir(hashDir);
-		} else {
-			// create a random hash of length 32
-			const hashDir = ethers.utils
-				.hashMessage(ethers.utils.randomBytes(32))
-				.replace("0x", "");
-			setHashDir(hashDir);
-			storage.set("hashDir", hashDir);
-		}
-	}, [hashDir]);
-
-	useEffect(() => {
-		remixClient.on("fileManager", "noFileSelected", () => {
-			setNoFileSelected(true);
-		});
-	}, [remixClient]);
-
-	useEffect(() => {
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		setTimeout(async () => {
-			try {
-				if (noFileSelected) {
-					throw new Error("No file selected");
-				}
+			if (currentFilename !== "") {
+				try {
+					// get current file
+					const currentFile = await remixClient.call("fileManager", "getCurrentFile");
+					if (currentFile.length > 0) {
+						const filename = getFileNameFromPath(currentFile);
+						setCurrentFilename(filename);
 
-				// get current file
-				const currentFile = await remixClient.call("fileManager", "getCurrentFile");
-				if (currentFile.length > 0) {
-					const filename = getFileNameFromPath(currentFile);
-					const currentFileExtension = getFileExtension(filename);
-					setIsValidCairo(currentFileExtension === "cairo");
-					setCurrentFilename(filename);
-
+						remixClient.emit("statusChanged", {
+							key: "succeed",
+							type: "info",
+							title: "Current file: " + currentFilename
+						});
+					}
+				} catch (e) {
 					remixClient.emit("statusChanged", {
-						key: "succeed",
+						key: "failed",
 						type: "info",
-						title: "Current file: " + currentFilename
+						title: "Please open a cairo file to compile"
 					});
+					console.log("error: ", e);
 				}
-			} catch (e) {
-				remixClient.emit("statusChanged", {
-					key: "failed",
-					type: "info",
-					title: "Please open a cairo file to compile"
-				});
-				console.log("error: ", e);
 			}
-		}, 500);
-	}, [remixClient, currentFilename, noFileSelected]);
 
-	useEffect(() => {
-		// eslint-disable-next-line @typescript-eslint/no-misused-promises
-		setTimeout(async () => {
 			remixClient.on("fileManager", "currentFileChanged", (currentFileChanged: any) => {
 				const filename = getFileNameFromPath(currentFileChanged);
-				const currentFileExtension = getFileExtension(filename);
-				setIsValidCairo(currentFileExtension === "cairo");
 				setCurrentFilename(filename);
 				remixClient.emit("statusChanged", {
 					key: "succeed",
 					type: "info",
 					title: "Current file: " + currentFilename
 				});
-				setNoFileSelected(false);
 			});
 		}, 500);
 	}, [remixClient, currentFilename]);
-
-	useEffect(() => {
-		// eslint-disable-next-line @typescript-eslint/no-misused-promises
-		setTimeout(async () => {
-			try {
-				if (noFileSelected) {
-					throw new Error("No file selected");
-				}
-				const currentFilePath = await remixClient.call("fileManager", "getCurrentFile");
-				if (!currentFilePath.endsWith(".cairo")) {
-					throw new Error("Not a valid cairo file");
-				}
-				const currentFileContent = await remixClient.call(
-					"fileManager",
-					"readFile",
-					currentFilePath
-				);
-				await fetch(`${apiUrl}/save_code/${hashDir}/${currentFilePath}`, {
-					method: "POST",
-					body: currentFileContent,
-					redirect: "follow",
-					headers: {
-						"Content-Type": "application/octet-stream"
-					}
-				});
-			} catch (e) {
-				remixClient.emit("statusChanged", {
-					key: "failed",
-					type: "info",
-					title: "Please open a cairo file to compile"
-				});
-				console.log("error: ", e);
-			}
-		}, 100);
-	}, [currentFilename, remixClient]);
 
 	async function getTomlPaths (workspacePath: string, currPath: string): Promise<string[]> {
 		const resTomlPaths: string[] = [];
@@ -360,7 +275,6 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 	useEffect(() => {
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		setTimeout(async () => {
-			// get current workspace path
 			try {
 				const currWorkspace = await remixClient.filePanel.getCurrentWorkspace();
 				setCurrWorkspacePath(currWorkspace.absolutePath);
@@ -373,7 +287,6 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 	useEffect(() => {
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		setTimeout(async () => {
-			// get current workspace path
 			try {
 				if (currWorkspacePath === "") return;
 				const allTomlPaths = await getTomlPaths(currWorkspacePath, "");
@@ -394,108 +307,47 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 	}, [tomlPaths]);
 
 	useEffect(() => {
+		const updateTomlPaths = () => {
+			// eslint-disable-next-line @typescript-eslint/no-misused-promises
+			setTimeout(async () => {
+				try {
+					if (currWorkspacePath !== "") {
+						const allTomlPaths = await getTomlPaths(currWorkspacePath, "");
+						setTomlPaths(allTomlPaths);
+					}
+				} catch (e) {
+					console.log("error: ", e);
+				}
+			}, 100);
+		};
+
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		setTimeout(async () => {
 			remixClient.on("fileManager", "fileSaved", (_: any) => {
-				// eslint-disable-next-line @typescript-eslint/no-misused-promises
-				setTimeout(async () => {
-					// get current workspace path
-					try {
-						if (currWorkspacePath !== "") {
-							const allTomlPaths = await getTomlPaths(currWorkspacePath, "");
-							setTomlPaths(allTomlPaths);
-						}
-					} catch (e) {
-						console.log("error: ", e);
-					}
-				}, 100);
+				updateTomlPaths();
 			});
 
 			remixClient.on("fileManager", "fileAdded", (_: any) => {
-				// eslint-disable-next-line @typescript-eslint/no-misused-promises
-				setTimeout(async () => {
-					// get current workspace path
-					try {
-						if (currWorkspacePath !== "") {
-							const allTomlPaths = await getTomlPaths(currWorkspacePath, "");
-
-							setTomlPaths(allTomlPaths);
-						}
-					} catch (e) {
-						console.log("error: ", e);
-					}
-				}, 100);
+				updateTomlPaths();
 			});
+
 			remixClient.on("fileManager", "folderAdded", (_: any) => {
-				// eslint-disable-next-line @typescript-eslint/no-misused-promises
-				setTimeout(async () => {
-					// get current workspace path
-					try {
-						if (currWorkspacePath !== "") {
-							const allTomlPaths = await getTomlPaths(currWorkspacePath, "");
-
-							setTomlPaths(allTomlPaths);
-						}
-					} catch (e) {
-						console.log("error: ", e);
-					}
-				}, 100);
+				updateTomlPaths();
 			});
+
 			remixClient.on("fileManager", "fileRemoved", (_: any) => {
-				// eslint-disable-next-line @typescript-eslint/no-misused-promises
-				setTimeout(async () => {
-					// get current workspace path
-					try {
-						if (currWorkspacePath !== "") {
-							const allTomlPaths = await getTomlPaths(currWorkspacePath, "");
-
-							setTomlPaths(allTomlPaths);
-						}
-					} catch (e) {
-						console.log("error: ", e);
-					}
-				}, 100);
+				updateTomlPaths();
 			});
+
 			remixClient.on("filePanel", "workspaceCreated", (_: any) => {
-				// eslint-disable-next-line @typescript-eslint/no-misused-promises
-				setTimeout(async () => {
-					// get current workspace path
-					try {
-						if (currWorkspacePath !== "") {
-							const allTomlPaths = await getTomlPaths(currWorkspacePath, "");
-
-							setTomlPaths(allTomlPaths);
-						}
-					} catch (e) {
-						console.log("error: ", e);
-					}
-				}, 100);
+				updateTomlPaths();
 			});
-			remixClient.on("filePanel", "workspaceRenamed", (_: any) => {
-				// eslint-disable-next-line @typescript-eslint/no-misused-promises
-				setTimeout(async () => {
-					// get current workspace path
-					try {
-						if (currWorkspacePath !== "") {
-							const allTomlPaths = await getTomlPaths(currWorkspacePath, "");
 
-							setTomlPaths(allTomlPaths);
-						}
-					} catch (e) {
-						console.log("error: ", e);
-					}
-				}, 100);
+			remixClient.on("filePanel", "workspaceRenamed", (_: any) => {
+				updateTomlPaths();
 			});
 		}, 500);
 	}, [remixClient]);
-
-	const compilations = [
-		{
-			validation: isValidCairo,
-			isLoading: isCompiling,
-			onClick: compile
-		}
-	];
 
 	const getAllContractFiles = async (
 		workspacePath: string,
@@ -523,6 +375,11 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 		return files;
 	};
 
+	const getCurrentTomlWorkspace = async (): Promise<string> => {
+		// const currentWorkspace =
+		// return currentWorkspace.absolutePath;
+	};
+
 	async function compile (compilationRequest: CompilationRequest): Promise<void> {
 		try {
 			const result = await asyncFetch("/compile-async", "compile-result", compilationRequest);
@@ -547,11 +404,11 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
 	const writeResultsToArtifacts = async (compileResult: CompilationResult): Promise<void> => {
 		const contractToArtifacts: Record<
-			string,
-			{
-				casm: string;
-				sierra: string;
-			}
+		string,
+		{
+			casm: string;
+			sierra: string;
+		}
 		> = {};
 		for (const file of compileResult.artifacts) {
 			if (file.real_path.endsWith(".sierra.json")) {

@@ -1,17 +1,12 @@
 import { type BigNumberish } from "ethers";
-import {
-	type AccountInterface,
-	type CairoAssembly,
-	type constants,
-	type InvokeFunctionResponse
-} from "starknet";
+import { type AccountInterface, type CairoAssembly, type constants, type InvokeFunctionResponse } from "starknet";
 
 interface Contract {
 	name: string;
 	compiledClassHash: string;
 	classHash: string;
 	sierraClassHash: string;
-	sierra: any; // CompiledSierra
+	sierra: any;
 	casm: CairoAssembly;
 	abi: Abi;
 	path: string;
@@ -33,7 +28,7 @@ interface Input {
 
 type Output = Input;
 
-export type CallDataObj = BigNumberish[] | CallDataObj[];
+type CallDataObj = BigNumberish[] | CallDataObj[];
 
 interface AbiElement {
 	type: string;
@@ -59,23 +54,6 @@ string,
 }
 >;
 
-// TODO: felt252
-enum ParameterType {
-	FieldElement = "felt",
-	VarFelt = "felt*",
-	String = "string",
-	Complex = "complex",
-	Uint256 = "Uint256",
-}
-
-interface ParameterMetadata {
-	name: string;
-	type: `${ParameterType}`;
-	names?: string[];
-	structName?: string;
-	propertyCount?: number;
-}
-
 interface ContractFile {
 	file_name: string;
 	real_path: string;
@@ -92,23 +70,16 @@ interface CompilationResult {
 	artifacts: ContractFile[];
 }
 
-interface FunctionReturnType {
-	[key: string]: string | number | string[] | FunctionReturnType[];
-}
-
 export type {
 	Abi,
 	AbiElement,
 	CallDataObject,
 	Contract,
 	Contracts,
-	FunctionReturnType,
 	Input,
 	Output,
-	ParameterMetadata,
 	ContractFile,
 	CompilationRequest,
-	CompilationResult
+	CompilationResult,
+	CallDataObj
 };
-
-export { ParameterType };
