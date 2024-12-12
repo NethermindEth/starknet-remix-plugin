@@ -371,15 +371,19 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 				});
 
 				throw new Error("Cairo Compilation Request Failed");
-			} else {
-				await remixClient.call(
-					"notification" as any,
-					"toast",
-					"Cairo compilation request successful"
-				);
 			}
 
-			await writeResultsToArtifacts(resultJson);
+			await remixClient.call(
+				"notification" as any,
+				"toast",
+				"Cairo compilation request successful"
+			);
+
+			try {
+				await writeResultsToArtifacts(resultJson);
+			} catch (e) {
+				console.log("error writing to artifacts: ", e);
+			}
 
 			setIsCompiling(false);
 			return resultJson;
@@ -402,33 +406,35 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
 		// First pass to collect artifacts
 		for (const file of compileResult.artifacts) {
-			const basePath = file.real_path.replace(".compiled_contract_class.json", "").replace(".contract_class.json", "");
+			if (!file.file_name.endsWith(".compiled_contract_class.json") && !file.file_name.endsWith(".contract_class.json")) continue;
+
+			const basePath = file.file_name.replace(".compiled_contract_class.json", "").replace(".contract_class.json", "").replace("___testsingle_", "");
+
 			if (!(basePath in contractToArtifacts)) {
 				contractToArtifacts[basePath] = { casm: "", sierra: "" };
 			}
 
-			if (file.real_path.endsWith(".sierra.json")) {
+			if (file.file_name.endsWith(".contract_class.json")) {
 				contractToArtifacts[basePath].sierra = file.file_content;
-			} else if (file.real_path.endsWith(".casm.json")) {
+			} else if (file.file_name.endsWith(".compiled_contract_class.json")) {
 				contractToArtifacts[basePath].casm = file.file_content;
 			}
 		}
 
 		// Create or update contracts
 		const updatedContracts: Contract[] = [];
-		for (const [path, artifacts] of Object.entries(contractToArtifacts)) {
+		for (const [name, artifacts] of Object.entries(contractToArtifacts)) {
 			const sierraContent = JSON.parse(artifacts.sierra);
 			const casmContent = JSON.parse(artifacts.casm);
-			const name = path.split("/").at(-1) ?? path;
 
-			const classHash = artifacts.sierra;
+			const classHash = hash.computeContractClassHash(sierraContent);
+
 			const compiledClassHash = hash.computeCompiledClassHash(casmContent);
 			const sierraClassHash = hash.computeSierraContractClassHash(sierraContent);
 
 			// Create new contract
 			const newContract: Contract = {
 				name,
-				path,
 				abi: sierraContent.abi,
 				sierra: artifacts.sierra,
 				casm: casmContent,
@@ -443,8 +449,10 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 			updatedContracts.push(newContract);
 		}
 
+		console.log(updatedContracts);
+
 		// Update contracts state with filtered + new contracts
-		setContracts([...updatedContracts, ...contracts.filter((c: Contract) => !updatedContracts.some((uc: Contract) => uc.path === c.path))]);
+		setContracts([...updatedContracts, ...contracts.filter((c: Contract) => !updatedContracts.some((uc: Contract) => uc.name === c.name && uc.classHash === c.classHash))]);
 
 		// Write artifacts to files
 		for (const file of compileResult.artifacts) {

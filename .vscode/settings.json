@@ -15,6 +15,7 @@
     "Filemap",
     "gibibytes",
     "scarb",
-    "skiplist"
+    "skiplist",
+    "testsingle"
   ]
 }

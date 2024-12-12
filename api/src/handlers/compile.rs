@@ -18,7 +18,7 @@ use tracing::instrument;
 use super::types::CompilationRequest;
 
 const DEFAULT_SCARB_TOML: &str = r#"[package]
-name = "test"
+name = "___testsingle"
 version = "0.1.0"
 
 [dependencies]

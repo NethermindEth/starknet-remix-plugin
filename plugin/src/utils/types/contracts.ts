@@ -9,7 +9,6 @@ interface Contract {
 	sierra: any;
 	casm: CairoAssembly;
 	abi: Abi;
-	path: string;
 	deployedInfo: Array<{
 		address: string;
 		chainId: constants.StarknetChainId;
