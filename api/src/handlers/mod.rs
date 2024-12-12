@@ -1,9 +1,9 @@
-pub mod scarb_version;
+pub mod compile;
 pub mod process;
 pub mod scarb_test;
+pub mod scarb_version;
 pub mod types;
 pub mod utils;
-pub mod compile;
 
 use tracing::info;
 use tracing::instrument;

@@ -108,7 +108,7 @@ impl WorkerEngine {
                     arc_process_states,
                     process_timestamps_to_purge,
                 )
-                    .await;
+                .await;
             })));
         }
     }
@@ -125,7 +125,7 @@ impl WorkerEngine {
                 arc_process_states,
                 process_timestamps_to_purge,
             )
-                .await;
+            .await;
         })));
     }
 
@@ -213,7 +213,7 @@ impl WorkerEngine {
                             match dispatch_command(command, &metrics).await {
                                 Ok(result) => {
                                     println!("Command completed: {:?}", result);
-                                    
+
                                     arc_process_states
                                         .insert(process_id, ProcessState::Completed(result));
 
@@ -228,7 +228,6 @@ impl WorkerEngine {
                                     println!("Command failed: {:?}", e);
 
                                     arc_process_states.insert(process_id, ProcessState::Error(e));
-
 
                                     arc_timestamps_to_purge
                                         .push((

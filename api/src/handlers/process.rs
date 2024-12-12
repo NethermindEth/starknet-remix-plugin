@@ -47,16 +47,12 @@ pub fn do_process_command(command: ApiCommand, engine: &State<WorkerEngine>) -> 
     }
 }
 
-pub fn fetch_process_result<F>(
-    process_id: &str,
-    engine: &State<WorkerEngine>,
-    do_work: F,
-) -> String
+pub fn fetch_process_result<F>(process_id: &str, engine: &State<WorkerEngine>, do_work: F) -> String
 where
     F: FnOnce(Result<&ApiCommandResult, &ApiError>) -> String,
 {
     // get status of process by ID
-    match Uuid::parse_str(&process_id) {
+    match Uuid::parse_str(process_id) {
         Ok(process_uuid) => {
             if engine.arc_process_states.contains_key(&process_uuid) {
                 match engine

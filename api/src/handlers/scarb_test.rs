@@ -71,21 +71,21 @@ pub async fn do_scarb_test(remix_file_path: PathBuf) -> Result<Json<ScarbTestRes
             &remix_file_path,
         )
         + &String::from_utf8(output.stderr)
-        .map_err(ApiError::UTF8Error)?
-        .replace(
-            &file_path
-                .to_str()
-                .ok_or(ApiError::FailedToParseString)?
-                .to_string(),
-            &remix_file_path,
-        );
+            .map_err(ApiError::UTF8Error)?
+            .replace(
+                &file_path
+                    .to_str()
+                    .ok_or(ApiError::FailedToParseString)?
+                    .to_string(),
+                &remix_file_path,
+            );
 
     let status = match output.status.code() {
         Some(0) => "Success",
         Some(_) => "SierraCompilationFailed",
         None => "UnknownError",
     }
-        .to_string();
+    .to_string();
 
     Ok(Json(ScarbTestResponse { message, status }))
 }

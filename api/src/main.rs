@@ -14,9 +14,7 @@ use anyhow::Context;
 use handlers::compile::{compile_async, get_compile_result};
 use handlers::process::get_process_status;
 use handlers::scarb_test::{get_scarb_test_result, scarb_test_async};
-use handlers::scarb_version::{
-    get_scarb_version_result, scarb_version_async,
-};
+use handlers::scarb_version::{get_scarb_version_result, scarb_version_async};
 use handlers::utils::on_plugin_launched;
 use handlers::{health, who_is_this};
 use prometheus::Registry;

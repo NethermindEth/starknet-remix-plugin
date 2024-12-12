@@ -1,6 +1,4 @@
-use rocket::tokio::fs::read_dir;
 use rocket::State;
-use std::path::Path;
 use std::process::{Command, Stdio};
 use tracing::{error, info, instrument};
 
@@ -8,7 +6,6 @@ use crate::errors::{ApiError, Result};
 use crate::handlers::process::{do_process_command, fetch_process_result};
 use crate::handlers::types::{ApiCommand, ApiCommandResult};
 use crate::rate_limiter::RateLimited;
-use crate::utils::lib::{CAIRO_COMPILERS_DIR, DEFAULT_CAIRO_DIR};
 use crate::worker::WorkerEngine;
 
 #[instrument(skip(engine, _rate_limited))]
@@ -36,14 +33,16 @@ pub async fn get_scarb_version_result(process_id: &str, engine: &State<WorkerEng
 /// ## Note
 /// (default Cairo version will be used)
 pub fn do_cairo_version() -> Result<String> {
-    let mut version_caller = Command::new("scarb")
+    let version_caller = Command::new("scarb")
         .arg("--version")
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
         .map_err(ApiError::FailedToExecuteCommand)?;
 
-    let output = version_caller.wait_with_output().map_err(ApiError::FailedToReadOutput)?;
+    let output = version_caller
+        .wait_with_output()
+        .map_err(ApiError::FailedToReadOutput)?;
 
     if output.status.success() {
         let result = String::from_utf8_lossy(&output.stdout).to_string();

@@ -9,7 +9,12 @@ use crate::errors::{ApiError, Result};
 use crate::metrics::{Metrics, COMPILATION_LABEL_VALUE};
 
 use super::types::{CompilationRequest, FileContentMap, Successful};
-use super::{compile::do_compile, scarb_test::do_scarb_test, scarb_version::do_cairo_version, types::{ApiCommand, ApiCommandResult}};
+use super::{
+    compile::do_compile,
+    scarb_test::do_scarb_test,
+    scarb_version::do_cairo_version,
+    types::{ApiCommand, ApiCommandResult},
+};
 
 #[instrument]
 #[post("/on-plugin-launched")]
@@ -18,7 +23,7 @@ pub async fn on_plugin_launched() {
 }
 
 pub(crate) async fn do_metered_action<T: Successful>(
-    action: impl Future<Output=Result<Json<T>>>,
+    action: impl Future<Output = Result<Json<T>>>,
     action_label_value: &str,
     metrics: &Metrics,
 ) -> Result<Json<T>> {
@@ -101,7 +106,6 @@ impl AutoCleanUp<'_> {
     }
 }
 
-
 pub async fn dispatch_command(command: ApiCommand, metrics: &Metrics) -> Result<ApiCommandResult> {
     match command {
         ApiCommand::ScarbVersion => match do_cairo_version() {
@@ -113,12 +117,14 @@ pub async fn dispatch_command(command: ApiCommand, metrics: &Metrics) -> Result<
             Ok(result) => Ok(ApiCommandResult::ScarbTest(result.into_inner())),
             Err(e) => Err(e),
         },
-        ApiCommand::Compile { compilation_request } => match do_metered_action(
-            do_compile(compilation_request, &metrics),
+        ApiCommand::Compile {
+            compilation_request,
+        } => match do_metered_action(
+            do_compile(compilation_request, metrics),
             COMPILATION_LABEL_VALUE,
             metrics,
         )
-            .await
+        .await
         {
             Ok(result) => Ok(ApiCommandResult::Compile(result.into_inner())),
             Err(e) => Err(e),
@@ -139,7 +145,10 @@ pub async fn create_temp_dir() -> Result<PathBuf> {
 }
 
 pub async fn init_directories(compilation_request: CompilationRequest) -> Result<String> {
-    println!("init_directories, compilation_request: {:?}", compilation_request);
+    println!(
+        "init_directories, compilation_request: {:?}",
+        compilation_request
+    );
 
     let temp_dir = create_temp_dir().await?;
 
@@ -160,11 +169,16 @@ pub async fn init_directories(compilation_request: CompilationRequest) -> Result
     println!("init_directories, temp_dir: {:?}", temp_dir);
 
     // check the path content
-    println!("init_directories, temp_dir content: {:?}", tokio::fs::read_dir(&temp_dir).await);
+    println!(
+        "init_directories, temp_dir content: {:?}",
+        tokio::fs::read_dir(&temp_dir).await
+    );
 
     temp_dir
         .to_str()
-        .ok_or_else(|| ApiError::FailedToInitializeDirectories("Failed to convert path to string".to_string()))
+        .ok_or_else(|| {
+            ApiError::FailedToInitializeDirectories("Failed to convert path to string".to_string())
+        })
         .map(|s| s.to_string())
 }
 

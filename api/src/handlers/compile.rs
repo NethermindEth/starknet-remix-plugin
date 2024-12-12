@@ -2,15 +2,14 @@ use crate::errors::{ApiError, Result};
 use crate::handlers::process::{do_process_command, fetch_process_result};
 use crate::handlers::types::{ApiCommand, ApiCommandResult};
 use crate::handlers::types::{FileContentMap, ScarbCompileResponse};
-use crate::handlers::utils::{do_metered_action, get_files_recursive, init_directories, AutoCleanUp};
+use crate::handlers::utils::{get_files_recursive, init_directories, AutoCleanUp};
 use crate::handlers::{STATUS_COMPILATION_FAILED, STATUS_SUCCESS, STATUS_UNKNOWN_ERROR};
-use crate::metrics::{Metrics, COMPILATION_LABEL_VALUE};
+use crate::metrics::Metrics;
 use crate::rate_limiter::RateLimited;
 use crate::worker::WorkerEngine;
 use rocket::serde::json;
 use rocket::serde::json::Json;
 use rocket::{tokio, State};
-use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
 use tracing::instrument;
@@ -37,7 +36,12 @@ pub async fn compile_async(
     engine: &State<WorkerEngine>,
 ) -> String {
     tracing::info!("/compile/{:?}", request_json.0.file_names());
-    do_process_command(ApiCommand::Compile { compilation_request: request_json.0 }, engine)
+    do_process_command(
+        ApiCommand::Compile {
+            compilation_request: request_json.0,
+        },
+        engine,
+    )
 }
 
 #[instrument(skip(engine))]
@@ -54,12 +58,19 @@ pub async fn get_compile_result(process_id: &str, engine: &State<WorkerEngine>) 
     })
 }
 
-async fn ensure_scarb_toml(mut compilation_request: CompilationRequest) -> Result<CompilationRequest> {
-
+async fn ensure_scarb_toml(
+    mut compilation_request: CompilationRequest,
+) -> Result<CompilationRequest> {
     // Check if Scarb.toml exists in the root
     if !compilation_request.has_scarb_toml() {
         // number of files cairo files in the request
-        if compilation_request.files.iter().filter(|f| f.file_name.ends_with(".cairo")).count() != 1 {
+        if compilation_request
+            .files
+            .iter()
+            .filter(|f| f.file_name.ends_with(".cairo"))
+            .count()
+            != 1
+        {
             return Err(ApiError::InvalidRequest);
         }
 
@@ -70,7 +81,11 @@ async fn ensure_scarb_toml(mut compilation_request: CompilationRequest) -> Resul
         });
 
         // change the name of the file to the first cairo file to src/lib.cairo
-        let first_cairo_file = compilation_request.files.iter_mut().find(|f| f.file_name.ends_with(".cairo")).unwrap();
+        let first_cairo_file = compilation_request
+            .files
+            .iter_mut()
+            .find(|f| f.file_name.ends_with(".cairo"))
+            .unwrap();
         first_cairo_file.file_name = "src/lib.cairo".to_string();
     }
 
@@ -99,7 +114,6 @@ pub async fn do_compile(
         dirs: vec![&temp_dir],
     };
 
-
     let mut compile = Command::new("scarb");
     compile
         .current_dir(&temp_dir)
@@ -109,18 +123,15 @@ pub async fn do_compile(
 
     tracing::debug!("Executing scarb command: {:?}", compile);
 
-    let result = tokio::time::timeout(
-        std::time::Duration::from_secs(300),
-        async {
-            compile
-                .spawn()
-                .map_err(ApiError::FailedToExecuteCommand)?
-                .wait_with_output()
-                .map_err(ApiError::FailedToReadOutput)
-        },
-    )
-        .await
-        .map_err(|_| ApiError::CompilationTimeout)??;
+    let result = tokio::time::timeout(std::time::Duration::from_secs(300), async {
+        compile
+            .spawn()
+            .map_err(ApiError::FailedToExecuteCommand)?
+            .wait_with_output()
+            .map_err(ApiError::FailedToReadOutput)
+    })
+    .await
+    .map_err(|_| ApiError::CompilationTimeout)??;
 
     let file_content_map_array = get_files_recursive(&PathBuf::from(&temp_dir).join("target/dev"))?;
 
@@ -136,7 +147,7 @@ pub async fn do_compile(
         Some(_) => STATUS_COMPILATION_FAILED,
         None => STATUS_UNKNOWN_ERROR,
     }
-        .to_string();
+    .to_string();
 
     auto_clean_up.clean_up().await;
 
@@ -146,4 +157,3 @@ pub async fn do_compile(
         status,
     }))
 }
-
