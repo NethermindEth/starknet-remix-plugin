@@ -47,6 +47,8 @@ const CompilationCard: React.FC<{
 
 	const isCompiling = useAtomValue(isCompilingAtom);
 
+	const status = useAtomValue(statusAtom);
+
 	const isCurrentFileName = currentFilename === "" || currentFilename === null || currentFilename === undefined;
 
 	return (
@@ -356,8 +358,6 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
 			const resultJson = JSON.parse(result) as CompilationResult;
 
-			console.log(resultJson);
-
 			if (resultJson.status !== "Success") {
 				await remixClient.call(
 					"notification" as any,
@@ -383,6 +383,8 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 				await writeResultsToArtifacts(resultJson);
 			} catch (e) {
 				console.log("error writing to artifacts: ", e);
+
+				throw new Error("Failed to write artifacts");
 			}
 
 			setIsCompiling(false);
@@ -448,8 +450,6 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
 			updatedContracts.push(newContract);
 		}
-
-		console.log(updatedContracts);
 
 		// Update contracts state with filtered + new contracts
 		setContracts([...updatedContracts, ...contracts.filter((c: Contract) => !updatedContracts.some((uc: Contract) => uc.name === c.name && uc.classHash === c.classHash))]);
