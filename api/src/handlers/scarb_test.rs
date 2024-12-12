@@ -25,11 +25,12 @@ pub async fn scarb_test_async(
 
 #[instrument(skip(engine))]
 #[get("/scarb-test-result/<process_id>")]
-pub async fn get_scarb_test_result(process_id: String, engine: &State<WorkerEngine>) -> String {
+pub async fn get_scarb_test_result(process_id: &str, engine: &State<WorkerEngine>) -> String {
     info!("/scarb-test-result/{:?}", process_id);
     fetch_process_result(process_id, engine, |result| match result {
-        ApiCommandResult::ScarbTest(scarb_result) => json::to_string(&scarb_result)
+        Ok(ApiCommandResult::ScarbTest(scarb_result)) => json::to_string(&scarb_result)
             .unwrap_or_else(|e| format!("Failed to fetch result: {:?}", e)),
+        Err(err) => format!("Failed to fetch result: {:?}", err),
         _ => String::from("Result not available"),
     })
 }
@@ -70,21 +71,21 @@ pub async fn do_scarb_test(remix_file_path: PathBuf) -> Result<Json<ScarbTestRes
             &remix_file_path,
         )
         + &String::from_utf8(output.stderr)
-            .map_err(ApiError::UTF8Error)?
-            .replace(
-                &file_path
-                    .to_str()
-                    .ok_or(ApiError::FailedToParseString)?
-                    .to_string(),
-                &remix_file_path,
-            );
+        .map_err(ApiError::UTF8Error)?
+        .replace(
+            &file_path
+                .to_str()
+                .ok_or(ApiError::FailedToParseString)?
+                .to_string(),
+            &remix_file_path,
+        );
 
     let status = match output.status.code() {
         Some(0) => "Success",
         Some(_) => "SierraCompilationFailed",
         None => "UnknownError",
     }
-    .to_string();
+        .to_string();
 
     Ok(Json(ScarbTestResponse { message, status }))
 }

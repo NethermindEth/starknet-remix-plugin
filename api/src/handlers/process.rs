@@ -1,3 +1,4 @@
+use crate::errors::ApiError;
 use crate::handlers::types::{ApiCommand, ApiCommandResult};
 use crate::worker::{ProcessState, WorkerEngine};
 use rocket::State;
@@ -47,12 +48,12 @@ pub fn do_process_command(command: ApiCommand, engine: &State<WorkerEngine>) -> 
 }
 
 pub fn fetch_process_result<F>(
-    process_id: String,
+    process_id: &str,
     engine: &State<WorkerEngine>,
     do_work: F,
 ) -> String
 where
-    F: FnOnce(&ApiCommandResult) -> String,
+    F: FnOnce(Result<&ApiCommandResult, &ApiError>) -> String,
 {
     // get status of process by ID
     match Uuid::parse_str(&process_id) {
@@ -64,7 +65,8 @@ where
                     .unwrap()
                     .value()
                 {
-                    ProcessState::Completed(result) => do_work(result),
+                    ProcessState::Completed(result) => do_work(Ok(result)),
+                    ProcessState::Error(e) => do_work(Err(e)),
                     _ => String::from("Result not available"),
                 }
             } else {

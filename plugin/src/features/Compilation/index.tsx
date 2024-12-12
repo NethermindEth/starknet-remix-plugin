@@ -1,43 +1,36 @@
 /* eslint-disable multiline-ternary */
 import React, { useEffect } from "react";
-import { artifactFilename, artifactFolder, getFileNameFromPath } from "../../utils/utils";
+import { artifactFolder, getFileNameFromPath, isValidCairo } from "../../utils/utils";
 import "./styles.css";
-import { hash } from "starknet";
 import Container from "../../components/ui_components/Container";
 import { type AccordianTabs } from "../Plugin";
 import * as D from "../../components/ui_components/Dropdown";
 import { BsChevronDown } from "react-icons/bs";
-import {
-	type CompilationRequest,
-	type CompilationResult,
-	type Contract,
-	type ContractFile
-} from "../../utils/types/contracts";
-import { asyncFetch } from "../../utils/async_fetch";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 
 // Imported Atoms
-import { compiledContractsAtom, selectedCompiledContract } from "../../atoms/compiledContracts";
 import {
 	activeTomlPathAtom,
-	compilationAtom,
+	CompilationStatus,
 	currentFilenameAtom,
 	statusAtom,
 	tomlPathsAtom
 } from "../../atoms/compilation";
 import useRemixClient from "../../hooks/useRemixClient";
 import { useIcon } from "../../hooks/useIcons";
+import { type CompilationResult, type ContractFile } from "../../utils/types/contracts";
+import { asyncFetch } from "../../utils/async_fetch";
 
-interface FileContentMap {
-	file_name: string;
-	file_content: string;
-}
+// interface FileContentMap {
+// 	file_name: string;
+// 	file_content: string;
+// }
 
-interface ScarbCompileResponse {
-	status: string;
-	message: string;
-	file_content_map_array: FileContentMap[];
-}
+// interface ScarbCompileResponse {
+// 	status: string;
+// 	message: string;
+// 	file_content_map_array: FileContentMap[];
+// }
 
 const CompilationCard: React.FC<{
 	validation: boolean;
@@ -54,15 +47,14 @@ const CompilationCard: React.FC<{
 }): React.ReactElement => {
 	const { remixClient } = useRemixClient();
 
-	const {
-		activeTomlPath,
-		tomlPaths,
-		isCompiling,
-		currentFilename
-	} =
-		useAtomValue(compilationAtom);
+	const currentFilename = useAtomValue(currentFilenameAtom);
+	const tomlPaths = useAtomValue(tomlPathsAtom);
+	const activeTomlPath = useAtomValue(activeTomlPathAtom);
 
 	const setActiveTomlPath = useSetAtom(activeTomlPathAtom);
+
+	const isCompiling = useAtomValue(statusAtom) === CompilationStatus.Compiling;
+	const setStatus = useSetAtom(statusAtom);
 
 	const isCurrentFileName = currentFilename === "" || currentFilename === null || currentFilename === undefined;
 
@@ -163,7 +155,7 @@ const CompilationCard: React.FC<{
 													paddingLeft: "0.5rem"
 												}}
 											>
-												{useAtomValue(statusAtom)}
+												{status}
 											</span>
 										</>
 									) : (
@@ -191,15 +183,12 @@ interface CompilationProps {
 const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 	const { remixClient } = useRemixClient();
 
-	const [contracts, setContracts] = useAtom(compiledContractsAtom);
-	const [selectedContract, setSelectedContract] = useAtom(selectedCompiledContract);
+	// const [contracts, setContracts] = useAtom(compiledContractsAtom);
+	// const [selectedContract, setSelectedContract] = useAtom(selectedCompiledContract);
 
-	const {
-		currentFilename,
-		hashDir,
-		tomlPaths,
-		activeTomlPath
-	} = useAtomValue(compilationAtom);
+	const currentFilename = useAtomValue(currentFilenameAtom);
+	const tomlPaths = useAtomValue(tomlPathsAtom);
+	const activeTomlPath = useAtomValue(activeTomlPathAtom);
 
 	const setStatus = useSetAtom(statusAtom);
 	const setCurrentFilename = useSetAtom(currentFilenameAtom);
@@ -231,7 +220,6 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 						type: "info",
 						title: "Please open a cairo file to compile"
 					});
-					console.log("error: ", e);
 				}
 			}
 
@@ -267,10 +255,50 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 				}
 			}
 		} catch (e) {
-			console.log("error: ", e);
+			console.log("Failed to get toml paths, function ended up with error: ", e);
 		}
 		return resTomlPaths;
 	}
+
+	const getFolderFilemapRecursive = async (
+		workspacePath: string,
+		dirPath = ""
+	): Promise<ContractFile[]> => {
+		const files = [] as ContractFile[];
+		const pathFiles = await remixClient.fileManager.readdir(`${workspacePath}/${dirPath}`);
+		for (const [path, entry] of Object.entries<any>(pathFiles)) {
+			if (entry.isDirectory) {
+				const deps = await getFolderFilemapRecursive(workspacePath, path);
+				for (const dep of deps) files.push(dep);
+				continue;
+			}
+
+			const content = await remixClient.fileManager.readFile(path);
+
+			if (!path.endsWith(".cairo") && !path.endsWith("Scarb.toml")) continue;
+
+			files.push({
+				file_name: path,
+				real_path: path,
+				file_content: content
+			});
+		}
+		return files;
+	};
+
+	const updateTomlPaths = (): void => {
+		// eslint-disable-next-line @typescript-eslint/no-misused-promises
+		setTimeout(async () => {
+			try {
+				if (currWorkspacePath !== "") {
+					const allTomlPaths = await getTomlPaths(currWorkspacePath, "");
+					setTomlPaths(allTomlPaths);
+				}
+			} catch (e) {
+				console.log("error: ", e);
+			}
+		}, 100);
+	};
 
 	useEffect(() => {
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -287,15 +315,8 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 	useEffect(() => {
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		setTimeout(async () => {
-			try {
-				if (currWorkspacePath === "") return;
-				const allTomlPaths = await getTomlPaths(currWorkspacePath, "");
-				setTomlPaths(allTomlPaths);
-				if (activeTomlPath === "" || activeTomlPath === undefined) {
-					setActiveTomlPath(allTomlPaths[0]);
-				}
-			} catch (e) {
-				console.log("error: ", e);
+			if (currWorkspacePath !== "") {
+				updateTomlPaths();
 			}
 		}, 1);
 	}, [currWorkspacePath]);
@@ -307,20 +328,6 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 	}, [tomlPaths]);
 
 	useEffect(() => {
-		const updateTomlPaths = () => {
-			// eslint-disable-next-line @typescript-eslint/no-misused-promises
-			setTimeout(async () => {
-				try {
-					if (currWorkspacePath !== "") {
-						const allTomlPaths = await getTomlPaths(currWorkspacePath, "");
-						setTomlPaths(allTomlPaths);
-					}
-				} catch (e) {
-					console.log("error: ", e);
-				}
-			}, 100);
-		};
-
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		setTimeout(async () => {
 			remixClient.on("fileManager", "fileSaved", (_: any) => {
@@ -349,42 +356,21 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 		}, 500);
 	}, [remixClient]);
 
-	const getAllContractFiles = async (
-		workspacePath: string,
-		dirPath = ""
-	): Promise<ContractFile[]> => {
-		const files = [] as ContractFile[];
-		const pathFiles = await remixClient.fileManager.readdir(`${workspacePath}/${dirPath}`);
-		for (const [path, entry] of Object.entries<any>(pathFiles)) {
-			if (entry.isDirectory) {
-				const deps = await getAllContractFiles(workspacePath, path);
-				for (const dep of deps) files.push(dep);
-				continue;
-			}
+	async function compile (): Promise<void> {
+		setStatus(CompilationStatus.Compiling);
 
-			const content = await remixClient.fileManager.readFile(path);
+		const compilationRequest = await getFolderFilemapRecursive(currWorkspacePath, activeTomlPath);
+		await remixClient.terminal.log({
+			type: "info",
+			value: compilationRequest
+		});
 
-			if (!path.endsWith(".sol")) continue;
-
-			files.push({
-				file_name: path,
-				real_path: path,
-				file_content: content
-			});
-		}
-		return files;
-	};
-
-	const getCurrentTomlWorkspace = async (): Promise<string> => {
-		// const currentWorkspace =
-		// return currentWorkspace.absolutePath;
-	};
-
-	async function compile (compilationRequest: CompilationRequest): Promise<void> {
 		try {
 			const result = await asyncFetch("/compile-async", "compile-result", compilationRequest);
 
 			const resultJson = JSON.parse(result) as CompilationResult;
+
+			console.log(resultJson);
 
 			if (resultJson.status !== "Success") {
 				throw new Error("Solidity Compilation Request Failed");
@@ -397,18 +383,21 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 			}
 
 			await writeResultsToArtifacts(resultJson);
+
+			setStatus(CompilationStatus.Success);
 		} catch {
+			setStatus(CompilationStatus.Error);
 			console.log("Error compiling");
 		}
 	}
 
 	const writeResultsToArtifacts = async (compileResult: CompilationResult): Promise<void> => {
 		const contractToArtifacts: Record<
-		string,
-		{
-			casm: string;
-			sierra: string;
-		}
+			string,
+			{
+				casm: string;
+				sierra: string;
+			}
 		> = {};
 		for (const file of compileResult.artifacts) {
 			if (file.real_path.endsWith(".sierra.json")) {
@@ -456,41 +445,23 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 		}
 	};
 
-	async function generateSingleFileCompilationRequest (): Promise<CompilationRequest> {
-		const currentFilePath = await remixClient.call("fileManager", "getCurrentFile");
-		const currentFileContent = await remixClient.call(
-			"fileManager",
-			"readFile",
-			currentFilePath
-		);
-		return {
-			files: [
-				{
-					file_name: "src/lib.rs",
-					real_path: currentFilePath,
-					file_content: currentFileContent
-				}
-			]
-		};
-	}
-
 	async function compileSingle (): Promise<void> {
-		setIsCompiling(true);
-		setStatus("Compiling...");
-		// clear current file annotations: inline syntax error reporting
+		setStatus(CompilationStatus.Compiling);
+
 		await remixClient.editor.clearAnnotations();
 		try {
-			setStatus("Getting cairo file path...");
 			const currentFilePath = await remixClient.call("fileManager", "getCurrentFile");
 
-			setStatus("Getting cairo file content...");
-
-			setStatus("Parsing cairo code...");
-
 			// request
-			const compilationRequest = await generateSingleFileCompilationRequest();
+			const compilationRequest = {
+				files: [{
+					file_name: currentFilePath,
+					real_path: currentFilePath,
+					file_content: await remixClient.call("fileManager", "readFile", currentFilePath)
+				}]
+			};
 
-			await compile(compilationRequest);
+			const result = await compile(compilationRequest);
 
 			if (contract != null) {
 				setSelectedContract(contract);
@@ -501,6 +472,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 				);
 				setContracts([contract, ...contracts]);
 			} else {
+				setStatus(CompilationStatus.Error);
 				if (selectedContract == null) setSelectedContract(contracts[0]);
 			}
 
@@ -563,193 +535,191 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 			}
 			console.error(e);
 		}
-		setIsCompiling(false);
 	}
 
 	async function compileScarb (workspacePath: string, scarbPath: string): Promise<void> {
-		setIsCompiling(true);
-		try {
-			setStatus("Saving scarb workspace...");
-
-			let result: string;
-			try {
-				result = await asyncFetch(
-					`compile-scarb-async/${hashDir}/${workspacePath.replace(".", "")}/${scarbPath}`,
-					"compile-scarb-result"
-				);
-			} catch (e) {
-				await remixClient.call(
-					"notification" as any,
-					"toast",
-					"Could not reach cairo compilation server"
-				);
-				throw new Error("Cairo Compilation Request Failed");
-			}
-			const scarbCompile: ScarbCompileResponse = JSON.parse(result);
-			if (scarbCompile.status !== "Success") {
-				await remixClient.call("notification" as any, "alert", {
-					id: "starknetRemixPluginAlert",
-					title: "Scarb compilation failed!",
-					message: "Scarb compilation failed!, you can read logs in the terminal console"
-				});
-				remixClient.emit("statusChanged", {
-					key: "failed",
-					type: "error",
-					title: "Scarb compilation failed!"
-				});
-				await remixClient.terminal.log({
-					type: "error",
-					value: scarbCompile.message
-				});
-				throw new Error("Cairo Compilation Request Failed");
-			}
-
-			remixClient.emit("statusChanged", {
-				key: "succeed",
-				type: "success",
-				title: "Scarb compilation successful"
-			});
-
-			setStatus("Analyzing contracts...");
-
-			let notifyCasmInclusion = false;
-
-			const contractsToStore: Contract[] = [];
-
-			for (const file of scarbCompile.file_content_map_array) {
-				if (file.file_name?.endsWith(".contract_class.json")) {
-					const contractName: string = file.file_name.replace(".contract_class.json", "");
-					const sierra = JSON.parse(file.file_content);
-					if (
-						scarbCompile.file_content_map_array?.find(
-							(file: { file_name: string }) =>
-								file.file_name === contractName + ".compiled_contract_class.json"
-						) == null
-					) {
-						notifyCasmInclusion = true;
-						continue;
-					}
-					const casm = JSON.parse(
-						scarbCompile.file_content_map_array.find(
-							(file: { file_name: string }) =>
-								file.file_name === contractName + ".compiled_contract_class.json"
-						)?.file_content ?? ""
-					);
-					const genContract = await genContractData(
-						contractName,
-						file.file_name,
-						JSON.stringify(sierra),
-						JSON.stringify(casm)
-					);
-					if (genContract != null) contractsToStore.push(genContract);
-				}
-			}
-
-			if (contractsToStore.length >= 1) {
-				setSelectedContract(contractsToStore[0]);
-				setContracts([...contractsToStore, ...contracts]);
-			} else {
-				if (selectedContract == null) setSelectedContract(contracts[0]);
-			}
-			if (notifyCasmInclusion) {
-				await remixClient.call(
-					"notification" as any,
-					"toast",
-					"Please include 'casm=true' in the Scarb.toml to deploy cairo contracts"
-				);
-			}
-
-			setStatus("Saving compilation output files...");
-			try {
-				for (const file of scarbCompile.file_content_map_array) {
-					// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-					const filePath = `${scarbPath}/target/dev/${file.file_name}`;
-					await remixClient.call(
-						"fileManager",
-						"writeFile",
-						filePath,
-						JSON.stringify(JSON.parse(file.file_content))
-					);
-				}
-				await remixClient.call(
-					"notification" as any,
-					"toast",
-					`Compilation resultant files are written to ${scarbPath}/target/dev directory`
-				);
-			} catch (e) {
-				if (e instanceof Error) {
-					await remixClient.call(
-						"notification" as any,
-						"toast",
-						e.message + " try deleting the dir: " + scarbPath + "target/dev"
-					);
-				}
-				remixClient.emit("statusChanged", {
-					key: "succeed",
-					type: "warning",
-					title: "Failed to save artifacts"
-				});
-			}
-			setStatus("done");
-			setAccordian("deploy");
-		} catch (e) {
-			setStatus("failed");
-			console.log("error: ", e);
-		}
-		setIsCompiling(false);
+		// try {
+		// 	setStatus("Saving scarb workspace...");
+		//
+		// 	let result: string;
+		// 	try {
+		// 		// result = await asyncFetch(
+		// 		// 	`compile-scarb-async/${hashDir}/${workspacePath.replace(".", "")}/${scarbPath}`,
+		// 		// 	"compile-scarb-result"
+		// 		// );
+		// 	} catch (e) {
+		// 		await remixClient.call(
+		// 			"notification" as any,
+		// 			"toast",
+		// 			"Could not reach cairo compilation server"
+		// 		);
+		// 		throw new Error("Cairo Compilation Request Failed");
+		// 	}
+		// 	const scarbCompile: ScarbCompileResponse = JSON.parse(result);
+		// 	if (scarbCompile.status !== "Success") {
+		// 		await remixClient.call("notification" as any, "alert", {
+		// 			id: "starknetRemixPluginAlert",
+		// 			title: "Scarb compilation failed!",
+		// 			message: "Scarb compilation failed!, you can read logs in the terminal console"
+		// 		});
+		// 		remixClient.emit("statusChanged", {
+		// 			key: "failed",
+		// 			type: "error",
+		// 			title: "Scarb compilation failed!"
+		// 		});
+		// 		await remixClient.terminal.log({
+		// 			type: "error",
+		// 			value: scarbCompile.message
+		// 		});
+		// 		throw new Error("Cairo Compilation Request Failed");
+		// 	}
+		//
+		// 	remixClient.emit("statusChanged", {
+		// 		key: "succeed",
+		// 		type: "success",
+		// 		title: "Scarb compilation successful"
+		// 	});
+		//
+		// 	setStatus("Analyzing contracts...");
+		//
+		// 	let notifyCasmInclusion = false;
+		//
+		// 	const contractsToStore: Contract[] = [];
+		//
+		// 	for (const file of scarbCompile.file_content_map_array) {
+		// 		if (file.file_name?.endsWith(".contract_class.json")) {
+		// 			const contractName: string = file.file_name.replace(".contract_class.json", "");
+		// 			const sierra = JSON.parse(file.file_content);
+		// 			if (
+		// 				scarbCompile.file_content_map_array?.find(
+		// 					(file: { file_name: string }) =>
+		// 						file.file_name === contractName + ".compiled_contract_class.json"
+		// 				) == null
+		// 			) {
+		// 				notifyCasmInclusion = true;
+		// 				continue;
+		// 			}
+		// 			const casm = JSON.parse(
+		// 				scarbCompile.file_content_map_array.find(
+		// 					(file: { file_name: string }) =>
+		// 						file.file_name === contractName + ".compiled_contract_class.json"
+		// 				)?.file_content ?? ""
+		// 			);
+		// 			const genContract = await genContractData(
+		// 				contractName,
+		// 				file.file_name,
+		// 				JSON.stringify(sierra),
+		// 				JSON.stringify(casm)
+		// 			);
+		// 			if (genContract != null) contractsToStore.push(genContract);
+		// 		}
+		// 	}
+		//
+		// 	if (contractsToStore.length >= 1) {
+		// 		setSelectedContract(contractsToStore[0]);
+		// 		setContracts([...contractsToStore, ...contracts]);
+		// 	} else {
+		// 		if (selectedContract == null) setSelectedContract(contracts[0]);
+		// 	}
+		// 	if (notifyCasmInclusion) {
+		// 		await remixClient.call(
+		// 			"notification" as any,
+		// 			"toast",
+		// 			"Please include 'casm=true' in the Scarb.toml to deploy cairo contracts"
+		// 		);
+		// 	}
+		//
+		// 	setStatus("Saving compilation output files...");
+		// 	try {
+		// 		for (const file of scarbCompile.file_content_map_array) {
+		// 			// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
+		// 			const filePath = `${scarbPath}/target/dev/${file.file_name}`;
+		// 			await remixClient.call(
+		// 				"fileManager",
+		// 				"writeFile",
+		// 				filePath,
+		// 				JSON.stringify(JSON.parse(file.file_content))
+		// 			);
+		// 		}
+		// 		await remixClient.call(
+		// 			"notification" as any,
+		// 			"toast",
+		// 			`Compilation resultant files are written to ${scarbPath}/target/dev directory`
+		// 		);
+		// 	} catch (e) {
+		// 		if (e instanceof Error) {
+		// 			await remixClient.call(
+		// 				"notification" as any,
+		// 				"toast",
+		// 				e.message + " try deleting the dir: " + scarbPath + "target/dev"
+		// 			);
+		// 		}
+		// 		remixClient.emit("statusChanged", {
+		// 			key: "succeed",
+		// 			type: "warning",
+		// 			title: "Failed to save artifacts"
+		// 		});
+		// 	}
+		// 	setStatus("done");
+		// 	setAccordian("deploy");
+		// } catch (e) {
+		// 	setStatus("failed");
+		// 	console.log("error: ", e);
+		// }
 	}
 
-	async function genContractData (
-		contractName: string,
-		path: string,
-		sierraFile: string,
-		casmFile: string
-	): Promise<Contract | null> {
-		const sierra = await JSON.parse(sierraFile);
-		const casm = await JSON.parse(casmFile);
-		const compiledClassHash = hash.computeCompiledClassHash(casm);
-		const classHash = hash.computeContractClassHash(sierraFile);
-		const sierraClassHash = hash.computeSierraContractClassHash(sierra);
-		if (
-			contracts.find(
-				(contract) =>
-					contract.classHash === classHash &&
-					contract.compiledClassHash === compiledClassHash
-			) != null
-		) {
-			return null;
-		}
-		const contract = {
-			name: contractName,
-			abi: sierra.abi,
-			compiledClassHash,
-			classHash,
-			sierraClassHash,
-			sierra: sierraFile,
-			casm,
-			path,
-			deployedInfo: [],
-			address: "",
-			declaredInfo: []
-		};
-
-		return contract;
-	}
+	// async function genContractData (
+	// 	contractName: string,
+	// 	path: string,
+	// 	sierraFile: string,
+	// 	casmFile: string
+	// ): Promise<Contract | null> {
+	// 	const sierra = await JSON.parse(sierraFile);
+	// 	const casm = await JSON.parse(casmFile);
+	// 	const compiledClassHash = hash.computeCompiledClassHash(casm);
+	// 	const classHash = hash.computeContractClassHash(sierraFile);
+	// 	const sierraClassHash = hash.computeSierraContractClassHash(sierra);
+	// 	if (
+	// 		contracts.find(
+	// 			(contract) =>
+	// 				contract.classHash === classHash &&
+	// 				contract.compiledClassHash === compiledClassHash
+	// 		) != null
+	// 	) {
+	// 		return null;
+	// 	}
+	// 	const contract = {
+	// 		name: contractName,
+	// 		abi: sierra.abi,
+	// 		compiledClassHash,
+	// 		classHash,
+	// 		sierraClassHash,
+	// 		sierra: sierraFile,
+	// 		casm,
+	// 		path,
+	// 		deployedInfo: [],
+	// 		address: "",
+	// 		declaredInfo: []
+	// 	};
+	//
+	// 	return contract;
+	// }
 
 	return (
 		<div>
-			{compilations.map((compilation, idx) => {
-				return (
-					<CompilationCard
-						key={`${JSON.stringify(compilation)}${idx}`}
-						validation={compilation.validation}
-						isLoading={compilation.isLoading}
-						onClick={compilation.onClick}
-						compileScarb={compileScarb}
-						currentWorkspacePath={currWorkspacePath}
-					/>
-				);
-			})}
+			<CompilationCard
+				validation={isValidCairo(currentFilename)}
+				isLoading={useAtomValue(statusAtom) === CompilationStatus.Compiling}
+				onClick={compile}
+				compileScarb={compileScarb}
+				currentWorkspacePath={currWorkspacePath}
+			/>
+
+			<button
+				onClick={compile}
+			>
+				Test
+			</button>
 		</div>
 	);
 };

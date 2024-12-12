@@ -1,7 +1,5 @@
-pub mod cairo_version;
+pub mod scarb_version;
 pub mod process;
-pub mod save_code;
-pub mod scarb_compile;
 pub mod scarb_test;
 pub mod types;
 pub mod utils;
@@ -11,7 +9,7 @@ use tracing::info;
 use tracing::instrument;
 
 const STATUS_SUCCESS: &str = "Success";
-const STATUS_COMPILATION_FAILED: &str = "SierraCompilationFailed";
+const STATUS_COMPILATION_FAILED: &str = "CompilationFailed";
 const STATUS_UNKNOWN_ERROR: &str = "UnknownError";
 
 #[instrument]

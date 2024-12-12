@@ -38,6 +38,8 @@ pub enum ApiError {
     FailedToInitializeDirectories(String),
     #[error("Failed to write file: {0}")]
     FailedToWriteFile(String),
+    #[error("Invalid request")]
+    InvalidRequest,
 }
 
 pub type Result<T, E = ApiError> = std::result::Result<T, E>;

@@ -21,12 +21,12 @@ import { Settings } from "../../components/Settings";
 import { cairoVersionAtom, versionsAtom } from "../../atoms/cairoVersion";
 import { apiUrl } from "../../utils/network";
 import { StarknetProvider } from "../../components/starknet/starknet-provider";
-import { compilationAtom, CompilationStatus } from "../../atoms/compilation";
+import { CompilationStatus, statusAtom } from "../../atoms/compilation";
 
 export type AccordianTabs = "compile" | "deploy" | "interaction" | "transactions" | "";
 
 const Plugin: React.FC = () => {
-	const { status } = useAtomValue(compilationAtom);
+	const status = useAtomValue(statusAtom);
 
 	const {
 		isDeploying,

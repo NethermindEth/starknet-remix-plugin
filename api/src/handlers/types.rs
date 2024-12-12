@@ -62,12 +62,9 @@ impl CompilationRequest {
 
 #[derive(Debug)]
 pub enum ApiCommand {
-    CairoVersion,
+    ScarbVersion,
     Compile {
         compilation_request: CompilationRequest,
-    },
-    ScarbCompile {
-        remix_file_path: PathBuf,
     },
     ScarbTest {
         remix_file_path: PathBuf,
@@ -78,9 +75,8 @@ pub enum ApiCommand {
 
 #[derive(Debug)]
 pub enum ApiCommandResult {
-    CairoVersion(String),
+    ScarbVersion(String),
     Compile(ScarbCompileResponse),
-    ScarbCompile(ScarbCompileResponse),
     ScarbTest(ScarbTestResponse),
     #[allow(dead_code)]
     Shutdown,

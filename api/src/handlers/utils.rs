@@ -1,15 +1,15 @@
 use rocket::serde::json::Json;
 use rocket::tokio;
-use std::{future::Future, path::PathBuf};
 use std::path::Path;
 use std::time::Instant;
+use std::{future::Future, path::PathBuf};
 use tracing::{info, instrument};
 
 use crate::errors::{ApiError, Result};
 use crate::metrics::{Metrics, COMPILATION_LABEL_VALUE};
 
 use super::types::{CompilationRequest, FileContentMap, Successful};
-use super::{cairo_version::do_cairo_version, compile::do_compile, scarb_compile::do_scarb_compile, scarb_test::do_scarb_test, types::{ApiCommand, ApiCommandResult}};
+use super::{compile::do_compile, scarb_test::do_scarb_test, scarb_version::do_cairo_version, types::{ApiCommand, ApiCommandResult}};
 
 #[instrument]
 #[post("/on-plugin-launched")]
@@ -18,7 +18,7 @@ pub async fn on_plugin_launched() {
 }
 
 pub(crate) async fn do_metered_action<T: Successful>(
-    action: impl Future<Output = Result<Json<T>>>,
+    action: impl Future<Output=Result<Json<T>>>,
     action_label_value: &str,
     metrics: &Metrics,
 ) -> Result<Json<T>> {
@@ -104,21 +104,9 @@ impl AutoCleanUp<'_> {
 
 pub async fn dispatch_command(command: ApiCommand, metrics: &Metrics) -> Result<ApiCommandResult> {
     match command {
-        ApiCommand::CairoVersion => match do_cairo_version() {
-            Ok(result) => Ok(ApiCommandResult::CairoVersion(result)),
+        ApiCommand::ScarbVersion => match do_cairo_version() {
+            Ok(result) => Ok(ApiCommandResult::ScarbVersion(result)),
             Err(e) => Err(e),
-        },
-        ApiCommand::ScarbCompile { remix_file_path } => {
-            match do_metered_action(
-                do_scarb_compile(remix_file_path),
-                COMPILATION_LABEL_VALUE,
-                metrics,
-            )
-            .await
-            {
-                Ok(result) => Ok(ApiCommandResult::ScarbCompile(result.into_inner())),
-                Err(e) => Err(e),
-            }
         },
         ApiCommand::Shutdown => Ok(ApiCommandResult::Shutdown),
         ApiCommand::ScarbTest { remix_file_path } => match do_scarb_test(remix_file_path).await {
@@ -130,7 +118,7 @@ pub async fn dispatch_command(command: ApiCommand, metrics: &Metrics) -> Result<
             COMPILATION_LABEL_VALUE,
             metrics,
         )
-        .await
+            .await
         {
             Ok(result) => Ok(ApiCommandResult::Compile(result.into_inner())),
             Err(e) => Err(e),
@@ -142,24 +130,37 @@ pub async fn create_temp_dir() -> Result<PathBuf> {
     let temp_dir = std::env::temp_dir();
     let folder_name = uuid::Uuid::new_v4().to_string();
     let folder_path = temp_dir.join(&folder_name);
-    rocket::tokio::fs::create_dir_all(&folder_path)
+
+    tokio::fs::create_dir_all(&folder_path)
         .await
         .map_err(|e| ApiError::FailedToInitializeDirectories(e.to_string()))?;
+
     Ok(folder_path)
 }
 
 pub async fn init_directories(compilation_request: CompilationRequest) -> Result<String> {
+    println!("init_directories, compilation_request: {:?}", compilation_request);
+
     let temp_dir = create_temp_dir().await?;
 
     for file in compilation_request.files.iter() {
         let file_path = temp_dir.join(&file.file_name);
-        rocket::tokio::fs::create_dir_all(&file_path)
-            .await
-            .map_err(|e| ApiError::FailedToInitializeDirectories(e.to_string()))?;
-        rocket::tokio::fs::write(&file_path, &file.file_content)
+
+        if let Some(parent) = file_path.parent() {
+            tokio::fs::create_dir_all(parent)
+                .await
+                .map_err(|e| ApiError::FailedToInitializeDirectories(e.to_string()))?;
+        }
+
+        tokio::fs::write(&file_path, &file.file_content)
             .await
             .map_err(|e| ApiError::FailedToInitializeDirectories(e.to_string()))?;
     }
+
+    println!("init_directories, temp_dir: {:?}", temp_dir);
+
+    // check the path content
+    println!("init_directories, temp_dir content: {:?}", tokio::fs::read_dir(&temp_dir).await);
 
     temp_dir
         .to_str()

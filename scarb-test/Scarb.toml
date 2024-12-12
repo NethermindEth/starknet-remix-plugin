@@ -1,0 +1,10 @@
+[package]
+name = "test"
+version = "0.1.0"
+
+[dependencies]
+starknet = "2.6.4"
+
+[[target.starknet-contract]]
+sierra = true
+casm = true
