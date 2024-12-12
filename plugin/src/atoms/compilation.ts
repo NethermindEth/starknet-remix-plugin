@@ -13,6 +13,8 @@ const statusAtom = atom<string>(CompilationStatus.Compiling);
 
 const currentFilenameAtom = atom<string>("");
 
+const isCompilingAtom = atom<boolean>(false);
+
 const noFileSelectedAtom = atom<boolean>(false);
 
 const tomlPathsAtom = atom<string[]>([]);
@@ -25,5 +27,6 @@ export {
 	currentFilenameAtom,
 	noFileSelectedAtom,
 	tomlPathsAtom,
-	activeTomlPathAtom
+	activeTomlPathAtom,
+	isCompilingAtom
 };

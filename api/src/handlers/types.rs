@@ -29,7 +29,7 @@ pub struct FileContentMap {
 pub struct ScarbCompileResponse {
     pub status: String,
     pub message: String,
-    pub file_content_map_array: Vec<FileContentMap>,
+    pub artifacts: Vec<FileContentMap>,
 }
 
 impl Successful for ScarbCompileResponse {

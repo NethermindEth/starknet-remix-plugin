@@ -22,6 +22,7 @@ import { cairoVersionAtom, versionsAtom } from "../../atoms/cairoVersion";
 import { apiUrl } from "../../utils/network";
 import { StarknetProvider } from "../../components/starknet/starknet-provider";
 import { CompilationStatus, statusAtom } from "../../atoms/compilation";
+import { asyncFetch } from "../../utils/async_fetch";
 
 export type AccordianTabs = "compile" | "deploy" | "interaction" | "transactions" | "";
 
@@ -64,16 +65,8 @@ const Plugin: React.FC = () => {
 		const fetchCairoVersions = async (): Promise<void> => {
 			try {
 				if (apiUrl !== undefined) {
-					const response = await fetch(`${apiUrl}/cairo_versions`, {
-						method: "GET",
-						headers: {
-							"Content-Type": "application/octet-stream"
-						},
-						redirect: "follow"
-					});
-					const versions = JSON.parse(await response.text());
-					versions.sort();
-					setVersions(versions);
+					const versions = await asyncFetch("scarb-version-async", "scarb-version-result");
+					setVersions(versions.split("\n"));
 				}
 			} catch (e) {
 				await remixClient.call(

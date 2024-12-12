@@ -6,7 +6,7 @@ export async function asyncFetch(
 	body?: any
 ): Promise<string> {
 	const response = await fetch(`${apiUrl}/${method}`, {
-		method: "GET",
+		method: "POST",
 		redirect: "follow",
 		headers: {
 			"Content-Type": "application/octet-stream"

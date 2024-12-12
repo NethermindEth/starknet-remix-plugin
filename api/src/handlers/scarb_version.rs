@@ -11,7 +11,6 @@ use crate::rate_limiter::RateLimited;
 use crate::utils::lib::{CAIRO_COMPILERS_DIR, DEFAULT_CAIRO_DIR};
 use crate::worker::WorkerEngine;
 
-// Read the version from the cairo Cargo.toml file.
 #[instrument(skip(engine, _rate_limited))]
 #[post("/scarb-version-async")]
 pub async fn scarb_version_async(

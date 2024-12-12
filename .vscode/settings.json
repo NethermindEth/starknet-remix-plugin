@@ -12,6 +12,7 @@
     "./plugin"
   ],
   "cSpell.words": [
+    "Filemap",
     "gibibytes",
     "scarb",
     "skiplist"

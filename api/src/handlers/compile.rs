@@ -26,6 +26,7 @@ starknet = "2.6.4"
 
 [[target.starknet-contract]]
 sierra = true
+casm = true
 "#;
 
 #[instrument(skip(request_json, _rate_limited, engine))]
@@ -140,7 +141,7 @@ pub async fn do_compile(
     auto_clean_up.clean_up().await;
 
     Ok(Json(ScarbCompileResponse {
-        file_content_map_array,
+        artifacts: file_content_map_array,
         message,
         status,
     }))

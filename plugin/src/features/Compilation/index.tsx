@@ -6,31 +6,23 @@ import Container from "../../components/ui_components/Container";
 import { type AccordianTabs } from "../Plugin";
 import * as D from "../../components/ui_components/Dropdown";
 import { BsChevronDown } from "react-icons/bs";
-import { useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom, useAtom } from "jotai";
+import { hash } from "starknet";
 
 // Imported Atoms
 import {
 	activeTomlPathAtom,
 	CompilationStatus,
 	currentFilenameAtom,
+	isCompilingAtom,
 	statusAtom,
 	tomlPathsAtom
 } from "../../atoms/compilation";
 import useRemixClient from "../../hooks/useRemixClient";
 import { useIcon } from "../../hooks/useIcons";
-import { type CompilationResult, type ContractFile } from "../../utils/types/contracts";
+import { type CompilationResult, type Contract, type CompilationRequest } from "../../utils/types/contracts";
 import { asyncFetch } from "../../utils/async_fetch";
-
-// interface FileContentMap {
-// 	file_name: string;
-// 	file_content: string;
-// }
-
-// interface ScarbCompileResponse {
-// 	status: string;
-// 	message: string;
-// 	file_content_map_array: FileContentMap[];
-// }
+import { compiledContractsAtom } from "../../atoms/compiledContracts";
 
 const CompilationCard: React.FC<{
 	validation: boolean;
@@ -53,8 +45,7 @@ const CompilationCard: React.FC<{
 
 	const setActiveTomlPath = useSetAtom(activeTomlPathAtom);
 
-	const isCompiling = useAtomValue(statusAtom) === CompilationStatus.Compiling;
-	const setStatus = useSetAtom(statusAtom);
+	const isCompiling = useAtomValue(isCompilingAtom);
 
 	const isCurrentFileName = currentFilename === "" || currentFilename === null || currentFilename === undefined;
 
@@ -183,8 +174,8 @@ interface CompilationProps {
 const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 	const { remixClient } = useRemixClient();
 
-	// const [contracts, setContracts] = useAtom(compiledContractsAtom);
-	// const [selectedContract, setSelectedContract] = useAtom(selectedCompiledContract);
+	const [contracts, setContracts] = useAtom(compiledContractsAtom);
+	// const [selectedContract, setSelectedContract] = useAtom(selectedCompiledContractAtom);
 
 	const currentFilename = useAtomValue(currentFilenameAtom);
 	const tomlPaths = useAtomValue(tomlPathsAtom);
@@ -194,7 +185,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 	const setCurrentFilename = useSetAtom(currentFilenameAtom);
 	const setTomlPaths = useSetAtom(tomlPathsAtom);
 	const setActiveTomlPath = useSetAtom(activeTomlPathAtom);
-
+	const setIsCompiling = useSetAtom(isCompilingAtom);
 	const [currWorkspacePath, setCurrWorkspacePath] = React.useState<string>("");
 
 	useEffect(() => {
@@ -260,31 +251,31 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 		return resTomlPaths;
 	}
 
-	const getFolderFilemapRecursive = async (
-		workspacePath: string,
-		dirPath = ""
-	): Promise<ContractFile[]> => {
-		const files = [] as ContractFile[];
-		const pathFiles = await remixClient.fileManager.readdir(`${workspacePath}/${dirPath}`);
-		for (const [path, entry] of Object.entries<any>(pathFiles)) {
-			if (entry.isDirectory) {
-				const deps = await getFolderFilemapRecursive(workspacePath, path);
-				for (const dep of deps) files.push(dep);
-				continue;
-			}
+	// const getFolderFilemapRecursive = async (
+	// 	workspacePath: string,
+	// 	dirPath = ""
+	// ): Promise<ContractFile[]> => {
+	// 	const files = [] as ContractFile[];
+	// 	const pathFiles = await remixClient.fileManager.readdir(`${workspacePath}/${dirPath}`);
+	// 	for (const [path, entry] of Object.entries<any>(pathFiles)) {
+	// 		if (entry.isDirectory === true) {
+	// 			const deps = await getFolderFilemapRecursive(workspacePath, path);
+	// 			for (const dep of deps) files.push(dep);
+	// 			continue;
+	// 		}
 
-			const content = await remixClient.fileManager.readFile(path);
+	// 		const content = await remixClient.fileManager.readFile(path);
 
-			if (!path.endsWith(".cairo") && !path.endsWith("Scarb.toml")) continue;
+	// 		if (!path.endsWith(".cairo") && !path.endsWith("Scarb.toml")) continue;
 
-			files.push({
-				file_name: path,
-				real_path: path,
-				file_content: content
-			});
-		}
-		return files;
-	};
+	// 		files.push({
+	// 			file_name: path,
+	// 			real_path: path,
+	// 			file_content: content
+	// 		});
+	// 	}
+	// 	return files;
+	// };
 
 	const updateTomlPaths = (): void => {
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -356,14 +347,9 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 		}, 500);
 	}, [remixClient]);
 
-	async function compile (): Promise<void> {
+	async function compile (compilationRequest: CompilationRequest): Promise<CompilationResult | null> {
+		setIsCompiling(true);
 		setStatus(CompilationStatus.Compiling);
-
-		const compilationRequest = await getFolderFilemapRecursive(currWorkspacePath, activeTomlPath);
-		await remixClient.terminal.log({
-			type: "info",
-			value: compilationRequest
-		});
 
 		try {
 			const result = await asyncFetch("/compile-async", "compile-result", compilationRequest);
@@ -373,48 +359,96 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 			console.log(resultJson);
 
 			if (resultJson.status !== "Success") {
-				throw new Error("Solidity Compilation Request Failed");
+				await remixClient.call(
+					"notification" as any,
+					"toast",
+					"Cairo compilation request failed"
+				);
+
+				await remixClient.terminal.log({
+					type: "error",
+					value: resultJson.message
+				});
+
+				throw new Error("Cairo Compilation Request Failed");
 			} else {
 				await remixClient.call(
 					"notification" as any,
 					"toast",
-					"Solidity compilation request successful"
+					"Cairo compilation request successful"
 				);
 			}
 
 			await writeResultsToArtifacts(resultJson);
 
-			setStatus(CompilationStatus.Success);
-		} catch {
+			setIsCompiling(false);
+			return resultJson;
+		} catch (error) {
 			setStatus(CompilationStatus.Error);
-			console.log("Error compiling");
+			setIsCompiling(false);
+
+			return null;
 		}
 	}
 
 	const writeResultsToArtifacts = async (compileResult: CompilationResult): Promise<void> => {
 		const contractToArtifacts: Record<
-			string,
-			{
-				casm: string;
-				sierra: string;
-			}
+		string,
+		{
+			casm: string;
+			sierra: string;
+		}
 		> = {};
+
+		// First pass to collect artifacts
 		for (const file of compileResult.artifacts) {
+			const basePath = file.real_path.replace(".compiled_contract_class.json", "").replace(".contract_class.json", "");
+			if (!(basePath in contractToArtifacts)) {
+				contractToArtifacts[basePath] = { casm: "", sierra: "" };
+			}
+
 			if (file.real_path.endsWith(".sierra.json")) {
-				contractToArtifacts[file.real_path.replace(".sierra.json", "")].sierra =
-					file.file_content;
+				contractToArtifacts[basePath].sierra = file.file_content;
 			} else if (file.real_path.endsWith(".casm.json")) {
-				contractToArtifacts[file.real_path.replace(".casm.json", "")].casm =
-					file.file_content;
+				contractToArtifacts[basePath].casm = file.file_content;
 			}
 		}
 
-		console.log(contractToArtifacts);
+		// Create or update contracts
+		const updatedContracts: Contract[] = [];
+		for (const [path, artifacts] of Object.entries(contractToArtifacts)) {
+			const sierraContent = JSON.parse(artifacts.sierra);
+			const casmContent = JSON.parse(artifacts.casm);
+			const name = path.split("/").at(-1) ?? path;
 
-		const artifacts: string[] = [];
+			const classHash = artifacts.sierra;
+			const compiledClassHash = hash.computeCompiledClassHash(casmContent);
+			const sierraClassHash = hash.computeSierraContractClassHash(sierraContent);
+
+			// Create new contract
+			const newContract: Contract = {
+				name,
+				path,
+				abi: sierraContent.abi,
+				sierra: artifacts.sierra,
+				casm: casmContent,
+				classHash,
+				compiledClassHash,
+				sierraClassHash,
+				deployedInfo: [],
+				declaredInfo: [],
+				address: ""
+			};
+
+			updatedContracts.push(newContract);
+		}
+
+		// Update contracts state with filtered + new contracts
+		setContracts([...updatedContracts, ...contracts.filter((c: Contract) => !updatedContracts.some((uc: Contract) => uc.path === c.path))]);
+
+		// Write artifacts to files
 		for (const file of compileResult.artifacts) {
 			const artifactsPath = `${artifactFolder(currWorkspacePath)}/${file.real_path}`;
-			artifacts.push(artifactsPath);
 			try {
 				await remixClient.call(
 					"fileManager",
@@ -430,30 +464,17 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 						e.message + " try deleting the files: " + artifactsPath
 					);
 				}
-				remixClient.emit("statusChanged", {
-					key: "succeed",
-					type: "warning",
-					title: "Failed to save artifacts"
-				});
-			} finally {
-				remixClient.emit("statusChanged", {
-					key: "succeed",
-					type: "info",
-					title: "Saved artifacts"
-				});
 			}
 		}
 	};
 
 	async function compileSingle (): Promise<void> {
-		setStatus(CompilationStatus.Compiling);
-
 		await remixClient.editor.clearAnnotations();
 		try {
 			const currentFilePath = await remixClient.call("fileManager", "getCurrentFile");
 
 			// request
-			const compilationRequest = {
+			const compilationRequest: CompilationRequest = {
 				files: [{
 					file_name: currentFilePath,
 					real_path: currentFilePath,
@@ -463,67 +484,10 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
 			const result = await compile(compilationRequest);
 
-			if (contract != null) {
-				setSelectedContract(contract);
-				const contractName = contract.name;
-				const contractPath = contract.path;
-				contracts.filter(
-					(contract) => contract.name !== contractName && contract.path !== contractPath
-				);
-				setContracts([contract, ...contracts]);
-			} else {
-				setStatus(CompilationStatus.Error);
-				if (selectedContract == null) setSelectedContract(contracts[0]);
+			if (result != null) {
+				setStatus("done");
+				setAccordian("deploy");
 			}
-
-			setStatus("Saving artifacts...");
-
-			const sierraPath = `${artifactFolder(currentFilePath)}/${artifactFilename(
-				".json",
-				currentFilename
-			)}`;
-			const casmPath = `${artifactFolder(currentFilePath)}/${artifactFilename(
-				".casm",
-				currentFilename
-			)}`;
-
-			remixClient.emit("statusChanged", {
-				key: "succeed",
-				type: "success",
-				title: `Cheers : compilation successful, classHash: ${hash.computeContractClassHash(
-					sierra.file_content
-				)}`
-			});
-
-			try {
-				await remixClient.call("fileManager", "writeFile", sierraPath, sierra.file_content);
-				await remixClient.call("fileManager", "writeFile", casmPath, casm.file_content);
-			} catch (e) {
-				if (e instanceof Error) {
-					await remixClient.call(
-						"notification" as any,
-						"toast",
-						e.message + " try deleting the files: " + sierraPath + " and " + casmPath
-					);
-				}
-				remixClient.emit("statusChanged", {
-					key: "succeed",
-					type: "warning",
-					title: "Failed to save artifacts"
-				});
-			}
-
-			setStatus("Opening artifacts...");
-
-			// await remixClient.fileManager.open(sierraPath)
-
-			await remixClient.call(
-				"notification" as any,
-				"toast",
-				`Cairo compilation output written to: ${sierraPath} `
-			);
-			setStatus("done");
-			setAccordian("deploy");
 		} catch (e) {
 			setStatus("failed");
 			if (e instanceof Error) {
@@ -681,7 +645,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 	// 	const sierraClassHash = hash.computeSierraContractClassHash(sierra);
 	// 	if (
 	// 		contracts.find(
-	// 			(contract) =>
+	// 			(contract: Contract) =>
 	// 				contract.classHash === classHash &&
 	// 				contract.compiledClassHash === compiledClassHash
 	// 		) != null
@@ -701,7 +665,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 	// 		address: "",
 	// 		declaredInfo: []
 	// 	};
-	//
+
 	// 	return contract;
 	// }
 
@@ -710,16 +674,10 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 			<CompilationCard
 				validation={isValidCairo(currentFilename)}
 				isLoading={useAtomValue(statusAtom) === CompilationStatus.Compiling}
-				onClick={compile}
+				onClick={compileSingle}
 				compileScarb={compileScarb}
 				currentWorkspacePath={currWorkspacePath}
 			/>
-
-			<button
-				onClick={compile}
-			>
-				Test
-			</button>
 		</div>
 	);
 };
