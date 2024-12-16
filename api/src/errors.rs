@@ -40,6 +40,8 @@ pub enum ApiError {
     FailedToWriteFile(String),
     #[error("Invalid request")]
     InvalidRequest,
+    #[error("Version not allowed")]
+    VersionNotAllowed,
 }
 
 pub type Result<T, E = ApiError> = std::result::Result<T, E>;

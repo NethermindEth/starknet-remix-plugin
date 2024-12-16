@@ -1,10 +1,13 @@
-use std::time::SystemTime;
-use rocket::serde::json::Json;
-use serde::{Deserialize, Serialize};
-use tracing::instrument;
+use crate::errors::Result;
 use lazy_static::lazy_static;
-use std::sync::RwLock;
+use rocket::http::Status;
+use rocket::serde::json::Json;
+use semver::Version;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::sync::RwLock;
+use std::time::SystemTime;
+use tracing::instrument;
 
 #[derive(Debug, Deserialize)]
 struct GitHubRelease {
@@ -24,20 +27,6 @@ lazy_static! {
     });
 }
 
-fn parse_version(version: &str) -> Option<(u32, u32, u32)> {
-    let version = version.trim_start_matches('v');
-    let parts: Vec<&str> = version.split('.').collect();
-    if parts.len() != 3 {
-        return None;
-    }
-
-    Some((
-        parts[0].parse().ok()?,
-        parts[1].parse().ok()?,
-        parts[2].parse().ok()?
-    ))
-}
-
 async fn fetch_github_releases() -> Result<Vec<String>, Box<dyn std::error::Error>> {
     let client = reqwest::Client::new();
     let releases: Vec<GitHubRelease> = client
@@ -48,44 +37,38 @@ async fn fetch_github_releases() -> Result<Vec<String>, Box<dyn std::error::Erro
         .json()
         .await?;
 
-    // Group versions by major.minor and keep the highest patch version
-    let mut version_map: HashMap<(u32, u32), String> = HashMap::new();
+    let mut version_map: HashMap<(u64, u64), Version> = HashMap::new();
 
     for release in releases {
-        // Skip non-release versions
-        if release.tag_name.contains("-rc") ||
-           release.tag_name.contains("alpha") ||
-           release.tag_name.contains("beta") {
-            continue;
-        }
+        if let Ok(version) = Version::parse(&release.tag_name.replace("v", "")) {
+            if version.pre.is_empty() {
+                // Skip pre-releases (alpha, beta, rc)
+                let key = (version.major, version.minor);
 
-        if let Some((major, minor, patch)) = parse_version(&release.tag_name) {
-            let key = (major, minor);
-            match version_map.get(&key) {
-                Some(existing_version) => {
-                    if let Some((_, _, existing_patch)) = parse_version(existing_version) {
-                        if patch > existing_patch {
-                            version_map.insert(key, release.tag_name);
+                match version_map.get(&key) {
+                    Some(existing_version) => {
+                        if version > *existing_version {
+                            version_map.insert(key, version);
                         }
                     }
-                }
-                None => {
-                    version_map.insert(key, release.tag_name);
+                    None => {
+                        version_map.insert(key, version);
+                    }
                 }
             }
         }
     }
 
-    // Convert to vec and sort by version (descending)
-    let mut versions: Vec<String> = version_map.into_values().collect();
+    let mut versions: Vec<String> = version_map.into_values().map(|v| v.to_string()).collect();
+
     versions.sort_by(|a, b| {
-        let a_ver = parse_version(a).unwrap_or((0, 0, 0));
-        let b_ver = parse_version(b).unwrap_or((0, 0, 0));
+        let a_ver = Version::parse(a).unwrap();
+        let b_ver = Version::parse(b).unwrap();
         b_ver.cmp(&a_ver)
     });
 
-    // Take the latest 3 major.minor versions
     versions.truncate(3);
+
     Ok(versions)
 }
 
@@ -97,14 +80,29 @@ pub async fn start_version_updater() {
                 cache.versions = versions;
                 cache.last_updated = SystemTime::now();
             }
-            tokio::time::sleep(tokio::time::Duration::from_secs(24 * 60 * 60)).await; // Update every 24 hours
+
+            tracing::info!("Updated allowed versions");
+
+            tokio::time::sleep(tokio::time::Duration::from_secs(24 * 60 * 60)).await;
         }
     });
 }
 
 #[instrument]
 #[get("/allowed-versions")]
-pub async fn get_allowed_versions() -> Json<Vec<String>> {
+pub async fn get_allowed_versions() -> (Status, Json<Vec<String>>) {
+    match do_get_allowed_versions().await {
+        Ok(versions) => (Status::Ok, versions),
+        Err(e) => (Status::InternalServerError, Json(vec![e.to_string()])),
+    }
+}
+
+pub async fn is_version_allowed(version: &str) -> bool {
+    let allowed_versions = do_get_allowed_versions().await.unwrap_or(Json(vec![]));
+    allowed_versions.contains(&version.to_string())
+}
+
+pub async fn do_get_allowed_versions() -> Result<Json<Vec<String>>> {
     let should_fetch = {
         let cache = CACHED_VERSIONS.read().unwrap();
         cache.versions.is_empty()
@@ -115,11 +113,11 @@ pub async fn get_allowed_versions() -> Json<Vec<String>> {
             let mut cache = CACHED_VERSIONS.write().unwrap();
             cache.versions = versions;
             cache.last_updated = SystemTime::now();
-            return Json(cache.versions.clone());
+            return Ok(Json(cache.versions.clone()));
         }
-        return Json(vec![]);
+        return Ok(Json(vec![]));
     }
 
     let cache = CACHED_VERSIONS.read().unwrap();
-    Json(cache.versions.clone())
+    Ok(Json(cache.versions.clone()))
 }

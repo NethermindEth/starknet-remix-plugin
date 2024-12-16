@@ -1,10 +1,10 @@
+pub mod allowed_versions;
 pub mod compile;
 pub mod process;
 pub mod scarb_test;
 pub mod scarb_version;
 pub mod types;
 pub mod utils;
-pub mod allowed_versions;
 
 use tracing::info;
 use tracing::instrument;

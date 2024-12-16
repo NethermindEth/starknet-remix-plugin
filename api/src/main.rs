@@ -11,12 +11,12 @@ pub mod utils;
 pub mod worker;
 
 use anyhow::Context;
+use handlers::allowed_versions::{get_allowed_versions, start_version_updater};
 use handlers::compile::{compile_async, get_compile_result};
 use handlers::process::get_process_status;
 use handlers::scarb_test::{get_scarb_test_result, scarb_test_async};
 use handlers::scarb_version::{get_scarb_version_result, scarb_version_async};
 use handlers::utils::on_plugin_launched;
-use handlers::allowed_versions::{get_allowed_versions, start_version_updater};
 use handlers::{health, who_is_this};
 use prometheus::Registry;
 use rocket::{Build, Config, Rocket};

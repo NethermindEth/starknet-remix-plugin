@@ -1,3 +1,4 @@
+use rocket::http::Status;
 use rocket::State;
 use std::process::{Command, Stdio};
 use tracing::{error, info, instrument};
@@ -20,11 +21,20 @@ pub async fn scarb_version_async(
 
 #[instrument(skip(engine))]
 #[get("/scarb-version-result/<process_id>")]
-pub async fn get_scarb_version_result(process_id: &str, engine: &State<WorkerEngine>) -> String {
+pub async fn get_scarb_version_result(
+    process_id: &str,
+    engine: &State<WorkerEngine>,
+) -> (Status, String) {
     fetch_process_result(process_id, engine, |result| match result {
-        Ok(ApiCommandResult::ScarbVersion(version)) => version.to_string(),
-        Err(err) => format!("Failed to fetch result: {:?}", err),
-        _ => String::from("Result not available"),
+        Ok(ApiCommandResult::ScarbVersion(version)) => (Status::Ok, version.to_string()),
+        Err(err) => (
+            Status::InternalServerError,
+            format!("Failed to fetch result: {:?}", err),
+        ),
+        _ => (
+            Status::InternalServerError,
+            "Result not available".to_string(),
+        ),
     })
 }
 

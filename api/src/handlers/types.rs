@@ -48,6 +48,7 @@ pub struct ScarbTestResponse {
 #[serde(crate = "rocket::serde")]
 pub struct CompilationRequest {
     pub files: Vec<FileContentMap>,
+    pub version: Option<String>,
 }
 
 impl CompilationRequest {

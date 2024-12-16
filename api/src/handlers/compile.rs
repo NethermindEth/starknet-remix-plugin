@@ -1,4 +1,5 @@
 use crate::errors::{ApiError, Result};
+use crate::handlers::allowed_versions::is_version_allowed;
 use crate::handlers::process::{do_process_command, fetch_process_result};
 use crate::handlers::types::{ApiCommand, ApiCommandResult};
 use crate::handlers::types::{FileContentMap, ScarbCompileResponse};
@@ -7,6 +8,7 @@ use crate::handlers::{STATUS_COMPILATION_FAILED, STATUS_SUCCESS, STATUS_UNKNOWN_
 use crate::metrics::Metrics;
 use crate::rate_limiter::RateLimited;
 use crate::worker::WorkerEngine;
+use rocket::http::Status;
 use rocket::serde::json;
 use rocket::serde::json::Json;
 use rocket::{tokio, State};
@@ -16,17 +18,26 @@ use tracing::instrument;
 
 use super::types::CompilationRequest;
 
-const DEFAULT_SCARB_TOML: &str = r#"[package]
+pub fn scarb_toml_with_version(version: &str) -> String {
+    format!(
+        r#"[package]
 name = "___testsingle"
 version = "0.1.0"
 
 [dependencies]
-starknet = "2.6.4"
+starknet = "{}"
 
 [[target.starknet-contract]]
 sierra = true
 casm = true
-"#;
+"#,
+        version
+    )
+}
+
+pub fn default_scarb_toml() -> String {
+    scarb_toml_with_version("2.6.4")
+}
 
 #[instrument(skip(request_json, _rate_limited, engine))]
 #[post("/compile-async", data = "<request_json>")]
@@ -46,15 +57,25 @@ pub async fn compile_async(
 
 #[instrument(skip(engine))]
 #[get("/compile-result/<process_id>")]
-pub async fn get_compile_result(process_id: &str, engine: &State<WorkerEngine>) -> String {
+pub async fn get_compile_result(
+    process_id: &str,
+    engine: &State<WorkerEngine>,
+) -> (Status, String) {
     tracing::info!("/compile-result/{:?}", process_id);
     fetch_process_result(process_id, engine, |result| match result {
-        Ok(ApiCommandResult::Compile(compile_result)) => json::to_string(&compile_result)
-            .unwrap_or_else(|e| format!("Failed to fetch result: {:?}", e)),
-        Err(err) => {
-            format!("Failed to fetch result: {:?}", err)
-        }
-        _ => "Result is not available".to_string(),
+        Ok(ApiCommandResult::Compile(compile_result)) => (
+            Status::Ok,
+            json::to_string(&compile_result)
+                .unwrap_or_else(|e| format!("Failed to fetch result: {:?}", e)),
+        ),
+        Err(err) => (
+            Status::InternalServerError,
+            format!("Failed to fetch result: {:?}", err),
+        ),
+        _ => (
+            Status::InternalServerError,
+            "Result is not available".to_string(),
+        ),
     })
 }
 
@@ -77,7 +98,10 @@ async fn ensure_scarb_toml(
         tracing::debug!("No Scarb.toml found, creating default one");
         compilation_request.files.push(FileContentMap {
             file_name: "Scarb.toml".to_string(),
-            file_content: DEFAULT_SCARB_TOML.to_string(),
+            file_content: match compilation_request.version {
+                Some(ref version) => scarb_toml_with_version(version),
+                None => default_scarb_toml(),
+            },
         });
 
         // change the name of the file to the first cairo file to src/lib.cairo
@@ -104,6 +128,11 @@ pub async fn do_compile(
     compilation_request: CompilationRequest,
     _metrics: &Metrics,
 ) -> Result<Json<ScarbCompileResponse>> {
+    // Verify version is in the allowed versions
+    if !is_version_allowed(compilation_request.version.as_deref().unwrap_or("")).await {
+        return Err(ApiError::VersionNotAllowed);
+    }
+
     // Ensure Scarb.toml exists
     let compilation_request = ensure_scarb_toml(compilation_request).await?;
 

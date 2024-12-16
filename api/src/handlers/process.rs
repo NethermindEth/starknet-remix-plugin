@@ -1,6 +1,7 @@
 use crate::errors::ApiError;
 use crate::handlers::types::{ApiCommand, ApiCommandResult};
 use crate::worker::{ProcessState, WorkerEngine};
+use rocket::http::Status;
 use rocket::State;
 use tracing::{info, instrument};
 use uuid::Uuid;
@@ -47,9 +48,13 @@ pub fn do_process_command(command: ApiCommand, engine: &State<WorkerEngine>) -> 
     }
 }
 
-pub fn fetch_process_result<F>(process_id: &str, engine: &State<WorkerEngine>, do_work: F) -> String
+pub fn fetch_process_result<F>(
+    process_id: &str,
+    engine: &State<WorkerEngine>,
+    handle_result: F,
+) -> (Status, String)
 where
-    F: FnOnce(Result<&ApiCommandResult, &ApiError>) -> String,
+    F: FnOnce(Result<&ApiCommandResult, &ApiError>) -> (Status, String),
 {
     // get status of process by ID
     match Uuid::parse_str(process_id) {
@@ -61,18 +66,17 @@ where
                     .unwrap()
                     .value()
                 {
-                    ProcessState::Completed(result) => do_work(Ok(result)),
-                    ProcessState::Error(e) => do_work(Err(e)),
-                    _ => String::from("Result not available"),
+                    ProcessState::Completed(result) => handle_result(Ok(result)),
+                    ProcessState::Error(e) => handle_result(Err(e)),
+                    _ => (
+                        Status::InternalServerError,
+                        "Result not available".to_string(),
+                    ),
                 }
             } else {
-                // TODO can we return HTTP status code here?
-                "Process id not found".to_string()
+                (Status::NotFound, "Process id not found".to_string())
             }
         }
-        Err(e) => {
-            // TODO can we return HTTP status code here?
-            e.to_string()
-        }
+        Err(e) => (Status::BadRequest, e.to_string()),
     }
 }

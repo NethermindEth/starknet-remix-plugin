@@ -5,6 +5,7 @@ use crate::handlers::types::{ApiCommand, ApiCommandResult, ScarbTestResponse};
 use crate::rate_limiter::RateLimited;
 use crate::utils::lib::get_file_path;
 use crate::worker::WorkerEngine;
+use rocket::http::Status;
 use rocket::serde::json;
 use rocket::serde::json::Json;
 use rocket::State;
@@ -25,13 +26,25 @@ pub async fn scarb_test_async(
 
 #[instrument(skip(engine))]
 #[get("/scarb-test-result/<process_id>")]
-pub async fn get_scarb_test_result(process_id: &str, engine: &State<WorkerEngine>) -> String {
+pub async fn get_scarb_test_result(
+    process_id: &str,
+    engine: &State<WorkerEngine>,
+) -> (Status, String) {
     info!("/scarb-test-result/{:?}", process_id);
     fetch_process_result(process_id, engine, |result| match result {
-        Ok(ApiCommandResult::ScarbTest(scarb_result)) => json::to_string(&scarb_result)
-            .unwrap_or_else(|e| format!("Failed to fetch result: {:?}", e)),
-        Err(err) => format!("Failed to fetch result: {:?}", err),
-        _ => String::from("Result not available"),
+        Ok(ApiCommandResult::ScarbTest(scarb_result)) => (
+            Status::Ok,
+            json::to_string(&scarb_result)
+                .unwrap_or_else(|e| format!("Failed to fetch result: {:?}", e)),
+        ),
+        Err(err) => (
+            Status::InternalServerError,
+            format!("Failed to fetch result: {:?}", err),
+        ),
+        _ => (
+            Status::InternalServerError,
+            "Result not available".to_string(),
+        ),
     })
 }
 
