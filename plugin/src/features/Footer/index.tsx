@@ -3,6 +3,7 @@ import Nethermind from "../../components/NM";
 import "./style.css";
 import { useAtomValue } from "jotai";
 import { cairoVersionAtom } from "../../atoms/cairoVersion";
+import LoadingDots from "../../components/LoadingDots";
 
 const Footer: React.FC = () => {
 	const version = useAtomValue(cairoVersionAtom);
@@ -12,7 +13,7 @@ const Footer: React.FC = () => {
 			<div>
 				<label className="version-left">
 					<span>Using Cairo: </span>
-					<span>{version}</span>
+					<span>{version !== null ? version : <LoadingDots message="Loading" />}</span>
 				</label>
 			</div>
 			<div className="version-right">

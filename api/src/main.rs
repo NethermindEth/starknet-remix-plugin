@@ -16,6 +16,7 @@ use handlers::process::get_process_status;
 use handlers::scarb_test::{get_scarb_test_result, scarb_test_async};
 use handlers::scarb_version::{get_scarb_version_result, scarb_version_async};
 use handlers::utils::on_plugin_launched;
+use handlers::allowed_versions::{get_allowed_versions, start_version_updater};
 use handlers::{health, who_is_this};
 use prometheus::Registry;
 use rocket::{Build, Config, Rocket};
@@ -86,6 +87,7 @@ fn create_app(metrics: Metrics) -> Rocket<Build> {
                 get_scarb_test_result,
                 scarb_test_async,
                 on_plugin_launched,
+                get_allowed_versions,
             ],
         )
 }
@@ -93,6 +95,9 @@ fn create_app(metrics: Metrics) -> Rocket<Build> {
 #[rocket::main]
 async fn main() -> anyhow::Result<()> {
     init_logger().context("Failed to initialize logger")?;
+
+    // Start the version updater
+    start_version_updater().await;
 
     let registry = Registry::new();
     let metrics = initialize_metrics(registry.clone()).context("Failed to initialize metrics")?;

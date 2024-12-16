@@ -22,7 +22,6 @@ import { cairoVersionAtom, versionsAtom } from "../../atoms/cairoVersion";
 import { apiUrl } from "../../utils/network";
 import { StarknetProvider } from "../../components/starknet/starknet-provider";
 import { CompilationStatus, statusAtom } from "../../atoms/compilation";
-import { asyncFetch } from "../../utils/async_fetch";
 
 export type AccordianTabs = "compile" | "deploy" | "interaction" | "transactions" | "";
 
@@ -65,8 +64,11 @@ const Plugin: React.FC = () => {
 		const fetchCairoVersions = async (): Promise<void> => {
 			try {
 				if (apiUrl !== undefined) {
-					const versions = await asyncFetch("scarb-version-async", "scarb-version-result");
-					setVersions(versions.split("\n"));
+					const versions = await fetch(`${apiUrl}/allowed-versions`);
+
+					const versionsData = await versions.json();
+
+					setVersions(versionsData);
 				}
 			} catch (e) {
 				await remixClient.call(
@@ -88,7 +90,7 @@ const Plugin: React.FC = () => {
 				await fetchCairoVersions();
 
 				if (getVersions.length > 0) {
-					setCairoVersion(getVersions[getVersions.length - 1]);
+					setCairoVersion(getVersions[0]);
 				}
 			};
 			fetchCairo().catch((e) => {
@@ -99,7 +101,7 @@ const Plugin: React.FC = () => {
 
 	useEffect(() => {
 		if (getVersions.length > 0) {
-			setCairoVersion(getVersions[getVersions.length - 1]);
+			setCairoVersion(getVersions[0]);
 		}
 	}, [remixClient, getVersions]);
 

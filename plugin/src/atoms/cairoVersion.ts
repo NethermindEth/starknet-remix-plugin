@@ -1,6 +1,6 @@
 import { atom } from "jotai";
 
-const cairoVersionAtom = atom<string>("v2.8.4");
+const cairoVersionAtom = atom<string | null>(null);
 
 const versionsAtom = atom<string[]>([]);
 

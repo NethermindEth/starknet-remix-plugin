@@ -6,10 +6,11 @@ import { atom } from "jotai";
 enum CompilationStatus {
 	Compiling = "Compiling...",
 	Success = "Success",
-	Error = "Error"
+	Error = "Error",
+	Idle = "Idle"
 }
 
-const statusAtom = atom<string>(CompilationStatus.Compiling);
+const statusAtom = atom<string>(CompilationStatus.Idle);
 
 const currentFilenameAtom = atom<string>("");
 

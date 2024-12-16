@@ -52,7 +52,9 @@ pub struct CompilationRequest {
 
 impl CompilationRequest {
     pub fn has_scarb_toml(&self) -> bool {
-        self.files.iter().any(|f| &f.file_name == "Scarb.toml")
+        self.files
+            .iter()
+            .any(|f| f.file_name.ends_with("Scarb.toml"))
     }
 
     pub fn file_names(&self) -> Vec<String> {
