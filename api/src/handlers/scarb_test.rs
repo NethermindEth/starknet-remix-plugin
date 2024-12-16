@@ -25,10 +25,7 @@ pub async fn scarb_test_async(
 
 #[instrument(skip(engine))]
 #[get("/scarb-test-async/<process_id>")]
-pub async fn get_scarb_test_result(
-    process_id: &str,
-    engine: &State<WorkerEngine>,
-) -> TestResponse {
+pub async fn get_scarb_test_result(process_id: &str, engine: &State<WorkerEngine>) -> TestResponse {
     info!("/scarb-test-async/{:?}", process_id);
     fetch_process_result(process_id, engine, |result| match result {
         Ok(ApiCommandResult::Test(test_result)) => test_result.clone(),
