@@ -1,3 +1,4 @@
+use rocket::http::{ContentType, Status};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
@@ -5,17 +6,139 @@ pub trait Successful {
     fn is_successful(&self) -> bool;
 }
 
-#[derive(Debug, Deserialize, Serialize)]
-#[serde(crate = "rocket::serde")]
-pub struct CompileResponse {
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ApiResponse<T> {
+    pub success: bool,
     pub status: String,
+    pub code: u16,
     pub message: String,
-    pub file_content: String,
+    pub data: Option<T>,
+    pub error: Option<String>,
+    pub timestamp: String,
+    pub request_id: String,
 }
 
-impl Successful for CompileResponse {
-    fn is_successful(&self) -> bool {
-        self.status == "Success"
+impl<'r, T: serde::Serialize> rocket::response::Responder<'r, 'static> for ApiResponse<T> {
+    fn respond_to(self, _: &'r rocket::Request<'_>) -> rocket::response::Result<'static> {
+        let json = rocket::serde::json::to_string(&self).unwrap();
+
+        rocket::Response::build()
+            .sized_body(json.len(), std::io::Cursor::new(json))
+            .header(ContentType::JSON)
+            .status(Status::from_code(self.code).unwrap_or(Status::InternalServerError))
+            .ok()
+    }
+}
+
+impl<T> Default for ApiResponse<T> {
+    fn default() -> Self {
+        Self {
+            success: false,
+            status: "".to_string(),
+            code: 0,
+            message: "".to_string(),
+            data: None,
+            error: None,
+            timestamp: chrono::Utc::now().to_rfc3339(),
+            request_id: "".to_string(),
+        }
+    }
+}
+
+impl<T> ApiResponse<T> {
+    pub fn internal_server_error(error: String) -> Self {
+        Self {
+            status: "InternalServerError".to_string(),
+            code: 500,
+            error: Some(error),
+            ..Default::default()
+        }
+    }
+
+    pub fn not_found(error: String) -> Self {
+        Self {
+            status: "NotFound".to_string(),
+            code: 404,
+            error: Some(error),
+            ..Default::default()
+        }
+    }
+
+    pub fn bad_request(error: String) -> Self {
+        Self {
+            status: "BadRequest".to_string(),
+            code: 400,
+            error: Some(error),
+            ..Default::default()
+        }
+    }
+
+    pub fn ok(data: T) -> Self {
+        Self {
+            success: true,
+            status: "Ok".to_string(),
+            code: 200,
+            data: Some(data),
+            ..Default::default()
+        }
+    }
+
+    pub fn not_available(message: String) -> Self {
+        Self {
+            status: "NotAvailable".to_string(),
+            code: 404,
+            message,
+            ..Default::default()
+        }
+    }
+
+    pub fn with_message(mut self, message: String) -> Self {
+        self.message = message;
+        self
+    }
+
+    pub fn with_data(mut self, data: T) -> Self {
+        self.data = Some(data);
+        self
+    }
+
+    pub fn with_error(mut self, error: String) -> Self {
+        self.error = Some(error);
+        self
+    }
+
+    pub fn with_timestamp(mut self, timestamp: String) -> Self {
+        self.timestamp = timestamp;
+        self
+    }
+
+    pub fn with_request_id(mut self, request_id: String) -> Self {
+        self.request_id = request_id;
+        self
+    }
+
+    pub fn with_status(mut self, status: String) -> Self {
+        self.status = status;
+        self
+    }
+
+    pub fn with_code(mut self, code: u16) -> Self {
+        self.code = code;
+        self
+    }
+
+    pub fn with_success(mut self, success: bool) -> Self {
+        self.success = success;
+        self
+    }
+
+    pub fn not_allowed(error: String) -> Self {
+        Self {
+            status: "NotAllowed".to_string(),
+            code: 403,
+            error: Some(error),
+            ..Default::default()
+        }
     }
 }
 
@@ -25,23 +148,16 @@ pub struct FileContentMap {
     pub file_content: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ScarbCompileResponse {
-    pub status: String,
-    pub message: String,
-    pub artifacts: Vec<FileContentMap>,
-}
+pub type CompileResponse = ApiResponse<Vec<FileContentMap>>;
 
-impl Successful for ScarbCompileResponse {
+pub type TestResponse = ApiResponse<()>;
+
+pub type VersionResponse = ApiResponse<String>;
+
+impl<T> Successful for ApiResponse<T> {
     fn is_successful(&self) -> bool {
-        self.status == "Success"
+        self.success
     }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ScarbTestResponse {
-    pub status: String,
-    pub message: String,
 }
 
 #[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
@@ -78,9 +194,9 @@ pub enum ApiCommand {
 
 #[derive(Debug)]
 pub enum ApiCommandResult {
-    ScarbVersion(String),
-    Compile(ScarbCompileResponse),
-    ScarbTest(ScarbTestResponse),
+    ScarbVersion(VersionResponse),
+    Compile(CompileResponse),
+    Test(TestResponse),
     #[allow(dead_code)]
     Shutdown,
 }

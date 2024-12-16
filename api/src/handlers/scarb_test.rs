@@ -1,56 +1,45 @@
 use crate::errors::ApiError;
 use crate::errors::Result;
 use crate::handlers::process::{do_process_command, fetch_process_result};
-use crate::handlers::types::{ApiCommand, ApiCommandResult, ScarbTestResponse};
+use crate::handlers::types::{ApiCommand, ApiCommandResult, TestResponse};
 use crate::rate_limiter::RateLimited;
 use crate::utils::lib::get_file_path;
 use crate::worker::WorkerEngine;
-use rocket::http::Status;
-use rocket::serde::json;
-use rocket::serde::json::Json;
 use rocket::State;
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
 use tracing::{debug, info, instrument};
 
+use super::types::ApiResponse;
+
 #[instrument(skip(engine, _rate_limited))]
-#[get("/scarb-test-async/<remix_file_path..>")]
+#[post("/scarb-test-async/<remix_file_path..>")]
 pub async fn scarb_test_async(
     remix_file_path: PathBuf,
     engine: &State<WorkerEngine>,
     _rate_limited: RateLimited,
-) -> String {
+) -> ApiResponse<String> {
     info!("/scarb-test-async/{:?}", remix_file_path);
     do_process_command(ApiCommand::ScarbTest { remix_file_path }, engine)
 }
 
 #[instrument(skip(engine))]
-#[get("/scarb-test-result/<process_id>")]
+#[get("/scarb-test-async/<process_id>")]
 pub async fn get_scarb_test_result(
     process_id: &str,
     engine: &State<WorkerEngine>,
-) -> (Status, String) {
-    info!("/scarb-test-result/{:?}", process_id);
+) -> TestResponse {
+    info!("/scarb-test-async/{:?}", process_id);
     fetch_process_result(process_id, engine, |result| match result {
-        Ok(ApiCommandResult::ScarbTest(scarb_result)) => (
-            Status::Ok,
-            json::to_string(&scarb_result)
-                .unwrap_or_else(|e| format!("Failed to fetch result: {:?}", e)),
-        ),
-        Err(err) => (
-            Status::InternalServerError,
-            format!("Failed to fetch result: {:?}", err),
-        ),
-        _ => (
-            Status::InternalServerError,
-            "Result not available".to_string(),
-        ),
+        Ok(ApiCommandResult::Test(test_result)) => test_result.clone(),
+        Err(e) => ApiResponse::not_found(e.to_string()),
+        _ => ApiResponse::internal_server_error("Result not available".to_string()),
     })
 }
 
 /// Run Scarb to test a project
 ///
-pub async fn do_scarb_test(remix_file_path: PathBuf) -> Result<Json<ScarbTestResponse>> {
+pub async fn do_scarb_test(remix_file_path: PathBuf) -> Result<TestResponse> {
     let remix_file_path = remix_file_path
         .to_str()
         .ok_or(ApiError::FailedToParseString)?
@@ -100,5 +89,9 @@ pub async fn do_scarb_test(remix_file_path: PathBuf) -> Result<Json<ScarbTestRes
     }
     .to_string();
 
-    Ok(Json(ScarbTestResponse { message, status }))
+    Ok(ApiResponse::ok(())
+        .with_status(status)
+        .with_code(200)
+        .with_message(message)
+        .with_timestamp(chrono::Utc::now().to_rfc3339()))
 }

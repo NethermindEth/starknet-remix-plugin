@@ -2,21 +2,19 @@ use crate::errors::{ApiError, Result};
 use crate::handlers::allowed_versions::is_version_allowed;
 use crate::handlers::process::{do_process_command, fetch_process_result};
 use crate::handlers::types::{ApiCommand, ApiCommandResult};
-use crate::handlers::types::{FileContentMap, ScarbCompileResponse};
+use crate::handlers::types::{CompileResponse, FileContentMap};
 use crate::handlers::utils::{get_files_recursive, init_directories, AutoCleanUp};
 use crate::handlers::{STATUS_COMPILATION_FAILED, STATUS_SUCCESS, STATUS_UNKNOWN_ERROR};
 use crate::metrics::Metrics;
 use crate::rate_limiter::RateLimited;
 use crate::worker::WorkerEngine;
-use rocket::http::Status;
-use rocket::serde::json;
 use rocket::serde::json::Json;
 use rocket::{tokio, State};
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
 use tracing::instrument;
 
-use super::types::CompilationRequest;
+use super::types::{ApiResponse, CompilationRequest};
 
 pub fn scarb_toml_with_version(version: &str) -> String {
     format!(
@@ -45,7 +43,7 @@ pub async fn compile_async(
     request_json: Json<CompilationRequest>,
     _rate_limited: RateLimited,
     engine: &State<WorkerEngine>,
-) -> String {
+) -> ApiResponse<String> {
     tracing::info!("/compile/{:?}", request_json.0.file_names());
     do_process_command(
         ApiCommand::Compile {
@@ -56,26 +54,18 @@ pub async fn compile_async(
 }
 
 #[instrument(skip(engine))]
-#[get("/compile-result/<process_id>")]
+#[get("/compile-async/<process_id>")]
 pub async fn get_compile_result(
     process_id: &str,
     engine: &State<WorkerEngine>,
-) -> (Status, String) {
+) -> ApiResponse<CompileResponse> {
     tracing::info!("/compile-result/{:?}", process_id);
     fetch_process_result(process_id, engine, |result| match result {
-        Ok(ApiCommandResult::Compile(compile_result)) => (
-            Status::Ok,
-            json::to_string(&compile_result)
-                .unwrap_or_else(|e| format!("Failed to fetch result: {:?}", e)),
-        ),
-        Err(err) => (
-            Status::InternalServerError,
-            format!("Failed to fetch result: {:?}", err),
-        ),
-        _ => (
-            Status::InternalServerError,
-            "Result is not available".to_string(),
-        ),
+        Ok(ApiCommandResult::Compile(compile_result)) => ApiResponse::ok(compile_result.clone()),
+        Err(err) => {
+            ApiResponse::internal_server_error(format!("Failed to fetch result: {:?}", err))
+        }
+        _ => ApiResponse::internal_server_error("Result is not available".to_string()),
     })
 }
 
@@ -127,7 +117,7 @@ async fn ensure_scarb_toml(
 pub async fn do_compile(
     compilation_request: CompilationRequest,
     _metrics: &Metrics,
-) -> Result<Json<ScarbCompileResponse>> {
+) -> Result<CompileResponse> {
     // Verify version is in the allowed versions
     if !is_version_allowed(compilation_request.version.as_deref().unwrap_or("")).await {
         return Err(ApiError::VersionNotAllowed);
@@ -180,9 +170,8 @@ pub async fn do_compile(
 
     auto_clean_up.clean_up().await;
 
-    Ok(Json(ScarbCompileResponse {
-        artifacts: file_content_map_array,
-        message,
-        status,
-    }))
+    Ok(ApiResponse::ok(file_content_map_array)
+        .with_status(status)
+        .with_code(200)
+        .with_message(message))
 }

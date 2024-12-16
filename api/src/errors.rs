@@ -42,6 +42,14 @@ pub enum ApiError {
     InvalidRequest,
     #[error("Version not allowed")]
     VersionNotAllowed,
+    #[error("Failed to get Scarb version: {0}")]
+    ScarbVersionNotFound(String),
+    #[error("Not found")]
+    NotFound(String),
+    #[error("Failed to fetch releases")]
+    FailedToFetchReleases(reqwest::Error),
+    #[error("Failed to parse releases")]
+    FailedToParseReleases(reqwest::Error),
 }
 
 pub type Result<T, E = ApiError> = std::result::Result<T, E>;

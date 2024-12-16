@@ -1,4 +1,3 @@
-use rocket::serde::json::Json;
 use rocket::tokio;
 use std::path::Path;
 use std::time::Instant;
@@ -8,11 +7,11 @@ use tracing::{info, instrument};
 use crate::errors::{ApiError, Result};
 use crate::metrics::{Metrics, COMPILATION_LABEL_VALUE};
 
+use super::scarb_version::do_scarb_version;
 use super::types::{CompilationRequest, FileContentMap, Successful};
 use super::{
     compile::do_compile,
     scarb_test::do_scarb_test,
-    scarb_version::do_cairo_version,
     types::{ApiCommand, ApiCommandResult},
 };
 
@@ -23,10 +22,10 @@ pub async fn on_plugin_launched() {
 }
 
 pub(crate) async fn do_metered_action<T: Successful>(
-    action: impl Future<Output = Result<Json<T>>>,
+    action: impl Future<Output = Result<T>>,
     action_label_value: &str,
     metrics: &Metrics,
-) -> Result<Json<T>> {
+) -> Result<T> {
     let start_time = Instant::now();
     let result = action.await;
     let elapsed_time = start_time.elapsed().as_secs_f64();
@@ -108,13 +107,13 @@ impl AutoCleanUp<'_> {
 
 pub async fn dispatch_command(command: ApiCommand, metrics: &Metrics) -> Result<ApiCommandResult> {
     match command {
-        ApiCommand::ScarbVersion => match do_cairo_version() {
+        ApiCommand::ScarbVersion => match do_scarb_version() {
             Ok(result) => Ok(ApiCommandResult::ScarbVersion(result)),
             Err(e) => Err(e),
         },
         ApiCommand::Shutdown => Ok(ApiCommandResult::Shutdown),
         ApiCommand::ScarbTest { remix_file_path } => match do_scarb_test(remix_file_path).await {
-            Ok(result) => Ok(ApiCommandResult::ScarbTest(result.into_inner())),
+            Ok(result) => Ok(ApiCommandResult::Test(result)),
             Err(e) => Err(e),
         },
         ApiCommand::Compile {
@@ -126,7 +125,7 @@ pub async fn dispatch_command(command: ApiCommand, metrics: &Metrics) -> Result<
         )
         .await
         {
-            Ok(result) => Ok(ApiCommandResult::Compile(result.into_inner())),
+            Ok(result) => Ok(ApiCommandResult::Compile(result)),
             Err(e) => Err(e),
         },
     }

@@ -1,13 +1,13 @@
-use crate::errors::Result;
+use crate::errors::{ApiError, Result};
 use lazy_static::lazy_static;
-use rocket::http::Status;
-use rocket::serde::json::Json;
 use semver::Version;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::RwLock;
 use std::time::SystemTime;
 use tracing::instrument;
+
+use super::types::ApiResponse;
 
 #[derive(Debug, Deserialize)]
 struct GitHubRelease {
@@ -27,15 +27,17 @@ lazy_static! {
     });
 }
 
-async fn fetch_github_releases() -> Result<Vec<String>, Box<dyn std::error::Error>> {
+async fn fetch_github_releases() -> Result<Vec<String>> {
     let client = reqwest::Client::new();
     let releases: Vec<GitHubRelease> = client
         .get("https://api.github.com/repos/starkware-libs/cairo/releases")
         .header("User-Agent", "starknet-remix-plugin")
         .send()
-        .await?
+        .await
+        .map_err(ApiError::FailedToFetchReleases)?
         .json()
-        .await?;
+        .await
+        .map_err(ApiError::FailedToParseReleases)?;
 
     let mut version_map: HashMap<(u64, u64), Version> = HashMap::new();
 
@@ -90,19 +92,19 @@ pub async fn start_version_updater() {
 
 #[instrument]
 #[get("/allowed-versions")]
-pub async fn get_allowed_versions() -> (Status, Json<Vec<String>>) {
-    match do_get_allowed_versions().await {
-        Ok(versions) => (Status::Ok, versions),
-        Err(e) => (Status::InternalServerError, Json(vec![e.to_string()])),
-    }
+pub async fn get_allowed_versions() -> ApiResponse<Vec<String>> {
+    do_get_allowed_versions().await
 }
 
 pub async fn is_version_allowed(version: &str) -> bool {
-    let allowed_versions = do_get_allowed_versions().await.unwrap_or(Json(vec![]));
-    allowed_versions.contains(&version.to_string())
+    let allowed_versions = do_get_allowed_versions().await;
+    allowed_versions
+        .data
+        .unwrap_or_default()
+        .contains(&version.to_string())
 }
 
-pub async fn do_get_allowed_versions() -> Result<Json<Vec<String>>> {
+pub async fn do_get_allowed_versions() -> ApiResponse<Vec<String>> {
     let should_fetch = {
         let cache = CACHED_VERSIONS.read().unwrap();
         cache.versions.is_empty()
@@ -113,11 +115,11 @@ pub async fn do_get_allowed_versions() -> Result<Json<Vec<String>>> {
             let mut cache = CACHED_VERSIONS.write().unwrap();
             cache.versions = versions;
             cache.last_updated = SystemTime::now();
-            return Ok(Json(cache.versions.clone()));
+            return ApiResponse::ok(cache.versions.clone());
         }
-        return Ok(Json(vec![]));
+        return ApiResponse::ok(vec![]);
     }
 
     let cache = CACHED_VERSIONS.read().unwrap();
-    Ok(Json(cache.versions.clone()))
+    ApiResponse::ok(cache.versions.clone())
 }
