@@ -9,10 +9,6 @@ pub mod utils;
 use tracing::info;
 use tracing::instrument;
 
-const STATUS_SUCCESS: &str = "Success";
-const STATUS_COMPILATION_FAILED: &str = "CompilationFailed";
-const STATUS_UNKNOWN_ERROR: &str = "UnknownError";
-
 #[instrument]
 #[get("/health")]
 pub async fn health() -> &'static str {

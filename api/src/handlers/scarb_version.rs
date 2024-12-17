@@ -4,7 +4,9 @@ use tracing::{error, info, instrument};
 
 use crate::errors::{ApiError, Result};
 use crate::handlers::process::{do_process_command, fetch_process_result};
-use crate::handlers::types::{ApiCommand, ApiCommandResult};
+use crate::handlers::types::{
+    ApiCommand, ApiCommandResult, IntoTypedResponse, VersionResponseGetter,
+};
 use crate::rate_limiter::RateLimited;
 use crate::worker::WorkerEngine;
 
@@ -27,33 +29,59 @@ pub fn get_scarb_version_result(
     engine: &State<WorkerEngine>,
 ) -> ApiResponse<String> {
     info!("/scarb-version-async/{:?}", process_id);
-    fetch_process_result(process_id, engine, |result| match result {
-        Ok(ApiCommandResult::ScarbVersion(response)) => response.clone(),
-        Err(e) => ApiResponse::not_found(e.to_string()),
-        _ => ApiResponse::internal_server_error("Result not available".to_string()),
-    })
+    fetch_process_result::<VersionResponseGetter>(process_id, engine)
+        .map(|result| result.0)
+        .unwrap_or_else(|err| err.into_typed())
+}
+
+impl TryFrom<ApiCommandResult> for ApiResponse<String> {
+    type Error = ApiError;
+
+    fn try_from(value: ApiCommandResult) -> Result<Self, Self::Error> {
+        match value {
+            ApiCommandResult::ScarbVersion(response) => Ok(response),
+            _ => {
+                error!("Expected ScarbVersion result, got {:?}", value);
+                Err(ApiError::InvalidRequest)
+            }
+        }
+    }
 }
 
 /// Run Scarb --version to return Scarb version string
 ///
-/// ## Note
-/// (default Scarb version will be used)
+/// # Errors
+/// Returns ApiError if:
+/// - Failed to execute scarb command
+/// - Failed to read command output
+/// - Command returned non-zero status
+/// - Failed to parse command output as UTF-8
 pub fn do_scarb_version() -> Result<ApiResponse<String>> {
     let version_caller = Command::new("scarb")
         .arg("--version")
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
-        .map_err(ApiError::FailedToExecuteCommand)?;
+        .map_err(|e| {
+            error!("Failed to execute scarb version command: {:?}", e);
+            ApiError::FailedToExecuteCommand(e)
+        })?;
 
-    let output = version_caller
-        .wait_with_output()
-        .map_err(ApiError::FailedToReadOutput)?;
+    let output = version_caller.wait_with_output().map_err(|e| {
+        error!("Failed to read scarb version output: {:?}", e);
+        ApiError::FailedToReadOutput(e)
+    })?;
 
     if output.status.success() {
-        let result = String::from_utf8_lossy(&output.stdout).to_string();
+        let result = String::from_utf8(output.stdout).map_err(|e| {
+            error!("Failed to parse stdout as UTF-8: {:?}", e);
+            ApiError::UTF8Error(e)
+        })?;
 
-        let result_with_stderr = String::from_utf8_lossy(&output.stderr).to_string();
+        let result_with_stderr = String::from_utf8(output.stderr).map_err(|e| {
+            error!("Failed to parse stderr as UTF-8: {:?}", e);
+            ApiError::UTF8Error(e)
+        })?;
 
         Ok(ApiResponse::ok(result.clone())
             .with_message(format!("{}{}", result_with_stderr, result))
@@ -61,7 +89,14 @@ pub fn do_scarb_version() -> Result<ApiResponse<String>> {
             .with_status("Success".to_string())
             .with_code(200))
     } else {
-        error!("Failed to get Scarb version: {:?}", output);
-        Err(ApiError::ScarbVersionNotFound(output.status.to_string()))
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        error!(
+            "Failed to get Scarb version: status={}, stderr={}",
+            output.status, stderr
+        );
+        Err(ApiError::ScarbVersionNotFound(format!(
+            "Status: {}, Error: {}",
+            output.status, stderr
+        )))
     }
 }

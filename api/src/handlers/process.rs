@@ -2,8 +2,7 @@ use crate::errors::ApiError;
 use crate::handlers::types::{ApiCommand, ApiCommandResult};
 use crate::worker::{ProcessState, WorkerEngine};
 use rocket::State;
-use serde::Serialize;
-use tracing::{info, instrument};
+use tracing::{error, info, instrument};
 use uuid::Uuid;
 
 use super::types::ApiResponse;
@@ -46,35 +45,49 @@ pub fn do_process_command(
     }
 }
 
-pub fn fetch_process_result<F, T>(
+pub fn fetch_process_result<T>(
     process_id: &str,
     engine: &State<WorkerEngine>,
-    handle_result: F,
-) -> ApiResponse<T>
+) -> Result<T, Box<ApiResponse<()>>>
 where
-    F: FnOnce(Result<&ApiCommandResult, &ApiError>) -> ApiResponse<T>,
-    T: Serialize,
+    T: TryFrom<ApiCommandResult, Error = ApiError>,
 {
-    // get status of process by ID
-    match Uuid::parse_str(process_id) {
-        Ok(process_uuid) => {
-            if engine.arc_process_states.contains_key(&process_uuid) {
-                match engine
-                    .arc_process_states
-                    .get(&process_uuid)
-                    .unwrap()
-                    .value()
-                {
-                    ProcessState::Completed(result) => handle_result(Ok(result)),
-                    ProcessState::Error(e) => handle_result(Err(e)),
-                    _ => {
-                        handle_result(Err(&ApiError::NotFound("Result not available".to_string())))
-                    }
-                }
-            } else {
-                handle_result(Err(&ApiError::NotFound("Process id not found".to_string())))
-            }
+    let process_uuid = Uuid::parse_str(process_id).map_err(|e| {
+        error!("Failed to parse process UUID: {}", e);
+        ApiResponse::<()>::bad_request(format!("Failed to parse process UUID: {}", e))
+    })?;
+
+    let process_state = engine
+        .arc_process_states
+        .get(&process_uuid)
+        .ok_or_else(|| {
+            error!("Process not found: {}", process_id);
+            ApiResponse::<()>::not_found(format!("Process id not found: {}", process_id))
+        })?;
+
+    match process_state.value() {
+        ProcessState::Completed(result) => {
+            let result = result.clone();
+            T::try_from(result).map_err(|e| {
+                error!("Failed to convert result type: {:?}", e);
+                Box::new(ApiResponse::bad_request(format!(
+                    "Failed to convert result type: {:?}",
+                    e
+                )))
+            })
         }
-        Err(e) => handle_result(Err(&ApiError::NotFound(e.to_string()))),
+        ProcessState::Error(e) => {
+            error!("Process error: {:?}", e);
+            Err(Box::new(ApiResponse::not_found(format!(
+                "Process error: {}",
+                e
+            ))))
+        }
+        _ => {
+            error!("Process result not available: {}", process_id);
+            Err(Box::new(ApiResponse::not_found(
+                "Result not available".to_string(),
+            )))
+        }
     }
 }

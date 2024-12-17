@@ -1,10 +1,9 @@
 use crate::errors::{ApiError, Result};
 use crate::handlers::allowed_versions::is_version_allowed;
 use crate::handlers::process::{do_process_command, fetch_process_result};
-use crate::handlers::types::{ApiCommand, ApiCommandResult};
+use crate::handlers::types::{ApiCommand, CompileResponseGetter, IntoTypedResponse};
 use crate::handlers::types::{CompileResponse, FileContentMap};
 use crate::handlers::utils::{get_files_recursive, init_directories, AutoCleanUp};
-use crate::handlers::{STATUS_COMPILATION_FAILED, STATUS_SUCCESS, STATUS_UNKNOWN_ERROR};
 use crate::metrics::Metrics;
 use crate::rate_limiter::RateLimited;
 use crate::worker::WorkerEngine;
@@ -12,7 +11,7 @@ use rocket::serde::json::Json;
 use rocket::{tokio, State};
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
-use tracing::instrument;
+use tracing::{error, instrument};
 
 use super::types::{ApiResponse, CompilationRequest};
 
@@ -55,18 +54,11 @@ pub async fn compile_async(
 
 #[instrument(skip(engine))]
 #[get("/compile-async/<process_id>")]
-pub async fn get_compile_result(
-    process_id: &str,
-    engine: &State<WorkerEngine>,
-) -> ApiResponse<CompileResponse> {
+pub async fn get_compile_result(process_id: &str, engine: &State<WorkerEngine>) -> CompileResponse {
     tracing::info!("/compile-result/{:?}", process_id);
-    fetch_process_result(process_id, engine, |result| match result {
-        Ok(ApiCommandResult::Compile(compile_result)) => ApiResponse::ok(compile_result.clone()),
-        Err(err) => {
-            ApiResponse::internal_server_error(format!("Failed to fetch result: {:?}", err))
-        }
-        _ => ApiResponse::internal_server_error("Result is not available".to_string()),
-    })
+    fetch_process_result::<CompileResponseGetter>(process_id, engine)
+        .map(|result| result.0)
+        .unwrap_or_else(|err| err.into_typed())
 }
 
 async fn ensure_scarb_toml(
@@ -75,13 +67,17 @@ async fn ensure_scarb_toml(
     // Check if Scarb.toml exists in the root
     if !compilation_request.has_scarb_toml() {
         // number of files cairo files in the request
-        if compilation_request
+        let cairo_files_count = compilation_request
             .files
             .iter()
             .filter(|f| f.file_name.ends_with(".cairo"))
-            .count()
-            != 1
-        {
+            .count();
+
+        if cairo_files_count != 1 {
+            error!(
+                "Invalid request: Expected exactly one Cairo file, found {}",
+                cairo_files_count
+            );
             return Err(ApiError::InvalidRequest);
         }
 
@@ -95,12 +91,13 @@ async fn ensure_scarb_toml(
         });
 
         // change the name of the file to the first cairo file to src/lib.cairo
-        let first_cairo_file = compilation_request
+        if let Some(first_cairo_file) = compilation_request
             .files
             .iter_mut()
             .find(|f| f.file_name.ends_with(".cairo"))
-            .unwrap();
-        first_cairo_file.file_name = "src/lib.cairo".to_string();
+        {
+            first_cairo_file.file_name = "src/lib.cairo".to_string();
+        }
     }
 
     Ok(compilation_request)
@@ -114,12 +111,16 @@ async fn ensure_scarb_toml(
 /// - Failed to execute scarb command
 /// - Failed to read command output
 /// - Command times out
+/// - Version is not allowed
+/// - Invalid compilation request format
 pub async fn do_compile(
     compilation_request: CompilationRequest,
     _metrics: &Metrics,
 ) -> Result<CompileResponse> {
     // Verify version is in the allowed versions
-    if !is_version_allowed(compilation_request.version.as_deref().unwrap_or("")).await {
+    let version = compilation_request.version.as_deref().unwrap_or("");
+    if !is_version_allowed(version).await {
+        error!("Version not allowed: {}", version);
         return Err(ApiError::VersionNotAllowed);
     }
 
@@ -127,7 +128,12 @@ pub async fn do_compile(
     let compilation_request = ensure_scarb_toml(compilation_request).await?;
 
     // Create temporary directories
-    let temp_dir = init_directories(compilation_request.clone()).await?;
+    let temp_dir = init_directories(compilation_request.clone())
+        .await
+        .map_err(|e| {
+            error!("Failed to initialize directories: {:?}", e);
+            e
+        })?;
 
     let auto_clean_up = AutoCleanUp {
         dirs: vec![&temp_dir],
@@ -143,35 +149,57 @@ pub async fn do_compile(
     tracing::debug!("Executing scarb command: {:?}", compile);
 
     let result = tokio::time::timeout(std::time::Duration::from_secs(300), async {
-        compile
-            .spawn()
-            .map_err(ApiError::FailedToExecuteCommand)?
-            .wait_with_output()
-            .map_err(ApiError::FailedToReadOutput)
+        let child = compile.spawn().map_err(|e| {
+            error!("Failed to execute scarb command: {:?}", e);
+            ApiError::FailedToExecuteCommand(e)
+        })?;
+
+        child.wait_with_output().map_err(|e| {
+            error!("Failed to read scarb command output: {:?}", e);
+            ApiError::FailedToReadOutput(e)
+        })
     })
     .await
-    .map_err(|_| ApiError::CompilationTimeout)??;
+    .map_err(|_| {
+        error!("Compilation timed out after 300 seconds");
+        ApiError::CompilationTimeout
+    })??;
 
-    let file_content_map_array = get_files_recursive(&PathBuf::from(&temp_dir).join("target/dev"))?;
+    let file_content_map_array = get_files_recursive(&PathBuf::from(&temp_dir).join("target/dev"))
+        .map_err(|e| {
+            error!("Failed to read compilation output files: {:?}", e);
+            e
+        })?;
 
     let output = result;
     let message = {
-        let stdout = String::from_utf8(output.stdout).map_err(ApiError::UTF8Error)?;
-        let stderr = String::from_utf8(output.stderr).map_err(ApiError::UTF8Error)?;
+        let stdout = String::from_utf8(output.stdout).map_err(|e| {
+            error!("Failed to parse stdout as UTF-8: {:?}", e);
+            ApiError::UTF8Error(e)
+        })?;
+        let stderr = String::from_utf8(output.stderr).map_err(|e| {
+            error!("Failed to parse stderr as UTF-8: {:?}", e);
+            ApiError::UTF8Error(e)
+        })?;
         format!("{}{}", stdout, stderr).replace(&temp_dir, "")
     };
 
-    let status = match output.status.code() {
-        Some(0) => STATUS_SUCCESS,
-        Some(_) => STATUS_COMPILATION_FAILED,
-        None => STATUS_UNKNOWN_ERROR,
-    }
-    .to_string();
+    let (status, code) = match output.status.code() {
+        Some(0) => ("Success", 200),
+        Some(code) => {
+            error!("Compilation failed with exit code: {}", code);
+            ("CompilationFailed", 400)
+        }
+        None => {
+            error!("Compilation process terminated by signal");
+            ("UnknownError", 500)
+        }
+    };
 
     auto_clean_up.clean_up().await;
 
     Ok(ApiResponse::ok(file_content_map_array)
-        .with_status(status)
-        .with_code(200)
+        .with_status(status.to_string())
+        .with_code(code)
         .with_message(message))
 }

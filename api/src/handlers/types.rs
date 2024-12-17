@@ -2,6 +2,8 @@ use rocket::http::{ContentType, Status};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
+use crate::errors::ApiError;
+
 pub trait Successful {
     fn is_successful(&self) -> bool;
 }
@@ -193,10 +195,89 @@ pub enum ApiCommand {
 }
 
 #[derive(Debug)]
+pub struct ShutdownGetter;
+
+#[derive(Debug)]
+pub struct VersionResponseGetter(pub VersionResponse);
+
+#[derive(Debug)]
+pub struct CompileResponseGetter(pub CompileResponse);
+
+#[derive(Debug)]
+pub struct TestResponseGetter(pub TestResponse);
+
+#[derive(Debug, Clone)]
 pub enum ApiCommandResult {
     ScarbVersion(VersionResponse),
     Compile(CompileResponse),
     Test(TestResponse),
     #[allow(dead_code)]
     Shutdown,
+}
+
+impl TryFrom<ApiCommandResult> for VersionResponseGetter {
+    type Error = ApiError;
+
+    fn try_from(value: ApiCommandResult) -> Result<Self, Self::Error> {
+        if let ApiCommandResult::ScarbVersion(response) = value {
+            Ok(VersionResponseGetter(response))
+        } else {
+            Err(ApiError::InvalidRequest)
+        }
+    }
+}
+
+impl TryFrom<ApiCommandResult> for CompileResponseGetter {
+    type Error = ApiError;
+
+    fn try_from(value: ApiCommandResult) -> Result<Self, Self::Error> {
+        if let ApiCommandResult::Compile(response) = value {
+            Ok(CompileResponseGetter(response))
+        } else {
+            Err(ApiError::InvalidRequest)
+        }
+    }
+}
+
+impl TryFrom<ApiCommandResult> for TestResponseGetter {
+    type Error = ApiError;
+
+    fn try_from(value: ApiCommandResult) -> Result<Self, Self::Error> {
+        if let ApiCommandResult::Test(response) = value {
+            Ok(TestResponseGetter(response))
+        } else {
+            Err(ApiError::InvalidRequest)
+        }
+    }
+}
+
+impl TryFrom<ApiCommandResult> for ShutdownGetter {
+    type Error = ApiError;
+
+    fn try_from(value: ApiCommandResult) -> Result<Self, Self::Error> {
+        if let ApiCommandResult::Shutdown = value {
+            Ok(ShutdownGetter)
+        } else {
+            Err(ApiError::InvalidRequest)
+        }
+    }
+}
+
+pub trait IntoTypedResponse<T> {
+    fn into_typed(self) -> ApiResponse<T>;
+}
+
+impl<T> IntoTypedResponse<T> for ApiResponse<()> {
+    fn into_typed(self) -> ApiResponse<T> {
+        ApiResponse {
+            data: None,
+            success: self.success,
+            status: self.status,
+            code: self.code,
+            message: self.message,
+            error: self.error,
+            timestamp: self.timestamp,
+            request_id: self.request_id,
+        }
+    }
 }
