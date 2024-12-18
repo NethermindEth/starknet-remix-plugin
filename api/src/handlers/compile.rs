@@ -1,4 +1,4 @@
-use crate::errors::{ApiError, Result};
+use crate::errors::{CmdError, ExecutionError, FileError, Result};
 use crate::handlers::allowed_versions::is_version_allowed;
 use crate::handlers::process::{do_process_command, fetch_process_result};
 use crate::handlers::types::{ApiCommand, CompileResponseGetter, IntoTypedResponse};
@@ -78,7 +78,7 @@ async fn ensure_scarb_toml(
                 "Invalid request: Expected exactly one Cairo file, found {}",
                 cairo_files_count
             );
-            return Err(ApiError::InvalidRequest);
+            return Err(ExecutionError::InvalidRequest.into());
         }
 
         tracing::debug!("No Scarb.toml found, creating default one");
@@ -121,7 +121,7 @@ pub async fn do_compile(
     let version = compilation_request.version.as_deref().unwrap_or("");
     if !is_version_allowed(version).await {
         error!("Version not allowed: {}", version);
-        return Err(ApiError::VersionNotAllowed);
+        return Err(ExecutionError::VersionNotAllowed.into());
     }
 
     // Ensure Scarb.toml exists
@@ -151,18 +151,18 @@ pub async fn do_compile(
     let result = tokio::time::timeout(std::time::Duration::from_secs(300), async {
         let child = compile.spawn().map_err(|e| {
             error!("Failed to execute scarb command: {:?}", e);
-            ApiError::FailedToExecuteCommand(e)
+            CmdError::FailedToExecuteCommand(e)
         })?;
 
         child.wait_with_output().map_err(|e| {
             error!("Failed to read scarb command output: {:?}", e);
-            ApiError::FailedToReadOutput(e)
+            CmdError::FailedToReadOutput(e)
         })
     })
     .await
     .map_err(|_| {
         error!("Compilation timed out after 300 seconds");
-        ApiError::CompilationTimeout
+        ExecutionError::CompilationTimeout
     })??;
 
     let file_content_map_array = get_files_recursive(&PathBuf::from(&temp_dir).join("target/dev"))
@@ -175,11 +175,11 @@ pub async fn do_compile(
     let message = {
         let stdout = String::from_utf8(output.stdout).map_err(|e| {
             error!("Failed to parse stdout as UTF-8: {:?}", e);
-            ApiError::UTF8Error(e)
+            FileError::UTF8Error(e)
         })?;
         let stderr = String::from_utf8(output.stderr).map_err(|e| {
             error!("Failed to parse stderr as UTF-8: {:?}", e);
-            ApiError::UTF8Error(e)
+            FileError::UTF8Error(e)
         })?;
         format!("{}{}", stdout, stderr).replace(&temp_dir, "")
     };

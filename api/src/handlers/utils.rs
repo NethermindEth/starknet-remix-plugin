@@ -4,7 +4,7 @@ use std::time::Instant;
 use std::{future::Future, path::PathBuf};
 use tracing::{info, instrument};
 
-use crate::errors::{ApiError, Result};
+use crate::errors::{ApiError, FileError, Result, SystemError};
 use crate::metrics::{Metrics, COMPILATION_LABEL_VALUE};
 
 use super::scarb_version::do_scarb_version;
@@ -138,7 +138,7 @@ pub async fn create_temp_dir() -> Result<PathBuf> {
 
     tokio::fs::create_dir_all(&folder_path)
         .await
-        .map_err(|e| ApiError::FailedToInitializeDirectories(e.to_string()))?;
+        .map_err(FileError::FailedToInitializeDirectories)?;
 
     Ok(folder_path)
 }
@@ -157,12 +157,12 @@ pub async fn init_directories(compilation_request: CompilationRequest) -> Result
         if let Some(parent) = file_path.parent() {
             tokio::fs::create_dir_all(parent)
                 .await
-                .map_err(|e| ApiError::FailedToInitializeDirectories(e.to_string()))?;
+                .map_err(FileError::FailedToInitializeDirectories)?;
         }
 
         tokio::fs::write(&file_path, &file.file_content)
             .await
-            .map_err(|e| ApiError::FailedToInitializeDirectories(e.to_string()))?;
+            .map_err(FileError::FailedToSaveFile)?;
     }
 
     println!("init_directories, temp_dir: {:?}", temp_dir);
@@ -176,7 +176,10 @@ pub async fn init_directories(compilation_request: CompilationRequest) -> Result
     temp_dir
         .to_str()
         .ok_or_else(|| {
-            ApiError::FailedToInitializeDirectories("Failed to convert path to string".to_string())
+            ApiError::System(SystemError::FailedToParseFilePath(format!(
+                "{:?}",
+                temp_dir
+            )))
         })
         .map(|s| s.to_string())
 }
@@ -187,7 +190,7 @@ pub fn get_files_recursive(base_path: &Path) -> Result<Vec<FileContentMap>> {
     if base_path.is_dir() {
         for entry in base_path
             .read_dir()
-            .map_err(ApiError::FailedToReadDir)?
+            .map_err(FileError::FailedToReadDir)?
             .flatten()
         {
             let path = entry.path();
@@ -196,7 +199,7 @@ pub fn get_files_recursive(base_path: &Path) -> Result<Vec<FileContentMap>> {
             } else if let Ok(content) = std::fs::read_to_string(&path) {
                 let file_name = path
                     .file_name()
-                    .ok_or(ApiError::FailedToReadFilename)?
+                    .ok_or(FileError::FailedToReadFilename)?
                     .to_string_lossy()
                     .to_string();
                 let file_content = content;

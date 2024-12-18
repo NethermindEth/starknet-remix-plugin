@@ -2,7 +2,7 @@ use rocket::http::{ContentType, Status};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
-use crate::errors::ApiError;
+use crate::errors::{ApiError, ExecutionError};
 
 pub trait Successful {
     fn is_successful(&self) -> bool;
@@ -222,7 +222,7 @@ impl TryFrom<ApiCommandResult> for VersionResponseGetter {
         if let ApiCommandResult::ScarbVersion(response) = value {
             Ok(VersionResponseGetter(response))
         } else {
-            Err(ApiError::InvalidRequest)
+            Err(ExecutionError::InvalidRequest.into())
         }
     }
 }
@@ -234,7 +234,7 @@ impl TryFrom<ApiCommandResult> for CompileResponseGetter {
         if let ApiCommandResult::Compile(response) = value {
             Ok(CompileResponseGetter(response))
         } else {
-            Err(ApiError::InvalidRequest)
+            Err(ExecutionError::InvalidRequest.into())
         }
     }
 }
@@ -246,7 +246,7 @@ impl TryFrom<ApiCommandResult> for TestResponseGetter {
         if let ApiCommandResult::Test(response) = value {
             Ok(TestResponseGetter(response))
         } else {
-            Err(ApiError::InvalidRequest)
+            Err(ExecutionError::InvalidRequest.into())
         }
     }
 }
@@ -258,7 +258,7 @@ impl TryFrom<ApiCommandResult> for ShutdownGetter {
         if let ApiCommandResult::Shutdown = value {
             Ok(ShutdownGetter)
         } else {
-            Err(ApiError::InvalidRequest)
+            Err(ExecutionError::InvalidRequest.into())
         }
     }
 }

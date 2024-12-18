@@ -2,7 +2,7 @@ use rocket::State;
 use std::process::{Command, Stdio};
 use tracing::{error, info, instrument};
 
-use crate::errors::{ApiError, Result};
+use crate::errors::{ApiError, CmdError, ExecutionError, FileError, Result};
 use crate::handlers::process::{do_process_command, fetch_process_result};
 use crate::handlers::types::{
     ApiCommand, ApiCommandResult, IntoTypedResponse, VersionResponseGetter,
@@ -42,7 +42,7 @@ impl TryFrom<ApiCommandResult> for ApiResponse<String> {
             ApiCommandResult::ScarbVersion(response) => Ok(response),
             _ => {
                 error!("Expected ScarbVersion result, got {:?}", value);
-                Err(ApiError::InvalidRequest)
+                Err(ExecutionError::InvalidRequest.into())
             }
         }
     }
@@ -64,23 +64,23 @@ pub fn do_scarb_version() -> Result<ApiResponse<String>> {
         .spawn()
         .map_err(|e| {
             error!("Failed to execute scarb version command: {:?}", e);
-            ApiError::FailedToExecuteCommand(e)
+            CmdError::FailedToExecuteCommand(e)
         })?;
 
     let output = version_caller.wait_with_output().map_err(|e| {
         error!("Failed to read scarb version output: {:?}", e);
-        ApiError::FailedToReadOutput(e)
+        CmdError::FailedToReadOutput(e)
     })?;
 
     if output.status.success() {
         let result = String::from_utf8(output.stdout).map_err(|e| {
             error!("Failed to parse stdout as UTF-8: {:?}", e);
-            ApiError::UTF8Error(e)
+            FileError::UTF8Error(e)
         })?;
 
         let result_with_stderr = String::from_utf8(output.stderr).map_err(|e| {
             error!("Failed to parse stderr as UTF-8: {:?}", e);
-            ApiError::UTF8Error(e)
+            FileError::UTF8Error(e)
         })?;
 
         Ok(ApiResponse::ok(result.clone())
@@ -94,9 +94,10 @@ pub fn do_scarb_version() -> Result<ApiResponse<String>> {
             "Failed to get Scarb version: status={}, stderr={}",
             output.status, stderr
         );
-        Err(ApiError::ScarbVersionNotFound(format!(
+        Err(ExecutionError::ScarbVersionNotFound(format!(
             "Status: {}, Error: {}",
             output.status, stderr
-        )))
+        ))
+        .into())
     }
 }

@@ -1,9 +1,6 @@
 {
   "rust-analyzer.linkedProjects": [
     "./api/Cargo.toml",
-    "./api/Cargo.toml",
-    "./api/Cargo.toml",
-    "./api/Cargo.toml"
   ],
   "github-actions.workflows.pinned.workflows": [
     ".github/workflows/api-deploy.yml"

@@ -1,5 +1,4 @@
-use crate::errors::ApiError;
-use crate::errors::Result;
+use crate::errors::{CmdError, FileError, Result, SystemError};
 use crate::handlers::process::{do_process_command, fetch_process_result};
 use crate::handlers::types::TestResponseGetter;
 use crate::handlers::types::{ApiCommand, IntoTypedResponse, TestResponse};
@@ -50,7 +49,7 @@ pub async fn do_scarb_test(remix_file_path: PathBuf) -> Result<TestResponse> {
         .to_str()
         .ok_or_else(|| {
             error!("Failed to parse remix file path: {:?}", remix_file_path);
-            ApiError::FailedToParseString
+            SystemError::FailedToParseFilePath(format!("{:?}", remix_file_path))
         })?
         .to_string();
 
@@ -68,14 +67,14 @@ pub async fn do_scarb_test(remix_file_path: PathBuf) -> Result<TestResponse> {
         .spawn()
         .map_err(|e| {
             error!("Failed to execute scarb test command: {:?}", e);
-            ApiError::FailedToExecuteCommand(e)
+            CmdError::FailedToExecuteCommand(e)
         })?;
 
     debug!("Executed command: {:?}", compile);
 
     let output = result.wait_with_output().map_err(|e| {
         error!("Failed to read scarb test output: {:?}", e);
-        ApiError::FailedToReadOutput(e)
+        CmdError::FailedToReadOutput(e)
     })?;
 
     // Convert file path to string once to avoid repetition and potential inconsistencies
@@ -83,18 +82,18 @@ pub async fn do_scarb_test(remix_file_path: PathBuf) -> Result<TestResponse> {
         .to_str()
         .ok_or_else(|| {
             error!("Failed to convert file path to string: {:?}", file_path);
-            ApiError::FailedToParseString
+            SystemError::FailedToParseFilePath(format!("{:?}", file_path))
         })?
         .to_string();
 
     let stdout = String::from_utf8(output.stdout).map_err(|e| {
         error!("Failed to parse stdout as UTF-8: {:?}", e);
-        ApiError::UTF8Error(e)
+        FileError::UTF8Error(e)
     })?;
 
     let stderr = String::from_utf8(output.stderr).map_err(|e| {
         error!("Failed to parse stderr as UTF-8: {:?}", e);
-        ApiError::UTF8Error(e)
+        FileError::UTF8Error(e)
     })?;
 
     let message = format!(
