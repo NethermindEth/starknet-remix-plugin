@@ -9,7 +9,10 @@ import "./override.css";
 import { useAtom, useAtomValue } from "jotai";
 
 import transactionsAtom from "../../atoms/transactions";
-import { compiledContractsAtom, selectedCompiledContract } from "../../atoms/compiledContracts";
+import {
+	deployedContractsAtom,
+	selectedDeployedContract
+} from "../../atoms/compiledContracts";
 import { envAtom } from "../../atoms/environment";
 import useAccount from "../../hooks/useAccount";
 import useProvider from "../../hooks/useProvider";
@@ -27,14 +30,14 @@ interface InteractionProps {
 }
 
 const Interaction: React.FC<InteractionProps> = (props) => {
-	const contracts = useAtomValue(compiledContractsAtom);
-	const [selectedContract, setSelectedContract] = useAtom(selectedCompiledContract);
+	const deployedContracts = useAtomValue(deployedContractsAtom);
+	const [selectedContract, setSelectedContract] = useAtom(selectedDeployedContract);
 
 	useEffect(() => {
-		if (contracts.length > 0) {
-			setSelectedContract(contracts[0]);
+		if (deployedContracts.length > 0) {
+			setSelectedContract(deployedContracts[0]);
 		}
-	}, [contracts]);
+	}, [deployedContracts]);
 
 	const { account } = useAccount();
 	const { provider } = useProvider();
@@ -126,7 +129,7 @@ const Interaction: React.FC<InteractionProps> = (props) => {
 	});
 
 	const isContractSelected =
-		contracts.length > 0 && selectedContract != null && selectedContract !== undefined;
+		deployedContracts.length > 0 && selectedContract != null && selectedContract !== undefined;
 
 	// boolean check if the selected contract is deployed on the
 	// current chain using the current account
@@ -332,11 +335,11 @@ const Interaction: React.FC<InteractionProps> = (props) => {
 
 	return (
 		<Container>
-			{contracts.length > 0 && selectedContract != null ? (
+			{deployedContracts.length > 0 && selectedContract != null ? (
 				<CompiledContracts show="contract" />
 			) : (
 				<div className={"mt-3 text-center font-bold"}>
-					<p>No compiled contracts to interact with... Yet.</p>
+					<p>No deployed contracts to interact with... Yet.</p>
 				</div>
 			)}
 

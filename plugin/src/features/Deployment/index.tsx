@@ -11,7 +11,12 @@ import { type AccordianTabs } from "../Plugin";
 import transactionsAtom from "../../atoms/transactions";
 
 import "./styles.css";
-import { compiledContractsAtom, selectedCompiledContract } from "../../atoms/compiledContracts";
+import {
+	compiledContractsAtom,
+	selectedCompiledContract,
+	deployedContractsAtom,
+	selectedDeployedContract
+} from "../../atoms/compiledContracts";
 import { envAtom } from "../../atoms/environment";
 import useAccount from "../../hooks/useAccount";
 import useProvider from "../../hooks/useProvider";
@@ -42,6 +47,8 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 
 	const [contracts, setContracts] = useAtom(compiledContractsAtom);
 	const [selectedContract, setSelectedContract] = useAtom(selectedCompiledContract);
+	const [deployedContracts, setDeployedContracts] = useAtom(deployedContractsAtom);
+	const setSelectedDeployedContract = useSetAtom(selectedDeployedContract);
 
 	useEffect(() => {
 		if (contracts.length > 0) {
@@ -489,6 +496,8 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 
 	const setContractDeployment = (currentContract: Contract, address: string): void => {
 		if (account == null) return;
+
+		// Update the contract with new deployment info
 		const deployedInfoMap = new Map<string, boolean>();
 		const deployedContract = {
 			...currentContract,
@@ -506,6 +515,8 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 				}
 			})
 		};
+
+		// Update compiled contracts list
 		const updatedContracts = contracts.map((contract) => {
 			if (contract.classHash === deployedContract.classHash) {
 				return deployedContract;
@@ -514,6 +525,12 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 		});
 		setContracts(updatedContracts);
 		setSelectedContract(deployedContract);
+
+		// Add new deployed contract
+		setDeployedContracts([deployedContract, ...deployedContracts]);
+
+		// Set as selected deployed contract for interaction
+		setSelectedDeployedContract(deployedContract);
 	};
 
 	return (

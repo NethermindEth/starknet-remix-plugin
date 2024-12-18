@@ -1,7 +1,12 @@
 import React, { useState } from "react";
 import { getContractNameFromFullName, getShortenedHash } from "../../utils/utils";
 import { useAtom } from "jotai";
-import { compiledContractsAtom, selectedCompiledContract } from "../../atoms/compiledContracts";
+import {
+	compiledContractsAtom,
+	selectedCompiledContract,
+	deployedContractsAtom,
+	selectedDeployedContract
+} from "../../atoms/compiledContracts";
 import * as Select from "../../components/ui_components/Select";
 import { ChevronDownIcon, TrashIcon } from "lucide-react";
 
@@ -10,13 +15,20 @@ interface CompiledContractsProps {
 }
 
 const CompiledContracts: React.FC<CompiledContractsProps> = (props): JSX.Element => {
-	const [contracts, setContracts] = useAtom(compiledContractsAtom);
-	const [selectedContract, setSelectedContract] = useAtom(selectedCompiledContract);
+	const [compiledContracts, setCompiledContracts] = useAtom(compiledContractsAtom);
+	const [selectedCompiled, setSelectedCompiled] = useAtom(selectedCompiledContract);
+	const [deployedContracts, setDeployedContracts] = useAtom(deployedContractsAtom);
+	const [selectedDeployed, setSelectedDeployed] = useAtom(selectedDeployedContract);
+
+	const contracts = props.show === "class" ? compiledContracts : deployedContracts;
+	const selectedContract = props.show === "class" ? selectedCompiled : selectedDeployed;
+	const setSelectedContract = props.show === "class" ? setSelectedCompiled : setSelectedDeployed;
+	const setContracts = props.show === "class" ? setCompiledContracts : setDeployedContracts;
 
 	const [selectedContractIdx, setSelectedContractIdx] = useState("0");
 
-	const handleCompiledContractSelectionChange = (value: string): void => {
-		console.log("handleCompiledContractSelectionChange", value);
+	const handleContractSelectionChange = (value: string): void => {
+		console.log("handleContractSelectionChange", value);
 		setSelectedContract(contracts[parseInt(value)]);
 		setSelectedContractIdx(value);
 	};
@@ -42,7 +54,7 @@ const CompiledContracts: React.FC<CompiledContractsProps> = (props): JSX.Element
 		<Select.Root
 			value={selectedContractIdx}
 			onValueChange={(value) => {
-				handleCompiledContractSelectionChange(value);
+				handleContractSelectionChange(value);
 			}}
 		>
 			<Select.Trigger className="flex justify-between select-trigger-deployment">
@@ -54,7 +66,7 @@ const CompiledContracts: React.FC<CompiledContractsProps> = (props): JSX.Element
 								6,
 								4
 							)})`
-							: "Contract is not selected"
+							: `No ${props.show === "class" ? "compiled" : "deployed"} contract selected`
 					}
 				/>
 				<Select.Icon>
@@ -70,13 +82,19 @@ const CompiledContracts: React.FC<CompiledContractsProps> = (props): JSX.Element
 								value={index.toString()}
 								onDelete={handleDeleteContract}
 								index={index}
-								isSelected={selectedContract?.classHash === contract.classHash}
+								isSelected={props.show === "class" ? selectedContract?.classHash === contract.classHash : selectedContract?.address === contract.address}
 							>
-								{`${getContractNameFromFullName(contract.name)} (${getShortenedHash(
-									contract.classHash ?? "",
-									6,
-									4
-								)})`}
+								{`${getContractNameFromFullName(contract.name)} (${props.show === "class"
+									? getShortenedHash(
+										contract.classHash ?? "",
+										6,
+										4
+									)
+									: getShortenedHash(
+										contract.address ?? "",
+										6,
+										4
+									)})`}
 							</SelectItemWithDelete>
 						))}
 					</Select.Viewport>

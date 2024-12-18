@@ -11,6 +11,23 @@ const compiledContractsAtom = atomWithStorage<Contract[]>(
 	// fetch saved data on initialization
 	{ getOnInit: true }
 );
+
 const selectedCompiledContract = atom<Contract | null>(null);
 
-export { compiledContractsAtom, selectedCompiledContract };
+const deployedContractsAtom = atomWithStorage<Contract[]>(
+	"deployedContracts",
+	[],
+	// use localStorage
+	undefined,
+	// fetch saved data on initialization
+	{ getOnInit: true }
+);
+
+const selectedDeployedContract = atom<Contract | null>(null);
+
+export {
+	compiledContractsAtom,
+	deployedContractsAtom,
+	selectedCompiledContract,
+	selectedDeployedContract
+};
