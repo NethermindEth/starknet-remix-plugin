@@ -196,8 +196,6 @@ impl WorkerEngine {
             // read process ID and command from queue
             match arc_command_queue.pop() {
                 Some((process_id, command)) => {
-                    println!("Command received: {:?}", command);
-
                     debug!("Command received: {:?}", command);
 
                     match command {
@@ -208,11 +206,11 @@ impl WorkerEngine {
                             // update process state
                             arc_process_states.insert(process_id, ProcessState::Running);
 
-                            println!("Processing command: {:?}", command);
+                            debug!("Processing command: {:?}", command);
 
                             match dispatch_command(command, &metrics).await {
                                 Ok(result) => {
-                                    println!("Command completed: {:?}", result);
+                                    debug!("Command completed: {:?}", result);
 
                                     arc_process_states
                                         .insert(process_id, ProcessState::Completed(result));
@@ -225,7 +223,7 @@ impl WorkerEngine {
                                         .unwrap();
                                 }
                                 Err(e) => {
-                                    println!("Command failed: {:?}", e);
+                                    debug!("Command failed: {:?}", e);
 
                                     arc_process_states.insert(process_id, ProcessState::Error(e));
 

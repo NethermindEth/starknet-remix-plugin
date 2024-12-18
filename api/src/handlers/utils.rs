@@ -76,7 +76,7 @@ impl Drop for AutoCleanUp<'_> {
 impl AutoCleanUp<'_> {
     pub async fn clean_up(&self) {
         for path in self.dirs.iter() {
-            println!("Removing path: {:?}", path);
+            debug!("Removing path: {:?}", path);
 
             // check if the path exists
             if !Path::new(path).exists() {
@@ -91,7 +91,7 @@ impl AutoCleanUp<'_> {
 
     pub fn clean_up_sync(&self) {
         for path in self.dirs.iter() {
-            println!("Removing path: {:?}", path);
+            debug!("Removing path: {:?}", path);
 
             // check if the path exists
             if !Path::new(path).exists() {
@@ -144,11 +144,6 @@ pub async fn create_temp_dir() -> Result<PathBuf> {
 }
 
 pub async fn init_directories(compilation_request: CompilationRequest) -> Result<String> {
-    println!(
-        "init_directories, compilation_request: {:?}",
-        compilation_request
-    );
-
     let temp_dir = create_temp_dir().await?;
 
     for file in compilation_request.files.iter() {
@@ -164,14 +159,6 @@ pub async fn init_directories(compilation_request: CompilationRequest) -> Result
             .await
             .map_err(FileError::FailedToSaveFile)?;
     }
-
-    println!("init_directories, temp_dir: {:?}", temp_dir);
-
-    // check the path content
-    println!(
-        "init_directories, temp_dir content: {:?}",
-        tokio::fs::read_dir(&temp_dir).await
-    );
 
     temp_dir
         .to_str()

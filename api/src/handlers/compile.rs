@@ -103,6 +103,11 @@ async fn ensure_scarb_toml(
     Ok(compilation_request)
 }
 
+fn is_single_file_compilation(compilation_request: &CompilationRequest) -> bool {
+    compilation_request.files.len() == 1
+        && compilation_request.files[0].file_name.ends_with(".cairo")
+}
+
 /// Run Scarb to compile a project
 ///
 /// # Errors
@@ -119,7 +124,7 @@ pub async fn do_compile(
 ) -> Result<CompileResponse> {
     // Verify version is in the allowed versions
     let version = compilation_request.version.as_deref().unwrap_or("");
-    if !is_version_allowed(version).await {
+    if !is_version_allowed(version).await && is_single_file_compilation(&compilation_request) {
         error!("Version not allowed: {}", version);
         return Err(ExecutionError::VersionNotAllowed.into());
     }

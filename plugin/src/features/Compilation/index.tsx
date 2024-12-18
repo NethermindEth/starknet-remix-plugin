@@ -21,13 +21,12 @@ import {
 import useRemixClient from "../../hooks/useRemixClient";
 import { useIcon } from "../../hooks/useIcons";
 import {
-	type CompilationRequest,
-	type CompilationResult,
-	type Contract,
-	type ContractFile
+	type Contract
 } from "../../utils/types/contracts";
-import { asyncFetch } from "../../utils/async_fetch";
 import { compiledContractsAtom } from "../../atoms/compiledContracts";
+import { type CompilationRequest, type CompilationResponse, type FileContentMap, useApi } from "../../utils/api";
+import { apiUrl } from "../../utils/network";
+import { cairoVersionAtom } from "../../atoms/cairoVersion";
 
 const CompilationCard: React.FC<{
 	validation: boolean;
@@ -186,6 +185,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 	const currentFilename = useAtomValue(currentFilenameAtom);
 	const tomlPaths = useAtomValue(tomlPathsAtom);
 	const activeTomlPath = useAtomValue(activeTomlPathAtom);
+	const selectedVersion = useAtomValue(cairoVersionAtom);
 
 	const setStatus = useSetAtom(statusAtom);
 	const setCurrentFilename = useSetAtom(currentFilenameAtom);
@@ -193,6 +193,8 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 	const setActiveTomlPath = useSetAtom(activeTomlPathAtom);
 	const setIsCompiling = useSetAtom(isCompilingAtom);
 	const [currWorkspacePath, setCurrWorkspacePath] = React.useState<string>("");
+
+	const api = useApi(apiUrl);
 
 	useEffect(() => {
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -260,8 +262,8 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 	const getFolderFilemapRecursive = async (
 		workspacePath: string,
 		dirPath = ""
-	): Promise<ContractFile[]> => {
-		const files = [] as ContractFile[];
+	): Promise<FileContentMap[]> => {
+		const files = [] as FileContentMap[];
 		const pathFiles = await remixClient.fileManager.readdir(`${workspacePath}/${dirPath}`);
 		for (const [path, entry] of Object.entries<any>(pathFiles)) {
 			if (entry.isDirectory === true) {
@@ -276,7 +278,6 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
 			files.push({
 				file_name: path,
-				real_path: path,
 				file_content: content
 			});
 		}
@@ -353,18 +354,16 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 		}, 500);
 	}, [remixClient]);
 
-	async function compile (compilationRequest: CompilationRequest): Promise<CompilationResult | null> {
+	async function compile (compilationRequest: CompilationRequest): Promise<CompilationResponse | null> {
 		setIsCompiling(true);
 		setStatus(CompilationStatus.Compiling);
 
 		try {
-			const result = await asyncFetch("compile-async", "compile-result", compilationRequest);
+			const compilationResult = await api.compile(compilationRequest);
 
-			const resultJson = JSON.parse(result) as CompilationResult;
+			console.log("compile result: ", compilationResult);
 
-			console.log("compile result: ", resultJson);
-
-			if (resultJson.status !== "Success") {
+			if (compilationResult.status !== "Success") {
 				await remixClient.call(
 					"notification" as any,
 					"toast",
@@ -373,7 +372,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
 				await remixClient.terminal.log({
 					type: "error",
-					value: resultJson.message
+					value: compilationResult.message
 				});
 
 				throw new Error("Cairo Compilation Request Failed");
@@ -386,7 +385,9 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 			);
 
 			try {
-				await writeResultsToArtifacts(resultJson);
+				if (compilationResult.data !== null) {
+					await writeResultsToArtifacts(compilationResult.data);
+				}
 			} catch (e) {
 				console.log("error writing to artifacts: ", e);
 
@@ -394,8 +395,12 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 			}
 
 			setIsCompiling(false);
-			return resultJson;
+
+			console.log("compilationResult: ", compilationResult);
+
+			return compilationResult;
 		} catch (error) {
+			console.log("error: ", error);
 			setStatus(CompilationStatus.Error);
 			setIsCompiling(false);
 
@@ -403,7 +408,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 		}
 	}
 
-	const writeResultsToArtifacts = async (compileResult: CompilationResult): Promise<void> => {
+	const writeResultsToArtifacts = async (compileResult: FileContentMap[]): Promise<void> => {
 		const contractToArtifacts: Record<
 		string,
 		{
@@ -415,7 +420,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 		console.log(compileResult);
 
 		// First pass to collect artifacts
-		for (const file of compileResult.artifacts) {
+		for (const file of compileResult) {
 			if (!file.file_name.endsWith(".compiled_contract_class.json") && !file.file_name.endsWith(".contract_class.json")) continue;
 
 			const basePath = file.file_name.replace(".compiled_contract_class.json", "").replace(".contract_class.json", "").replace("___testsingle_", "");
@@ -466,8 +471,8 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 		setContracts([...updatedContracts, ...contracts.filter((c: Contract) => !updatedContracts.some((uc: Contract) => uc.name === c.name && uc.classHash === c.classHash))]);
 
 		// Write artifacts to files
-		for (const file of compileResult.artifacts) {
-			const artifactsPath = `${artifactFolder(currWorkspacePath)}/${file.real_path}`;
+		for (const file of compileResult) {
+			const artifactsPath = `${artifactFolder(currWorkspacePath)}/${file.file_name}`;
 			try {
 				await remixClient.call(
 					"fileManager",
@@ -496,9 +501,9 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 			const compilationRequest: CompilationRequest = {
 				files: [{
 					file_name: currentFilePath,
-					real_path: currentFilePath,
 					file_content: await remixClient.call("fileManager", "readFile", currentFilePath)
-				}]
+				}],
+				version: selectedVersion ?? null
 			};
 
 			const result = await compile(compilationRequest);
@@ -525,7 +530,8 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
 		try {
 			const compilationRequest: CompilationRequest = {
-				files: await getFolderFilemapRecursive(workspacePath, scarbPath)
+				files: await getFolderFilemapRecursive(workspacePath, scarbPath),
+				version: null
 			};
 
 			// format request, remove scarbPath from file names
@@ -538,7 +544,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
 			const result = await compile(compilationRequest);
 
-			console.log(result);
+			console.log("result: ", result);
 
 			if (result != null) {
 				setStatus("done");
@@ -553,6 +559,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 					message: e.message
 				});
 			}
+
 			console.error(e);
 		}
 	}

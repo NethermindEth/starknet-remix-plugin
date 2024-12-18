@@ -53,22 +53,6 @@ string,
 }
 >;
 
-interface ContractFile {
-	file_name: string;
-	real_path: string;
-	file_content: string;
-}
-
-interface CompilationRequest {
-	files: ContractFile[];
-}
-
-interface CompilationResult {
-	status: string;
-	message: string;
-	artifacts: ContractFile[];
-}
-
 export type {
 	Abi,
 	AbiElement,
@@ -77,8 +61,5 @@ export type {
 	Contracts,
 	Input,
 	Output,
-	ContractFile,
-	CompilationRequest,
-	CompilationResult,
 	CallDataObj
 };

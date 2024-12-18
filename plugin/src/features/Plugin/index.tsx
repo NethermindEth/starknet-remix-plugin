@@ -19,9 +19,14 @@ import useRemixClient from "../../hooks/useRemixClient";
 import * as Tabs from "@radix-ui/react-tabs";
 import { Settings } from "../../components/Settings";
 import { cairoVersionAtom, versionsAtom } from "../../atoms/cairoVersion";
-import { apiUrl } from "../../utils/network";
+import { apiUrl, getAccounts } from "../../utils/network";
 import { StarknetProvider } from "../../components/starknet/starknet-provider";
 import { CompilationStatus, statusAtom } from "../../atoms/compilation";
+import { useApi } from "../../utils/api";
+import { Account, RpcProvider } from "starknet";
+import { availableDevnetAccountsAtom, devnetAtom, envAtom, isDevnetAliveAtom, selectedDevnetAccountAtom } from "../../atoms/environment";
+import useAccount from "../../hooks/useAccount";
+import useProvider from "../../hooks/useProvider";
 
 export type AccordianTabs = "compile" | "deploy" | "interaction" | "transactions" | "";
 
@@ -54,43 +59,28 @@ const Plugin: React.FC = () => {
 	};
 
 	const setCairoVersion = useSetAtom(cairoVersionAtom);
-	const [getVersions, setVersions] = useAtom(versionsAtom);
+	const setVersions = useSetAtom(versionsAtom);
 	const { remixClient } = useRemixClient();
+	const api = useApi(apiUrl);
 
 	const envViteVersion: string | undefined = import.meta.env.VITE_VERSION;
 	const pluginVersion = envViteVersion !== undefined ? `v${envViteVersion}` : "v0.2.5";
 
 	useEffect(() => {
-		const fetchCairoVersions = async (): Promise<void> => {
-			try {
-				if (apiUrl !== undefined) {
-					const versions = await fetch(`${apiUrl}/allowed-versions`);
-
-					const versionsData = await versions.json();
-
-					setVersions(versionsData);
-				}
-			} catch (e) {
-				await remixClient.call(
-					"notification" as any,
-					"toast",
-					"🔴 Failed to fetch cairo versions from the compilation server"
-				);
-				console.error(e);
-				await remixClient.terminal.log(
-					`🔴 Failed to fetch cairo versions from the compilation server ${
-						e as string
-					}` as any
-				);
-			}
-		};
-
 		setTimeout(() => {
 			const fetchCairo = async (): Promise<void> => {
-				await fetchCairoVersions();
+				const versions = await api.allowedVersions();
 
-				if (getVersions.length > 0) {
-					setCairoVersion(getVersions[0]);
+				if (versions.data !== null && versions.data.length > 0) {
+					setCairoVersion(versions.data[0]);
+					setVersions(versions.data);
+				} else {
+					await remixClient.call(
+						"notification" as any,
+						"toast",
+						"🔴 Failed to fetch cairo versions from the compilation server"
+					);
+					console.error(versions);
 				}
 			};
 			fetchCairo().catch((e) => {
@@ -98,12 +88,6 @@ const Plugin: React.FC = () => {
 			});
 		}, 10000);
 	}, [remixClient]);
-
-	useEffect(() => {
-		if (getVersions.length > 0) {
-			setCairoVersion(getVersions[0]);
-		}
-	}, [remixClient, getVersions]);
 
 	const explorerHook = useCurrentExplorer();
 
@@ -114,74 +98,108 @@ const Plugin: React.FC = () => {
 		const id = setTimeout(async (): Promise<void> => {
 			await remixClient.onload(() => {
 				setPluginLoaded(true);
-				// eslint-disable-next-line @typescript-eslint/no-misused-promises
-				// setTimeout(async () => {
-				//   const workspaces = await remixClient.filePanel.getWorkspaces()
-
-				//   const workspaceLets: Array<{ name: string, isGitRepo: boolean }> =
-				//                 JSON.parse(JSON.stringify(workspaces))
-
-				//   if (
-				//     !workspaceLets.some(
-				//       (workspaceLet) => workspaceLet.name === 'cairo_scarb_sample'
-				//     )
-				//   ) {
-				//     await remixClient.filePanel.createWorkspace(
-				//       'cairo_scarb_sample',
-				//       true
-				//     )
-				//     try {
-				//       await remixClient.fileManager.mkdir('hello_world')
-				//     } catch (e) {
-				//       console.log(e)
-				//     }
-				//     const exampleRepo = await fetchGitHubFilesRecursively(
-				//       'software-mansion/scarb',
-				//       'examples/starknet_multiple_contracts'
-				//     )
-
-				//     console.log('exampleRepo', exampleRepo)
-
-				//     try {
-				//       for (const file of exampleRepo) {
-				//         const filePath = file?.path
-				//           .replace('examples/starknet_multiple_contracts/', '')
-				//           .replace('examples/starknet_multiple_contracts', '') ?? ''
-
-				//         let fileContent: string = file?.content ?? ''
-
-				//         if (file != null && file.fileName === 'Scarb.toml') {
-				//           fileContent = fileContent.concat('\ncasm = true')
-				//         }
-
-				//         // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-				//         await remixClient.fileManager.writeFile(
-				//                             `hello_world/${
-				//                             // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-				//                             filePath
-				//                             // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-				//                             }/${file?.fileName}`,
-				//                             fileContent
-				//         )
-				//       }
-				//     } catch (e) {
-				//       if (e instanceof Error) {
-				//         await remixClient.call('notification' as any, 'alert', {
-				//           id: 'starknetRemixPluginAlert',
-				//           title: 'Please check the write file permission',
-				//           message: e.message + '\n' + 'Did you provide the write file permission?'
-				//         })
-				//       }
-				//       console.log(e)
-				//     }
-				//   }
-				// })
 			});
 		}, 1);
 		return () => {
 			clearInterval(id);
 		};
 	}, []);
+
+	const devnet = useAtomValue(devnetAtom);
+	const [isDevnetAlive, setIsDevnetAlive] = useAtom(isDevnetAliveAtom);
+	const [selectedDevnetAccount, setSelectedDevnetAccount] = useAtom(selectedDevnetAccountAtom);
+	const [availableDevnetAccounts, setAvailableDevnetAccounts] = useAtom(availableDevnetAccountsAtom);
+	const { setAccount } = useAccount();
+	const { setProvider } = useProvider();
+	const env = useAtomValue(envAtom);
+
+	const checkDevnetUrl = async (): Promise<void> => {
+		try {
+			const isKatanaEnv = env === "localKatanaDevnet";
+			const response = await fetch(`${devnet.url}/${isKatanaEnv ? "" : "is_alive"}`, {
+				method: "GET",
+				redirect: "follow",
+				headers: {
+					"Content-Type": "application/json"
+				}
+			});
+			const status = await response.text();
+			if (isKatanaEnv) {
+				const jsonStatus: { health: boolean } = JSON.parse(status);
+				if (jsonStatus.health) {
+					setIsDevnetAlive(true);
+				} else {
+					setIsDevnetAlive(false);
+				}
+			} else if (status !== "Alive!!!" || response.status !== 200) {
+				setIsDevnetAlive(false);
+			} else {
+				setIsDevnetAlive(true);
+			}
+		} catch (error) {
+			setIsDevnetAlive(false);
+		}
+	};
+
+	const refreshDevnetAccounts = async (): Promise<void> => {
+		try {
+			const accounts = await getAccounts(devnet.url, env === "localKatanaDevnet");
+			if (JSON.stringify(accounts) !== JSON.stringify(availableDevnetAccounts)) {
+				if (accounts !== undefined) {
+					setAvailableDevnetAccounts(accounts);
+					if (accounts.length > 0 && selectedDevnetAccount === null) {
+						setSelectedDevnetAccount(accounts[0]);
+					}
+				} else setAvailableDevnetAccounts([]);
+			}
+		} catch (e) {
+			setAvailableDevnetAccounts([]);
+			await remixClient.terminal.log({
+				type: "error",
+				value: `Failed to get accounts information from ${devnet.url}`
+			});
+		}
+	};
+
+	// Check devnet status periodically
+	useEffect(() => {
+		const interval = setInterval(() => {
+			checkDevnetUrl().catch((e) => {
+				console.error(e);
+			});
+		}, 3000);
+		return () => {
+			clearInterval(interval);
+		};
+	}, [devnet]);
+
+	// Initialize accounts and provider when devnet status changes
+	useEffect(() => {
+		if (!isDevnetAlive) {
+			setAvailableDevnetAccounts([]);
+			setAccount(null);
+			setSelectedDevnetAccount(null);
+		} else {
+			refreshDevnetAccounts().catch((e) => {
+				console.error(e);
+			});
+		}
+	}, [devnet, isDevnetAlive]);
+
+	// Initialize provider and account when selected account changes
+	useEffect(() => {
+		const newProvider = new RpcProvider({ nodeUrl: devnet.url });
+		if (selectedDevnetAccount != null) {
+			setAccount(
+				new Account(
+					newProvider,
+					selectedDevnetAccount.address,
+					selectedDevnetAccount.private_key
+				)
+			);
+		}
+		setProvider(newProvider);
+	}, [devnet, selectedDevnetAccount]);
 
 	return (
 		<StarknetProvider>
@@ -196,15 +214,7 @@ const Plugin: React.FC = () => {
 					</div>
 
 					<Tabs.Root defaultValue={"home"}>
-						{/* <Tabs.List> */}
-						{/*  <Tabs.Trigger value='home'>Home</Tabs.Trigger> */}
-						{/*  <Tabs.Trigger value='transactions'>Transactions</Tabs.Trigger> */}
-						{/*  <Tabs.Trigger value='info'>Info</Tabs.Trigger> */}
-						{/* </Tabs.List> */}
-
-						{/* apply styles */}
 						<Tabs.List className={"flex justify-between rounded tab-list"}>
-							<div className={"tabs-trigger"}></div>
 							<Tabs.Trigger value={"home"} className={"tabs-trigger"}>
 								Home
 							</Tabs.Trigger>
@@ -217,7 +227,6 @@ const Plugin: React.FC = () => {
 							<Tabs.Trigger value={"settings"} className={"tabs-trigger"}>
 								Settings
 							</Tabs.Trigger>
-							<div className={"tabs-trigger"}></div>
 						</Tabs.List>
 
 						<Tabs.Content value="home">
