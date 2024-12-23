@@ -1,6 +1,6 @@
 use crate::errors::ApiError;
-use crate::handlers;
 use crate::handlers::types::{ApiCommand, ApiCommandResult};
+use crate::handlers::utils::dispatch_command;
 use crate::metrics::Metrics;
 use crate::utils::lib::DURATION_TO_PURGE;
 use crossbeam_queue::ArrayQueue;
@@ -206,8 +206,12 @@ impl WorkerEngine {
                             // update process state
                             arc_process_states.insert(process_id, ProcessState::Running);
 
-                            match handlers::dispatch_command(command, &metrics).await {
+                            debug!("Processing command: {:?}", command);
+
+                            match dispatch_command(command, &metrics).await {
                                 Ok(result) => {
+                                    debug!("Command completed: {:?}", result);
+
                                     arc_process_states
                                         .insert(process_id, ProcessState::Completed(result));
 
@@ -219,6 +223,8 @@ impl WorkerEngine {
                                         .unwrap();
                                 }
                                 Err(e) => {
+                                    debug!("Command failed: {:?}", e);
+
                                     arc_process_states.insert(process_id, ProcessState::Error(e));
 
                                     arc_timestamps_to_purge

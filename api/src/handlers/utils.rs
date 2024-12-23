@@ -1,11 +1,19 @@
-use rocket::serde::json::Json;
-use std::future::Future;
+use rocket::tokio;
+use std::path::Path;
 use std::time::Instant;
+use std::{future::Future, path::PathBuf};
 use tracing::{info, instrument};
 
-use crate::errors::Result;
-use crate::handlers::types::Successable;
-use crate::metrics::Metrics;
+use crate::errors::{ApiError, FileError, Result, SystemError};
+use crate::metrics::{Metrics, COMPILATION_LABEL_VALUE};
+
+use super::scarb_version::do_scarb_version;
+use super::types::{CompilationRequest, FileContentMap, Successful};
+use super::{
+    compile::do_compile,
+    scarb_test::do_scarb_test,
+    types::{ApiCommand, ApiCommandResult},
+};
 
 #[instrument]
 #[post("/on-plugin-launched")]
@@ -13,11 +21,11 @@ pub async fn on_plugin_launched() {
     info!("/on-plugin-launched");
 }
 
-pub(crate) async fn do_metered_action<T: Successable>(
-    action: impl Future<Output = Result<Json<T>>>,
+pub(crate) async fn do_metered_action<T: Successful>(
+    action: impl Future<Output = Result<T>>,
     action_label_value: &str,
     metrics: &Metrics,
-) -> Result<Json<T>> {
+) -> Result<T> {
     let start_time = Instant::now();
     let result = action.await;
     let elapsed_time = start_time.elapsed().as_secs_f64();
@@ -53,4 +61,143 @@ pub(crate) async fn do_metered_action<T: Successable>(
             Err(err)
         }
     }
+}
+
+pub struct AutoCleanUp<'a> {
+    pub(crate) dirs: Vec<&'a str>,
+}
+
+impl Drop for AutoCleanUp<'_> {
+    fn drop(&mut self) {
+        self.clean_up_sync();
+    }
+}
+
+impl AutoCleanUp<'_> {
+    pub async fn clean_up(&self) {
+        for path in self.dirs.iter() {
+            debug!("Removing path: {:?}", path);
+
+            // check if the path exists
+            if !Path::new(path).exists() {
+                continue;
+            }
+
+            if let Err(e) = tokio::fs::remove_dir_all(path).await {
+                tracing::info!("Failed to remove file: {:?}", e);
+            }
+        }
+    }
+
+    pub fn clean_up_sync(&self) {
+        for path in self.dirs.iter() {
+            debug!("Removing path: {:?}", path);
+
+            // check if the path exists
+            if !Path::new(path).exists() {
+                continue;
+            }
+
+            if let Err(e) = std::fs::remove_dir_all(path) {
+                tracing::info!("Failed to remove file: {:?}", e);
+            }
+        }
+    }
+}
+
+pub async fn dispatch_command(command: ApiCommand, metrics: &Metrics) -> Result<ApiCommandResult> {
+    match command {
+        ApiCommand::ScarbVersion => match do_scarb_version() {
+            Ok(result) => Ok(ApiCommandResult::ScarbVersion(result)),
+            Err(e) => Err(e),
+        },
+        ApiCommand::Shutdown => Ok(ApiCommandResult::Shutdown),
+        ApiCommand::ScarbTest { remix_file_path } => match do_scarb_test(remix_file_path).await {
+            Ok(result) => Ok(ApiCommandResult::Test(result)),
+            Err(e) => Err(e),
+        },
+        ApiCommand::Compile {
+            compilation_request,
+        } => match do_metered_action(
+            do_compile(compilation_request, metrics),
+            COMPILATION_LABEL_VALUE,
+            metrics,
+        )
+        .await
+        {
+            Ok(result) => Ok(ApiCommandResult::Compile(result)),
+            Err(e) => Err(e),
+        },
+    }
+}
+
+pub async fn create_temp_dir() -> Result<PathBuf> {
+    let temp_dir = std::env::temp_dir();
+    let folder_name = uuid::Uuid::new_v4().to_string();
+    let folder_path = temp_dir.join(&folder_name);
+
+    tokio::fs::create_dir_all(&folder_path)
+        .await
+        .map_err(FileError::FailedToInitializeDirectories)?;
+
+    Ok(folder_path)
+}
+
+pub async fn init_directories(compilation_request: CompilationRequest) -> Result<String> {
+    let temp_dir = create_temp_dir().await?;
+
+    for file in compilation_request.files.iter() {
+        let file_path = temp_dir.join(&file.file_name);
+
+        if let Some(parent) = file_path.parent() {
+            tokio::fs::create_dir_all(parent)
+                .await
+                .map_err(FileError::FailedToInitializeDirectories)?;
+        }
+
+        tokio::fs::write(&file_path, &file.file_content)
+            .await
+            .map_err(FileError::FailedToSaveFile)?;
+    }
+
+    temp_dir
+        .to_str()
+        .ok_or_else(|| {
+            ApiError::System(SystemError::FailedToParseFilePath(format!(
+                "{:?}",
+                temp_dir
+            )))
+        })
+        .map(|s| s.to_string())
+}
+
+pub fn get_files_recursive(base_path: &Path) -> Result<Vec<FileContentMap>> {
+    let mut file_content_map_array: Vec<FileContentMap> = Vec::new();
+
+    if base_path.is_dir() {
+        for entry in base_path
+            .read_dir()
+            .map_err(FileError::FailedToReadDir)?
+            .flatten()
+        {
+            let path = entry.path();
+            if path.is_dir() {
+                file_content_map_array.extend(get_files_recursive(&path)?);
+            } else if let Ok(content) = std::fs::read_to_string(&path) {
+                let file_name = path
+                    .file_name()
+                    .ok_or(FileError::FailedToReadFilename)?
+                    .to_string_lossy()
+                    .to_string();
+                let file_content = content;
+                let file_content_map = FileContentMap {
+                    file_name,
+                    file_content,
+                };
+                file_content_map_array.push(file_content_map);
+            }
+        }
+    }
+
+    Ok(file_content_map_array)
 }

@@ -11,17 +11,11 @@ pub mod utils;
 pub mod worker;
 
 use anyhow::Context;
-use handlers::cairo_version::{
-    cairo_version, cairo_version_async, cairo_versions, get_cairo_version_result,
-};
-use handlers::compile_casm::{compile_to_casm, compile_to_casm_async, compile_to_casm_result};
-use handlers::compile_sierra::{
-    compile_to_siera_async, compile_to_sierra, get_siera_compile_result,
-};
+use handlers::allowed_versions::{get_allowed_versions, start_version_updater};
+use handlers::compile::{compile_async, get_compile_result};
 use handlers::process::get_process_status;
-use handlers::save_code::save_code;
-use handlers::scarb_compile::{get_scarb_compile_result, scarb_compile, scarb_compile_async};
 use handlers::scarb_test::{get_scarb_test_result, scarb_test_async};
+use handlers::scarb_version::{get_scarb_version_result, scarb_version_async};
 use handlers::utils::on_plugin_launched;
 use handlers::{health, who_is_this};
 use prometheus::Registry;
@@ -83,26 +77,17 @@ fn create_app(metrics: Metrics) -> Rocket<Build> {
         .mount(
             "/",
             routes![
-                compile_to_sierra,
-                compile_to_siera_async,
-                get_siera_compile_result,
-                compile_to_casm,
-                compile_to_casm_async,
-                compile_to_casm_result,
-                scarb_compile,
-                scarb_compile_async,
-                get_scarb_compile_result,
-                save_code,
-                cairo_versions,
-                cairo_version,
-                cairo_version_async,
-                get_cairo_version_result,
+                compile_async,
+                get_compile_result,
+                scarb_version_async,
+                get_scarb_version_result,
                 get_process_status,
                 health,
                 who_is_this,
                 get_scarb_test_result,
                 scarb_test_async,
                 on_plugin_launched,
+                get_allowed_versions,
             ],
         )
 }
@@ -110,6 +95,9 @@ fn create_app(metrics: Metrics) -> Rocket<Build> {
 #[rocket::main]
 async fn main() -> anyhow::Result<()> {
     init_logger().context("Failed to initialize logger")?;
+
+    // Start the version updater
+    start_version_updater().await;
 
     let registry = Registry::new();
     let metrics = initialize_metrics(registry.clone()).context("Failed to initialize metrics")?;

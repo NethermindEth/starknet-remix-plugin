@@ -26,7 +26,6 @@ RUN apt-get update
 RUN apt-get install grafana-agent-flow
 
 WORKDIR /opt/app
-
 SHELL ["/bin/bash", "-lc"]
 
 # install Scarb (NOTE: a SPECIFIC version of Scarb is installed)
@@ -44,14 +43,8 @@ RUN git submodule update --init
 
 # Build the API service
 WORKDIR /opt/app/api
-
 RUN cargo build --release
-
 RUN chmod +x ./docker_run.sh
-
-# Build the cairo compiler
-WORKDIR /opt/app/api/cairo_compilers
-RUN chmod +x ./build.sh; ./build.sh
 
 EXPOSE 8000
 
