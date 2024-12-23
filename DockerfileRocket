@@ -8,14 +8,16 @@ ENV SCARB_VERSION=${SCARB_VERSION}
 RUN apt-get clean
 
 RUN apt-get update
-RUN apt-get install -y curl \
+RUN apt-get install -y --no-install-recommends curl \
     git \
     cmake \
     build-essential \
     gcc \
     apt-transport-https \
     software-properties-common \
-    wget
+    wget \
+    pkg-config \
+    libssl-dev
 
 # Installing grafana agent
 RUN mkdir -p /etc/apt/keyrings/
