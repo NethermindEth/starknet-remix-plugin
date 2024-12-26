@@ -1,35 +1,39 @@
-use crate::errors::{CmdError, FileError, Result, SystemError};
+use super::types::ApiResponse;
+use crate::errors::{CmdError, FileError, Result};
 use crate::handlers::process::{do_process_command, fetch_process_result};
-use crate::handlers::types::TestResponseGetter;
 use crate::handlers::types::{ApiCommand, IntoTypedResponse, TestResponse};
+use crate::handlers::types::{TestRequest, TestResponseGetter};
+use crate::handlers::utils::{init_directories, AutoCleanUp};
 use crate::rate_limiter::RateLimited;
-use crate::utils::lib::get_file_path;
 use crate::worker::WorkerEngine;
+use rocket::serde::json::Json;
 use rocket::State;
-use std::path::PathBuf;
 use std::process::{Command, Stdio};
 use tracing::{debug, error, info, instrument};
 
-use super::types::ApiResponse;
-
-#[instrument(skip(engine, _rate_limited))]
-#[post("/scarb-test-async/<remix_file_path..>")]
+#[instrument(skip(test_request, engine, _rate_limited))]
+#[post("/test-async", data = "<test_request>")]
 pub async fn scarb_test_async(
-    remix_file_path: PathBuf,
+    test_request: Json<TestRequest>,
     engine: &State<WorkerEngine>,
     _rate_limited: RateLimited,
 ) -> ApiResponse<String> {
-    info!("/scarb-test-async/{:?}", remix_file_path);
-    do_process_command(ApiCommand::ScarbTest { remix_file_path }, engine)
+    info!("/test-async");
+    do_process_command(
+        ApiCommand::ScarbTest {
+            test_request: test_request.0,
+        },
+        engine,
+    )
 }
 
 #[instrument(skip(engine))]
-#[get("/scarb-test-async/<process_id>")]
+#[get("/test-async/<process_id>")]
 pub async fn get_scarb_test_result(
     process_id: &str,
     engine: &State<WorkerEngine>,
 ) -> ApiResponse<()> {
-    info!("/scarb-test-async/{:?}", process_id);
+    info!("/test-async/{:?}", process_id);
     fetch_process_result::<TestResponseGetter>(process_id, engine)
         .map(|result| result.0)
         .unwrap_or_else(|err| err.into_typed())
@@ -44,21 +48,21 @@ pub async fn get_scarb_test_result(
 /// - Failed to read command output
 /// - Failed to parse command output as UTF-8
 /// - Command returned non-zero status
-pub async fn do_scarb_test(remix_file_path: PathBuf) -> Result<TestResponse> {
-    let remix_file_path = remix_file_path
-        .to_str()
-        .ok_or_else(|| {
-            error!("Failed to parse remix file path: {:?}", remix_file_path);
-            SystemError::FailedToParseFilePath(format!("{:?}", remix_file_path))
-        })?
-        .to_string();
+pub async fn do_scarb_test(test_request: TestRequest) -> Result<TestResponse> {
+    // Create temporary directories
+    let temp_dir = init_directories(test_request).await.map_err(|e| {
+        error!("Failed to initialize directories: {:?}", e);
+        e
+    })?;
 
-    let file_path = get_file_path(&remix_file_path);
+    let auto_clean_up = AutoCleanUp {
+        dirs: vec![&temp_dir],
+    };
 
     let mut compile = Command::new("scarb");
-    compile.current_dir(&file_path);
+    compile.current_dir(&temp_dir);
 
-    debug!("Executing scarb test command in directory: {:?}", file_path);
+    debug!("Executing scarb test command in directory: {:?}", temp_dir);
 
     let result = compile
         .arg("test")
@@ -77,15 +81,6 @@ pub async fn do_scarb_test(remix_file_path: PathBuf) -> Result<TestResponse> {
         CmdError::FailedToReadOutput(e)
     })?;
 
-    // Convert file path to string once to avoid repetition and potential inconsistencies
-    let file_path_str = file_path
-        .to_str()
-        .ok_or_else(|| {
-            error!("Failed to convert file path to string: {:?}", file_path);
-            SystemError::FailedToParseFilePath(format!("{:?}", file_path))
-        })?
-        .to_string();
-
     let stdout = String::from_utf8(output.stdout).map_err(|e| {
         error!("Failed to parse stdout as UTF-8: {:?}", e);
         FileError::UTF8Error(e)
@@ -98,8 +93,8 @@ pub async fn do_scarb_test(remix_file_path: PathBuf) -> Result<TestResponse> {
 
     let message = format!(
         "{}{}",
-        stdout.replace(&file_path_str, &remix_file_path),
-        stderr.replace(&file_path_str, &remix_file_path)
+        stderr.replace(&temp_dir, ""),
+        stdout.replace(&temp_dir, "")
     );
 
     let (status, code) = match output.status.code() {
@@ -113,6 +108,8 @@ pub async fn do_scarb_test(remix_file_path: PathBuf) -> Result<TestResponse> {
             ("UnknownError", 500)
         }
     };
+
+    auto_clean_up.clean_up_sync();
 
     Ok(ApiResponse::ok(())
         .with_status(status.to_string())

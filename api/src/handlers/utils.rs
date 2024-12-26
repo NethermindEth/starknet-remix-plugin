@@ -4,7 +4,8 @@ use std::time::Instant;
 use std::{future::Future, path::PathBuf};
 use tracing::{info, instrument};
 
-use crate::errors::{ApiError, FileError, Result, SystemError};
+use crate::errors::{ApiError, ExecutionError, FileError, Result, SystemError};
+use crate::handlers::compile::{default_scarb_toml, scarb_toml_with_version};
 use crate::metrics::{Metrics, COMPILATION_LABEL_VALUE};
 
 use super::scarb_version::do_scarb_version;
@@ -112,7 +113,7 @@ pub async fn dispatch_command(command: ApiCommand, metrics: &Metrics) -> Result<
             Err(e) => Err(e),
         },
         ApiCommand::Shutdown => Ok(ApiCommandResult::Shutdown),
-        ApiCommand::ScarbTest { remix_file_path } => match do_scarb_test(remix_file_path).await {
+        ApiCommand::ScarbTest { test_request } => match do_scarb_test(test_request).await {
             Ok(result) => Ok(ApiCommandResult::Test(result)),
             Err(e) => Err(e),
         },
@@ -200,4 +201,51 @@ pub fn get_files_recursive(base_path: &Path) -> Result<Vec<FileContentMap>> {
     }
 
     Ok(file_content_map_array)
+}
+
+pub async fn ensure_scarb_toml(
+    mut compilation_request: CompilationRequest,
+) -> Result<CompilationRequest> {
+    // Check if Scarb.toml exists in the root
+    if !compilation_request.has_scarb_toml() {
+        // number of files cairo files in the request
+        let cairo_files_count = compilation_request
+            .files
+            .iter()
+            .filter(|f| f.file_name.ends_with(".cairo"))
+            .count();
+
+        if cairo_files_count != 1 {
+            tracing::error!(
+                "Invalid request: Expected exactly one Cairo file, found {}",
+                cairo_files_count
+            );
+            return Err(ExecutionError::InvalidRequest.into());
+        }
+
+        tracing::debug!("No Scarb.toml found, creating default one");
+        compilation_request.files.push(FileContentMap {
+            file_name: "Scarb.toml".to_string(),
+            file_content: match compilation_request.version {
+                Some(ref version) => scarb_toml_with_version(version),
+                None => default_scarb_toml(),
+            },
+        });
+
+        // change the name of the file to the first cairo file to src/lib.cairo
+        if let Some(first_cairo_file) = compilation_request
+            .files
+            .iter_mut()
+            .find(|f| f.file_name.ends_with(".cairo"))
+        {
+            first_cairo_file.file_name = "src/lib.cairo".to_string();
+        }
+    }
+
+    Ok(compilation_request)
+}
+
+pub fn is_single_file_compilation(compilation_request: &CompilationRequest) -> bool {
+    compilation_request.files.len() == 1
+        && compilation_request.files[0].file_name.ends_with(".cairo")
 }

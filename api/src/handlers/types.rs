@@ -1,6 +1,5 @@
 use rocket::http::{ContentType, Status};
 use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
 
 use crate::errors::{ApiError, ExecutionError};
 
@@ -169,6 +168,8 @@ pub struct CompilationRequest {
     pub version: Option<String>,
 }
 
+pub type TestRequest = CompilationRequest;
+
 impl CompilationRequest {
     pub fn has_scarb_toml(&self) -> bool {
         self.files
@@ -188,7 +189,7 @@ pub enum ApiCommand {
         compilation_request: CompilationRequest,
     },
     ScarbTest {
-        remix_file_path: PathBuf,
+        test_request: TestRequest,
     },
     #[allow(dead_code)]
     Shutdown,

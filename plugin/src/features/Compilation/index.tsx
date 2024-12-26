@@ -20,11 +20,16 @@ import {
 } from "../../atoms/compilation";
 import useRemixClient from "../../hooks/useRemixClient";
 import { useIcon } from "../../hooks/useIcons";
-import {
-	type Contract
-} from "../../utils/types/contracts";
+import { type Contract } from "../../utils/types/contracts";
 import { compiledContractsAtom } from "../../atoms/compiledContracts";
-import { type CompilationRequest, type CompilationResponse, type FileContentMap, useApi } from "../../utils/api";
+import {
+	type CompilationRequest,
+	type CompilationResponse,
+	type FileContentMap,
+	type TestRequest,
+	type TestResponse,
+	useApi
+} from "../../utils/api";
 import { apiUrl } from "../../utils/network";
 import { cairoVersionAtom } from "../../atoms/cairoVersion";
 
@@ -33,12 +38,14 @@ const CompilationCard: React.FC<{
 	isLoading: boolean;
 	onClick: () => unknown;
 	compileScarb: (workspacePath: string, scarbPath: string) => Promise<void>;
+	testScarb: (workspacePath: string, scarbPath: string) => Promise<void>;
 	currentWorkspacePath: string;
 }> = ({
 	validation,
 	isLoading,
 	onClick,
 	compileScarb,
+	testScarb,
 	currentWorkspacePath
 }): React.ReactElement => {
 	const { remixClient } = useRemixClient();
@@ -88,6 +95,27 @@ const CompilationCard: React.FC<{
 						}}
 					>
 						Compile Project
+					</button>
+
+					<button
+						className="btn btn-warning w-100 rounded-button text-break mb-1 mt-1 px-0"
+						disabled={isCompiling}
+						aria-disabled={isCompiling}
+						onClick={() => {
+							testScarb(currentWorkspacePath, activeTomlPath)
+								.then(() => {
+									remixClient.emit("statusChanged", {
+										key: "succeed",
+										type: "success",
+										title: "Cheers : compilation successful"
+									});
+								})
+								.catch((e) => {
+									console.log("error: ", e);
+								});
+						}}
+					>
+						Test Project (using scarb-test)
 					</button>
 
 					<D.Root>
@@ -408,6 +436,46 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 		}
 	}
 
+	async function test (testRequest: TestRequest): Promise<TestResponse | null> {
+		setIsCompiling(true);
+		setStatus(CompilationStatus.Compiling);
+
+		try {
+			const testResult = await api.test(testRequest);
+
+			await remixClient.terminal.log({
+				type: "log",
+				value: testResult.message
+			});
+
+			if (testResult.status !== "Success") {
+				await remixClient.call(
+					"notification" as any,
+					"toast",
+					"Test request failed"
+				);
+
+				throw new Error("Test Request Failed");
+			}
+
+			await remixClient.call(
+				"notification" as any,
+				"toast",
+				"Test request successful"
+			);
+
+			setIsCompiling(false);
+
+			return testResult;
+		} catch (error) {
+			console.log("error: ", error);
+			setStatus(CompilationStatus.Error);
+			setIsCompiling(false);
+
+			return null;
+		}
+	}
+
 	const writeResultsToArtifacts = async (compileResult: FileContentMap[]): Promise<void> => {
 		const contractToArtifacts: Record<
 		string,
@@ -509,11 +577,11 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 			const result = await compile(compilationRequest);
 
 			if (result != null) {
-				setStatus("done");
+				setStatus(CompilationStatus.Success);
 				setAccordian("deploy");
 			}
 		} catch (e) {
-			setStatus("failed");
+			setStatus(CompilationStatus.Error);
 			if (e instanceof Error) {
 				await remixClient.call("notification" as any, "alert", {
 					id: "starknetRemixPluginAlert",
@@ -525,9 +593,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 		}
 	}
 
-	async function compileScarb (workspacePath: string, scarbPath: string): Promise<void> {
-		console.log(workspacePath, scarbPath);
-
+	async function testScarb (workspacePath: string, scarbPath: string): Promise<void> {
 		try {
 			const compilationRequest: CompilationRequest = {
 				files: await getFolderFilemapRecursive(workspacePath, scarbPath),
@@ -540,11 +606,39 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 				return file;
 			});
 
-			console.log(compilationRequest);
+			const result = await test(compilationRequest);
+
+			if (result != null) {
+				setStatus(CompilationStatus.Success);
+			}
+		} catch (e) {
+			setStatus(CompilationStatus.Error);
+			if (e instanceof Error) {
+				await remixClient.call("notification" as any, "alert", {
+					id: "starknetRemixPluginAlert",
+					title: "Test Failed",
+					message: e.message
+				});
+			}
+
+			console.error(e);
+		}
+	}
+
+	async function compileScarb (workspacePath: string, scarbPath: string): Promise<void> {
+		try {
+			const compilationRequest: CompilationRequest = {
+				files: await getFolderFilemapRecursive(workspacePath, scarbPath),
+				version: null
+			};
+
+			// format request, remove scarbPath from file names
+			compilationRequest.files = compilationRequest.files.map((file) => {
+				file.file_name = file.file_name.replace(scarbPath + "/", "");
+				return file;
+			});
 
 			const result = await compile(compilationRequest);
-
-			console.log("result: ", result);
 
 			if (result != null) {
 				setStatus("done");
@@ -571,6 +665,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 				isLoading={useAtomValue(statusAtom) === CompilationStatus.Compiling}
 				onClick={compileSingle}
 				compileScarb={compileScarb}
+				testScarb={testScarb}
 				currentWorkspacePath={currWorkspacePath}
 			/>
 		</div>
