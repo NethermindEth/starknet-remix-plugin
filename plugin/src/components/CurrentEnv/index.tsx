@@ -1,5 +1,5 @@
 import React from "react";
-import "./currentEnv.css";
+import "./styles.css";
 import { useAtomValue } from "jotai";
 import { envAtom, envName, selectedDevnetAccountAtom } from "../../atoms/environment";
 import { selectedAccountAtom } from "../../atoms/manualAccount";
@@ -18,7 +18,10 @@ export const CurrentEnv: React.FC = () => {
 
 	const selectedAccount =
 		env === "wallet"
-			? { address: walletAccount?.address, balance: 0 }
+			? {
+				address: walletAccount?.address,
+				balance: 0
+			}
 			: env === "manual"
 				? {
 					address: selectedAccountManual?.address,

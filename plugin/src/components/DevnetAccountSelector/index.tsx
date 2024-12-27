@@ -2,7 +2,7 @@ import { getRoundedNumber, getShortenedHash, weiToEth } from "../../utils/utils"
 import React, { useState } from "react";
 import { Account, RpcProvider } from "starknet";
 import { MdCheck, MdCopyAll } from "react-icons/md";
-import "./devnetAccountSelector.css";
+import "./styles.css";
 import copy from "copy-to-clipboard";
 import { useAtom, useAtomValue } from "jotai";
 import {
@@ -18,8 +18,14 @@ import { BsCheck, BsChevronDown } from "react-icons/bs";
 import * as Select from "../../components/ui_components/Select";
 
 const DevnetAccountSelector: React.FC = () => {
-	const { account, setAccount } = useAccount();
-	const { provider, setProvider } = useProvider();
+	const {
+		account,
+		setAccount
+	} = useAccount();
+	const {
+		provider,
+		setProvider
+	} = useProvider();
 	const env = useAtomValue(envAtom);
 	const devnet = useAtomValue(devnetAtom);
 	const isDevnetAlive = useAtomValue(isDevnetAliveAtom);
@@ -29,7 +35,7 @@ const DevnetAccountSelector: React.FC = () => {
 	const [showCopied, setCopied] = useState(false);
 	const [accountIdx, setAccountIdx] = useState(0);
 
-	function handleAccountChange(value: number): void {
+	function handleAccountChange (value: number): void {
 		if (value === -1) {
 			return;
 		}
@@ -56,7 +62,8 @@ const DevnetAccountSelector: React.FC = () => {
 						handleAccountChange(parseInt(value));
 					}}
 				>
-					<Select.Trigger className="flex flex-row justify-content-space-between align-items-center p-2 br-1 devnet-account-selector-trigger">
+					<Select.Trigger
+						className="flex flex-row justify-content-space-between align-items-center p-2 br-1 devnet-account-selector-trigger">
 						<Select.Value placeholder="No accounts found">
 							{availableDevnetAccounts !== undefined &&
 							availableDevnetAccounts.length !== 0 &&
@@ -96,7 +103,7 @@ const DevnetAccountSelector: React.FC = () => {
 									)
 									: (
 										<Select.Item value="-1" key={-1}>
-										No accounts found
+											No accounts found
 										</Select.Item>
 									)}
 							</Select.Viewport>

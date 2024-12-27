@@ -1,11 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { type Transaction } from "../../utils/types/transaction";
-import "./transactioncard.css";
-import {
-	type Network,
-	networkEquivalentsRev,
-	type networkExplorerUrls
-} from "../../utils/constants";
+import "./styles.css";
+import { type Network, networkEquivalentsRev, type networkExplorerUrls } from "../../utils/constants";
 import { getExplorerUrl, getShortenedHash } from "../../utils/utils";
 
 interface TagType {
@@ -46,8 +42,15 @@ interface TransactionCardProps {
 	explorer: keyof typeof networkExplorerUrls;
 }
 
-const TransactionCard: React.FC<TransactionCardProps> = ({ transaction, explorer }) => {
-	const { account, txId, env } = transaction;
+const Index: React.FC<TransactionCardProps> = ({
+	transaction,
+	explorer
+}) => {
+	const {
+		account,
+		txId,
+		env
+	} = transaction;
 
 	const txIdShort = getShortenedHash(txId, 8, 6);
 	const accountShort = getShortenedHash(account?.address ?? "", 8, 6);
@@ -132,4 +135,4 @@ const TransactionCard: React.FC<TransactionCardProps> = ({ transaction, explorer
 	);
 };
 
-export default TransactionCard;
+export default Index;

@@ -1,18 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { Account, CallData, RpcProvider, ec, hash, stark } from "starknet";
-import {
-	type Network,
-	networks as networkConstants,
-	networkEquivalents
-} from "../../utils/constants";
+import { Account, CallData, ec, hash, RpcProvider, stark } from "starknet";
+import { type Network, networkEquivalents, networks as networkConstants } from "../../utils/constants";
 import { ethers } from "ethers";
 
 import storage from "../../utils/storage";
 
-import "./index.css";
+import "./styles.css";
 import { BiCopy, BiPlus } from "react-icons/bi";
 import { getExplorerUrl, getShortenedHash, trimStr } from "../../utils/utils";
-import { MdRefresh, MdCheckCircleOutline, MdCheck } from "react-icons/md";
+import { MdCheck, MdCheckCircleOutline, MdRefresh } from "react-icons/md";
 import copy from "copy-to-clipboard";
 import { useCurrentExplorer } from "../ExplorerSelector";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
@@ -36,8 +32,14 @@ const ManualAccount: React.FC = () => {
 	const balanceContractAddress =
 		"0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7";
 
-	const { account, setAccount } = useAccount();
-	const { provider, setProvider } = useProvider();
+	const {
+		account,
+		setAccount
+	} = useAccount();
+	const {
+		provider,
+		setProvider
+	} = useProvider();
 
 	const setDeclTxHash = useSetAtom(declTxHashAtom);
 	const setDeployTxHash = useSetAtom(deployTxHashAtom);
@@ -112,7 +114,10 @@ const ManualAccount: React.FC = () => {
 			});
 			console.log(resp);
 			const balance = resp[0];
-			const newAccount = { ...selectedAccount, balance };
+			const newAccount = {
+				...selectedAccount,
+				balance
+			};
 			const newAccounts = accounts.map((acc) => {
 				if (acc.address === selectedAccount.address) {
 					return newAccount;
@@ -158,7 +163,7 @@ const ManualAccount: React.FC = () => {
 		storage.set("manualAccounts", JSON.stringify(newAccounts));
 	};
 
-	function handleProviderChange(networkName: string): void {
+	function handleProviderChange (networkName: string): void {
 		const chainId = networkEquivalents.get(networkName);
 		if (chainId) {
 			setNetworkName(networkName);
@@ -173,7 +178,7 @@ const ManualAccount: React.FC = () => {
 		setProvider(null);
 	}
 
-	function handleAccountChange(accountIndex: number): void {
+	function handleAccountChange (accountIndex: number): void {
 		if (accountIndex === -1) return;
 		const selectedAccount = accounts[accountIndex];
 		setSelectedAccount(selectedAccount);
@@ -185,7 +190,7 @@ const ManualAccount: React.FC = () => {
 		}
 	}
 
-	async function deployAccountHandler(): Promise<void> {
+	async function deployAccountHandler (): Promise<void> {
 		if (account == null || provider == null || selectedAccount == null) {
 			return;
 		}
@@ -206,7 +211,10 @@ const ManualAccount: React.FC = () => {
 				publicKey: await account.signer.getPubKey()
 			});
 
-			const { transaction_hash: transactionHash, contract_address: contractAddress } =
+			const {
+				transaction_hash: transactionHash,
+				contract_address: contractAddress
+			} =
 				await account.deployAccount({
 					classHash: OZaccountClassHash,
 					constructorCalldata: OZaccountConstructorCallData,
@@ -308,7 +316,7 @@ const ManualAccount: React.FC = () => {
 										: (
 											<Select.Item value="no-account" key="no-account" disabled>
 												<Select.ItemText>
-												No account created yet
+													No account created yet
 												</Select.ItemText>
 											</Select.Item>
 										)}

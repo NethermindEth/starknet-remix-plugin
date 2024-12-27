@@ -1,8 +1,7 @@
 /* eslint-disable react/prop-types */
 import { type DisconnectOptions } from "get-starknet";
-import { type ReactNode, useState } from "react";
-import React from "react";
-import "./envCard.css";
+import React, { type ReactNode, useState } from "react";
+import "./styles.css";
 import { useAtomValue } from "jotai";
 import { envAtom } from "../../atoms/environment";
 

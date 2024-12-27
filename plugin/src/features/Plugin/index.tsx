@@ -6,7 +6,7 @@ import "./styles.css";
 import Compilation from "../Compilation";
 import Deployment from "../Deployment";
 import Interaction from "../Interaction";
-import Accordian, { AccordianItem, AccordionContent, AccordionTrigger } from "../../components/ui_components/Accordian";
+import Accordian, { AccordionContent, AccordionItem, AccordionTrigger } from "../../components/ui_components/Accordian";
 import TransactionHistory from "../TransactionHistory";
 import Footer from "../Footer";
 import StateAction from "../../components/StateAction";
@@ -245,7 +245,7 @@ const Plugin: React.FC = () => {
 								value={currentAccordian}
 								defaultValue={"compile"}
 							>
-								<AccordianItem value="compile">
+								<AccordionItem value="compile">
 									<AccordionTrigger
 										onClick={() => {
 											handleTabView("compile");
@@ -273,9 +273,9 @@ const Plugin: React.FC = () => {
 									<AccordionContent>
 										<Compilation setAccordian={setCurrentAccordian} />
 									</AccordionContent>
-								</AccordianItem>
+								</AccordionItem>
 
-								<AccordianItem value="deploy">
+								<AccordionItem value="deploy">
 									<AccordionTrigger
 										onClick={() => {
 											handleTabView("deploy");
@@ -303,8 +303,8 @@ const Plugin: React.FC = () => {
 									<AccordionContent>
 										<Deployment setActiveTab={setCurrentAccordian} />
 									</AccordionContent>
-								</AccordianItem>
-								<AccordianItem value="interaction">
+								</AccordionItem>
+								<AccordionItem value="interaction">
 									<AccordionTrigger
 										onClick={() => {
 											handleTabView("interaction");
@@ -322,7 +322,7 @@ const Plugin: React.FC = () => {
 									<AccordionContent>
 										<Interaction setInteractionStatus={setInteractionStatus} />
 									</AccordionContent>
-								</AccordianItem>
+								</AccordionItem>
 							</Accordian>
 						</Tabs.Content>
 

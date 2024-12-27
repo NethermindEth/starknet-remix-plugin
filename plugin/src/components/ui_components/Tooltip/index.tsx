@@ -1,12 +1,16 @@
 import React from "react";
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
-import "./tooltip.css";
+import "./styles.css";
 
 interface ITooltip {
 	icon: React.ReactNode;
 	content: string | React.ReactNode;
 }
-const Tooltip: React.FC<ITooltip> = ({ icon, content }) => {
+
+const Tooltip: React.FC<ITooltip> = ({
+	icon,
+	content
+}) => {
 	return (
 		<TooltipPrimitive.Provider delayDuration={100}>
 			<TooltipPrimitive.Root>

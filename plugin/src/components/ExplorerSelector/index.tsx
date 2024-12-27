@@ -1,7 +1,7 @@
 import React from "react";
 import { networkExplorerUrls as EXPLORERS } from "../../utils/constants";
 
-import "./index.css";
+import "./styles.css";
 import { type IExplorerSelector, type IUseCurrentExplorer } from "../../utils/misc";
 import { BsChevronDown } from "react-icons/bs";
 import { useAtom } from "jotai";
@@ -30,8 +30,14 @@ export const useCurrentExplorer = (): IUseCurrentExplorer => {
 	};
 };
 
-const ExplorerSelector: React.FC<IExplorerSelector> = ({ isInline, controlHook }) => {
-	const { explorer, setExplorer } = controlHook;
+const ExplorerSelector: React.FC<IExplorerSelector> = ({
+	isInline,
+	controlHook
+}) => {
+	const {
+		explorer,
+		setExplorer
+	} = controlHook;
 	return (
 		<div
 			className={"flex selectors-wrapper-root"}
