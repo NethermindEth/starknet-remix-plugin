@@ -62,14 +62,22 @@ RUN asdf install starknet-foundry latest
 RUN asdf global starknet-foundry latest
 # ----------------------------------------------------------------------------
 
+# ----------------------------------------------------------------------------
+# INSTALL UNIVERSAL SIERRA COMPILER
+# ----------------------------------------------------------------------------
+RUN curl -L https://raw.githubusercontent.com/software-mansion/universal-sierra-compiler/master/scripts/install.sh | sh
+# ----------------------------------------------------------------------------
 
 WORKDIR /opt/app
 SHELL ["/bin/bash", "-lc"]
 
-# Install Rust
+# ----------------------------------------------------------------------------
+# INSTALL RUST
+# ----------------------------------------------------------------------------
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain stable -y
 RUN whoami
 ENV PATH="/root/.cargo/bin:${PATH}"
+# ----------------------------------------------------------------------------
 
 # copy Remix plugin source
 COPY . /opt/app
