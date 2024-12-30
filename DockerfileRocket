@@ -55,17 +55,19 @@ RUN asdf global scarb ${SCARB_VERSION}
 # ----------------------------------------------------------------------------
 
 # ----------------------------------------------------------------------------
+# INSTALL UNIVERSAL SIERRA COMPILER
+# ----------------------------------------------------------------------------
+RUN curl -L https://raw.githubusercontent.com/software-mansion/universal-sierra-compiler/master/scripts/install.sh | bash
+
+ENV PATH="/root/.local/bin:${PATH}"
+# ----------------------------------------------------------------------------
+
+# ----------------------------------------------------------------------------
 # INSTALL FOUNDRY USING ASDF
 # ----------------------------------------------------------------------------
 RUN asdf plugin add starknet-foundry
 RUN asdf install starknet-foundry latest
 RUN asdf global starknet-foundry latest
-# ----------------------------------------------------------------------------
-
-# ----------------------------------------------------------------------------
-# INSTALL UNIVERSAL SIERRA COMPILER
-# ----------------------------------------------------------------------------
-RUN curl -L https://raw.githubusercontent.com/software-mansion/universal-sierra-compiler/master/scripts/install.sh | sh
 # ----------------------------------------------------------------------------
 
 WORKDIR /opt/app
