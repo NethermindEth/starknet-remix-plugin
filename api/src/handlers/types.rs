@@ -196,7 +196,7 @@ impl TestEngine {
     pub fn as_str(&self) -> &str {
         match self {
             TestEngine::Scarb => "scarb",
-            TestEngine::Forge => "forge",
+            TestEngine::Forge => "snforge",
         }
     }
 }
