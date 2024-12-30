@@ -13,8 +13,8 @@ pub mod worker;
 use anyhow::Context;
 use handlers::allowed_versions::{get_allowed_versions, start_version_updater};
 use handlers::compile::{compile_async, get_compile_result};
+use handlers::multi_test::{get_test_result, test_async};
 use handlers::process::get_process_status;
-use handlers::scarb_test::{get_scarb_test_result, scarb_test_async};
 use handlers::scarb_version::{get_scarb_version_result, scarb_version_async};
 use handlers::utils::on_plugin_launched;
 use handlers::{health, who_is_this};
@@ -84,8 +84,8 @@ fn create_app(metrics: Metrics) -> Rocket<Build> {
                 get_process_status,
                 health,
                 who_is_this,
-                get_scarb_test_result,
-                scarb_test_async,
+                get_test_result,
+                test_async,
                 on_plugin_launched,
                 get_allowed_versions,
             ],

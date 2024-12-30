@@ -12,7 +12,7 @@ use super::scarb_version::do_scarb_version;
 use super::types::{BaseRequest, CompilationRequest, FileContentMap, Successful};
 use super::{
     compile::do_compile,
-    scarb_test::do_scarb_test,
+    multi_test::do_test,
     types::{ApiCommand, ApiCommandResult},
 };
 
@@ -113,7 +113,7 @@ pub async fn dispatch_command(command: ApiCommand, metrics: &Metrics) -> Result<
             Err(e) => Err(e),
         },
         ApiCommand::Shutdown => Ok(ApiCommandResult::Shutdown),
-        ApiCommand::ScarbTest { test_request } => match do_scarb_test(test_request).await {
+        ApiCommand::ScarbTest { test_request } => match do_test(test_request).await {
             Ok(result) => Ok(ApiCommandResult::Test(result)),
             Err(e) => Err(e),
         },

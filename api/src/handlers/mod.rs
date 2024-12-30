@@ -1,7 +1,7 @@
 pub mod allowed_versions;
 pub mod compile;
+pub mod multi_test;
 pub mod process;
-pub mod scarb_test;
 pub mod scarb_version;
 pub mod types;
 pub mod utils;
