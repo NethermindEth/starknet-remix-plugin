@@ -89,7 +89,7 @@ pub async fn do_compile(
     let compilation_request = ensure_scarb_toml(compilation_request).await?;
 
     // Create temporary directories
-    let temp_dir = init_directories(compilation_request.clone())
+    let temp_dir = init_directories(&compilation_request.base_request)
         .await
         .map_err(|e| {
             error!("Failed to initialize directories: {:?}", e);

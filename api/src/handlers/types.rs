@@ -163,22 +163,58 @@ impl<T> Successful for ApiResponse<T> {
 
 #[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
 #[serde(crate = "rocket::serde")]
-pub struct CompilationRequest {
+pub struct BaseRequest {
     pub files: Vec<FileContentMap>,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
+#[serde(crate = "rocket::serde")]
+pub struct CompilationRequest {
+    #[serde(flatten)]
+    pub base_request: BaseRequest,
     pub version: Option<String>,
 }
 
-pub type TestRequest = CompilationRequest;
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
+#[serde(crate = "rocket::serde")]
+pub struct TestRequest {
+    #[serde(flatten)]
+    pub base_request: BaseRequest,
+    pub test_engine: TestEngine,
+}
+
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
+#[serde(crate = "rocket::serde")]
+pub enum TestEngine {
+    #[serde(alias = "scarb")]
+    Scarb,
+    #[serde(alias = "forge")]
+    Forge,
+}
+
+impl TestEngine {
+    pub fn as_str(&self) -> &str {
+        match self {
+            TestEngine::Scarb => "scarb",
+            TestEngine::Forge => "forge",
+        }
+    }
+}
 
 impl CompilationRequest {
     pub fn has_scarb_toml(&self) -> bool {
-        self.files
+        self.base_request
+            .files
             .iter()
             .any(|f| f.file_name.ends_with("Scarb.toml"))
     }
 
     pub fn file_names(&self) -> Vec<String> {
-        self.files.iter().map(|f| f.file_name.clone()).collect()
+        self.base_request
+            .files
+            .iter()
+            .map(|f| f.file_name.clone())
+            .collect()
     }
 }
 

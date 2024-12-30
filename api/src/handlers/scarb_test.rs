@@ -50,16 +50,18 @@ pub async fn get_scarb_test_result(
 /// - Command returned non-zero status
 pub async fn do_scarb_test(test_request: TestRequest) -> Result<TestResponse> {
     // Create temporary directories
-    let temp_dir = init_directories(test_request).await.map_err(|e| {
-        error!("Failed to initialize directories: {:?}", e);
-        e
-    })?;
+    let temp_dir = init_directories(&test_request.base_request)
+        .await
+        .map_err(|e| {
+            error!("Failed to initialize directories: {:?}", e);
+            e
+        })?;
 
     let auto_clean_up = AutoCleanUp {
         dirs: vec![&temp_dir],
     };
 
-    let mut compile = Command::new("scarb");
+    let mut compile = Command::new(test_request.test_engine.as_str());
     compile.current_dir(&temp_dir);
 
     debug!("Executing scarb test command in directory: {:?}", temp_dir);

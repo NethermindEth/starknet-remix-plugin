@@ -13,8 +13,8 @@ import transactionsAtom from "../../atoms/transactions";
 import "./styles.css";
 import {
 	compiledContractsAtom,
-	selectedCompiledContract,
 	deployedContractsAtom,
+	selectedCompiledContract,
 	selectedDeployedContract
 } from "../../atoms/compiledContracts";
 import { envAtom } from "../../atoms/environment";
@@ -23,19 +23,20 @@ import useProvider from "../../hooks/useProvider";
 import useRemixClient from "../../hooks/useRemixClient";
 import {
 	constructorInputsAtom,
-	deployStatusAtom,
 	declStatusAtom,
-	deploymentAtom,
-	isDeployingAtom,
-	isDelcaringAtom,
 	declTxHashAtom,
-	deployTxHashAtom
+	deploymentAtom,
+	deployStatusAtom,
+	deployTxHashAtom,
+	isDelcaringAtom,
+	isDeployingAtom
 } from "../../atoms/deployment";
 
 import { useWaitForTransaction } from "@starknet-react/core";
 import { type CallbackReturnType, ConstructorForm } from "starknet-abi-forms";
 import { useIcon } from "../../hooks/useIcons";
 import { DeclareStatusLabels } from "../../utils/constants";
+
 interface DeploymentProps {
 	setActiveTab: (tab: AccordianTabs) => void;
 }
@@ -51,12 +52,19 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 	const setSelectedDeployedContract = useSetAtom(selectedDeployedContract);
 
 	useEffect(() => {
-		if (contracts.length > 0) {
+		if (contracts.length > 0 && (selectedContract === null)) {
 			setSelectedContract(contracts[0]);
 		}
 	}, [contracts]);
 
-	const { isDeclaring, isDeploying, declStatus, notEnoughInputs, declTxHash, deployTxHash } =
+	const {
+		isDeclaring,
+		isDeploying,
+		declStatus,
+		notEnoughInputs,
+		declTxHash,
+		deployTxHash
+	} =
 		useAtomValue(deploymentAtom);
 
 	const setIsDeploying = useSetAtom(isDeployingAtom);
@@ -125,7 +133,8 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 					value: JSON.stringify(declTxStatus.data, null, 2),
 					type: "info"
 				})
-				.catch(() => {});
+				.catch(() => {
+				});
 
 			remixClient
 				.call("terminal", "log", {
@@ -134,7 +143,8 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 					} tx receipt ------------------`,
 					type: "info"
 				})
-				.catch(() => {});
+				.catch(() => {
+				});
 		}
 		if (declTxStatus.status === "error") {
 			setDeclStatus("ERROR");
@@ -148,7 +158,8 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 					value: JSON.stringify(declTxStatus, null, 2),
 					type: "info"
 				})
-				.catch(() => {});
+				.catch(() => {
+				});
 
 			remixClient
 				.call("terminal", "log", {
@@ -157,7 +168,8 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 					} tx receipt ------------------`,
 					type: "info"
 				})
-				.catch(() => {});
+				.catch(() => {
+				});
 			setIsDeclaring(false);
 		}
 		if (declTxStatus.status === "pending") {
@@ -169,7 +181,8 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 						} tx receipt --------------------`,
 						type: "info"
 					})
-					.catch(() => {});
+					.catch(() => {
+					});
 			}
 		}
 	}, [declTxHash, declTxStatus.status]);
@@ -195,7 +208,8 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 					value: JSON.stringify(deployTxStatus.data, null, 2),
 					type: "info"
 				})
-				.catch(() => {});
+				.catch(() => {
+				});
 
 			remixClient
 				.call("terminal", "log", {
@@ -204,7 +218,8 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 					} tx receipt ------------------`,
 					type: "info"
 				})
-				.catch(() => {});
+				.catch(() => {
+				});
 		}
 		if (deployTxStatus.status === "error") {
 			setDeployStatus("ERROR");
@@ -218,7 +233,8 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 					value: JSON.stringify(deployTxStatus, null, 2),
 					type: "info"
 				})
-				.catch(() => {});
+				.catch(() => {
+				});
 
 			remixClient
 				.call("terminal", "log", {
@@ -227,7 +243,8 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 					} tx receipt ------------------`,
 					type: "info"
 				})
-				.catch(() => {});
+				.catch(() => {
+				});
 			setIsDeploying(false);
 		}
 		if (deployTxStatus.status === "pending") {
@@ -239,7 +256,8 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 						} tx receipt --------------------`,
 						type: "info"
 					})
-					.catch(() => {});
+					.catch(() => {
+					});
 			}
 		}
 	}, [deployTxHash, deployTxStatus.status]);
@@ -346,8 +364,8 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 					});
 					throw new Error(
 						error.message +
-							"\n Aborting deployment... Couldn't get declare infomation" +
-							"\n Please ensure that the Account is deployed on the chain"
+						"\n Aborting deployment... Couldn't get declare infomation" +
+						"\n Please ensure that the Account is deployed on the chain"
 					);
 				}
 			}
@@ -482,7 +500,10 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 		if (account == null) return;
 		const declaredContract = {
 			...currentContract,
-			declaredInfo: [...currentContract.declaredInfo, { chainId, env }]
+			declaredInfo: [...currentContract.declaredInfo, {
+				chainId,
+				env
+			}]
 		};
 		const updatedContracts = contracts.map((contract) => {
 			if (contract.classHash === declaredContract.classHash) {
@@ -504,7 +525,10 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 			address,
 			deployedInfo: [
 				...currentContract.deployedInfo,
-				{ address: account.address, chainId }
+				{
+					address: account.address,
+					chainId
+				}
 			].flatMap((deployment) => {
 				const key = `${deployment.address}-${deployment.chainId}`;
 				if (deployedInfoMap.has(key)) {
@@ -557,27 +581,27 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 									style={{
 										cursor: `${
 											isDeclaring ||
-										account == null ||
-										selectedContract.declaredInfo.some(
-											(info) => info.chainId === chainId && info.env === env
-										)
+											account == null ||
+											selectedContract.declaredInfo.some(
+												(info) => info.chainId === chainId && info.env === env
+											)
 												? "not-allowed"
 												: "pointer"
 										}`
 									}}
 									disabled={
 										isDeclaring ||
-									account == null ||
-									selectedContract.declaredInfo.some(
-										(info) => info.chainId === chainId && info.env === env
-									)
+										account == null ||
+										selectedContract.declaredInfo.some(
+											(info) => info.chainId === chainId && info.env === env
+										)
 									}
 									aria-disabled={
 										isDeclaring ||
-									account == null ||
-									selectedContract.declaredInfo.some(
-										(info) => info.chainId === chainId && info.env === env
-									)
+										account == null ||
+										selectedContract.declaredInfo.some(
+											(info) => info.chainId === chainId && info.env === env
+										)
 									}
 									onClick={handleDeclare}
 								>
@@ -598,15 +622,15 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 												: (
 													<div className="text-truncate overflow-hidden text-nowrap">
 														{account !== null &&
-												selectedContract.declaredInfo.some(
-													(info) =>
-														info.chainId === chainId &&
-														info.env === env
-												)
+														selectedContract.declaredInfo.some(
+															(info) =>
+																info.chainId === chainId &&
+																info.env === env
+														)
 															? (
 																<span>
 																	{" "}
-														Declared {selectedContract.name}{" "}
+																	Declared {selectedContract.name}{" "}
 																	<i className="bi bi-check"></i>
 																</span>
 															)
@@ -623,14 +647,14 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 									callBackFn={handleDeploySubmit}
 								/>
 								{account != null &&
-								selectedContract.deployedInfo.some(
-									(info) =>
-										info.address === account.address &&
-										info.chainId === chainId
-								) && (
+									selectedContract.deployedInfo.some(
+										(info) =>
+											info.address === account.address &&
+											info.chainId === chainId
+									) && (
 									<div className="mt-3">
 										<label style={{ display: "block" }}>
-											Contract deployed! See{" "}
+												Contract deployed! See{" "}
 											<a
 												href="/"
 												className="text-info"
@@ -639,9 +663,9 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 													setActiveTab("interaction");
 												}}
 											>
-												Interact
+													Interact
 											</a>{" "}
-											for more!
+												for more!
 										</label>
 									</div>
 								)}
