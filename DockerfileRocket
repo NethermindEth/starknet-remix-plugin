@@ -27,12 +27,44 @@ RUN echo "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com 
 RUN apt-get update
 RUN apt-get install grafana-agent-flow
 
+# ----------------------------------------------------------------------------
+# ASDF INSTALLATION
+# ----------------------------------------------------------------------------
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        automake \
+        autoconf \
+        libreadline-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+ENV ASDF_VERSION="v0.13.1"
+RUN git clone --branch "${ASDF_VERSION}" https://github.com/asdf-vm/asdf.git ~/.asdf
+
+ENV ASDF_DIR="/root/.asdf"
+ENV PATH="${ASDF_DIR}/bin:${ASDF_DIR}/shims:${PATH}"
+RUN echo -e '\n. $ASDF_DIR/asdf.sh' >> /root/.bashrc && \
+    echo -e '\n. $ASDF_DIR/completions/asdf.bash' >> /root/.bashrc
+# ----------------------------------------------------------------------------
+
+# ----------------------------------------------------------------------------
+# INSTALL SCARB USING ASDF
+# ----------------------------------------------------------------------------
+RUN asdf plugin add scarb
+RUN asdf install scarb ${SCARB_VERSION}
+RUN asdf global scarb ${SCARB_VERSION}
+# ----------------------------------------------------------------------------
+
+# ----------------------------------------------------------------------------
+# INSTALL FOUNDRY USING ASDF
+# ----------------------------------------------------------------------------
+RUN asdf plugin add starknet-foundry
+RUN asdf install starknet-foundry latest
+RUN asdf global starknet-foundry latest
+# ----------------------------------------------------------------------------
+
+
 WORKDIR /opt/app
 SHELL ["/bin/bash", "-lc"]
-
-# install Scarb (NOTE: a SPECIFIC version of Scarb is installed)
-RUN curl --proto '=https' --tlsv1.2 -sSf https://docs.swmansion.com/scarb/install.sh | bash -s -- -v $SCARB_VERSION
-ENV PATH="/root/.local/bin:${PATH}"
 
 # Install Rust
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain stable -y
