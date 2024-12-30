@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import copy from "copy-to-clipboard";
-import "./wallet.css";
-import { MdCopyAll, MdCheck } from "react-icons/md";
+import "./styles.css";
+import { MdCheck, MdCopyAll } from "react-icons/md";
 import { type Network } from "../../utils/constants";
 import { useCurrentExplorer } from "../ExplorerSelector";
 import { getExplorerUrl, trimStr } from "../../utils/utils";
-import { useAccount, useProvider, useNetwork } from "@starknet-react/core";
+import { useAccount, useNetwork, useProvider } from "@starknet-react/core";
 import ConnectModal from "../starknet/connect";
 import DisconnectModal from "../starknet/disconnect";
 import { formatWalletAddress, getChainName } from "../../utils/starknet";
@@ -18,7 +18,12 @@ import { useSetAtom } from "jotai";
 const Wallet: React.FC = () => {
 	const [showCopied, setCopied] = useState(false);
 
-	const { status, account, address, connector } = useAccount();
+	const {
+		status,
+		account,
+		address,
+		connector
+	} = useAccount();
 	const { chain } = useNetwork();
 	const { provider } = useProvider();
 

@@ -1,5 +1,5 @@
 import React from "react";
-import "./settings.css";
+import "./styles.css";
 import { BsChevronDown } from "react-icons/bs";
 import { useAtom, useAtomValue } from "jotai";
 import { cairoVersionAtom, versionsAtom } from "../../atoms/cairoVersion";
@@ -22,7 +22,8 @@ export const Settings: React.FC = () => {
 					{cairoVersion !== null
 						? (
 							<Select.Root value={cairoVersion} onValueChange={setCairoVersion}>
-								<Select.Trigger className="flex flex-row justify-between align-items-center devnet-trigger-wrapper w-100">
+								<Select.Trigger
+									className="flex flex-row justify-between align-items-center devnet-trigger-wrapper w-100">
 									<Select.Value>
 										<div className="flex flex-column align-items-center m-0">
 											<p>{cairoVersion}</p>

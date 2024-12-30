@@ -42,8 +42,6 @@ interface AbiElement {
 
 type Abi = AbiElement[];
 
-type Contracts = Record<string, Contract>;
-
 type CallDataObject = Record<
 string,
 {
@@ -58,7 +56,6 @@ export type {
 	AbiElement,
 	CallDataObject,
 	Contract,
-	Contracts,
 	Input,
 	Output,
 	CallDataObj

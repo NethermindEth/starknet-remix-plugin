@@ -1,6 +1,5 @@
-import { type ReactNode } from "react";
-import React from "react";
-import "./card.css";
+import React, { type ReactNode } from "react";
+import "./styles.css";
 
 export interface CardProps {
 	header?: string;
@@ -8,7 +7,11 @@ export interface CardProps {
 	children: ReactNode;
 }
 
-export const Card: React.FC<CardProps> = ({ header, children, rightItem }) => {
+export const Card: React.FC<CardProps> = ({
+	header,
+	children,
+	rightItem
+}) => {
 	return (
 		<div className="border-top border-bottom">
 			{header !== undefined && (

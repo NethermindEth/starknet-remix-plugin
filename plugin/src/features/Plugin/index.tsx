@@ -6,7 +6,7 @@ import "./styles.css";
 import Compilation from "../Compilation";
 import Deployment from "../Deployment";
 import Interaction from "../Interaction";
-import Accordian, { AccordianItem, AccordionContent, AccordionTrigger } from "../../components/ui_components/Accordian";
+import Accordian, { AccordionContent, AccordionItem, AccordionTrigger } from "../../components/ui_components/Accordian";
 import TransactionHistory from "../TransactionHistory";
 import Footer from "../Footer";
 import StateAction from "../../components/StateAction";
@@ -24,7 +24,13 @@ import { StarknetProvider } from "../../components/starknet/starknet-provider";
 import { CompilationStatus, statusAtom } from "../../atoms/compilation";
 import { useApi } from "../../utils/api";
 import { Account, RpcProvider } from "starknet";
-import { availableDevnetAccountsAtom, devnetAtom, envAtom, isDevnetAliveAtom, selectedDevnetAccountAtom } from "../../atoms/environment";
+import {
+	availableDevnetAccountsAtom,
+	devnetAtom,
+	envAtom,
+	isDevnetAliveAtom,
+	selectedDevnetAccountAtom
+} from "../../atoms/environment";
 import useAccount from "../../hooks/useAccount";
 import useProvider from "../../hooks/useProvider";
 
@@ -108,7 +114,9 @@ const Plugin: React.FC = () => {
 	const devnet = useAtomValue(devnetAtom);
 	const [isDevnetAlive, setIsDevnetAlive] = useAtom(isDevnetAliveAtom);
 	const [selectedDevnetAccount, setSelectedDevnetAccount] = useAtom(selectedDevnetAccountAtom);
-	const [availableDevnetAccounts, setAvailableDevnetAccounts] = useAtom(availableDevnetAccountsAtom);
+	const [availableDevnetAccounts, setAvailableDevnetAccounts] = useAtom(
+		availableDevnetAccountsAtom
+	);
 	const { setAccount } = useAccount();
 	const { setProvider } = useProvider();
 	const env = useAtomValue(envAtom);
@@ -150,7 +158,9 @@ const Plugin: React.FC = () => {
 					if (accounts.length > 0 && selectedDevnetAccount === null) {
 						setSelectedDevnetAccount(accounts[0]);
 					}
-				} else setAvailableDevnetAccounts([]);
+				} else {
+					setAvailableDevnetAccounts([]);
+				}
 			}
 		} catch (e) {
 			setAvailableDevnetAccounts([]);
@@ -214,7 +224,7 @@ const Plugin: React.FC = () => {
 					</div>
 
 					<Tabs.Root defaultValue={"home"}>
-						<Tabs.List className={"flex justify-between rounded tab-list"}>
+						<Tabs.List className={"tab-list"}>
 							<Tabs.Trigger value={"home"} className={"tabs-trigger"}>
 								Home
 							</Tabs.Trigger>
@@ -235,7 +245,7 @@ const Plugin: React.FC = () => {
 								value={currentAccordian}
 								defaultValue={"compile"}
 							>
-								<AccordianItem value="compile">
+								<AccordionItem value="compile">
 									<AccordionTrigger
 										onClick={() => {
 											handleTabView("compile");
@@ -263,9 +273,9 @@ const Plugin: React.FC = () => {
 									<AccordionContent>
 										<Compilation setAccordian={setCurrentAccordian} />
 									</AccordionContent>
-								</AccordianItem>
+								</AccordionItem>
 
-								<AccordianItem value="deploy">
+								<AccordionItem value="deploy">
 									<AccordionTrigger
 										onClick={() => {
 											handleTabView("deploy");
@@ -293,8 +303,8 @@ const Plugin: React.FC = () => {
 									<AccordionContent>
 										<Deployment setActiveTab={setCurrentAccordian} />
 									</AccordionContent>
-								</AccordianItem>
-								<AccordianItem value="interaction">
+								</AccordionItem>
+								<AccordionItem value="interaction">
 									<AccordionTrigger
 										onClick={() => {
 											handleTabView("interaction");
@@ -312,7 +322,7 @@ const Plugin: React.FC = () => {
 									<AccordionContent>
 										<Interaction setInteractionStatus={setInteractionStatus} />
 									</AccordionContent>
-								</AccordianItem>
+								</AccordionItem>
 							</Accordian>
 						</Tabs.Content>
 

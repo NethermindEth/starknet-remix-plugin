@@ -4,15 +4,12 @@ import React, { useEffect } from "react";
 import CompiledContracts from "../../components/CompiledContracts";
 import Container from "../../components/ui_components/Container";
 import storage from "../../utils/storage";
-import "./index.css";
+import "./styles.css";
 import "./override.css";
 import { useAtom, useAtomValue } from "jotai";
 
 import transactionsAtom from "../../atoms/transactions";
-import {
-	deployedContractsAtom,
-	selectedDeployedContract
-} from "../../atoms/compiledContracts";
+import { deployedContractsAtom, selectedDeployedContract } from "../../atoms/compiledContracts";
 import { envAtom } from "../../atoms/environment";
 import useAccount from "../../hooks/useAccount";
 import useProvider from "../../hooks/useProvider";
@@ -77,14 +74,16 @@ const Interaction: React.FC<InteractionProps> = (props) => {
 					value: JSON.stringify(invokeTxStatus.data, null, 2),
 					type: "info"
 				})
-				.catch(() => {});
+				.catch(() => {
+				});
 
 			remixClient
 				.call("terminal", "log", {
 					value: "--------------------- End fetching invoke transaction details ------------------",
 					type: "info"
 				})
-				.catch(() => {});
+				.catch(() => {
+				});
 		}
 		if (invokeTxStatus.status === "error") {
 			props.setInteractionStatus("error");
@@ -99,14 +98,16 @@ const Interaction: React.FC<InteractionProps> = (props) => {
 					value: JSON.stringify(invokeTxStatus, null, 2),
 					type: "info"
 				})
-				.catch(() => {});
+				.catch(() => {
+				});
 
 			remixClient
 				.call("terminal", "log", {
 					value: "--------------------- End fetching transaction details ------------------",
 					type: "info"
 				})
-				.catch(() => {});
+				.catch(() => {
+				});
 			setIsInvoking(false);
 		}
 		if (invokeTxStatus.status === "pending") {
@@ -116,7 +117,8 @@ const Interaction: React.FC<InteractionProps> = (props) => {
 						value: "--------------------- Fetching invoke transaction details --------------------",
 						type: "info"
 					})
-					.catch(() => {});
+					.catch(() => {
+					});
 			}
 		}
 	}, [invokeTxHash, invokeTxStatus.status]);

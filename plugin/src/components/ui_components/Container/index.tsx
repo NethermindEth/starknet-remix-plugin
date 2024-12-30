@@ -1,6 +1,6 @@
 import React from "react";
 
-import "./container.css";
+import "./styles.css";
 
 interface IContainer {
 	children?: React.ReactNode;

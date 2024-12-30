@@ -16,9 +16,6 @@ const artifactFolder = (path: string): string => {
 	return path.split("/").slice(0, -1).join("/").concat("/artifacts");
 };
 
-const artifactFilename = (ext: ".json" | ".casm", filename: string): string =>
-	filename.split(".")[0].concat(ext);
-
 const getShortenedHash = (address: string, first: number, second: number): string => {
 	return `${address.slice(0, first)}...${address.slice(-1 * second)}`;
 };
@@ -52,7 +49,6 @@ export {
 	getFileNameFromPath,
 	getContractNameFromFullName,
 	artifactFolder,
-	artifactFilename,
 	getShortenedHash,
 	getConstructor,
 	getRoundedNumber,

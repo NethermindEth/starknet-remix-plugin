@@ -21,24 +21,29 @@ export interface CompilationRequest {
 	version: string | null;
 }
 
-export interface TestRequest extends CompilationRequest {}
+export interface TestRequest extends CompilationRequest {
+}
 
-export interface CompilationResponse extends ApiResponse<FileContentMap[]> {}
+export interface CompilationResponse extends ApiResponse<FileContentMap[]> {
+}
 
-export interface TestResponse extends ApiResponse<void> {}
+export interface TestResponse extends ApiResponse<void> {
+}
 
-export interface VersionResponse extends ApiResponse<string> {}
+export interface VersionResponse extends ApiResponse<string> {
+}
 
-export interface AllowedVersionsResponse extends ApiResponse<string[]> {}
+export interface AllowedVersionsResponse extends ApiResponse<string[]> {
+}
 
 export class Api {
 	private readonly apiUrl: string;
 
-	constructor(apiUrl: string) {
+	constructor (apiUrl: string) {
 		this.apiUrl = apiUrl;
 	}
 
-	private async asyncFetch<T>(
+	private async asyncFetch<T> (
 		method: string,
 		getterMethod: string,
 		body?: any
@@ -80,7 +85,7 @@ export class Api {
 		}
 	}
 
-	private async waitProcess(pid: string): Promise<string> {
+	private async waitProcess (pid: string): Promise<string> {
 		const response: ApiResponse<string> = await this.rawGetRequest(`process_status/${pid}`);
 
 		console.log("response: ", response);
@@ -102,7 +107,7 @@ export class Api {
 		throw new Error(`Unknown process status: ${pid}`);
 	}
 
-	private async rawGetRequest<T>(method: string): Promise<T> {
+	private async rawGetRequest<T> (method: string): Promise<T> {
 		const response = await fetch(`${this.apiUrl}/${method}`, {
 			method: "GET",
 			redirect: "follow",
@@ -114,19 +119,19 @@ export class Api {
 		return await response.json();
 	}
 
-	public async compile(request: CompilationRequest): Promise<CompilationResponse> {
+	public async compile (request: CompilationRequest): Promise<CompilationResponse> {
 		return await this.asyncFetch("compile-async", "compile-async", request);
 	}
 
-	public async test(request: TestRequest): Promise<TestResponse> {
-		return await this.asyncFetch("scarb-test-async", "scarb-test-async", request);
+	public async test (request: TestRequest): Promise<TestResponse> {
+		return await this.asyncFetch("test-async", "test-async", request);
 	}
 
-	public async version(): Promise<VersionResponse> {
+	public async version (): Promise<VersionResponse> {
 		return await this.asyncFetch("scarb-version-async", "scarb-version-async");
 	}
 
-	public async allowedVersions(): Promise<AllowedVersionsResponse> {
+	public async allowedVersions (): Promise<AllowedVersionsResponse> {
 		return await this.rawGetRequest("allowed-versions");
 	}
 }

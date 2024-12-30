@@ -1,5 +1,5 @@
 import React from "react";
-import "./overlay.css";
+import "./styles.css";
 
 const FullScreenOverlay: React.FC<{
 	children: React.ReactNode;

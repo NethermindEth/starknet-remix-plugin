@@ -1,6 +1,6 @@
 import React from "react";
 import Nethermind from "../../components/NM";
-import "./style.css";
+import "./styles.css";
 import { useAtomValue } from "jotai";
 import { cairoVersionAtom } from "../../atoms/cairoVersion";
 import LoadingDots from "../../components/LoadingDots";

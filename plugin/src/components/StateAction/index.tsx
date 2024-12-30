@@ -1,6 +1,6 @@
 import React from "react";
 
-import "./index.css";
+import "./styles.css";
 import { MdCheckCircleOutline, MdErrorOutline } from "react-icons/md";
 
 interface IStateAction {

@@ -1,6 +1,6 @@
 import { nanoid } from "nanoid";
 import React from "react";
-import "./style.css";
+import "./styles.css";
 
 const Notices = [
 	"The starknet Remix Plugin is in Alpha",
