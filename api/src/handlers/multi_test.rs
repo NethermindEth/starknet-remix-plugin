@@ -13,7 +13,7 @@ use tracing::{debug, error, info, instrument};
 
 #[instrument(skip(test_request, engine, _rate_limited))]
 #[post("/test-async", data = "<test_request>")]
-pub async fn scarb_test_async(
+pub async fn test_async(
     test_request: Json<TestRequest>,
     engine: &State<WorkerEngine>,
     _rate_limited: RateLimited,
@@ -29,17 +29,14 @@ pub async fn scarb_test_async(
 
 #[instrument(skip(engine))]
 #[get("/test-async/<process_id>")]
-pub async fn get_scarb_test_result(
-    process_id: &str,
-    engine: &State<WorkerEngine>,
-) -> ApiResponse<()> {
+pub async fn get_test_result(process_id: &str, engine: &State<WorkerEngine>) -> ApiResponse<()> {
     info!("/test-async/{:?}", process_id);
     fetch_process_result::<TestResponseGetter>(process_id, engine)
         .map(|result| result.0)
         .unwrap_or_else(|err| err.into_typed())
 }
 
-/// Run Scarb to test a project
+/// Test a project using scarb or forge
 ///
 /// # Errors
 /// Returns ApiError if:
@@ -48,21 +45,28 @@ pub async fn get_scarb_test_result(
 /// - Failed to read command output
 /// - Failed to parse command output as UTF-8
 /// - Command returned non-zero status
-pub async fn do_scarb_test(test_request: TestRequest) -> Result<TestResponse> {
+pub async fn do_test(test_request: TestRequest) -> Result<TestResponse> {
     // Create temporary directories
-    let temp_dir = init_directories(test_request).await.map_err(|e| {
-        error!("Failed to initialize directories: {:?}", e);
-        e
-    })?;
+    let temp_dir = init_directories(&test_request.base_request)
+        .await
+        .map_err(|e| {
+            error!("Failed to initialize directories: {:?}", e);
+            e
+        })?;
 
     let auto_clean_up = AutoCleanUp {
         dirs: vec![&temp_dir],
     };
 
-    let mut compile = Command::new("scarb");
+    let test_command = test_request.test_engine.as_str();
+
+    let mut compile = Command::new(test_command);
     compile.current_dir(&temp_dir);
 
-    debug!("Executing scarb test command in directory: {:?}", temp_dir);
+    debug!(
+        "Executing {} test command in directory: {:?}",
+        test_command, temp_dir
+    );
 
     let result = compile
         .arg("test")
@@ -70,14 +74,14 @@ pub async fn do_scarb_test(test_request: TestRequest) -> Result<TestResponse> {
         .stderr(Stdio::piped())
         .spawn()
         .map_err(|e| {
-            error!("Failed to execute scarb test command: {:?}", e);
+            error!("Failed to execute {} test command: {:?}", test_command, e);
             CmdError::FailedToExecuteCommand(e)
         })?;
 
     debug!("Executed command: {:?}", compile);
 
     let output = result.wait_with_output().map_err(|e| {
-        error!("Failed to read scarb test output: {:?}", e);
+        error!("Failed to read test output: {:?}", e);
         CmdError::FailedToReadOutput(e)
     })?;
 

@@ -9,10 +9,10 @@ use crate::handlers::compile::{default_scarb_toml, scarb_toml_with_version};
 use crate::metrics::{Metrics, COMPILATION_LABEL_VALUE};
 
 use super::scarb_version::do_scarb_version;
-use super::types::{CompilationRequest, FileContentMap, Successful};
+use super::types::{BaseRequest, CompilationRequest, FileContentMap, Successful};
 use super::{
     compile::do_compile,
-    scarb_test::do_scarb_test,
+    multi_test::do_test,
     types::{ApiCommand, ApiCommandResult},
 };
 
@@ -113,7 +113,7 @@ pub async fn dispatch_command(command: ApiCommand, metrics: &Metrics) -> Result<
             Err(e) => Err(e),
         },
         ApiCommand::Shutdown => Ok(ApiCommandResult::Shutdown),
-        ApiCommand::ScarbTest { test_request } => match do_scarb_test(test_request).await {
+        ApiCommand::ScarbTest { test_request } => match do_test(test_request).await {
             Ok(result) => Ok(ApiCommandResult::Test(result)),
             Err(e) => Err(e),
         },
@@ -144,10 +144,10 @@ pub async fn create_temp_dir() -> Result<PathBuf> {
     Ok(folder_path)
 }
 
-pub async fn init_directories(compilation_request: CompilationRequest) -> Result<String> {
+pub async fn init_directories(base_request: &BaseRequest) -> Result<String> {
     let temp_dir = create_temp_dir().await?;
 
-    for file in compilation_request.files.iter() {
+    for file in base_request.files.iter() {
         let file_path = temp_dir.join(&file.file_name);
 
         if let Some(parent) = file_path.parent() {
@@ -210,6 +210,7 @@ pub async fn ensure_scarb_toml(
     if !compilation_request.has_scarb_toml() {
         // number of files cairo files in the request
         let cairo_files_count = compilation_request
+            .base_request
             .files
             .iter()
             .filter(|f| f.file_name.ends_with(".cairo"))
@@ -224,7 +225,7 @@ pub async fn ensure_scarb_toml(
         }
 
         tracing::debug!("No Scarb.toml found, creating default one");
-        compilation_request.files.push(FileContentMap {
+        compilation_request.base_request.files.push(FileContentMap {
             file_name: "Scarb.toml".to_string(),
             file_content: match compilation_request.version {
                 Some(ref version) => scarb_toml_with_version(version),
@@ -234,6 +235,7 @@ pub async fn ensure_scarb_toml(
 
         // change the name of the file to the first cairo file to src/lib.cairo
         if let Some(first_cairo_file) = compilation_request
+            .base_request
             .files
             .iter_mut()
             .find(|f| f.file_name.ends_with(".cairo"))
@@ -246,6 +248,8 @@ pub async fn ensure_scarb_toml(
 }
 
 pub fn is_single_file_compilation(compilation_request: &CompilationRequest) -> bool {
-    compilation_request.files.len() == 1
-        && compilation_request.files[0].file_name.ends_with(".cairo")
+    compilation_request.base_request.files.len() == 1
+        && compilation_request.base_request.files[0]
+            .file_name
+            .ends_with(".cairo")
 }

@@ -32,6 +32,7 @@ import {
 } from "../../utils/api";
 import { apiUrl } from "../../utils/network";
 import { cairoVersionAtom } from "../../atoms/cairoVersion";
+import { testEngineAtom } from "../../atoms/testing";
 
 const CompilationCard: React.FC<{
 	validation: boolean;
@@ -53,6 +54,7 @@ const CompilationCard: React.FC<{
 	const currentFilename = useAtomValue(currentFilenameAtom);
 	const tomlPaths = useAtomValue(tomlPathsAtom);
 	const activeTomlPath = useAtomValue(activeTomlPathAtom);
+	const testEngine = useAtomValue(testEngineAtom);
 
 	const setActiveTomlPath = useSetAtom(activeTomlPathAtom);
 
@@ -115,7 +117,7 @@ const CompilationCard: React.FC<{
 								});
 						}}
 					>
-						Test Project (using scarb-test)
+						Test Project (using {testEngine})
 					</button>
 
 					<D.Root>
@@ -214,6 +216,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 	const tomlPaths = useAtomValue(tomlPathsAtom);
 	const activeTomlPath = useAtomValue(activeTomlPathAtom);
 	const selectedVersion = useAtomValue(cairoVersionAtom);
+	const testEngine = useAtomValue(testEngineAtom);
 
 	const setStatus = useSetAtom(statusAtom);
 	const setCurrentFilename = useSetAtom(currentFilenameAtom);
@@ -595,9 +598,9 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
 	async function testScarb (workspacePath: string, scarbPath: string): Promise<void> {
 		try {
-			const compilationRequest: CompilationRequest = {
+			const compilationRequest: TestRequest = {
 				files: await getFolderFilemapRecursive(workspacePath, scarbPath),
-				version: null
+				test_engine: testEngine ?? "scarb"
 			};
 
 			// format request, remove scarbPath from file names

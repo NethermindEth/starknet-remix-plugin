@@ -16,12 +16,18 @@ export interface FileContentMap {
 	file_content: string;
 }
 
-export interface CompilationRequest {
+export interface BaseRequest {
 	files: FileContentMap[];
+}
+
+export interface CompilationRequest extends BaseRequest {
 	version: string | null;
 }
 
-export interface TestRequest extends CompilationRequest {
+export type TestEngine = "scarb" | "forge";
+
+export interface TestRequest extends BaseRequest {
+	test_engine: TestEngine;
 }
 
 export interface CompilationResponse extends ApiResponse<FileContentMap[]> {
