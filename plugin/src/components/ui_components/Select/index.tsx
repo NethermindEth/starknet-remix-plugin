@@ -16,7 +16,7 @@ export const Trigger: React.FC<CommonProps> = ({
 	...props
 }) => (
 	<SelectPrimitive.Trigger asChild {...props}>
-		<button className={`SelectTrigger ${className ?? ""}`}>{children}</button>
+		<button className={`SelectTrigger flex flex-row justify-content-space-between align-items-center p-2 br-1 devnet-trigger-wrapper ${className ?? ""}`}>{children}</button>
 	</SelectPrimitive.Trigger>
 );
 

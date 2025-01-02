@@ -18,7 +18,7 @@ import { accountAtom, networkAtom, selectedAccountAtom } from "../../atoms/manua
 import { envAtom } from "../../atoms/environment";
 import useAccount from "../../hooks/useAccount";
 import useProvider from "../../hooks/useProvider";
-import useRemixClient from "../../hooks/useRemixClient";
+import { useRemixClient } from "../../hooks/useRemixClient";
 import { getProvider } from "../../utils/misc";
 import { declTxHashAtom, deployTxHashAtom } from "../../atoms/deployment";
 import { invokeTxHashAtom } from "../../atoms/interaction";

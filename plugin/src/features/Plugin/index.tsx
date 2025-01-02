@@ -15,7 +15,7 @@ import { useCurrentExplorer } from "../../components/ExplorerSelector";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { deploymentAtom, isDelcaringAtom } from "../../atoms/deployment";
 import { pluginLoaded as atomPluginLoaded } from "../../atoms/remixClient";
-import useRemixClient from "../../hooks/useRemixClient";
+import { useRemixClient } from "../../hooks/useRemixClient";
 import * as Tabs from "@radix-ui/react-tabs";
 import { Settings } from "../../components/Settings";
 import { cairoVersionAtom, versionsAtom } from "../../atoms/cairoVersion";
@@ -33,8 +33,10 @@ import {
 } from "../../atoms/environment";
 import useAccount from "../../hooks/useAccount";
 import useProvider from "../../hooks/useProvider";
+import Verify from "../Verify";
+import { verifyStatusAtom } from "../../atoms/verify";
 
-export type AccordianTabs = "compile" | "deploy" | "interaction" | "transactions" | "";
+export type AccordianTabs = "compile" | "deploy" | "interaction" | "transactions" | "verify" | "";
 
 const Plugin: React.FC = () => {
 	const status = useAtomValue(statusAtom);
@@ -96,6 +98,8 @@ const Plugin: React.FC = () => {
 	}, [remixClient]);
 
 	const explorerHook = useCurrentExplorer();
+
+	const verifyStatus = useAtomValue(verifyStatusAtom);
 
 	const setPluginLoaded = useSetAtom(atomPluginLoaded);
 
@@ -321,6 +325,26 @@ const Plugin: React.FC = () => {
 									</AccordionTrigger>
 									<AccordionContent>
 										<Interaction setInteractionStatus={setInteractionStatus} />
+									</AccordionContent>
+								</AccordionItem>
+
+								<AccordionItem value="verify">
+									<AccordionTrigger
+										onClick={() => {
+											handleTabView("verify");
+										}}
+									>
+										<span
+											className="d-flex align-items-center"
+											style={{ gap: "0.5rem" }}
+										>
+											<span className={"accordian-list-number"}>4</span>
+											<p style={{ all: "unset" }}>Verify</p>
+											<StateAction value={verifyStatus} />
+										</span>
+									</AccordionTrigger>
+									<AccordionContent>
+										<Verify controlHook={explorerHook} />
 									</AccordionContent>
 								</AccordionItem>
 							</Accordian>

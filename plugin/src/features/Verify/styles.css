@@ -1,0 +1,80 @@
+.verify-form {
+	padding: 1rem;
+	width: 100%;
+	max-width: 100%;
+	box-sizing: border-box;
+}
+
+.verify-form form {
+	width: 100%;
+	max-width: 100%;
+	box-sizing: border-box;
+}
+
+.verify-form-input-box {
+	width: 100%;
+	box-sizing: border-box;
+	margin-bottom: 1rem;
+}
+
+.verify-form input {
+	all: unset;
+	width: calc(100% - 30px);
+	box-sizing: border-box;
+	padding: 10px 15px;
+	border-radius: 4px;
+	font-size: 13px;
+	color: var(--text);
+	background-color: var(--bgPrimary);
+	border: 1px solid var(--secondary);
+	display: block;
+}
+
+.verify-form input:focus {
+	border: 1px solid var(--info);
+}
+
+.verify-form input::placeholder {
+	color: var(--text);
+	opacity: 0.5;
+}
+
+.verify-form label {
+	font-size: 12px;
+	font-weight: 700;
+	line-height: 18px;
+	letter-spacing: 0.6px;
+	color: var(--text);
+}
+
+.verify-status {
+	padding: 10px 15px;
+	border-radius: 4px;
+	font-size: 13px;
+	margin-top: 1rem;
+	-webkit-border-radius: 4px;
+	-moz-border-radius: 4px;
+	-ms-border-radius: 4px;
+	-o-border-radius: 4px;
+}
+
+.verify-status.success {
+	color: var(--green);
+	border: 1px solid var(--green);
+}
+
+.verify-status.error {
+	color: var(--red);
+	border: 1px solid var(--red);
+}
+
+.verify-form-input-box .SelectTrigger {
+    background-color: var(--bgPrimary) !important;
+    box-sizing: border-box !important;
+    height: 45px !important;
+}
+
+.verify-form-input-box input {
+    width: 100% !important;
+    height: 45px !important;
+}
