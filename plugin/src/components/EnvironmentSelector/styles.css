@@ -1,10 +1,9 @@
 .environment-selector-wrapper {
-    width: 100%;
+    box-sizing: border-box;
 }
 
 .devnet-trigger-wrapper {
     border: 1px solid var(--secondary);
-    background: transparent;
     border-radius: 4px !important;
     color: var(--text) !important;
 }
