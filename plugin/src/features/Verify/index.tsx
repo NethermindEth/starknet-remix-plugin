@@ -17,7 +17,7 @@ const Verify: React.FC<IExplorerSelector> = (props) => {
 	const [contractNames, setContractNames] = useState<string[]>([]);
 	const [activeContractName, setActiveContractName] = useState("");
 	const [contractAddress, setContractAddress] = useState("");
-	const [classHash, setClassHash] = useState("");
+	const [network, setNetwork] = useState<"mainnet" | "sepolia">("sepolia");
 
 	const { remixClient } = useRemixClient();
 	const activeTomlPath = useAtomValue(activeTomlPathAtom);
@@ -80,7 +80,7 @@ const Verify: React.FC<IExplorerSelector> = (props) => {
 				const response = await api.verify({
 					contract_name: activeContractName,
 					contract_address: contractAddress,
-					network: "goerli",
+					network,
 					files: await getFolderFilemapRecursive(
 						(await remixClient.filePanel.getCurrentWorkspace()).absolutePath,
 						remixClient,
@@ -122,17 +122,34 @@ const Verify: React.FC<IExplorerSelector> = (props) => {
 						</div>
 
 						<div className="verify-form-input-box">
-							<label htmlFor="classHash">CLASS HASH</label>
-							<input
-								id="classHash"
-								type="text"
-								value={classHash}
-								onChange={(e): void => {
-									setClassHash(e.target.value);
+							<label>NETWORK</label>
+							<Select.Root
+								value={network}
+								onValueChange={(value: "mainnet" | "sepolia"): void => {
+									setNetwork(value);
 								}}
-								placeholder="0x..."
-								required
-							/>
+							>
+								<Select.Trigger>
+									<Select.Value className="SelectValue">
+										{network.charAt(0).toUpperCase() + network.slice(1)}
+									</Select.Value>
+									<Select.Icon>
+										<BsChevronDown />
+									</Select.Icon>
+								</Select.Trigger>
+								<Select.Portal>
+									<Select.Content>
+										<Select.Viewport>
+											<Select.Item value="mainnet">
+												<Select.ItemText>Mainnet</Select.ItemText>
+											</Select.Item>
+											<Select.Item value="sepolia">
+												<Select.ItemText>Sepolia</Select.ItemText>
+											</Select.Item>
+										</Select.Viewport>
+									</Select.Content>
+								</Select.Portal>
+							</Select.Root>
 						</div>
 
 						<div className="verify-form-input-box">
