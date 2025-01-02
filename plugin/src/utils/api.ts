@@ -30,10 +30,19 @@ export interface TestRequest extends BaseRequest {
 	test_engine: TestEngine;
 }
 
+export interface VerifyRequest extends BaseRequest {
+	contract_name: string;
+	contract_address: string;
+	network: string;
+}
+
 export interface CompilationResponse extends ApiResponse<FileContentMap[]> {
 }
 
 export interface TestResponse extends ApiResponse<void> {
+}
+
+export interface VerifyResponse extends ApiResponse<void> {
 }
 
 export interface VersionResponse extends ApiResponse<string> {
@@ -131,6 +140,10 @@ export class Api {
 
 	public async test (request: TestRequest): Promise<TestResponse> {
 		return await this.asyncFetch("test-async", "test-async", request);
+	}
+
+	public async verify (request: VerifyRequest): Promise<VerifyResponse> {
+		return await this.asyncFetch("verify-async", "verify-async", request);
 	}
 
 	public async version (): Promise<VersionResponse> {
