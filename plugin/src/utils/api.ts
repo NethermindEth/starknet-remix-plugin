@@ -80,9 +80,6 @@ export class Api {
 
 		const pid = responseJson.data;
 
-		console.log("pid: ", pid);
-		console.log(`${this.apiUrl}/${getterMethod}/${pid}`);
-
 		try {
 			await this.waitProcess(pid);
 
@@ -103,7 +100,6 @@ export class Api {
 	private async waitProcess (pid: string): Promise<string> {
 		const response: ApiResponse<string> = await this.rawGetRequest(`process_status/${pid}`);
 
-		console.log("response: ", response);
 		if (response.data === "Completed") {
 			return response.data;
 		}

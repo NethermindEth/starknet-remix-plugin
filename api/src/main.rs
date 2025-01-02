@@ -17,6 +17,7 @@ use handlers::multi_test::{get_test_result, test_async};
 use handlers::process::get_process_status;
 use handlers::scarb_version::{get_scarb_version_result, scarb_version_async};
 use handlers::utils::on_plugin_launched;
+use handlers::verify::{get_verify_result, verify_async};
 use handlers::{health, who_is_this};
 use prometheus::Registry;
 use rocket::{Build, Config, Rocket};
@@ -79,6 +80,8 @@ fn create_app(metrics: Metrics) -> Rocket<Build> {
             routes![
                 compile_async,
                 get_compile_result,
+                verify_async,
+                get_verify_result,
                 scarb_version_async,
                 get_scarb_version_result,
                 get_process_status,

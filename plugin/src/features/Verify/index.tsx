@@ -81,11 +81,14 @@ const Verify: React.FC<IExplorerSelector> = (props) => {
 					contract_name: activeContractName,
 					contract_address: contractAddress,
 					network,
-					files: await getFolderFilemapRecursive(
+					files: (await getFolderFilemapRecursive(
 						(await remixClient.filePanel.getCurrentWorkspace()).absolutePath,
 						remixClient,
 						activeTomlPath
-					)
+					)).map((file) => {
+						file.file_name = file.file_name.replace(activeTomlPath + "/", "");
+						return file;
+					})
 				});
 
 				if (response.success) {

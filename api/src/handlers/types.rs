@@ -185,6 +185,18 @@ pub struct TestRequest {
 
 #[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
 #[serde(crate = "rocket::serde")]
+pub struct VerifyRequest {
+    #[serde(flatten)]
+    pub base_request: BaseRequest,
+    pub contract_name: String,
+    pub contract_address: String,
+    pub network: String,
+}
+
+pub type VerifyResponse = ApiResponse<()>;
+
+#[derive(serde::Serialize, serde::Deserialize, Clone, Debug)]
+#[serde(crate = "rocket::serde")]
 pub enum TestEngine {
     #[serde(alias = "scarb")]
     Scarb,
@@ -227,6 +239,9 @@ pub enum ApiCommand {
     ScarbTest {
         test_request: TestRequest,
     },
+    Verify {
+        verify_request: VerifyRequest,
+    },
     #[allow(dead_code)]
     Shutdown,
 }
@@ -243,11 +258,15 @@ pub struct CompileResponseGetter(pub CompileResponse);
 #[derive(Debug)]
 pub struct TestResponseGetter(pub TestResponse);
 
+#[derive(Debug)]
+pub struct VerifyResponseGetter(pub VerifyResponse);
+
 #[derive(Debug, Clone)]
 pub enum ApiCommandResult {
     ScarbVersion(VersionResponse),
     Compile(CompileResponse),
     Test(TestResponse),
+    Verify(VerifyResponse),
     #[allow(dead_code)]
     Shutdown,
 }
@@ -282,6 +301,18 @@ impl TryFrom<ApiCommandResult> for TestResponseGetter {
     fn try_from(value: ApiCommandResult) -> Result<Self, Self::Error> {
         if let ApiCommandResult::Test(response) = value {
             Ok(TestResponseGetter(response))
+        } else {
+            Err(ExecutionError::InvalidRequest.into())
+        }
+    }
+}
+
+impl TryFrom<ApiCommandResult> for VerifyResponseGetter {
+    type Error = ApiError;
+
+    fn try_from(value: ApiCommandResult) -> Result<Self, Self::Error> {
+        if let ApiCommandResult::Verify(response) = value {
+            Ok(VerifyResponseGetter(response))
         } else {
             Err(ExecutionError::InvalidRequest.into())
         }

@@ -5,6 +5,7 @@ pub mod process;
 pub mod scarb_version;
 pub mod types;
 pub mod utils;
+pub mod verify;
 
 use tracing::info;
 use tracing::instrument;
