@@ -9,9 +9,8 @@ import { envAtom } from "../../atoms/environment";
 import * as Tabs from "@radix-ui/react-tabs";
 import Accordian, { AccordionContent, AccordionItem, AccordionTrigger } from "../../components/ui_components/Accordian";
 import { CurrentEnv } from "../../components/CurrentEnv";
-import { DevnetStatus } from "../../components/DevnetStatus";
 
-const DEVNET_ENVIRONMENTS = ["localDevnet", "remoteDevnet", "localKatanaDevnet"] as const;
+const DEVNET_ENVIRONMENTS = ["customDevnet", "remoteDevnet", "localKatanaDevnet"] as const;
 
 const EnvironmentTab: React.FC<{ env: string }> = ({ env }) => {
 	const isDevnetEnv = DEVNET_ENVIRONMENTS.includes(env as any);
@@ -25,7 +24,6 @@ const EnvironmentTab: React.FC<{ env: string }> = ({ env }) => {
 						<div className="env-selector-wrapper">
 							<EnvironmentSelector />
 						</div>
-						<DevnetStatus />
 					</div>
 				</div>
 				<div className="flex flex-column">

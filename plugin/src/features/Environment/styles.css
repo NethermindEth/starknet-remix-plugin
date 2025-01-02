@@ -63,7 +63,6 @@
 }
 
 .env-selector-wrapper {
-  background: var(--bgPrimary);
   width: 100%;
   box-sizing: border-box;
   margin-right: 20px;
