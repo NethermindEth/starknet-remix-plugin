@@ -36,14 +36,6 @@ WORKDIR /app
 COPY . .
 
 # Compile necessary Rust packages
-# If you have to specify a specific version of cairo
-# RUN rm cairo -rf
-# RUN git clone https://github.com/starkware-libs/cairo.git
-# RUN cd cairo; git checkout v1.0.0-alpha.6
-# Or if you chose to copy the whole repo
-# RUN git submodule update --init
-
-#RUN cd cairo; cargo build --bin starknet-compile; cargo build --bin starknet-sierra-compile
 RUN cd cairo_compilers; chmod +x build.sh; ./build.sh
 RUN cargo build --release
 
