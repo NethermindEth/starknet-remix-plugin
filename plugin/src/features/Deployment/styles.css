@@ -32,5 +32,6 @@
 }
 
 .select-trigger-deployment {
-  width: calc(100% - 32px);
+  /* width: calc(100% - 32px); */
+  box-sizing: border-box;
 }
