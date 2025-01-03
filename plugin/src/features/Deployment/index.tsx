@@ -577,7 +577,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 						? (
 							<div>
 								<button
-									className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3 px-0 rounded"
+									className="btn btn-primary text-white btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3 px-0 rounded"
 									style={{
 										cursor: `${
 											isDeclaring ||
