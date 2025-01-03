@@ -577,7 +577,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 						? (
 							<div>
 								<button
-									className="btn btn-warning btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3 px-0 rounded"
+									className="btn btn-primary btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3 px-0 rounded"
 									style={{
 										cursor: `${
 											isDeclaring ||
@@ -620,7 +620,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 													</>
 												)
 												: (
-													<div className="text-truncate overflow-hidden text-nowrap">
+													<div className="p-1 text-truncate overflow-hidden text-nowrap">
 														{account !== null &&
 														selectedContract.declaredInfo.some(
 															(info) =>

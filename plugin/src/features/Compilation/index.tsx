@@ -79,7 +79,7 @@ const CompilationCard: React.FC<{
 			{activeTomlPath !== undefined && tomlPaths?.length > 0 && (
 				<div className="project-dropdown-wrapper d-flex flex-column mb-3">
 					<button
-						className="btn btn-warning w-100 rounded-button text-break mb-1 mt-1 px-0"
+						className="btn btn-primary w-100 rounded-button text-break mb-1 mt-1 px-0"
 						disabled={isCompiling}
 						aria-disabled={isCompiling}
 						onClick={() => {
@@ -100,7 +100,7 @@ const CompilationCard: React.FC<{
 					</button>
 
 					<button
-						className="btn btn-warning w-100 rounded-button text-break mb-1 mt-1 px-0"
+						className="btn btn-primary w-100 rounded-button text-break mb-1 mt-1 px-0"
 						disabled={isCompiling}
 						aria-disabled={isCompiling}
 						onClick={() => {
@@ -125,7 +125,7 @@ const CompilationCard: React.FC<{
 							<div className="btn btn-primary rounded-button w-100 trigger-wrapper px-0">
 								<span className={"flex flex-row m-1"}>
 									<label
-										className="text-break text-white"
+										className="text-break"
 										style={{
 											fontFamily: "inherit",
 											fontSize: "inherit"
@@ -160,7 +160,7 @@ const CompilationCard: React.FC<{
 				</div>
 			)}
 			<button
-				className="compile-button btn btn-information btn-block d-block w-100 text-break rounded-button remixui_disabled mb-1 mt-1 px-0"
+				className="compile-button btn btn-primary btn-block d-block w-100 text-break rounded-button remixui_disabled mb-1 mt-1 px-0"
 				style={{
 					cursor: `${!validation || isCurrentFileName ? "not-allowed" : "pointer"}`
 				}}
