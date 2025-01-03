@@ -130,9 +130,7 @@ pub async fn dispatch_command(command: ApiCommand, metrics: &Metrics) -> Result<
             Ok(result) => Ok(ApiCommandResult::Compile(result)),
             Err(e) => Err(e),
         },
-        ApiCommand::Verify {
-            verify_request,
-        } => match do_metered_action(
+        ApiCommand::Verify { verify_request } => match do_metered_action(
             do_verify(verify_request, metrics),
             VERIFY_LABEL_VALUE,
             metrics,
