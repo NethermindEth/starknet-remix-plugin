@@ -1,6 +1,6 @@
 /* eslint-disable multiline-ternary */
-import React, { useEffect } from "react";
-
+import React, { useEffect, useState } from "react";
+import { BsPlus } from "react-icons/bs";
 import CompiledContracts from "../../components/CompiledContracts";
 import Container from "../../components/ui_components/Container";
 import storage from "../../utils/storage";
@@ -19,6 +19,7 @@ import { ABIForm, type CallbackReturnType } from "starknet-abi-forms";
 import "starknet-abi-forms/index.css";
 import { invokeTxHashAtom, isInvokingAtom } from "../../atoms/interaction";
 import { useWaitForTransaction } from "@starknet-react/core";
+import AddDeployedContract from "../../components/AddDeployedContract";
 
 interface InteractionProps {
 	setInteractionStatus: React.Dispatch<
@@ -29,6 +30,7 @@ interface InteractionProps {
 const Interaction: React.FC<InteractionProps> = (props) => {
 	const deployedContracts = useAtomValue(deployedContractsAtom);
 	const [selectedContract, setSelectedContract] = useAtom(selectedDeployedContract);
+	const [isAddContractOpen, setIsAddContractOpen] = useState(false);
 
 	useEffect(() => {
 		if (deployedContracts.length > 0) {
@@ -337,6 +339,18 @@ const Interaction: React.FC<InteractionProps> = (props) => {
 
 	return (
 		<Container>
+			<div className="interaction-header">
+				<h2 className="interaction-title">Deployed Contracts</h2>
+				<button
+					className="add-contract-button"
+					onClick={(): void => {
+						setIsAddContractOpen(true);
+					}}
+				>
+					<BsPlus size={24} />
+				</button>
+			</div>
+
 			{deployedContracts.length > 0 && selectedContract != null ? (
 				<CompiledContracts show="contract" />
 			) : (
@@ -362,6 +376,11 @@ const Interaction: React.FC<InteractionProps> = (props) => {
 					You did not connect any account to interact with the contracts.
 				</p>
 			) : null}
+
+			<AddDeployedContract
+				isOpen={isAddContractOpen}
+				onOpenChange={setIsAddContractOpen}
+			/>
 		</Container>
 	);
 };

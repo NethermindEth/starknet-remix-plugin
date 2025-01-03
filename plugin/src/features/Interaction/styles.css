@@ -76,3 +76,37 @@
   align-items: center;
   justify-content: center;
 }
+
+.interaction-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.interaction-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.add-contract-button {
+  all: unset;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  color: var(--text);
+  background: var(--light);
+  border: 1px solid var(--secondary);
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.add-contract-button:hover {
+  background: var(--bgPrimary);
+  border-color: var(--text);
+}

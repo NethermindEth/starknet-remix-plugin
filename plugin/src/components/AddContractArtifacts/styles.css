@@ -1,0 +1,201 @@
+.add-contract-overlay {
+	background-color: rgba(0, 0, 0, 0.5);
+	position: fixed;
+	inset: 0;
+	animation: overlayShow 150ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.add-contract-content {
+	background-color: var(--bgPrimary);
+	border-radius: 8px;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	width: 90vw;
+	max-width: 500px;
+	max-height: 85vh;
+	padding: 16px;
+	animation: contentShow 150ms cubic-bezier(0.16, 1, 0.3, 1);
+	box-sizing: border-box;
+}
+
+.add-contract-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 24px;
+}
+
+.add-contract-title {
+	margin: 0;
+	font-size: 18px;
+	font-weight: 600;
+	color: var(--text);
+}
+
+.close-button {
+	all: unset;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--text);
+	opacity: 0.6;
+	transition: opacity 0.2s;
+}
+
+.close-button:hover {
+	opacity: 1;
+}
+
+.add-contract-form {
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
+}
+
+.form-group {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+.form-group label {
+	font-size: 14px;
+	font-weight: 500;
+	color: var(--text);
+}
+
+.form-input {
+	padding: 8px 12px;
+	border: 1px solid var(--secondary);
+	border-radius: 4px;
+	background: var(--bgPrimary);
+	color: var(--text);
+	font-size: 14px;
+	outline: none;
+	transition: border-color 0.2s;
+	width: 100%;
+	box-sizing: border-box;
+	font-family: inherit;
+}
+
+.form-input:focus {
+	border-color: var(--text);
+}
+
+.form-input:disabled {
+	opacity: 0.7;
+	cursor: not-allowed;
+}
+
+textarea.form-input {
+	resize: vertical;
+	min-height: 100px;
+}
+
+.source-toggle {
+	display: flex;
+	gap: 8px;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+.source-button {
+	flex: 1;
+	padding: 8px 12px;
+	border: 1px solid var(--secondary);
+	border-radius: 4px;
+	background: var(--bgPrimary);
+	color: var(--text);
+	font-size: 14px;
+	cursor: pointer;
+	transition: all 0.2s;
+}
+
+.source-button:hover {
+	border-color: var(--text);
+}
+
+.source-button.active {
+	background: var(--light);
+	border-color: var(--text);
+}
+
+.error-message {
+	padding: 12px;
+	border-radius: 4px;
+	background-color: var(--error-bg);
+	color: var(--error);
+	font-size: 14px;
+	line-height: 1.4;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+.form-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
+	margin-top: 8px;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+.cancel-button,
+.confirm-button {
+	padding: 8px 16px;
+	border: 1px solid var(--secondary);
+	border-radius: 4px;
+	font-size: 14px;
+	cursor: pointer;
+	transition: all 0.2s;
+}
+
+.cancel-button {
+	background: transparent;
+	color: var(--text);
+}
+
+.cancel-button:hover:not(:disabled) {
+	background: var(--light);
+}
+
+.confirm-button {
+	background: var(--green);
+	border-color: var(--green);
+	color: var(--bgPrimary);
+}
+
+.confirm-button:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.confirm-button:not(:disabled):hover {
+	opacity: 0.9;
+}
+
+@keyframes overlayShow {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes contentShow {
+	from {
+		opacity: 0;
+		transform: translate(-50%, -48%) scale(0.96);
+	}
+	to {
+		opacity: 1;
+		transform: translate(-50%, -50%) scale(1);
+	}
+} 
