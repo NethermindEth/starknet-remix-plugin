@@ -1,5 +1,7 @@
 import { type Abi, type AbiElement } from "./types/contracts";
 import { type Network, networkExplorerUrls } from "./constants";
+import type { FileContentMap } from "./api";
+import { type RemixClientType } from "../hooks/useRemixClient";
 
 function isValidCairo (filename: string): boolean {
 	return filename?.endsWith(".cairo") ?? false;
@@ -44,6 +46,32 @@ const trimStr = (str?: string, strip?: number): string => {
 	return `${str?.slice(0, lStrip)}...${str?.slice(length - lStrip)}`;
 };
 
+const getFolderFilemapRecursive = async (
+	workspacePath: string,
+	remixClient: RemixClientType,
+	dirPath = ""
+): Promise<FileContentMap[]> => {
+	const files = [] as FileContentMap[];
+	const pathFiles = await remixClient.fileManager.readdir(`${workspacePath}/${dirPath}`);
+	for (const [path, entry] of Object.entries<any>(pathFiles)) {
+		if (entry.isDirectory === true) {
+			const deps = await getFolderFilemapRecursive(workspacePath, remixClient, path);
+			for (const dep of deps) files.push(dep);
+			continue;
+		}
+
+		const content = await remixClient.fileManager.readFile(path);
+
+		if (!path.endsWith(".cairo") && !path.endsWith("Scarb.toml")) continue;
+
+		files.push({
+			file_name: path,
+			file_content: content
+		});
+	}
+	return files;
+};
+
 export {
 	isValidCairo,
 	getFileNameFromPath,
@@ -54,5 +82,6 @@ export {
 	getRoundedNumber,
 	weiToEth,
 	getExplorerUrl,
-	trimStr
+	trimStr,
+	getFolderFilemapRecursive
 };

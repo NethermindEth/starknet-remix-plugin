@@ -6,7 +6,7 @@ use tracing::{info, instrument};
 
 use crate::errors::{ApiError, ExecutionError, FileError, Result, SystemError};
 use crate::handlers::compile::{default_scarb_toml, scarb_toml_with_version};
-use crate::metrics::{Metrics, COMPILATION_LABEL_VALUE};
+use crate::metrics::{Metrics, COMPILATION_LABEL_VALUE, VERIFY_LABEL_VALUE};
 
 use super::scarb_version::do_scarb_version;
 use super::types::{BaseRequest, CompilationRequest, FileContentMap, Successful};
@@ -128,7 +128,7 @@ pub async fn dispatch_command(command: ApiCommand, metrics: &Metrics) -> Result<
         {
             Ok(result) => Ok(ApiCommandResult::Compile(result)),
             Err(e) => Err(e),
-        },
+        }
     }
 }
 

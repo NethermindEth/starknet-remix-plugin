@@ -8,7 +8,7 @@ import {
 import { useEffect, useState } from "react";
 import useAccount from "./useAccount";
 import useProvider from "./useProvider";
-import useRemixClient from "./useRemixClient";
+import { useRemixClient } from "./useRemixClient";
 import { starknetWindowObject as stObj } from "../atoms/connection";
 import { useAtom } from "jotai";
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import useRemixClient from "./useRemixClient";
+import { useRemixClient } from "./useRemixClient";
 
 export const useIcon = (name: string): string => {
 	const { remixClient } = useRemixClient();

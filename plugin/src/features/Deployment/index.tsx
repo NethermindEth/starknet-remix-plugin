@@ -21,7 +21,7 @@ import {
 import { envAtom } from "../../atoms/environment";
 import useAccount from "../../hooks/useAccount";
 import useProvider from "../../hooks/useProvider";
-import useRemixClient from "../../hooks/useRemixClient";
+import { useRemixClient } from "../../hooks/useRemixClient";
 import {
 	constructorInputsAtom,
 	declStatusAtom,

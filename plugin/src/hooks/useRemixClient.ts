@@ -63,7 +63,10 @@ export class RemixClient extends PluginClient {
 		}
 	}
 }
+
 const remixClient = createClient(new RemixClient());
+
+type RemixClientType = typeof remixClient;
 
 async function remixWriteFiles(files: RemixFileInfo[]): Promise<void> {
 	for (const file of files) {
@@ -156,4 +159,4 @@ const useRemixClient = (): {
 	return { remixClient };
 };
 
-export default useRemixClient;
+export { type RemixClientType, useRemixClient };

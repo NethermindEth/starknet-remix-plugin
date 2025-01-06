@@ -8,7 +8,7 @@ use tracing::instrument;
 
 const NAMESPACE: &str = "starknet_api";
 pub(crate) const COMPILATION_LABEL_VALUE: &str = "compilation";
-
+pub(crate) const VERIFY_LABEL_VALUE: &str = "verify";
 // Action - compile/verify(once supported)
 #[derive(Clone, Debug)]
 pub struct Metrics {

@@ -104,6 +104,10 @@ pub enum NetworkError {
     FailedToGetClientIp,
     #[error("Too many requests")]
     TooManyRequests,
+    #[error("Failed to verify contract: {0}")]
+    VerificationFailed(String),
+    #[error("Failed to get verification status: {0}")]
+    VerificationStatusFailed(String),
 }
 
 impl From<NetworkError> for ApiError {

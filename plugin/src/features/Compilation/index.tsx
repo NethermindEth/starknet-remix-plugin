@@ -1,6 +1,6 @@
 /* eslint-disable multiline-ternary */
 import React, { useEffect } from "react";
-import { artifactFolder, getFileNameFromPath, isValidCairo } from "../../utils/utils";
+import { artifactFolder, getFileNameFromPath, getFolderFilemapRecursive, isValidCairo } from "../../utils/utils";
 import "./styles.css";
 import Container from "../../components/ui_components/Container";
 import { type AccordianTabs } from "../Plugin";
@@ -18,7 +18,7 @@ import {
 	statusAtom,
 	tomlPathsAtom
 } from "../../atoms/compilation";
-import useRemixClient from "../../hooks/useRemixClient";
+import { useRemixClient } from "../../hooks/useRemixClient";
 import { useIcon } from "../../hooks/useIcons";
 import { type Contract } from "../../utils/types/contracts";
 import { compiledContractsAtom } from "../../atoms/compiledContracts";
@@ -283,31 +283,6 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 		}
 		return resTomlPaths;
 	}
-
-	const getFolderFilemapRecursive = async (
-		workspacePath: string,
-		dirPath = ""
-	): Promise<FileContentMap[]> => {
-		const files = [] as FileContentMap[];
-		const pathFiles = await remixClient.fileManager.readdir(`${workspacePath}/${dirPath}`);
-		for (const [path, entry] of Object.entries<any>(pathFiles)) {
-			if (entry.isDirectory === true) {
-				const deps = await getFolderFilemapRecursive(workspacePath, path);
-				for (const dep of deps) files.push(dep);
-				continue;
-			}
-
-			const content = await remixClient.fileManager.readFile(path);
-
-			if (!path.endsWith(".cairo") && !path.endsWith("Scarb.toml")) continue;
-
-			files.push({
-				file_name: path,
-				file_content: content
-			});
-		}
-		return files;
-	};
 
 	const updateTomlPaths = (): void => {
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
@@ -593,7 +568,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 	async function testScarb (workspacePath: string, scarbPath: string): Promise<void> {
 		try {
 			const compilationRequest: TestRequest = {
-				files: await getFolderFilemapRecursive(workspacePath, scarbPath),
+				files: await getFolderFilemapRecursive(workspacePath, remixClient, scarbPath),
 				test_engine: testEngine ?? "scarb"
 			};
 
@@ -625,7 +600,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 	async function compileScarb (workspacePath: string, scarbPath: string): Promise<void> {
 		try {
 			const compilationRequest: CompilationRequest = {
-				files: await getFolderFilemapRecursive(workspacePath, scarbPath),
+				files: await getFolderFilemapRecursive(workspacePath, remixClient, scarbPath),
 				version: null
 			};
 
