@@ -78,3 +78,61 @@
     width: 100% !important;
     height: 45px !important;
 }
+
+/* Checkbox styles */
+.verify-form .account-contract-box {
+	margin-bottom: 0;
+}
+
+.verify-form .checkbox-tiny {
+	all: unset;
+	width: 12px !important;
+	height: 12px !important;
+	border: 1px solid var(--secondary);
+	border-radius: 3px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	position: relative;
+	background-color: var(--bgPrimary);
+	margin-top: 1px;
+}
+
+.verify-form .checkbox-tiny:checked {
+	background-color: var(--primary);
+	border-color: var(--primary);
+}
+
+.checkbox-container {
+
+	align-items: center;
+	vertical-align: middle;
+	display: flex;
+	gap: 0.5rem;
+}
+
+.checkbox-container input {
+	margin: 0;
+}
+
+.checkbox-container label {
+	margin: 0;
+}
+
+.verify-form .checkbox-tiny:checked::after {
+	content: "✓";
+	color: white;
+	font-size: 8px;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+}
+
+.verify-form .checkbox-tiny + label {
+	cursor: pointer;
+	color: var(--text);
+	opacity: 0.8;
+	line-height: 1;
+}

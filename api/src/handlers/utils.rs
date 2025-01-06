@@ -10,7 +10,6 @@ use crate::metrics::{Metrics, COMPILATION_LABEL_VALUE, VERIFY_LABEL_VALUE};
 
 use super::scarb_version::do_scarb_version;
 use super::types::{BaseRequest, CompilationRequest, FileContentMap, Successful};
-use super::verify::do_verify;
 use super::{
     compile::do_compile,
     multi_test::do_test,
@@ -129,17 +128,7 @@ pub async fn dispatch_command(command: ApiCommand, metrics: &Metrics) -> Result<
         {
             Ok(result) => Ok(ApiCommandResult::Compile(result)),
             Err(e) => Err(e),
-        },
-        ApiCommand::Verify { verify_request } => match do_metered_action(
-            do_verify(verify_request, metrics),
-            VERIFY_LABEL_VALUE,
-            metrics,
-        )
-        .await
-        {
-            Ok(result) => Ok(ApiCommandResult::Verify(result)),
-            Err(e) => Err(e),
-        },
+        }
     }
 }
 
