@@ -3,8 +3,10 @@ import { atom } from "jotai";
 import { type Devnet, devnets, type DevnetAccount } from "../utils/network";
 
 const devnetAtom = atom<Devnet>(devnets[1]);
+const customDevnetUrlAtom = atom<string>("http://localhost:5050");
+const isCustomDevnetConnectedAtom = atom<boolean>(true);
 
-export type Env = "remoteDevnet" | "wallet" | "manual" | "localDevnet" | "localKatanaDevnet";
+export type Env = "remoteDevnet" | "wallet" | "manual" | "customDevnet" | "localKatanaDevnet";
 
 export const envName = (env: Env): string => {
 	switch (env) {
@@ -14,8 +16,8 @@ export const envName = (env: Env): string => {
 			return "Wallet";
 		case "manual":
 			return "Manual";
-		case "localDevnet":
-			return "Local Devnet";
+		case "customDevnet":
+			return "Custom Devnet";
 		case "localKatanaDevnet":
 			return "Local Katana Devnet";
 		default:
@@ -33,6 +35,8 @@ const availableDevnetAccountsAtom = atom<DevnetAccount[]>([]);
 
 export {
 	devnetAtom,
+	customDevnetUrlAtom,
+	isCustomDevnetConnectedAtom,
 	envAtom,
 	isDevnetAliveAtom,
 	selectedDevnetAccountAtom,

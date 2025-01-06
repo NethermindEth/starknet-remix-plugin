@@ -63,8 +63,9 @@
 }
 
 .env-selector-wrapper {
-  margin-right: 20px;
   width: 100%;
+  box-sizing: border-box;
+  margin-right: 20px;
 }
 
 .env-testnet-btn {

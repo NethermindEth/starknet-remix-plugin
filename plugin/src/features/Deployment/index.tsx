@@ -6,6 +6,7 @@ import CompiledContracts from "../../components/CompiledContracts";
 import { type Contract } from "../../utils/types/contracts";
 import { getConstructor, getShortenedHash } from "../../utils/utils";
 import Container from "../../components/ui_components/Container";
+import { BsPlus } from "react-icons/bs";
 
 import { type AccordianTabs } from "../Plugin";
 import transactionsAtom from "../../atoms/transactions";
@@ -36,6 +37,7 @@ import { useWaitForTransaction } from "@starknet-react/core";
 import { type CallbackReturnType, ConstructorForm } from "starknet-abi-forms";
 import { useIcon } from "../../hooks/useIcons";
 import { DeclareStatusLabels } from "../../utils/constants";
+import AddContractArtifacts from "../../components/AddContractArtifacts";
 
 interface DeploymentProps {
 	setActiveTab: (tab: AccordianTabs) => void;
@@ -50,6 +52,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 	const [selectedContract, setSelectedContract] = useAtom(selectedCompiledContract);
 	const [deployedContracts, setDeployedContracts] = useAtom(deployedContractsAtom);
 	const setSelectedDeployedContract = useSetAtom(selectedDeployedContract);
+	const [isAddContractOpen, setIsAddContractOpen] = useState(false);
 
 	useEffect(() => {
 		if (contracts.length > 0 && (selectedContract === null)) {
@@ -565,11 +568,21 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 						<div className="icon">
 							<img src={useIcon("deploy-icon.svg")} alt="deploy-icon" />
 						</div>
-						<span className="mt-1 mb-1 text-no-break">
-							{contracts.length > 0 && selectedContract !== null
-								? "Deploy your selected contract"
-								: "No contracts ready for deployment yet, compile a cairo contract"}
-						</span>
+						<div className="deployment-header">
+							<span className="mt-1 mb-1 text-no-break">
+								{contracts.length > 0 && selectedContract !== null
+									? "Deploy your selected contract"
+									: "No contracts ready for deployment yet, compile a cairo contract"}
+							</span>
+							<button
+								className="add-contract-button"
+								onClick={(): void => {
+									setIsAddContractOpen(true);
+								}}
+							>
+								<BsPlus size={24} />
+							</button>
+						</div>
 					</div>
 					<CompiledContracts show={"class"} />
 
@@ -577,7 +590,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 						? (
 							<div>
 								<button
-									className="btn btn-warning btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3 px-0 rounded"
+									className="btn btn-primary text-white btn-block d-block w-100 text-break remixui_disabled mb-1 mt-3 px-0 rounded"
 									style={{
 										cursor: `${
 											isDeclaring ||
@@ -620,7 +633,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 													</>
 												)
 												: (
-													<div className="text-truncate overflow-hidden text-nowrap">
+													<div className="p-1 text-truncate overflow-hidden text-nowrap">
 														{account !== null &&
 														selectedContract.declaredInfo.some(
 															(info) =>
@@ -654,7 +667,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 									) && (
 									<div className="mt-3">
 										<label style={{ display: "block" }}>
-												Contract deployed! See{" "}
+											Contract deployed! See{" "}
 											<a
 												href="/"
 												className="text-info"
@@ -663,9 +676,9 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 													setActiveTab("interaction");
 												}}
 											>
-													Interact
+												Interact
 											</a>{" "}
-												for more!
+											for more!
 										</label>
 									</div>
 								)}
@@ -679,6 +692,10 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 						)}
 				</div>
 			</Container>
+			<AddContractArtifacts
+				isOpen={isAddContractOpen}
+				onOpenChange={setIsAddContractOpen}
+			/>
 		</>
 	);
 };

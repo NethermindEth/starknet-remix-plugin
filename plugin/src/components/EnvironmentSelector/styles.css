@@ -1,10 +1,74 @@
 .environment-selector-wrapper {
-    width: 100%;
+    box-sizing: border-box;
 }
 
 .devnet-trigger-wrapper {
     border: 1px solid var(--secondary);
-    background: transparent;
     border-radius: 4px !important;
     color: var(--text) !important;
+}
+
+.custom-url-input-wrapper {
+    margin-top: 8px;
+}
+
+.custom-url-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.custom-url-input {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid var(--secondary);
+    border-radius: 4px;
+    background: var(--bgPrimary);
+    color: var(--text);
+    font-size: 13px;
+    outline: none;
+}
+
+.custom-url-input:focus:not(:disabled) {
+    border-color: var(--text);
+}
+
+.custom-url-input:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    background: var(--light);
+}
+
+.custom-url-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 1px solid var(--secondary);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.custom-url-button:hover {
+    border-color: var(--text);
+}
+
+.custom-url-button.connected {
+    color: var(--green);
+}
+
+.custom-url-button.disconnected {
+    color: var(--text);
+}
+
+.devnet-selection-status-wrapper {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
 }

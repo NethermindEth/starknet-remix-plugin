@@ -9,6 +9,8 @@
 
         margin: 0;
         border-radius: 4px !important;
+
+        height: 30px;
     }
 
     .btn:hover {

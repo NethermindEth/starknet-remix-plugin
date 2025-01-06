@@ -8,7 +8,7 @@ export default function ConnectModal(): JSX.Element {
 		<div className="flex flex-col gap-4">
 			{connectors.map((connector: Connector) => (
 				<button
-					className="btn btn-primary rounded mt-2 mr-3 justify-center"
+					className="btn btn-primary text-white rounded mt-2 mr-3 justify-center"
 					key={connector.id}
 					onClick={() => {
 						connect({ connector });

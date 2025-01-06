@@ -37,6 +37,10 @@
         color: var(--text-bg-mark) !important;
     }
 
+    .text-white {
+        color: var(--white) !important;
+    }
+
     /* Text Alignment */
     .text-center {
         text-align: center !important;

@@ -394,7 +394,7 @@ const ManualAccount: React.FC = () => {
 
 			{selectedAccount != null && (networkName === "goerli" || networkName === "sepolia") && (
 				<button
-					className="btn btn-primary w-100-btn"
+					className="btn btn-primary text-white w-100-btn"
 					onClick={() => {
 						copy(selectedAccount?.address ?? "");
 						remixClient
@@ -448,7 +448,7 @@ const ManualAccount: React.FC = () => {
 			</Select.Root>
 
 			<button
-				className="btn btn-primary btn-block d-block w-100-btn text-break remixui_disabled rounded"
+				className="btn btn-primary text-white btn-block d-block w-100-btn text-break remixui_disabled rounded"
 				style={{
 					cursor: `${
 						(selectedAccount?.deployed_networks.includes(networkName) ?? false) ||
