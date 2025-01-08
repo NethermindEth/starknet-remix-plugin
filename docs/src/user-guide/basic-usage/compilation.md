@@ -1,7 +1,9 @@
 # Compilation
 
-![compilation interface](../../resources/compile.png)
-
+<div align="center">
+  <img src="../../resources/compile.png" alt="Compilation interface">
+  <p><em>Compilation interface</em></p>
+</div>
 When you open the compilation accordion, you will see several possible actions you can perform:
 
 ## Select project

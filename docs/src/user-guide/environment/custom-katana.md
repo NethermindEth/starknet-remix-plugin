@@ -11,10 +11,6 @@ Katana is a blazingly fast Starknet sequencer that provides a powerful local dev
 
 Katana serves as both a development environment and a production-ready sequencer. In development mode, it provides specialized RPCs for manipulating the execution context, while in production, it functions as a high-performance sequencer optimized for gaming workloads and cross-layer communication.
 
-## System Requirements
-
-Before setting up Katana, ensure your system meets the requirements. Notably, Katana requires glibc version 2.33 or higher, which means you'll need recent versions of your operating system. Some older versions like Ubuntu 20.04 LTS, Debian 10 Buster, and CentOS 7 are not supported.
-
 ## Installation
 
 You can install Katana directly from source using cargo:
@@ -46,6 +42,11 @@ Katana comes with several predeployed contracts ready for use:
 - Address: 0x41a78e741e5af2fec34b695679bc6891742439f7afb8484ecd7766661ad02bf
 - Facilitates contract deployment
 - Manages deployment operations
+
+### Account Contract
+- Address: 0x05400e90f7e0ae78bd02c77cd75527280470e2fe19c54970dd79dc37a9d3645c
+- Provides account abstraction
+- Manages transaction signing and execution
 
 ## Account Management
 
