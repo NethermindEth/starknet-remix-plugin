@@ -290,10 +290,13 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 	): Promise<FileContentMap[]> => {
 		const files = [] as FileContentMap[];
 		const pathFiles = await remixClient.fileManager.readdir(`${workspacePath}/${dirPath}`);
+
 		for (const [path, entry] of Object.entries<any>(pathFiles)) {
 			if (entry.isDirectory === true) {
-				const deps = await getFolderFilemapRecursive(workspacePath, path);
+				const deps = await getFolderFilemapRecursive(workspacePath, dirPath + "/" + path);
+
 				for (const dep of deps) files.push(dep);
+
 				continue;
 			}
 
@@ -306,6 +309,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 				file_content: content
 			});
 		}
+
 		return files;
 	};
 
