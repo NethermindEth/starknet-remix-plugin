@@ -293,7 +293,11 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
 		for (const [path, entry] of Object.entries<any>(pathFiles)) {
 			if (entry.isDirectory === true) {
-				const deps = await getFolderFilemapRecursive(workspacePath, dirPath + "/" + path);
+				if (path.startsWith(".")) {
+					continue;
+				}
+
+				const deps = await getFolderFilemapRecursive(workspacePath, path);
 
 				for (const dep of deps) files.push(dep);
 
@@ -389,8 +393,6 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
 		try {
 			const compilationResult = await api.compile(compilationRequest);
-
-			console.log("compile result: ", compilationResult);
 
 			if (compilationResult.status !== "Success") {
 				await remixClient.call(
@@ -603,7 +605,9 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
 			// format request, remove scarbPath from file names
 			compilationRequest.files = compilationRequest.files.map((file) => {
-				file.file_name = file.file_name.replace(scarbPath + "/", "");
+				if (scarbPath !== "") {
+					file.file_name = ("$$$" + file.file_name).replace("$$$" + scarbPath + "/", "");
+				}
 				return file;
 			});
 
@@ -635,7 +639,9 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
 			// format request, remove scarbPath from file names
 			compilationRequest.files = compilationRequest.files.map((file) => {
-				file.file_name = file.file_name.replace(scarbPath + "/", "");
+				if (scarbPath !== "") {
+					file.file_name = ("$$$" + file.file_name).replace("$$$" + scarbPath + "/", "");
+				}
 				return file;
 			});
 
