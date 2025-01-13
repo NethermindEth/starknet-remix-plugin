@@ -126,7 +126,7 @@ jobs:
             PROMETHEUS_PASSWORD=${{secrets.PROMETHEUS_PASSWORD}}
 
       - name: Deploy Amazon ECS task definition
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
           service: ${{ env.DEV_SERVICE_NAME }}
@@ -169,7 +169,7 @@ jobs:
             PROMETHEUS_PASSWORD=${{secrets.PROMETHEUS_PASSWORD}}
 
       - name: Deploy Amazon ECS task definition
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
           service: ${{ env.PROD_SERVICE_NAME }}
