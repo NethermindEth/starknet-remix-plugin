@@ -33,7 +33,7 @@ import {
 	isDeployingAtom
 } from "../../atoms/deployment";
 
-import { useWaitForTransaction } from "@starknet-react/core";
+import { useTransactionReceipt } from "@starknet-react/core";
 import { type CallbackReturnType, ConstructorForm } from "starknet-abi-forms";
 import { useIcon } from "../../hooks/useIcons";
 import { DeclareStatusLabels } from "../../utils/constants";
@@ -82,11 +82,11 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 	const [transactions, setTransactions] = useAtom(transactionsAtom);
 	const env = useAtomValue(envAtom);
 
-	const declTxStatus = useWaitForTransaction({
+	const declTxStatus = useTransactionReceipt({
 		hash: declTxHash,
 		watch: true
 	});
-	const deployTxStatus = useWaitForTransaction({
+	const deployTxStatus = useTransactionReceipt({
 		hash: deployTxHash,
 		watch: true
 	});

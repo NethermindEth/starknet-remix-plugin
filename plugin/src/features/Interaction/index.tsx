@@ -18,7 +18,7 @@ import useRemixClient from "../../hooks/useRemixClient";
 import { ABIForm, type CallbackReturnType } from "starknet-abi-forms";
 import "starknet-abi-forms/index.css";
 import { invokeTxHashAtom, isInvokingAtom } from "../../atoms/interaction";
-import { useWaitForTransaction } from "@starknet-react/core";
+import { useTransactionReceipt } from "@starknet-react/core";
 import AddDeployedContract from "../../components/AddDeployedContract";
 
 interface InteractionProps {
@@ -50,7 +50,7 @@ const Interaction: React.FC<InteractionProps> = (props) => {
 
 	const [invokeTxHash, setInvokeTxHash] = useAtom(invokeTxHashAtom);
 
-	const invokeTxStatus = useWaitForTransaction({
+	const invokeTxStatus = useTransactionReceipt({
 		hash: invokeTxHash,
 		watch: true
 	});

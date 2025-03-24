@@ -65,7 +65,7 @@ const Wallet: React.FC = () => {
 					<>
 						<div className="wallet-row-wrapper">
 							<div className="wallet-wrapper">
-								<img src={connector?.icon?.dark} alt="wallet icon" />
+								<img src={connector !== undefined ? (typeof connector.icon === "string" ? connector.icon : connector.icon.dark) : ""} alt="wallet icon" />
 								<p className="text"> {connector?.id}</p>
 								<p className="text text-right text-secondary">
 									{" "}

@@ -19,7 +19,7 @@ export default function ConnectModal(): JSX.Element {
 						Connect {connector.name}
 						<img
 							className="wallet-wrapper"
-							src={connector?.icon?.dark}
+							src={typeof connector.icon === "string" ? connector.icon : connector.icon.dark}
 							alt="wallet icon"
 						/>
 					</div>
