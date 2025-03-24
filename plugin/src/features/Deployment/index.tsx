@@ -197,7 +197,8 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 			setDeployStatus("IDLE");
 			return;
 		}
-		if (env !== "wallet") return;
+		// todo: why?
+		// if (env !== "wallet") return;
 		if (deployTxStatus.status === "success") {
 			setDeployStatus("DONE");
 			setIsDeploying(false);
@@ -414,13 +415,17 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 				type: "info"
 			});
 
-			const deployResponse = await account.deploy(
+			console.log("account: ", account, "provider: ", provider, "selectedContract: ", selectedContract, "classHash: ", classHash, "calldata: ", calldata);
+
+			const deployResponse = await account.deployContract(
 				{
 					classHash: classHash ?? selectedContract.classHash,
 					constructorCalldata: calldata
 				},
 				{ maxFee: 1e18 }
 			);
+
+			console.log("deployResponse: ", deployResponse);
 
 			await remixClient.call("terminal", "log", {
 				value: JSON.stringify(deployResponse, null, 2),
