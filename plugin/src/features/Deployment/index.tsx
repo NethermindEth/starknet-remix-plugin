@@ -92,7 +92,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 	});
 
 	const [chainId, setChainId] = useState<constants.StarknetChainId>(
-		constants.StarknetChainId.SN_GOERLI
+		constants.StarknetChainId.SN_SEPOLIA
 	);
 
 	useEffect(() => {

@@ -624,16 +624,17 @@ packages:
   '@noble/curves@1.3.0':
     resolution: {integrity: sha512-t01iSXPuN+Eqzb4eBX0S5oubSqXbK/xXa1Ne18Hj8f9pStxztHCE2gfboSp/dZRLSqfuLpRK2nDXDK+W9puocA==}
 
-  '@noble/curves@1.4.2':
-    resolution: {integrity: sha512-TavHr8qycMChk8UwMld0ZDRvatedkzWfH8IiaeGCfymOP5i0hSCozz9vHOL0nkwk7HRMlFnAiKpS2jrUmSybcw==}
+  '@noble/curves@1.7.0':
+    resolution: {integrity: sha512-UTMhXK9SeDhFJVrHeUJ5uZlI6ajXg10O6Ddocf9S6GjbSBVZsJo88HzKwXznNfGpMTRDyJkqMjNDPYgf0qFWnw==}
+    engines: {node: ^14.21.3 || >=16}
 
   '@noble/hashes@1.3.3':
     resolution: {integrity: sha512-V7/fPHgl+jsVPXqqeOzT8egNj2iBIVt+ECeMMG8TdcnTikP3oaBtUVqpT/gYCR68aEBJSF+XbYUxStjbFMqIIA==}
     engines: {node: '>= 16'}
 
-  '@noble/hashes@1.4.0':
-    resolution: {integrity: sha512-V1JJ1WTRUqHHrOSh597hURcMqVKVGL/ea3kv0gSnEdsEZ0/+VyPghM1lMNGc00z7CIQorSvbKpuJkxvuHbvdbg==}
-    engines: {node: '>= 16'}
+  '@noble/hashes@1.6.0':
+    resolution: {integrity: sha512-YUULf0Uk4/mAA89w+k3+yUYh6NrEvxZa5T6SY3wlMvE2chHkxFUUIDI8/XW1QSC357iA5pSnqt7XEhvFOqmDyQ==}
+    engines: {node: ^14.21.3 || >=16}
 
   '@nodelib/fs.scandir@2.1.5':
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
@@ -1028,14 +1029,20 @@ packages:
       rollup:
         optional: true
 
-  '@scure/base@1.1.5':
-    resolution: {integrity: sha512-Brj9FiG2W1MRQSTB212YVPRrcbjkv48FoZi/u4l/zds/ieRrqsh7aUf6CLwkAq61oKXr/ZlTzlY66gLIj3TFTQ==}
+  '@scure/base@1.1.9':
+    resolution: {integrity: sha512-8YKhl8GHiNI/pU2VMaofa2Tor7PJRAjwQLBBuilkJ9L5+13yVbC7JO/wS7piioAvPSwR3JKM1IJ/u4xQzbcXKg==}
+
+  '@scure/base@1.2.1':
+    resolution: {integrity: sha512-DGmGtC8Tt63J5GfHgfl5CuAXh96VF/LD8K9Hr/Gv0J2lAoRGlPOMpqMpMbCTOoOJMZCk2Xt+DskdDyn6dEFdzQ==}
 
   '@scure/starknet@1.0.0':
     resolution: {integrity: sha512-o5J57zY0f+2IL/mq8+AYJJ4Xpc1fOtDhr+mFQKbHnYFmm3WQrC+8zj2HEgxak1a+x86mhmBC1Kq305KUpVf0wg==}
 
-  '@starknet-io/types-js@0.7.7':
-    resolution: {integrity: sha512-WLrpK7LIaIb8Ymxu6KF/6JkGW1sso988DweWu7p5QY/3y7waBIiPvzh27D9bX5KIJNRDyOoOVoHVEKYUYWZ/RQ==}
+  '@scure/starknet@1.1.0':
+    resolution: {integrity: sha512-83g3M6Ix2qRsPN4wqLDqiRZ2GBNbjVWfboJE/9UjfG+MHr6oDSu/CWgy8hsBSJejr09DkkL+l0Ze4KVrlCIdtQ==}
+
+  '@starknet-io/types-js@0.7.10':
+    resolution: {integrity: sha512-1VtCqX4AHWJlRRSYGSn+4X1mqolI1Tdq62IwzoU2vUuEE72S1OlEeGhpvd6XsdqXcfHmVzYfj8k1XtKBQqwo9w==}
 
   '@starknet-react/chains@0.1.7':
     resolution: {integrity: sha512-UNh97I1SvuJKaAhKOmpEk8JcWuZWMlPG/ba2HcvFYL9x/47BKndJ+Da9V+iJFtkHUjreVnajT1snsaz1XMG+UQ==}
@@ -1266,8 +1273,8 @@ packages:
     peerDependencies:
       vite: ^4.2.0 || ^5.0.0
 
-  abi-wan-kanabi@2.2.2:
-    resolution: {integrity: sha512-sTCv2HyNIj1x2WFUoc9oL8ZT9liosrL+GoqEGZJK1kDND096CfA7lwx06vLxLWMocQ41FQXO3oliwoh/UZHYdQ==}
+  abi-wan-kanabi@2.2.4:
+    resolution: {integrity: sha512-0aA81FScmJCPX+8UvkXLki3X1+yPQuWxEkqXBVKltgPAK79J+NB+Lp5DouMXa7L6f+zcRlIA/6XO7BN/q9fnvg==}
     hasBin: true
 
   acorn-jsx@5.3.2:
@@ -2630,8 +2637,8 @@ packages:
       react: '>=17'
       react-dom: '>=17'
 
-  starknet@6.11.0:
-    resolution: {integrity: sha512-u50KrGDi9fbu1Ogu7ynwF/tSeFlp3mzOg1/Y5x50tYFICImo3OfY4lOz9OtYDk404HK4eUujKkhov9tG7GAKlg==}
+  starknet@6.24.0:
+    resolution: {integrity: sha512-oGa33pwbsz5zPu9fkouN4P0JO0AKaq0RqfL/uRLMj6d6OgLkD0EhYpoJWwaEbQRBcs38e6WBtUox+c3O4YEgGg==}
 
   starknet@6.6.6:
     resolution: {integrity: sha512-hriWRdfyvetf7mGqaKS7U7KSuGJ8tANFiY9gLxB7EJSRYvAXUcn2Xg/39QUenH5D4WzX4T4GVrpMw2GLZ+NZKw==}
@@ -3677,13 +3684,13 @@ snapshots:
     dependencies:
       '@noble/hashes': 1.3.3
 
-  '@noble/curves@1.4.2':
+  '@noble/curves@1.7.0':
     dependencies:
-      '@noble/hashes': 1.4.0
+      '@noble/hashes': 1.6.0
 
   '@noble/hashes@1.3.3': {}
 
-  '@noble/hashes@1.4.0': {}
+  '@noble/hashes@1.6.0': {}
 
   '@nodelib/fs.scandir@2.1.5':
     dependencies:
@@ -4133,14 +4140,21 @@ snapshots:
     optionalDependencies:
       rollup: 3.29.4
 
-  '@scure/base@1.1.5': {}
+  '@scure/base@1.1.9': {}
+
+  '@scure/base@1.2.1': {}
 
   '@scure/starknet@1.0.0':
     dependencies:
       '@noble/curves': 1.3.0
       '@noble/hashes': 1.3.3
 
-  '@starknet-io/types-js@0.7.7': {}
+  '@scure/starknet@1.1.0':
+    dependencies:
+      '@noble/curves': 1.7.0
+      '@noble/hashes': 1.6.0
+
+  '@starknet-io/types-js@0.7.10': {}
 
   '@starknet-react/chains@0.1.7': {}
 
@@ -4419,7 +4433,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  abi-wan-kanabi@2.2.2:
+  abi-wan-kanabi@2.2.4:
     dependencies:
       ansicolors: 0.3.2
       cardinal: 2.1.1
@@ -5221,7 +5235,7 @@ snapshots:
 
   get-starknet-core@4.0.0:
     dependencies:
-      '@starknet-io/types-js': 0.7.7
+      '@starknet-io/types-js': 0.7.10
 
   get-starknet@3.0.1(starknet@6.6.6):
     dependencies:
@@ -5983,36 +5997,34 @@ snapshots:
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
       react-select: 5.8.0(@types/react@18.2.45)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
-      starknet: 6.11.0
+      starknet: 6.24.0
     transitivePeerDependencies:
       - '@types/react'
       - encoding
       - supports-color
 
-  starknet@6.11.0:
+  starknet@6.24.0:
     dependencies:
-      '@noble/curves': 1.4.2
-      '@noble/hashes': 1.4.0
-      '@scure/base': 1.1.5
-      '@scure/starknet': 1.0.0
-      abi-wan-kanabi: 2.2.2
+      '@noble/curves': 1.7.0
+      '@noble/hashes': 1.6.0
+      '@scure/base': 1.2.1
+      '@scure/starknet': 1.1.0
+      abi-wan-kanabi: 2.2.4
       fetch-cookie: 3.0.1
-      get-starknet-core: 4.0.0
       isomorphic-fetch: 3.0.0
       lossless-json: 4.0.1
       pako: 2.1.0
-      starknet-types-07: '@starknet-io/types-js@0.7.7'
+      starknet-types-07: '@starknet-io/types-js@0.7.10'
       ts-mixer: 6.0.4
-      url-join: 4.0.1
     transitivePeerDependencies:
       - encoding
 
   starknet@6.6.6:
     dependencies:
       '@noble/curves': 1.3.0
-      '@scure/base': 1.1.5
+      '@scure/base': 1.1.9
       '@scure/starknet': 1.0.0
-      abi-wan-kanabi: 2.2.2
+      abi-wan-kanabi: 2.2.4
       fetch-cookie: 3.0.1
       isomorphic-fetch: 3.0.0
       lossless-json: 4.0.1

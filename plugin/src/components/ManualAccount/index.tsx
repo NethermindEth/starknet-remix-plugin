@@ -165,7 +165,7 @@ const ManualAccount: React.FC = () => {
 
 	function handleProviderChange (networkName: string): void {
 		const chainId = networkEquivalents.get(networkName);
-		if (chainId) {
+		if (chainId !== undefined) {
 			setNetworkName(networkName);
 			setProvider(
 				new RpcProvider({
