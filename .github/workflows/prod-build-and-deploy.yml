@@ -99,7 +99,7 @@ jobs:
         run: pnpm run build
 
       - name: 'Upload Artifact'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: react-github-actions-build
           path: ./plugin/build/**/*
