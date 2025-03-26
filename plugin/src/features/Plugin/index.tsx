@@ -6,7 +6,7 @@ import "./styles.css";
 import Compilation from "../Compilation";
 import Deployment from "../Deployment";
 import Interaction from "../Interaction";
-import Accordian, { AccordionContent, AccordionItem, AccordionTrigger } from "../../components/ui_components/Accordian";
+import Accordion, { AccordionContent, AccordionItem, AccordionTrigger } from "../../components/ui_components/Accordion";
 import TransactionHistory from "../TransactionHistory";
 import Footer from "../Footer";
 import StateAction from "../../components/StateAction";
@@ -34,7 +34,7 @@ import {
 import useAccount from "../../hooks/useAccount";
 import useProvider from "../../hooks/useProvider";
 
-export type AccordianTabs = "compile" | "deploy" | "interaction" | "transactions" | "";
+export type AccordionTabs = "compile" | "deploy" | "interaction" | "transactions" | "";
 
 const Plugin: React.FC = () => {
 	const status = useAtomValue(statusAtom);
@@ -53,14 +53,14 @@ const Plugin: React.FC = () => {
 	"loading" | "success" | "error" | ""
 	>("");
 
-	const [currentAccordian, setCurrentAccordian] = useState<AccordianTabs>("compile");
+	const [currentAccordion, setCurrentAccordion] = useState<AccordionTabs>("compile");
 
 	// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-	const handleTabView = (clicked: AccordianTabs) => {
-		if (currentAccordian === clicked) {
-			setCurrentAccordian("");
+	const handleTabView = (clicked: AccordionTabs) => {
+		if (currentAccordion === clicked) {
+			setCurrentAccordion("");
 		} else {
-			setCurrentAccordian(clicked);
+			setCurrentAccordion(clicked);
 		}
 	};
 
@@ -81,11 +81,12 @@ const Plugin: React.FC = () => {
 					setCairoVersion(versions.data[0]);
 					setVersions(versions.data);
 				} else {
-					await remixClient.call(
-						"notification" as any,
-						"toast",
-						"🔴 Failed to fetch cairo versions from the compilation server"
-					);
+					// TODO: remove notification call
+					// await remixClient.call(
+					// 	"notification" as any,
+					// 	"toast",
+					// 	"🔴 Failed to fetch cairo versions from the compilation server"
+					// );
 					console.error(versions);
 				}
 			};
@@ -240,9 +241,9 @@ const Plugin: React.FC = () => {
 						</Tabs.List>
 
 						<Tabs.Content value="home">
-							<Accordian
+							<Accordion
 								type="single"
-								value={currentAccordian}
+								value={currentAccordion}
 								defaultValue={"compile"}
 							>
 								<AccordionItem value="compile">
@@ -255,7 +256,7 @@ const Plugin: React.FC = () => {
 											className="d-flex align-items-center"
 											style={{ gap: "0.5rem" }}
 										>
-											<span className={"accordian-list-number"}>1</span>
+											<span className={"Accordion-list-number"}>1</span>
 											<p style={{ all: "unset" }}>Compile</p>
 											<StateAction
 												value={
@@ -271,7 +272,7 @@ const Plugin: React.FC = () => {
 										</span>
 									</AccordionTrigger>
 									<AccordionContent>
-										<Compilation setAccordian={setCurrentAccordian} />
+										<Compilation setAccordion={setCurrentAccordion} />
 									</AccordionContent>
 								</AccordionItem>
 
@@ -285,7 +286,7 @@ const Plugin: React.FC = () => {
 											className="d-flex align-items-center"
 											style={{ gap: "0.5rem" }}
 										>
-											<span className={"accordian-list-number"}>2</span>
+											<span className={"Accordion-list-number"}>2</span>
 											<p style={{ all: "unset" }}>Deploy</p>
 											<StateAction
 												value={
@@ -301,7 +302,7 @@ const Plugin: React.FC = () => {
 										</span>
 									</AccordionTrigger>
 									<AccordionContent>
-										<Deployment setActiveTab={setCurrentAccordian} />
+										<Deployment setActiveTab={setCurrentAccordion} />
 									</AccordionContent>
 								</AccordionItem>
 								<AccordionItem value="interaction">
@@ -314,7 +315,7 @@ const Plugin: React.FC = () => {
 											className="d-flex align-items-center"
 											style={{ gap: "0.5rem" }}
 										>
-											<span className={"accordian-list-number"}>3</span>
+											<span className={"Accordion-list-number"}>3</span>
 											<p style={{ all: "unset" }}>Interact</p>
 											<StateAction value={interactionStatus} />
 										</span>
@@ -323,7 +324,7 @@ const Plugin: React.FC = () => {
 										<Interaction setInteractionStatus={setInteractionStatus} />
 									</AccordionContent>
 								</AccordionItem>
-							</Accordian>
+							</Accordion>
 						</Tabs.Content>
 
 						<Tabs.Content value="transactions">

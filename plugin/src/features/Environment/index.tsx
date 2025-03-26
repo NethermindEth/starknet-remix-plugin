@@ -3,17 +3,15 @@ import DevnetAccountSelector from "../../components/DevnetAccountSelector";
 import "./styles.css";
 import EnvironmentSelector from "../../components/EnvironmentSelector";
 import Wallet from "../../components/Wallet";
-import ManualAccount from "../../components/ManualAccount";
-import { useAtom } from "jotai";
+import { useAtomValue } from "jotai";
 import { envAtom } from "../../atoms/environment";
-import * as Tabs from "@radix-ui/react-tabs";
-import Accordian, { AccordionContent, AccordionItem, AccordionTrigger } from "../../components/ui_components/Accordian";
+import Accordion, { AccordionContent, AccordionItem, AccordionTrigger } from "../../components/ui_components/Accordion";
 import { CurrentEnv } from "../../components/CurrentEnv";
 
-const DEVNET_ENVIRONMENTS = ["customDevnet", "remoteDevnet", "localKatanaDevnet"] as const;
+const DEVNET_ENVIRONMENTS: string[] = ["customDevnet", "remoteDevnet", "localKatanaDevnet"];
 
 const EnvironmentTab: React.FC<{ env: string }> = ({ env }) => {
-	const isDevnetEnv = DEVNET_ENVIRONMENTS.includes(env as any);
+	const isDevnetEnv = DEVNET_ENVIRONMENTS.includes(env);
 
 	return (
 		<div className="flex flex-column">
@@ -35,49 +33,21 @@ const EnvironmentTab: React.FC<{ env: string }> = ({ env }) => {
 };
 
 const Environment: React.FC = () => {
-	const [env, setEnv] = useAtom(envAtom);
-
-	const handleTabChange = (value: string): void => {
-		setEnv(value === "environment" ? "remoteDevnet" : "manual");
-	};
+	const env = useAtomValue(envAtom);
 
 	return (
-		<Accordian className="accordian-env" type="single" defaultValue="closed">
-			<AccordionItem value="closed" />
-			<AccordionItem value="env" className="accordian-item-env">
-				<AccordionTrigger className="accordian-trigger-env">
+		<Accordion type="single" collapsible defaultValue={undefined}>
+			<AccordionItem value="env">
+				<AccordionTrigger>
 					<CurrentEnv />
 				</AccordionTrigger>
-
-				<AccordionContent className="accordian-content-env">
+				<AccordionContent>
 					<div className="starknet-connection-component">
-						<Tabs.Root
-							defaultValue={env === "manual" ? "test-accounts" : "environment"}
-							onValueChange={handleTabChange}
-						>
-							<Tabs.List className="flex justify-between rounded tab-list tab-header-env">
-								<Tabs.List className="tabs-trigger" />
-								<Tabs.Trigger className="tabs-trigger" value="environment">
-									Environment
-								</Tabs.Trigger>
-								<Tabs.Trigger className="tabs-trigger" value="test-accounts">
-									Test Accounts
-								</Tabs.Trigger>
-								<Tabs.List className="tabs-trigger" />
-							</Tabs.List>
-
-							<Tabs.Content value="environment" className="tabs-content-env">
-								{env !== "manual" ? <EnvironmentTab env={env} /> : <ManualAccount />}
-							</Tabs.Content>
-
-							<Tabs.Content value="test-accounts">
-								<ManualAccount />
-							</Tabs.Content>
-						</Tabs.Root>
+						<EnvironmentTab env={env} />
 					</div>
 				</AccordionContent>
 			</AccordionItem>
-		</Accordian>
+		</Accordion>
 	);
 };
 

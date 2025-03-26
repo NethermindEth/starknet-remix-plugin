@@ -3,12 +3,12 @@ import { type BigNumberish } from "ethers";
 import { constants } from "starknet";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import CompiledContracts from "../../components/CompiledContracts";
-import { type Contract } from "../../utils/types/contracts";
-import { getConstructor, getShortenedHash } from "../../utils/utils";
+import { DeclaredInfo, DeployedInfo, type Contract } from "../../utils/types/contracts";
+import { getConstructor } from "../../utils/utils";
 import Container from "../../components/ui_components/Container";
 import { BsPlus } from "react-icons/bs";
 
-import { type AccordianTabs } from "../Plugin";
+import { type AccordionTabs } from "../Plugin";
 import transactionsAtom from "../../atoms/transactions";
 
 import "./styles.css";
@@ -40,7 +40,7 @@ import { DeclareStatusLabels } from "../../utils/constants";
 import AddContractArtifacts from "../../components/AddContractArtifacts";
 
 interface DeploymentProps {
-	setActiveTab: (tab: AccordianTabs) => void;
+	setActiveTab: (tab: AccordionTabs) => void;
 }
 
 const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
@@ -287,15 +287,16 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 			try {
 				try {
 					await account.getClassByHash(selectedContract.classHash);
-					await remixClient.call(
-						"notification" as any,
-						"toast",
-						`ℹ️ Contract with classHash: ${getShortenedHash(
-							selectedContract.classHash,
-							6,
-							4
-						)} already has been declared, you can proceed to deployment`
-					);
+					// TODO: remove notification call
+					// await remixClient.call(
+					// 	"notification" as any,
+					// 	"toast",
+					// 	`ℹ️ Contract with classHash: ${getShortenedHash(
+					// 		selectedContract.classHash,
+					// 		6,
+					// 		4
+					// 	)} already has been declared, you can proceed to deployment`
+					// );
 					setIsDeclaring(false);
 					setDeclStatus("DONE");
 					remixClient.emit("statusChanged", {
@@ -473,6 +474,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 		} catch (error) {
 			setDeployStatus("ERROR");
 			setIsDeploying(false);
+			console.log("error: ", error);
 			if (error instanceof Error) {
 				await remixClient.call("terminal", "log", {
 					value: error.message,
@@ -493,7 +495,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 		});
 	};
 
-	const handleDeclare = (event: any): void => {
+	const handleDeclare = (event: React.MouseEvent<HTMLButtonElement>): void => {
 		event.preventDefault();
 		declareContract().catch((error) => {
 			console.log("Error during declaration:", error);
@@ -641,7 +643,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 													<div className="p-1 text-truncate overflow-hidden text-nowrap">
 														{account !== null &&
 														selectedContract.declaredInfo.some(
-															(info) =>
+															(info: DeclaredInfo) =>
 																info.chainId === chainId &&
 																info.env === env
 														)
@@ -666,7 +668,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 								/>
 								{account != null &&
 									selectedContract.deployedInfo.some(
-										(info) =>
+										(info: DeployedInfo) =>
 											info.address === account.address &&
 											info.chainId === chainId
 									) && (

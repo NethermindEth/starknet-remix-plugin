@@ -204,11 +204,12 @@ const Interaction: React.FC<InteractionProps> = (props) => {
 				if (currNotifCount !== undefined) {
 					const notifCount = parseInt(currNotifCount);
 					if (notifCount === 0) {
-						await remixClient.call(
-							"notification" as any,
-							"toast",
-							"ℹ️ Responses are written to the terminal log"
-						);
+						// TODO: remove notification call
+						// await remixClient.call(
+						// 	"notification" as any,
+						// 	"toast",
+						// 	"ℹ️ Responses are written to the terminal log"
+						// );
 					}
 					storage.set("notifCount", (notifCount + 1) % 7);
 				}
@@ -286,11 +287,12 @@ const Interaction: React.FC<InteractionProps> = (props) => {
 				if (currNotifCount !== undefined) {
 					const notifCount = parseInt(currNotifCount);
 					if (notifCount === 0) {
-						await remixClient.call(
-							"notification" as any,
-							"toast",
-							"ℹ️ Responses are written to the terminal log"
-						);
+						// TODO: remove notification call
+						// await remixClient.call(
+						// 	"notification" as any,
+						// 	"toast",
+						// 	"ℹ️ Responses are written to the terminal log"
+						// );
 					}
 					storage.set("notifCount", (notifCount + 1) % 7);
 				}

@@ -1,6 +1,12 @@
 .starknet-connection-component {
   background-color: var(--light);
-  border-radius: 8px;
+  border-bottom-radius: 8px;
+  border-top: 1px solid var(--secondary);
+  padding-top: 16px;
+  -webkit-border-bottom-right-radius: 8px;
+  -moz-border-bottom-right-radius: 8px;
+  -ms-border-bottom-right-radius: 8px;
+  -o-border-bottom-right-radius: 8px;
 }
 
 .tabs-content-env {
@@ -97,12 +103,12 @@
   text-shadow: 2px 2px 3px var(--accentColor);
 }
 
-.accordian-env {
+.Accordion-env {
   .AccordionContentText {
       padding: 0 !important;
   }
 
-  .accordian-trigger-env {
+  .Accordion-trigger-env {
     margin-bottom: 16px !important;
     border-radius: 8px !important;
   }
@@ -126,7 +132,7 @@
     margin-top: 8px !important;
   }
 
-  .accordian-item-env {
+  .Accordion-item-env {
     gap: 16px;
   }
 
@@ -141,7 +147,7 @@
   }
 
   .AccordionTrigger:hover {
-    background-color: var(--accordian-bg-color) !important;
+    background-color: var(--Accordion-bg-color) !important;
     color: var(--text);
   }
 
@@ -164,8 +170,8 @@
 
 
   .AccordionTrigger[data-state='open'] {
-    border-bottom-left-radius: var(--accordian-border-radius);
-    border-bottom-right-radius: var(--accordian-border-radius);
+    border-bottom-left-radius: var(--Accordion-border-radius);
+    border-bottom-right-radius: var(--Accordion-border-radius);
   }
 
 }

@@ -8,7 +8,7 @@ import {
 	useInjectedConnectors
 } from "@starknet-react/core";
 
-export function StarknetProvider({ children }: { children: React.ReactNode }): JSX.Element {
+export function StarknetProvider({ children }: { children: React.ReactNode }): React.ReactElement {
 	const { connectors } = useInjectedConnectors({
 		// Show these connectors if the user has no connector installed.
 		recommended: [argent(), braavos()],
