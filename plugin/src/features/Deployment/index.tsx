@@ -198,7 +198,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 			return;
 		}
 		// todo: why?
-		// if (env !== "wallet") return;
+		if (env !== "wallet") return;
 		if (deployTxStatus.status === "success") {
 			setDeployStatus("DONE");
 			setIsDeploying(false);
@@ -223,6 +223,9 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 					type: "info"
 				})
 				.catch(() => {
+				})
+				.finally(() => {
+					setIsDeploying(false);
 				});
 		}
 		if (deployTxStatus.status === "error") {
@@ -452,7 +455,6 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 				setDeployTxHash(deployResponse.transaction_hash);
 			} else {
 				setDeployStatus("DONE");
-				setIsDeploying(false);
 				await remixClient.call("terminal", "log", {
 					value: `--------------------- Getting deploy contract: ${selectedContract.name} tx receipt --------------------`,
 					type: "info"
@@ -468,9 +470,13 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 					value: `--------------------- End getting deploy contract: ${selectedContract.name} tx receipt ------------------`,
 					type: "info"
 				});
+
+				setIsDeploying(false);
+
 				setActiveTab("interaction");
 			}
-			setContractDeployment(selectedContract, deployResponse.contract_address[0]);
+
+			setContractDeployment(selectedContract, deployResponse.contract_address);
 		} catch (error) {
 			setDeployStatus("ERROR");
 			setIsDeploying(false);
