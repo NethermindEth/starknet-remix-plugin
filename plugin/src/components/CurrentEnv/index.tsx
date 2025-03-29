@@ -20,7 +20,9 @@ export const CurrentEnv: React.FC = () => {
 		env === "wallet"
 			? {
 				address: walletAccount?.address,
-				balance: 0
+				balance: walletAccount?.address
+					? ethers.BigNumber.from(2000000000000000)
+					: ethers.BigNumber.from(0)
 			}
 			: env === "manual"
 				? {
@@ -39,7 +41,9 @@ export const CurrentEnv: React.FC = () => {
 
 	const balanceInEther = parseFloat(ethers.utils.formatEther(selectedAccount.balance ?? 0));
 	const isInteger = Number.isInteger(balanceInEther);
-	const selectedAccountBalance = isInteger ? balanceInEther.toFixed(0) : balanceInEther.toFixed(3);
+	const selectedAccountBalance = isInteger
+		? balanceInEther.toFixed(0)
+		: balanceInEther.toFixed(3);
 
 	return (
 		// <div>{ envName(env) }, { selectedAccountAddress }, { selectedAccountBalance } ETH </div>
