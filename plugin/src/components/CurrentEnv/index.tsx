@@ -20,9 +20,9 @@ export const CurrentEnv: React.FC = () => {
 		env === "wallet"
 			? {
 				address: walletAccount?.address,
-				balance: walletAccount?.address
-					? ethers.BigNumber.from(2000000000000000)
-					: ethers.BigNumber.from(0)
+				balance: walletAccount?.address != null 
+					? ethers.BigNumber.from(2000000000000000) 
+					: ethers.BigNumber.from(0),
 			}
 			: env === "manual"
 				? {
