@@ -37,7 +37,9 @@ export const CurrentEnv: React.FC = () => {
 			? getShortenedHash(selectedAccount.address, 6, 4)
 			: "No account selected";
 
-	const selectedAccountBalance = parseFloat(ethers.utils.formatEther(selectedAccount.balance ?? 0)).toFixed(3);
+	const balanceInEther = parseFloat(ethers.utils.formatEther(selectedAccount.balance ?? 0));
+	const isInteger = Number.isInteger(balanceInEther);
+	const selectedAccountBalance = isInteger ? balanceInEther.toFixed(0) : balanceInEther.toFixed(3);
 
 	return (
 		// <div>{ envName(env) }, { selectedAccountAddress }, { selectedAccountBalance } ETH </div>
