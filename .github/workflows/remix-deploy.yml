@@ -5,14 +5,21 @@ on:
       - develop
     paths:
       - 'plugin/**'
-      
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to deploy to'
+        required: true
+        type: string
+        default: 'develop'
+
 env:
   NODE_VERSION: '20.x'
   BUCKET_NAME: 'starknet-remix-plugin-web'
   PROD_BUCKET_NAME: 'starknet-remix-plugin-prod-web'
   API_SERVICE_URL: "https://cairo-remix-api-dev.nethermind.io"
   STARKNET_DEVNET_URL: "https://starknet-remix-devnet.nethermind.io"
-  
+
 
 permissions:
       id-token: write
@@ -25,7 +32,8 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-          
+          ref: ${{ inputs.branch }}
+
       - name: Determine version numbers
         id: determine-version
         uses: paulhatch/semantic-version@v5.2.1
@@ -56,13 +64,13 @@ jobs:
           enable_prerelease_mode: true
           # If enabled, diagnostic information will be added to the action output.
           debug: false
-          
+
       - name: Inject version
         env:
           SED_COMMAND: 's/\"version\"\:[ ]\"0.1.0\"/\"version\": \"0.3.0\"/g'
         run: |
           sed -i 's/\"version\"\:[ ]\"[0-9].[0-9]*.[0-9]*\"/\"version\": \"${{ steps.determine-version.outputs.version }}\"/g' ./plugin/package.json
-          
+
       - name: Setup Node ${{ env.NODE_VERSION }} Environment
         uses: actions/setup-node@v1
         with:
@@ -74,13 +82,13 @@ jobs:
       - name: pnpm install
         working-directory: ./plugin
         run: pnpm install
-      
+
       - name: pnpm build
         working-directory: ./plugin
         run: pnpm run build
 
       - name: 'Upload Artifact'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: react-github-actions-build
           path: ./plugin/build/**/*
