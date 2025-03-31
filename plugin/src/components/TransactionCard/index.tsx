@@ -77,8 +77,8 @@ const Index: React.FC<TransactionCardProps> = ({
 		env
 	} = transaction;
 
-	const txIdShort = getShortenedHash(txId, 8, 6);
-	const accountShort = getShortenedHash(account?.address ?? "", 8, 6);
+	const txIdShort = getShortenedHash(txId, 6, 4);
+	const accountShort = getShortenedHash(account?.address ?? "", 6, 4);
 
 	const cardRef = useRef<HTMLDivElement>(null);
 	const [chain, setChain] = React.useState<string>("goerli");
