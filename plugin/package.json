@@ -29,6 +29,7 @@
     "starknet": "6.21.1",
     "starknet-abi-forms": "0.1.9",
     "starknetkit": "^2.6.1",
+    "typescript": "5.5.4",
     "vite-plugin-svgr": "^4.2.0"
   },
   "devDependencies": {
@@ -44,7 +45,6 @@
     "eslint-plugin-n": "^17.17.0",
     "eslint-plugin-promise": "^7.2.1",
     "eslint-plugin-react": "^7.37.4",
-    "typescript": "^5.8.2",
     "vite": "^6.2.3",
     "vite-plugin-checker": "^0.9.1"
   },
