@@ -80,6 +80,47 @@ button {
     border: 1px solid var(--secondary);
 }
 
+*[data-state="open"] svg {
+    transform: rotate(180deg) !important;
+    transition: transform 0.4s ease !important;
+}
+
+svg {
+    transition: transform 0.4s ease !important;
+}
+
+img {
+    transform: none !important;
+    transition: none !important;
+}
+
+.SelectTrigger > * > svg,
+.SelectTrigger > * > * > svg {
+    transition: transform 0.4s ease !important;
+}
+
+.SelectTrigger[data-state="open"] > * > svg,
+.SelectTrigger[data-state="open"] > * > * > svg {
+    transform: rotate(180deg) !important;
+}
+
+svg[viewBox*="0 0 24 24"],
+svg[width="24"],
+svg[height="24"],
+svg[class*="logo"],
+svg[class*="Logo"] {
+    transform: none !important;
+    transition: none !important;
+}
+
+*[data-state="open"] svg[viewBox*="0 0 24 24"],
+*[data-state="open"] svg[width="24"], 
+*[data-state="open"] svg[height="24"],
+*[data-state="open"] svg[class*="logo"],
+*[data-state="open"] svg[class*="Logo"] {
+    transform: none !important;
+}
+
 /* Keyframe animations */
 @keyframes fadeInScaleUp {
     from {

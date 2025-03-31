@@ -14,8 +14,8 @@ export const Trigger: React.FC<CommonProps> = ({
 	className,
 	...props
 }) => (
-	<SelectPrimitive.Trigger asChild {...props}>
-		<button className={`SelectTrigger ${className ?? ""}`}>{children}</button>
+	<SelectPrimitive.Trigger className={`SelectTrigger ${className ?? ""}`} {...props}>
+		{children}
 	</SelectPrimitive.Trigger>
 );
 
@@ -55,11 +55,16 @@ export const Icon: React.FC<{
 	children,
 	className,
 	...props
-}) => (
-	<SelectPrimitive.Icon {...props} className={`SelectIcon ${className ?? ""}`}>
-		{children}
-	</SelectPrimitive.Icon>
-);
+}) => {
+	return (
+		<SelectPrimitive.Icon
+			{...props}
+			className={`SelectIcon ${className !== undefined ? className : ""}`}
+		>
+			{children}
+		</SelectPrimitive.Icon>
+	);
+};
 
 export const Portal = SelectPrimitive.Portal;
 
