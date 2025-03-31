@@ -23,18 +23,28 @@ button {
 
 /* Style the select content (dropdown box) */
 .SelectContent {
-    z-index: 1000;
-    padding: 5px;
-    border: 1px solid var(--light);
-    border-radius: 6px;
-    will-change: transform, opacity;
-    background-color: var(--bgPrimary);
-    overflow: auto;
-    animation: fadeInScaleUp 0.3s ease-out;
+    z-index: 1000 !important;
+    padding: 5px !important;
+    border: 1px solid var(--light) !important;
+    border-radius: 6px !important;
+    will-change: transform, opacity !important;
+    background-color: var(--bgPrimary) !important;
+    overflow: auto !important;
+    animation: fadeInScaleUp 0.3s ease-out !important;
+    width: var(--radix-select-trigger-width) !important;
+    box-sizing: border-box !important;
+}
+
+/* Force content and viewport to be full width */
+[data-radix-select-content],
+[data-radix-select-viewport],
+.SelectViewport {
+    width: 100% !important;
+    box-sizing: border-box !important;
 }
 
 /* Style individual select items */
-.SelectItem {
+.SelectItem, [data-radix-select-item] {
     padding: 8px 15px;
     font-size: 13px;
     line-height: 1;
@@ -47,6 +57,8 @@ button {
     outline: none;
     background: var(--bgPrimary);
     border: 1px solid var(--bgPrimary);
+    width: 100% !important;
+    box-sizing: border-box !important;
 }
 
 .SelectItem:hover,
@@ -67,7 +79,6 @@ button {
 .SelectItemWithDelete .deleteButton:hover{
     border: 1px solid var(--secondary);
 }
-
 
 /* Keyframe animations */
 @keyframes fadeInScaleUp {

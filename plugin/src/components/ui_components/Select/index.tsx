@@ -1,4 +1,3 @@
-// Your intermediary file with types
 import * as SelectPrimitive from "@radix-ui/react-select";
 import "./styles.css";
 import React from "react";
@@ -25,8 +24,15 @@ export const Content: React.FC<CommonProps> = ({
 	className,
 	...props
 }) => (
-	<SelectPrimitive.Content asChild {...props}>
-		<div className={`SelectContent ${className ?? ""}`}>{children}</div>
+	<SelectPrimitive.Content
+		position="popper"
+		sideOffset={4}
+		className={`SelectContent ${className ?? ""}`}
+		{...props}
+	>
+		<SelectPrimitive.Viewport className="SelectViewport">
+			{children}
+		</SelectPrimitive.Viewport>
 	</SelectPrimitive.Content>
 );
 
@@ -35,8 +41,8 @@ export const Item: React.FC<SelectPrimitive.SelectItemProps & CommonProps> = ({
 	className,
 	...props
 }) => (
-	<SelectPrimitive.Item asChild {...props}>
-		<div className={`SelectItem ${className ?? ""}`}>{children}</div>
+	<SelectPrimitive.Item {...props} className={`SelectItem ${className ?? ""}`}>
+		{children}
 	</SelectPrimitive.Item>
 );
 
