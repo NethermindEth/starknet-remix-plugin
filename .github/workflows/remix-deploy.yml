@@ -87,7 +87,7 @@ jobs:
           name: react-github-actions-build
           path: ./plugin/build/**/*
   Deploy:
-    if: github.ref == 'refs/heads/develop'
+    if: github.ref == 'refs/heads/develop' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     needs: Build
     steps:
