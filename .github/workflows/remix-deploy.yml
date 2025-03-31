@@ -5,13 +5,8 @@ on:
       - develop
     paths:
       - 'plugin/**'
+      - '.github/workflows/remix-deploy.yml'
   workflow_dispatch:
-    inputs:
-      branch:
-        description: 'Branch to deploy to'
-        required: true
-        type: string
-        default: 'develop'
 
 env:
   NODE_VERSION: '20.x'
@@ -32,7 +27,6 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-          ref: ${{ inputs.branch }}
 
       - name: Determine version numbers
         id: determine-version
