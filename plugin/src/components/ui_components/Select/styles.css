@@ -82,11 +82,11 @@ button {
 
 *[data-state="open"] svg {
     transform: rotate(180deg) !important;
-    transition: transform 0.4s ease !important;
+    transition: transform 0.7s ease !important;
 }
 
 svg {
-    transition: transform 0.4s ease !important;
+    transition: transform 0.7s ease !important;
 }
 
 img {
