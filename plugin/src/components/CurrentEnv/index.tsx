@@ -16,7 +16,6 @@ export const CurrentEnv: React.FC = () => {
 	const selectedAccountDevnet = useAtomValue(selectedDevnetAccountAtom);
 	const walletAccount = useAtomValue(account);
 	const walletBalance = useAtomValue(walletBalanceAtom);
-	console.log("walletBalance", walletBalance);
 
 	const selectedAccount =
 		env === "wallet"
@@ -40,9 +39,12 @@ export const CurrentEnv: React.FC = () => {
 		selectedAccount.address != null
 			? getShortenedHash(selectedAccount.address, 6, 4)
 			: "No account selected";
-	console.log("sdfdfd", selectedAccount.balance);
 
-	const selectedAccountBalance = ethers.utils.formatEther(selectedAccount.balance ?? 0);
+	const balanceInEther = parseFloat(ethers.utils.formatEther(selectedAccount.balance ?? 0));
+	const isInteger = Number.isInteger(balanceInEther);
+	const selectedAccountBalance = isInteger
+		? balanceInEther.toFixed(0)
+		: balanceInEther.toFixed(3);
 
 	const balanceValue = parseFloat(selectedAccountBalance);
 	const isInteger = Number.isInteger(balanceValue);
