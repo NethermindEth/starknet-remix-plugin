@@ -7,6 +7,7 @@ import { getShortenedHash } from "../../utils/utils";
 import { ethers } from "ethers";
 import { DevnetStatus } from "../DevnetStatus";
 import { account } from "../../atoms/connection";
+import { walletBalanceAtom } from "../Wallet";
 
 export const CurrentEnv: React.FC = () => {
 	const env = useAtomValue(envAtom);
@@ -14,13 +15,16 @@ export const CurrentEnv: React.FC = () => {
 	const selectedAccountManual = useAtomValue(selectedAccountAtom);
 	const selectedAccountDevnet = useAtomValue(selectedDevnetAccountAtom);
 	const walletAccount = useAtomValue(account);
-	// const walletProvider = useAtomValue(provider)
+	const walletBalance = useAtomValue(walletBalanceAtom);
+	console.log("walletBalance", walletBalance);
 
 	const selectedAccount =
 		env === "wallet"
 			? {
 				address: walletAccount?.address,
-				balance: 0
+				balance: walletBalance !== null && walletBalance !== undefined
+					? walletBalance
+					: 0
 			}
 			: env === "manual"
 				? {
@@ -36,11 +40,17 @@ export const CurrentEnv: React.FC = () => {
 		selectedAccount.address != null
 			? getShortenedHash(selectedAccount.address, 6, 4)
 			: "No account selected";
+	console.log("sdfdfd", selectedAccount.balance);
 
 	const selectedAccountBalance = ethers.utils.formatEther(selectedAccount.balance ?? 0);
 
+	const balanceValue = parseFloat(selectedAccountBalance);
+	const isInteger = Number.isInteger(balanceValue);
+	const formattedBalance = isInteger
+		? balanceValue.toFixed(0)
+		: balanceValue.toFixed(3);
+
 	return (
-		// <div>{ envName(env) }, { selectedAccountAddress }, { selectedAccountBalance } ETH </div>
 		<div className={"current-env-root"}>
 			<div className={"devnet-status"}>
 				<DevnetStatus />
@@ -49,7 +59,7 @@ export const CurrentEnv: React.FC = () => {
 				<span className={"chain-name"}>{envName(env)}</span>
 				<span className={"chain-account-info"}>
 					{selectedAccountAddress}{" "}
-					{selectedAccount != null ? `(${selectedAccountBalance} ETH)` : ""}
+					{selectedAccount !== null && selectedAccount !== undefined ? `(${formattedBalance} ETH)` : ""}
 				</span>
 			</div>
 		</div>
