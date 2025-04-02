@@ -23,16 +23,13 @@ import { apiUrl, getAccounts } from "../../utils/network";
 import { StarknetProvider } from "../../components/starknet/starknet-provider";
 import { CompilationStatus, statusAtom } from "../../atoms/compilation";
 import { useApi } from "../../utils/api";
-import { Account, RpcProvider } from "starknet";
 import {
 	availableDevnetAccountsAtom,
 	devnetAtom,
 	envAtom,
 	isDevnetAliveAtom,
-	selectedDevnetAccountAtom
 } from "../../atoms/environment";
-import useAccount from "../../hooks/useAccount";
-import useProvider from "../../hooks/useProvider";
+import { devnetAccountAtom } from "../../atoms/connection";
 
 export type AccordionTabs = "compile" | "deploy" | "interaction" | "transactions" | "";
 
@@ -114,12 +111,10 @@ const Plugin: React.FC = () => {
 
 	const devnet = useAtomValue(devnetAtom);
 	const [isDevnetAlive, setIsDevnetAlive] = useAtom(isDevnetAliveAtom);
-	const [selectedDevnetAccount, setSelectedDevnetAccount] = useAtom(selectedDevnetAccountAtom);
 	const [availableDevnetAccounts, setAvailableDevnetAccounts] = useAtom(
 		availableDevnetAccountsAtom
 	);
-	const { setAccount } = useAccount();
-	const { setProvider } = useProvider();
+	const setDevnetAccount = useSetAtom(devnetAccountAtom);
 	const env = useAtomValue(envAtom);
 
 	const checkDevnetUrl = async (): Promise<void> => {
@@ -156,9 +151,6 @@ const Plugin: React.FC = () => {
 			if (JSON.stringify(accounts) !== JSON.stringify(availableDevnetAccounts)) {
 				if (accounts !== undefined) {
 					setAvailableDevnetAccounts(accounts);
-					if (accounts.length > 0 && selectedDevnetAccount === null) {
-						setSelectedDevnetAccount(accounts[0]);
-					}
 				} else {
 					setAvailableDevnetAccounts([]);
 				}
@@ -188,29 +180,13 @@ const Plugin: React.FC = () => {
 	useEffect(() => {
 		if (!isDevnetAlive) {
 			setAvailableDevnetAccounts([]);
-			setAccount(null);
-			setSelectedDevnetAccount(null);
+			setDevnetAccount(null);
 		} else {
 			refreshDevnetAccounts().catch((e) => {
 				console.error(e);
 			});
 		}
 	}, [devnet, isDevnetAlive]);
-
-	// Initialize provider and account when selected account changes
-	useEffect(() => {
-		const newProvider = new RpcProvider({ nodeUrl: devnet.url });
-		if (selectedDevnetAccount != null) {
-			setAccount(
-				new Account(
-					newProvider,
-					selectedDevnetAccount.address,
-					selectedDevnetAccount.private_key
-				)
-			);
-		}
-		setProvider(newProvider);
-	}, [devnet, selectedDevnetAccount]);
 
 	return (
 		<StarknetProvider>

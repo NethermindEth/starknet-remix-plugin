@@ -3,26 +3,15 @@ import { sepolia, mainnet } from "@starknet-react/chains";
 import {
 	StarknetConfig,
 	publicProvider,
-	argent,
-	braavos,
-	useInjectedConnectors
 } from "@starknet-react/core";
+import { availableConnectors } from "./connectors";
 
 export function StarknetProvider({ children }: { children: React.ReactNode }): React.ReactElement {
-	const { connectors } = useInjectedConnectors({
-		// Show these connectors if the user has no connector installed.
-		recommended: [argent(), braavos()],
-		// Hide recommended connectors if the user has any connector installed.
-		includeRecommended: "onlyIfNoConnectors",
-		// Randomize the order of the connectors.
-		order: "random"
-	});
-
 	return (
 		<StarknetConfig
 			chains={[mainnet, sepolia]}
 			provider={publicProvider()}
-			connectors={connectors}
+			connectors={availableConnectors}
 		>
 			{children}
 		</StarknetConfig>

@@ -8,7 +8,7 @@ import * as Select from "../ui_components/Select";
 import "./styles.css";
 import type { Contract } from "../../utils/types/contracts";
 import { fetchClassHashAt, fetchContractClass } from "../../utils/rpc";
-import useProvider from "../../hooks/useProvider";
+import { useProvider } from "@starknet-react/core";
 
 interface AddDeployedContractProps {
 	isOpen: boolean;

@@ -19,8 +19,7 @@ import {
 	selectedDeployedContract
 } from "../../atoms/compiledContracts";
 import { envAtom } from "../../atoms/environment";
-import useAccount from "../../hooks/useAccount";
-import useProvider from "../../hooks/useProvider";
+// import useProvider from "../../hooks/useProvider";
 import useRemixClient from "../../hooks/useRemixClient";
 import {
 	constructorInputsAtom,
@@ -32,8 +31,7 @@ import {
 	isDelcaringAtom,
 	isDeployingAtom
 } from "../../atoms/deployment";
-
-import { useTransactionReceipt } from "@starknet-react/core";
+import { useAccount, useDeclareContract, useProvider, useTransactionReceipt } from "@starknet-react/core";
 import { type CallbackReturnType, ConstructorForm } from "starknet-abi-forms";
 import { useIcon } from "../../hooks/useIcons";
 import { DeclareStatusLabels } from "../../utils/constants";
@@ -81,6 +79,15 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 
 	const [transactions, setTransactions] = useAtom(transactionsAtom);
 	const env = useAtomValue(envAtom);
+
+	const { status, declareAsync, error } = useDeclareContract({});
+ 
+	useEffect(() => {
+		console.log("status", status);
+		if (status === "error") {
+			console.log("error", error);
+		}
+	}, [status]);
 
 	const declTxStatus = useTransactionReceipt({
 		hash: declTxHash,
@@ -274,7 +281,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 		setIsDeclaring(true);
 		let updatedTransactions = transactions;
 		try {
-			if (account === null || provider === null) {
+			if (account === null || provider === null || account === undefined) {
 				throw new Error("No account or provider selected!");
 			}
 
@@ -312,14 +319,30 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 						value: `------------------------ Declaring contract: ${selectedContract.name} ------------------------`,
 						type: "info"
 					});
-					const declareResponse = await account.declare(
-						{
-							contract: selectedContract.sierra,
-							classHash: selectedContract.classHash,
-							compiledClassHash: selectedContract.compiledClassHash
-						},
-						{ maxFee: 1e18 }
-					);
+					console.log("selectedContract: ", selectedContract);
+
+					// const declareResponse = await account.declare(
+					// 	{
+					// 		contract: selectedContract.sierra,
+					// 		casm: selectedContract.casm,
+					// 		classHash: selectedContract.classHash,
+					// 		compiledClassHash: selectedContract.compiledClassHash
+					// 	},
+					// 	{ maxFee: 1e18 }
+					// );
+
+					// export interface AddDeclareTransactionParameters {
+					// 	compiled_class_hash: FELT;
+					// 	class_hash?: FELT;
+					// 	contract_class: CONTRACT_CLASS;
+					// }
+
+					const declareResponse = await declareAsync({
+						compiled_class_hash: selectedContract.compiledClassHash,
+						contract_class: JSON.parse(selectedContract.sierra),
+						class_hash: selectedContract.classHash,
+					});
+
 					await remixClient.call("terminal", "log", {
 						value: JSON.stringify(declareResponse, null, 2),
 						type: "info"
@@ -400,7 +423,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 		const classHash = selectedContract?.classHash;
 		const updatedTransactions = transactions;
 		try {
-			if (account === null || provider === null) {
+			if (account === null || provider === null || account === undefined) {
 				throw new Error("No account or provider selected!");
 			}
 

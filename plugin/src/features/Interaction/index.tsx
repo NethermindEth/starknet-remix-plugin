@@ -11,14 +11,12 @@ import { useAtom, useAtomValue } from "jotai";
 import transactionsAtom from "../../atoms/transactions";
 import { deployedContractsAtom, selectedDeployedContract } from "../../atoms/compiledContracts";
 import { envAtom } from "../../atoms/environment";
-import useAccount from "../../hooks/useAccount";
-import useProvider from "../../hooks/useProvider";
 import useRemixClient from "../../hooks/useRemixClient";
 
 import { ABIForm, type CallbackReturnType } from "starknet-abi-forms";
 import "starknet-abi-forms/index.css";
 import { invokeTxHashAtom, isInvokingAtom } from "../../atoms/interaction";
-import { useTransactionReceipt } from "@starknet-react/core";
+import { useAccount, useProvider, useTransactionReceipt } from "@starknet-react/core";
 import AddDeployedContract from "../../components/AddDeployedContract";
 
 interface InteractionProps {

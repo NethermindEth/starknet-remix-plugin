@@ -4,13 +4,13 @@ import { devnets } from "../../utils/network";
 import "./styles.css";
 import { customDevnetUrlAtom, devnetAtom, envAtom, envName, isCustomDevnetConnectedAtom } from "../../atoms/environment";
 import { useAtom, useSetAtom } from "jotai";
-import useProvider from "../../hooks/useProvider";
+import { devnetProviderAtom } from "../../atoms/connection";
 import { BsChevronDown, BsPlugFill, BsPlug } from "react-icons/bs";
 import * as Select from "../../components/ui_components/Select";
 import { DevnetStatus } from "../DevnetStatus";
 
 const EnvironmentSelector: React.FC = () => {
-	const { setProvider } = useProvider();
+	const setProvider = useSetAtom(devnetProviderAtom);
 	const [env, setEnv] = useAtom(envAtom);
 	const setDevnet = useSetAtom(devnetAtom);
 	const [customUrl, setCustomUrl] = useAtom(customDevnetUrlAtom);

@@ -27,8 +27,6 @@ const envAtom = atom<Env>("remoteDevnet");
 
 const isDevnetAliveAtom = atom<boolean>(true);
 
-const selectedDevnetAccountAtom = atom<DevnetAccount | null>(null);
-
 const availableDevnetAccountsAtom = atom<DevnetAccount[]>([]);
 
 export {
@@ -37,6 +35,5 @@ export {
 	isCustomDevnetConnectedAtom,
 	envAtom,
 	isDevnetAliveAtom,
-	selectedDevnetAccountAtom,
 	availableDevnetAccountsAtom
 };

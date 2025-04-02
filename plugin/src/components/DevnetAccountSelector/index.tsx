@@ -1,5 +1,5 @@
 import { getRoundedNumber, getShortenedHash, weiToEth } from "../../utils/utils";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Account, RpcProvider } from "starknet";
 import { MdCheck, MdCopyAll } from "react-icons/md";
 import "./styles.css";
@@ -10,37 +10,40 @@ import {
 	devnetAtom,
 	envAtom,
 	isDevnetAliveAtom,
-	selectedDevnetAccountAtom
 } from "../../atoms/environment";
-import useAccount from "../../hooks/useAccount";
-import useProvider from "../../hooks/useProvider";
+import { devnetAccountAtom, devnetProviderAtom } from "../../atoms/connection";
 import { BsCheck, BsChevronDown } from "react-icons/bs";
 import * as Select from "../../components/ui_components/Select";
+import { DevnetAccountStore } from "../starknet/devnet-connector";
 
 const DevnetAccountSelector: React.FC = () => {
-	const {
+	const [
 		account,
 		setAccount
-	} = useAccount();
-	const {
+	 ] = useAtom(devnetAccountAtom);
+	const [
 		provider,
 		setProvider
-	} = useProvider();
+	] = useAtom(devnetProviderAtom);
 	const env = useAtomValue(envAtom);
 	const devnet = useAtomValue(devnetAtom);
 	const isDevnetAlive = useAtomValue(isDevnetAliveAtom);
-	const [, setSelectedDevnetAccount] = useAtom(selectedDevnetAccountAtom);
 	const availableDevnetAccounts = useAtomValue(availableDevnetAccountsAtom);
 
 	const [showCopied, setCopied] = useState(false);
 	const [accountIdx, setAccountIdx] = useState(0);
+
+	useEffect(() => {
+		if (account !== null) {
+			DevnetAccountStore.getInstance().updateAccount(account);
+		}
+	}, [account]);
 
 	function handleAccountChange (value: number): void {
 		if (value === -1) {
 			return;
 		}
 		setAccountIdx(value);
-		setSelectedDevnetAccount(availableDevnetAccounts[value]);
 		const newProvider = new RpcProvider({ nodeUrl: devnet.url });
 		if (provider == null) setProvider(newProvider);
 		setAccount(

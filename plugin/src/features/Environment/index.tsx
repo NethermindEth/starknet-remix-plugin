@@ -26,7 +26,8 @@ const EnvironmentTab: React.FC<{ env: string }> = ({ env }) => {
 					</div>
 				</div>
 				<div className="flex flex-column">
-					{isDevnetEnv ? <DevnetAccountSelector /> : <Wallet />}
+					{isDevnetEnv && <DevnetAccountSelector />}
+					<Wallet />
 				</div>
 			</div>
 		</div>

@@ -9,8 +9,7 @@ import { useAccount, useNetwork, useProvider } from "@starknet-react/core";
 import ConnectModal from "../starknet/connect";
 import DisconnectModal from "../starknet/disconnect";
 import { formatWalletAddress, getChainName } from "../../utils/starknet";
-import useAccountAtom from "../../hooks/useAccount";
-import useProviderAtom from "../../hooks/useProvider";
+import { devnetAccountAtom, devnetProviderAtom } from "../../atoms/connection";
 import { declTxHashAtom, deployTxHashAtom } from "../../atoms/deployment";
 import { invokeTxHashAtom } from "../../atoms/interaction";
 import { useSetAtom } from "jotai";
@@ -27,8 +26,8 @@ const Wallet: React.FC = () => {
 	const { chain } = useNetwork();
 	const { provider } = useProvider();
 
-	const { setAccount } = useAccountAtom();
-	const { setProvider } = useProviderAtom();
+	const setAccount = useSetAtom(devnetAccountAtom);
+	const setProvider = useSetAtom(devnetProviderAtom);
 
 	const setDeclTxHash = useSetAtom(declTxHashAtom);
 	const setDeployTxHash = useSetAtom(deployTxHashAtom);

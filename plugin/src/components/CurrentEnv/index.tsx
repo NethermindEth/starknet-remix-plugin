@@ -1,36 +1,16 @@
 import React from "react";
 import "./styles.css";
 import { useAtomValue } from "jotai";
-import { envAtom, envName, selectedDevnetAccountAtom } from "../../atoms/environment";
-import { getShortenedHash } from "../../utils/utils";
+import { envAtom, envName } from "../../atoms/environment";
 import { ethers } from "ethers";
 import { DevnetStatus } from "../DevnetStatus";
-import { account } from "../../atoms/connection";
-
+import { useAccount } from "@starknet-react/core";
 export const CurrentEnv: React.FC = () => {
 	const env = useAtomValue(envAtom);
+	const { account } = useAccount();
 
-	const selectedAccountDevnet = useAtomValue(selectedDevnetAccountAtom);
-	const walletAccount = useAtomValue(account);
-	// const walletProvider = useAtomValue(provider)
-
-	const selectedAccount =
-		env === "wallet"
-			? {
-				address: walletAccount?.address,
-				balance: 0
-			}
-			: {
-				address: selectedAccountDevnet?.address,
-				balance: selectedAccountDevnet?.initial_balance
-			};
-
-	const selectedAccountAddress =
-		selectedAccount.address != null
-			? getShortenedHash(selectedAccount.address, 6, 4)
-			: "No account selected";
-
-	const selectedAccountBalance = ethers.utils.formatEther(selectedAccount.balance ?? 0);
+	// TODO: Implement balance fetching
+	const selectedAccountBalance = ethers.utils.formatEther(0);
 
 	return (
 		// <div>{ envName(env) }, { selectedAccountAddress }, { selectedAccountBalance } ETH </div>
@@ -41,8 +21,8 @@ export const CurrentEnv: React.FC = () => {
 			<div className={"chain-info-box"}>
 				<span className={"chain-name"}>{envName(env)}</span>
 				<span className={"chain-account-info"}>
-					{selectedAccountAddress}{" "}
-					{selectedAccount != null ? `(${selectedAccountBalance} ETH)` : ""}
+					{account?.address}{" "}
+					{account != null ? `(${selectedAccountBalance} ETH)` : ""}
 				</span>
 			</div>
 		</div>

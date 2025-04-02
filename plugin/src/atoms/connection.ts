@@ -3,8 +3,8 @@ import { type AccountInterface, type ProviderInterface } from "starknet";
 
 import { type StarknetWindowObject } from "@starknet-io/get-starknet-core";
 
-const account = atom<AccountInterface | null>(null);
-const provider = atom<ProviderInterface | null>(null);
-const starknetWindowObject = atom<StarknetWindowObject | null>(null);
+const devnetAccountAtom = atom<AccountInterface | null>(null);
+const devnetProviderAtom = atom<ProviderInterface | null>(null);
+const devnetStarknetWindowObjectAtom = atom<StarknetWindowObject | null>(null);
 
-export { account, provider, starknetWindowObject };
+export { devnetAccountAtom, devnetProviderAtom, devnetStarknetWindowObjectAtom };

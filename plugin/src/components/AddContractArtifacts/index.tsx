@@ -6,9 +6,8 @@ import { compiledContractsAtom } from "../../atoms/compiledContracts";
 import "./styles.css";
 import type { Contract, Abi } from "../../utils/types/contracts";
 import { fetchClassHashAt, fetchContractClass } from "../../utils/rpc";
-import useProvider from "../../hooks/useProvider";
 import { hash, type CompiledSierra, type CairoAssembly } from "starknet";
-
+import { useProvider } from "@starknet-react/core";
 interface AddContractArtifactsProps {
 	isOpen: boolean;
 	onOpenChange: (open: boolean) => void;
