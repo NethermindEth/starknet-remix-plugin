@@ -16,20 +16,15 @@ export const CurrentEnv: React.FC = () => {
 	const selectedAccountDevnet = useAtomValue(selectedDevnetAccountAtom);
 	const walletAccount = useAtomValue(account);
 	const walletBalance = useAtomValue(walletBalanceAtom);
+	console.log("walletBalance", walletBalance);
 
 	const selectedAccount =
 		env === "wallet"
 			? {
 				address: walletAccount?.address,
-<<<<<<< HEAD
 				balance: walletBalance !== null && walletBalance !== undefined
 					? walletBalance
 					: 0
-=======
-				balance: walletAccount?.address != null
-					? ethers.BigNumber.from(2000000000000000)
-					: ethers.BigNumber.from(0)
->>>>>>> aec2e6a6c9c488dd515b94b732578f59698dc452
 			}
 			: env === "manual"
 				? {
@@ -40,17 +35,13 @@ export const CurrentEnv: React.FC = () => {
 					address: selectedAccountDevnet?.address,
 					balance: selectedAccountDevnet?.initial_balance
 				};
-
 	const selectedAccountAddress =
 		selectedAccount.address != null
 			? getShortenedHash(selectedAccount.address, 6, 4)
 			: "No account selected";
+	console.log("sdfdfd", selectedAccount.balance);
 
-	const balanceInEther = parseFloat(ethers.utils.formatEther(selectedAccount.balance ?? 0));
-	const isInteger = Number.isInteger(balanceInEther);
-	const selectedAccountBalance = isInteger
-		? balanceInEther.toFixed(0)
-		: balanceInEther.toFixed(3);
+	const selectedAccountBalance = ethers.utils.formatEther(selectedAccount.balance ?? 0);
 
 	const balanceValue = parseFloat(selectedAccountBalance);
 	const isInteger = Number.isInteger(balanceValue);
