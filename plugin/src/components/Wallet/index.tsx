@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import copy from "copy-to-clipboard";
 import "./styles.css";
 import { MdCheck, MdCopyAll } from "react-icons/md";
-import { type Network } from "../../utils/constants";
+import { type Network, ETH_TOKEN_ADDRESS, ERC20_ABI, RPC_URLS } from "../../utils/constants";
 import { useCurrentExplorer } from "../ExplorerSelector";
 import { getExplorerUrl, trimStr } from "../../utils/utils";
 import { useAccount, useNetwork, useProvider } from "@starknet-react/core";
@@ -13,37 +13,13 @@ import useAccountAtom from "../../hooks/useAccount";
 import useProviderAtom from "../../hooks/useProvider";
 import { declTxHashAtom, deployTxHashAtom } from "../../atoms/deployment";
 import { invokeTxHashAtom } from "../../atoms/interaction";
-import { atom, useAtom, useSetAtom } from "jotai";
+import { atom, useSetAtom } from "jotai";
 import { RpcProvider, Contract } from "starknet";
-// import { formatEther } from "ethers/lib/utils";
 
-export const walletBalanceAtom = atom<string | null>(null);
-
-const ETH_TOKEN_ADDRESS = "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7";
-
-const ERC20_ABI = [
-	{
-		inputs: [
-			{
-				name: "account",
-				type: "felt"
-			}
-		],
-		name: "balanceOf",
-		outputs: [
-			{
-				name: "balance",
-				type: "Uint256"
-			}
-		],
-		stateMutability: "view",
-		type: "function"
-	}
-];
+export const walletBalanceAtom = atom<string | bigint | null>(null);
 
 const Wallet: React.FC = () => {
 	const [showCopied, setCopied] = useState(false);
-	const [balance, setBalance] = useAtom(walletBalanceAtom);
 
 	const {
 		status,
@@ -60,8 +36,7 @@ const Wallet: React.FC = () => {
 	const setDeclTxHash = useSetAtom(declTxHashAtom);
 	const setDeployTxHash = useSetAtom(deployTxHashAtom);
 	const setInvokeTxHash = useSetAtom(invokeTxHashAtom);
-	console.log(balance
-	);
+	const setBalance = useSetAtom(walletBalanceAtom);
 
 	useEffect(() => {
 		if (status === "connected") {
@@ -79,32 +54,35 @@ const Wallet: React.FC = () => {
 
 	useEffect(() => {
 		const fetchBalance = async (): Promise<void> => {
-			if (status === "connected" && address !== undefined && address !== null) {
-				try {
-					const customProvider = new RpcProvider({
-						nodeUrl: "https://free-rpc.nethermind.io/sepolia-juno/v0_7"
-					});
+			try {
+				const networkName = getChainName(chain.id.toString() ?? "").toLowerCase();
+				const rpcUrl = networkName === "mainnet" ? RPC_URLS.mainnet : RPC_URLS.sepolia;
 
-					const ethContract = new Contract(
-						ERC20_ABI,
-						ETH_TOKEN_ADDRESS,
-						customProvider
-					);
+				const customProvider = new RpcProvider({
+					nodeUrl: rpcUrl
+				});
 
-					const balanceResponse = await ethContract.balanceOf(address);
-					const balanceValue = balanceResponse.balance;
+				const ethContract = new Contract(
+					ERC20_ABI,
+					ETH_TOKEN_ADDRESS,
+					customProvider
+				);
 
-					setBalance(balanceValue);
-				} catch (error) {
-					console.error("Error fetching wallet balance:", error);
-				}
+				const balanceResponse = await ethContract.balanceOf(address);
+				const balanceValue = balanceResponse.balance;
+
+				setBalance(balanceValue);
+			} catch (error) {
+				console.error("Error fetching wallet balance:", error);
 			}
 		};
 
-		if (status === "connected" && address !== undefined && address !== null) {
+		const isConnectedWithAddress = status === "connected" && address !== undefined && address !== null;
+
+		if (isConnectedWithAddress) {
 			fetchBalance().catch(console.error);
 		}
-	}, [status, address]);
+	}, [status, address, chain.id]);
 
 	const formattedAddress = formatWalletAddress(address);
 	const explorerHook = useCurrentExplorer();
