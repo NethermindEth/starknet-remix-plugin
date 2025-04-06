@@ -154,7 +154,7 @@
   }
 
   .AccordionContent[data-state='open'] {
-    animation: slideDown 300ms cubic-bezier(0.87, 0, 0.13, 1);
+    animation: slideDown 800ms cubic-bezier(0.87, 0, 0.13, 1);
 
     background-color: transparent !important;
   }

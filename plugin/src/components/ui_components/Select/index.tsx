@@ -1,3 +1,4 @@
+// Your intermediary file with types
 import * as SelectPrimitive from "@radix-ui/react-select";
 import "./styles.css";
 import React from "react";
@@ -14,8 +15,8 @@ export const Trigger: React.FC<CommonProps> = ({
 	className,
 	...props
 }) => (
-	<SelectPrimitive.Trigger className={`SelectTrigger ${className ?? ""}`} {...props}>
-		{children}
+	<SelectPrimitive.Trigger asChild {...props}>
+		<button className={`SelectTrigger ${className ?? ""}`}>{children}</button>
 	</SelectPrimitive.Trigger>
 );
 
@@ -23,26 +24,34 @@ export const Content: React.FC<CommonProps> = ({
 	children,
 	className,
 	...props
-}) => (
-	<SelectPrimitive.Content
-		position="popper"
-		sideOffset={4}
-		className={`SelectContent ${className ?? ""}`}
-		{...props}
-	>
-		<SelectPrimitive.Viewport className="SelectViewport">
-			{children}
-		</SelectPrimitive.Viewport>
-	</SelectPrimitive.Content>
-);
+}) => {
+	const allProps = { ...props, forceMount: true };
+
+	return (
+		<SelectPrimitive.Portal>
+			<SelectPrimitive.Content
+				asChild
+				position="popper"
+				sideOffset={4}
+				{...allProps}
+			>
+				<div className={`SelectContent ${className ?? ""}`}>
+					<SelectPrimitive.Viewport className="SelectViewport">
+						{children}
+					</SelectPrimitive.Viewport>
+				</div>
+			</SelectPrimitive.Content>
+		</SelectPrimitive.Portal>
+	);
+};
 
 export const Item: React.FC<SelectPrimitive.SelectItemProps & CommonProps> = ({
 	children,
 	className,
 	...props
 }) => (
-	<SelectPrimitive.Item {...props} className={`SelectItem ${className ?? ""}`}>
-		{children}
+	<SelectPrimitive.Item asChild {...props}>
+		<div className={`SelectItem ${className ?? ""}`}>{children}</div>
 	</SelectPrimitive.Item>
 );
 
@@ -55,16 +64,11 @@ export const Icon: React.FC<{
 	children,
 	className,
 	...props
-}) => {
-	return (
-		<SelectPrimitive.Icon
-			{...props}
-			className={`SelectIcon ${className !== undefined ? className : ""}`}
-		>
-			{children}
-		</SelectPrimitive.Icon>
-	);
-};
+}) => (
+	<SelectPrimitive.Icon {...props} className={`SelectIcon ${className ?? ""}`}>
+		{children}
+	</SelectPrimitive.Icon>
+);
 
 export const Portal = SelectPrimitive.Portal;
 

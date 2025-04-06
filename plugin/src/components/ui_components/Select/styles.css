@@ -27,12 +27,31 @@ button {
     padding: 5px !important;
     border: 1px solid var(--light) !important;
     border-radius: 6px !important;
-    will-change: transform, opacity !important;
     background-color: var(--bgPrimary) !important;
-    overflow: auto !important;
-    animation: fadeInScaleUp 0.3s ease-out !important;
     width: var(--radix-select-trigger-width) !important;
     box-sizing: border-box !important;
+    
+    /* Animation properties */
+    transform-origin: top center !important;
+    overflow: hidden !important;
+    /* Use transition instead of animation for more reliable behavior */
+    transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), 
+                transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), 
+                max-height 0.8s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+/* Animation states using transition */
+.SelectContent[data-state="open"] {
+    opacity: 1 !important;
+    transform: scaleY(1) !important;
+    max-height: 300px !important;
+}
+
+.SelectContent[data-state="closed"] {
+    opacity: 0 !important;
+    transform: scaleY(0) !important;
+    max-height: 0 !important;
+    pointer-events: none !important;
 }
 
 /* Force content and viewport to be full width */
@@ -82,11 +101,11 @@ button {
 
 *[data-state="open"] svg {
     transform: rotate(180deg) !important;
-    transition: transform 0.7s ease !important;
+    transition: transform 0.8s ease !important;
 }
 
 svg {
-    transition: transform 0.7s ease !important;
+    transition: transform 0.8s ease !important;
 }
 
 img {
@@ -96,7 +115,7 @@ img {
 
 .SelectTrigger > * > svg,
 .SelectTrigger > * > * > svg {
-    transition: transform 0.4s ease !important;
+    transition: transform 0.8s ease !important;
 }
 
 .SelectTrigger[data-state="open"] > * > svg,
@@ -119,16 +138,4 @@ svg[class*="Logo"] {
 *[data-state="open"] svg[class*="logo"],
 *[data-state="open"] svg[class*="Logo"] {
     transform: none !important;
-}
-
-/* Keyframe animations */
-@keyframes fadeInScaleUp {
-    from {
-        opacity: 0;
-        transform: scale(0.95);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
 }

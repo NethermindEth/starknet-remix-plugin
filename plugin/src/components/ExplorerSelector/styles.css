@@ -14,7 +14,7 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  transition: all 0.2s ease;
+  transition: all 0.8s ease;
 }
 .styled-dropdown-item:hover {
   cursor: pointer;
