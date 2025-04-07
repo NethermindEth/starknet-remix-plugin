@@ -15,7 +15,7 @@ import { devnet } from "@starknet-react/chains";
 
 const DEVNET_ENVIRONMENTS: string[] = ["customDevnet", "remoteDevnet", "localKatanaDevnet"];
 
-const EnvironmentTab: React.FC<{ env: string }> = ({ env }) => {
+const EnvSettings: React.FC<{ env: string }> = ({ env }) => {
 	const isDevnetEnv = DEVNET_ENVIRONMENTS.includes(env);
 
 	return (
@@ -61,31 +61,10 @@ const Environment: React.FC = () => {
 	}, [availableDevnetAccounts]);
 
 	return (
-		<Accordion.Root 
-			className="EnvAccordion-root" 
-			type="single" 
-			collapsible
-		>
-			<Accordion.Item className="EnvAccordion-item" value="env">
-				<Accordion.Header className="EnvAccordion-header">
-					<Accordion.Trigger className="EnvAccordion-trigger">
-						<div className="EnvAccordion-trigger-content">
-							<CurrentEnv />
-						</div>
-						<BsChevronDown className="EnvAccordion-chevron" aria-hidden />
-					</Accordion.Trigger>
-				</Accordion.Header>
-
-				<Accordion.Content className="EnvAccordion-content">
-					<div className="EnvAccordion-content-text">
-						<div className="starknet-connection-component">
-							<EnvironmentTab env={env} />
-						</div>
-					</div>
-				</Accordion.Content>
-			</Accordion.Item>
-		</Accordion.Root>
+		<div className="wallet-container">
+			<Wallet />
+		</div>
 	);
 };
 
-export { Environment };
+export { Environment, EnvSettings };

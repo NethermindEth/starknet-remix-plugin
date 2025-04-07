@@ -9,34 +9,14 @@ button {
   box-sizing: border-box;
 }
 
-.tabs-content-env {
-  padding: 16px;
-  border-top: 1px solid var(--secondary);
-}
-
 .wallet-wrapper {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.tab-list {
-  font-size: smaller;
-  font-weight: bold;
-}
-
-.tab-header-env {
-  padding: 8px 0 0 0;
-}
-
-.wallet-wrapper > p {
-  text-decoration: none;
-  text-transform: capitalize;
-}
-
-.wallet-wrapper img {
-  width: 30px;
-  height: 30px;
+.wallet-container {
+  padding: 8px;
 }
 
 .text {
@@ -97,7 +77,6 @@ button {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-right: 1rem;
 }
 
 .trigger-env > p {
@@ -125,8 +104,7 @@ button {
   align-items: center;
   justify-content: space-between;
   font-size: 14px;
-  line-height: 1.5;
-  padding: 8px 12px;
+  padding: 0 8px;
   background-color: var(--body-bg) !important;
   border: 1px solid var(--secondary);
   border-radius: 4px;
@@ -148,7 +126,6 @@ button {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px;
   width: 100%;
 }
 
