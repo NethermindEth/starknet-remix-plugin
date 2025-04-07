@@ -1,65 +1,25 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import copy from "copy-to-clipboard";
 import "./styles.css";
 import { MdCheck, MdCopyAll } from "react-icons/md";
-import { type Network } from "../../utils/constants";
 import { useCurrentExplorer } from "../ExplorerSelector";
 import { getExplorerUrl, trimStr } from "../../utils/utils";
-import { useAccount, useNetwork, useProvider } from "@starknet-react/core";
+import { useAccount, useNetwork } from "@starknet-react/core";
 import ConnectModal from "../starknet/connect";
 import DisconnectModal from "../starknet/disconnect";
 import { formatWalletAddress, getChainName } from "../../utils/starknet";
-import { devnetAccountAtom, devnetProviderAtom } from "../../atoms/connection";
-import { declTxHashAtom, deployTxHashAtom } from "../../atoms/deployment";
-import { invokeTxHashAtom } from "../../atoms/interaction";
-import { useSetAtom } from "jotai";
+import { Network } from "@/utils/constants";
 
 const Wallet: React.FC = () => {
 	const [showCopied, setCopied] = useState(false);
 
 	const {
 		status,
-		account,
 		address,
 		connector
 	} = useAccount();
+
 	const { chain } = useNetwork();
-	const { provider } = useProvider();
-
-	const setAccount = useSetAtom(devnetAccountAtom);
-	const setProvider = useSetAtom(devnetProviderAtom);
-
-	const setDeclTxHash = useSetAtom(declTxHashAtom);
-	const setDeployTxHash = useSetAtom(deployTxHashAtom);
-	const setInvokeTxHash = useSetAtom(invokeTxHashAtom);
-
-	useEffect(() => {
-		const updateAccount = async (): Promise<void> => {
-			if (status === "connected") {
-				if (account !== undefined && account !== null) {
-					setAccount(account);
-				} else if (connector !== undefined && connector !== null) {
-					const fetchedAccount = await connector.account(provider);
-					setAccount(fetchedAccount);
-				} else {
-					setAccount(null);
-				}
-				setProvider(provider);
-			} else {
-				setAccount(null);
-				setProvider(null);
-			}
-			setDeployTxHash("");
-			setDeclTxHash("");
-			setInvokeTxHash("");
-		};
-
-		updateAccount().catch(error => {
-			console.error("Failed to update account:", error);
-			setAccount(null);
-			setProvider(null);
-		});
-	}, [address, status]);
 
 	const formattedAddress = formatWalletAddress(address);
 	const explorerHook = useCurrentExplorer();

@@ -1,30 +1,23 @@
 import { getRoundedNumber, getShortenedHash, weiToEth } from "../../utils/utils";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Account, RpcProvider } from "starknet";
 import { MdCheck, MdCopyAll } from "react-icons/md";
 import "./styles.css";
 import copy from "copy-to-clipboard";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtomValue } from "jotai";
 import {
 	availableDevnetAccountsAtom,
 	devnetAtom,
 	envAtom,
 	isDevnetAliveAtom,
 } from "../../atoms/environment";
-import { devnetAccountAtom, devnetProviderAtom } from "../../atoms/connection";
 import { BsCheck, BsChevronDown } from "react-icons/bs";
 import * as Select from "../../components/ui_components/Select";
 import { DevnetAccountStore } from "../starknet/devnet-connector";
-
+import { useAccount } from "@starknet-react/core";
 const DevnetAccountSelector: React.FC = () => {
-	const [
-		account,
-		setAccount
-	 ] = useAtom(devnetAccountAtom);
-	const [
-		provider,
-		setProvider
-	] = useAtom(devnetProviderAtom);
+	const { account } = useAccount();
+
 	const env = useAtomValue(envAtom);
 	const devnet = useAtomValue(devnetAtom);
 	const isDevnetAlive = useAtomValue(isDevnetAliveAtom);
@@ -33,26 +26,18 @@ const DevnetAccountSelector: React.FC = () => {
 	const [showCopied, setCopied] = useState(false);
 	const [accountIdx, setAccountIdx] = useState(0);
 
-	useEffect(() => {
-		if (account !== null) {
-			DevnetAccountStore.getInstance().updateAccount(account);
-		}
-	}, [account]);
-
 	function handleAccountChange (value: number): void {
 		if (value === -1) {
 			return;
 		}
 		setAccountIdx(value);
 		const newProvider = new RpcProvider({ nodeUrl: devnet.url });
-		if (provider == null) setProvider(newProvider);
-		setAccount(
-			new Account(
-				provider ?? newProvider,
-				availableDevnetAccounts[value].address,
-				availableDevnetAccounts[value].private_key
-			)
-		);
+
+		DevnetAccountStore.getInstance().updateAccount(new Account(
+			newProvider,
+			availableDevnetAccounts[value].address,
+			availableDevnetAccounts[value].private_key
+		));
 	}
 
 	return (

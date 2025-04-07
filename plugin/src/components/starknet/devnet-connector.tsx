@@ -76,6 +76,7 @@ export class DevnetAccountStore {
 	}
 
 	updateAccount(account: AccountInterface | null): void {
+		console.log("[STORE] updating account", account);
 		this.currentAccount = account;
 		this.listeners.forEach(listener => listener(account));
 	}
