@@ -80,14 +80,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 	const [transactions, setTransactions] = useAtom(transactionsAtom);
 	const env = useAtomValue(envAtom);
 
-	const { status, declareAsync, error } = useDeclareContract({});
- 
-	useEffect(() => {
-		console.log("status", status);
-		if (status === "error") {
-			console.log("error", error);
-		}
-	}, [status]);
+	const { declareAsync } = useDeclareContract({});
 
 	const declTxStatus = useTransactionReceipt({
 		hash: declTxHash,
@@ -110,7 +103,12 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 					const chainId = await provider.getChainId();
 					setChainId(chainId);
 				} catch (error) {
-					console.log(error);
+					remixClient.emit("statusChanged", {
+						key: "failed",
+						type: "error",
+						title: "Failed to get chain id"
+					});
+					console.error(error);
 				}
 			}, 1);
 		}
@@ -123,7 +121,6 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 	}, [selectedContract]);
 
 	useEffect(() => {
-		console.log("declTxHash", declTxHash, declTxStatus.status, env);
 		if (declTxHash === "") {
 			setIsDeclaring(false);
 			setDeclStatus("IDLE");
@@ -198,7 +195,6 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 	}, [declTxHash, declTxStatus.status]);
 
 	useEffect(() => {
-		console.log("deployTxHash", deployTxHash, deployTxStatus.status, env);
 		if (deployTxHash === "") {
 			setIsDeploying(false);
 			setDeployStatus("IDLE");
@@ -214,13 +210,10 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 				type: "success",
 				title: `Contract ${selectedContract?.name ?? ""} deployed!`
 			});
-			remixClient
-				.call("terminal", "log", {
-					value: JSON.stringify(deployTxStatus.data, null, 2),
-					type: "info"
-				})
-				.catch(() => {
-				});
+			remixClient.call("terminal", "log", {
+				value: JSON.stringify(deployTxStatus.data, null, 2),
+				type: "info"
+			});
 
 			remixClient
 				.call("terminal", "log", {
@@ -228,11 +221,6 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 						selectedContract?.name ?? ""
 					} tx receipt ------------------`,
 					type: "info"
-				})
-				.catch(() => {
-				})
-				.finally(() => {
-					setIsDeploying(false);
 				});
 		}
 		if (deployTxStatus.status === "error") {
@@ -256,8 +244,6 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 						selectedContract?.name ?? ""
 					} tx receipt ------------------`,
 					type: "info"
-				})
-				.catch(() => {
 				});
 			setIsDeploying(false);
 		}
@@ -269,8 +255,6 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 							selectedContract?.name ?? ""
 						} tx receipt --------------------`,
 						type: "info"
-					})
-					.catch(() => {
 					});
 			}
 		}
@@ -297,16 +281,6 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 			try {
 				try {
 					await account.getClassByHash(selectedContract.classHash);
-					// TODO: remove notification call
-					// await remixClient.call(
-					// 	"notification" as any,
-					// 	"toast",
-					// 	`ℹ️ Contract with classHash: ${getShortenedHash(
-					// 		selectedContract.classHash,
-					// 		6,
-					// 		4
-					// 	)} already has been declared, you can proceed to deployment`
-					// );
 					setIsDeclaring(false);
 					setDeclStatus("DONE");
 					remixClient.emit("statusChanged", {
@@ -319,23 +293,6 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 						value: `------------------------ Declaring contract: ${selectedContract.name} ------------------------`,
 						type: "info"
 					});
-					console.log("selectedContract: ", selectedContract);
-
-					// const declareResponse = await account.declare(
-					// 	{
-					// 		contract: selectedContract.sierra,
-					// 		casm: selectedContract.casm,
-					// 		classHash: selectedContract.classHash,
-					// 		compiledClassHash: selectedContract.compiledClassHash
-					// 	},
-					// 	{ maxFee: 1e18 }
-					// );
-
-					// export interface AddDeclareTransactionParameters {
-					// 	compiled_class_hash: FELT;
-					// 	class_hash?: FELT;
-					// 	contract_class: CONTRACT_CLASS;
-					// }
 
 					const declareResponse = await declareAsync({
 						compiled_class_hash: selectedContract.compiledClassHash,
@@ -384,6 +341,11 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 						setIsDeclaring(false);
 					}
 				}
+				remixClient.emit("statusChanged", {
+					key: "succeed",
+					type: "success",
+					title: `Contract ${selectedContract?.name ?? ""} declared!`
+				});
 				setContractDeclaration(selectedContract);
 			} catch (error) {
 				setDeclStatus("ERROR");
@@ -418,10 +380,12 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 	};
 
 	const deploy = async (calldata: BigNumberish[]): Promise<void> => {
-		setDeployStatus("IDLE");
-		setIsDeploying(true);
 		const classHash = selectedContract?.classHash;
 		const updatedTransactions = transactions;
+
+		setDeployStatus("IDLE");
+		setIsDeploying(true);
+
 		try {
 			if (account === null || provider === null || account === undefined) {
 				throw new Error("No account or provider selected!");
@@ -430,6 +394,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 			if (selectedContract === null) {
 				throw new Error("No contract selected for deployment!");
 			}
+
 			remixClient.emit("statusChanged", {
 				key: "loading",
 				type: "info",
@@ -437,12 +402,11 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 			});
 
 			setDeployStatus("IN_PROGRESS");
+
 			await remixClient.call("terminal", "log", {
 				value: `------------------------ Deploying contract: ${selectedContract.name} ------------------------`,
 				type: "info"
 			});
-
-			console.log("account: ", account, "provider: ", provider, "selectedContract: ", selectedContract, "classHash: ", classHash, "calldata: ", calldata);
 
 			const deployResponse = await account.deployContract(
 				{
@@ -451,8 +415,6 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 				},
 				{ maxFee: 1e18 }
 			);
-
-			console.log("deployResponse: ", deployResponse);
 
 			await remixClient.call("terminal", "log", {
 				value: JSON.stringify(deployResponse, null, 2),
@@ -474,6 +436,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 				},
 				...updatedTransactions
 			]);
+
 			if (env === "wallet") {
 				setDeployTxHash(deployResponse.transaction_hash);
 			} else {
@@ -484,6 +447,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 				});
 
 				const txReceipt = await account.waitForTransaction(deployResponse.transaction_hash);
+
 				await remixClient.call("terminal", "log", {
 					value: JSON.stringify(txReceipt, null, 2),
 					type: "info"
@@ -500,10 +464,21 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 			}
 
 			setContractDeployment(selectedContract, deployResponse.contract_address);
+
+			remixClient.emit("statusChanged", {
+				key: "succeed",
+				type: "success",
+				title: `Contract ${selectedContract?.name ?? ""} deployed!`
+			});
 		} catch (error) {
 			setDeployStatus("ERROR");
 			setIsDeploying(false);
-			console.log("error: ", error);
+			remixClient.emit("statusChanged", {
+				key: "failed",
+				type: "error",
+				title: "Deployment failed"
+			});
+			console.error(error);
 			if (error instanceof Error) {
 				await remixClient.call("terminal", "log", {
 					value: error.message,
@@ -520,14 +495,24 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 
 	const handleDeploy = (calldata: BigNumberish[]): void => {
 		deploy(calldata).catch((error) => {
-			console.log("Error during deployment:", error);
+			remixClient.emit("statusChanged", {
+				key: "failed",
+				type: "error",
+				title: "Deployment failed"
+			});
+			console.error(error);
 		});
 	};
 
 	const handleDeclare = (event: React.MouseEvent<HTMLButtonElement>): void => {
 		event.preventDefault();
 		declareContract().catch((error) => {
-			console.log("Error during declaration:", error);
+			remixClient.emit("statusChanged", {
+				key: "failed",
+				type: "error",
+				title: "Declaration failed"
+			});
+			console.error(error);
 		});
 	};
 

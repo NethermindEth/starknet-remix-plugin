@@ -3,7 +3,6 @@ import React, { useEffect, useState } from "react";
 import { BsPlus } from "react-icons/bs";
 import CompiledContracts from "../../components/CompiledContracts";
 import Container from "../../components/ui_components/Container";
-import storage from "../../utils/storage";
 import "./styles.css";
 import "./override.css";
 import { useAtom, useAtomValue } from "jotai";
@@ -54,7 +53,6 @@ const Interaction: React.FC<InteractionProps> = (props) => {
 	});
 
 	useEffect(() => {
-		console.log("invokeTxHash", invokeTxHash, invokeTxStatus.status);
 		if (invokeTxHash === "") {
 			setIsInvoking(false);
 			props.setInteractionStatus("");
@@ -123,13 +121,6 @@ const Interaction: React.FC<InteractionProps> = (props) => {
 		}
 	}, [invokeTxHash, invokeTxStatus.status]);
 
-	useEffect(() => {
-		const currNotifCount = storage.get("notifCount");
-		if (currNotifCount === null || currNotifCount === undefined) {
-			storage.set("notifCount", 0 as number);
-		}
-	});
-
 	const isContractSelected =
 		deployedContracts.length > 0 && selectedContract != null && selectedContract !== undefined;
 
@@ -164,7 +155,6 @@ const Interaction: React.FC<InteractionProps> = (props) => {
 			 *  - update the icon to loading during the call
 			 *  - update the icon to success if the call succeeds
 			 *  - logs the result of the call to the terminal log
-			 *  - show the notif to user every 7th time the call is made
 			 */
 			if (res.stateMutability === "view") {
 				await remixClient.call("terminal", "log", {
@@ -197,20 +187,7 @@ const Interaction: React.FC<InteractionProps> = (props) => {
 					),
 					type: "info"
 				});
-				// showing the notif to user every 7th time the call is made
-				const currNotifCount = storage.get("notifCount");
-				if (currNotifCount !== undefined) {
-					const notifCount = parseInt(currNotifCount);
-					if (notifCount === 0) {
-						// TODO: remove notification call
-						// await remixClient.call(
-						// 	"notification" as any,
-						// 	"toast",
-						// 	"ℹ️ Responses are written to the terminal log"
-						// );
-					}
-					storage.set("notifCount", (notifCount + 1) % 7);
-				}
+
 				await remixClient.call("terminal", "log", {
 					value: `------------------- End calling ${res.functionName} --------------------`,
 					type: "info"
@@ -228,7 +205,6 @@ const Interaction: React.FC<InteractionProps> = (props) => {
 			 * - Add the transaction to the transactions list
 			 * - wait for the transaction to be accepted
 			 * - log the result of the transaction to the terminal log
-			 * - show the notif to user every 7th time the call is made
 			 */
 			if (res.stateMutability === "external") {
 				setIsInvoking(true);
@@ -281,19 +257,6 @@ const Interaction: React.FC<InteractionProps> = (props) => {
 				});
 
 				setInvokeTxHash(resp.transaction_hash);
-				const currNotifCount = storage.get("notifCount");
-				if (currNotifCount !== undefined) {
-					const notifCount = parseInt(currNotifCount);
-					if (notifCount === 0) {
-						// TODO: remove notification call
-						// await remixClient.call(
-						// 	"notification" as any,
-						// 	"toast",
-						// 	"ℹ️ Responses are written to the terminal log"
-						// );
-					}
-					storage.set("notifCount", (notifCount + 1) % 7);
-				}
 
 				if (env !== "wallet") {
 					await remixClient.call("terminal", "log", {

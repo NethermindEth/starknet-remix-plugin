@@ -21,19 +21,15 @@ class RemixClient extends PluginClient {
 			for (const [filePath, fileContent] of Object.entries(folderContent)) {
 				await this.call("fileManager", "setFile", filePath, fileContent as string);
 			}
-
-			console.log("Folder loaded successfully.");
 		} catch (error) {
 			console.error("Error loading folder:", error);
 		}
 	}
 
 	async loadFolderFromGithub(url: string, folderPath: string): Promise<void> {
-		console.log("loadFolderFromGithub", url, folderPath);
 		try {
 			await this.call("filePanel", "createWorkspace", "code-sample", false);
 			const folder = await fetchGitHubFilesRecursively(url, folderPath);
-			console.log("folder", folder);
 			for (const file of folder) {
 				if (file !== null) {
 					let fileContent = file.content;

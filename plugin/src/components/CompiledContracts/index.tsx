@@ -28,7 +28,6 @@ const CompiledContracts: React.FC<CompiledContractsProps> = (props): React.React
 	const [selectedContractIdx, setSelectedContractIdx] = useState("0");
 
 	const handleContractSelectionChange = (value: string): void => {
-		console.log("handleContractSelectionChange", value);
 		setSelectedContract(contracts[parseInt(value)]);
 		setSelectedContractIdx(value);
 	};

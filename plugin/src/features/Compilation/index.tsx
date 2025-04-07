@@ -88,11 +88,16 @@ const CompilationCard: React.FC<{
 									remixClient.emit("statusChanged", {
 										key: "succeed",
 										type: "success",
-										title: "Cheers : compilation successful"
+										title: "Compilation successful"
 									});
 								})
 								.catch((e) => {
-									console.log("error: ", e);
+									remixClient.emit("statusChanged", {
+										key: "failed",
+										type: "error",
+										title: "Compilation failed"
+									});
+									console.error(e);
 								});
 						}}
 					>
@@ -109,11 +114,16 @@ const CompilationCard: React.FC<{
 									remixClient.emit("statusChanged", {
 										key: "succeed",
 										type: "success",
-										title: "Cheers : compilation successful"
+										title: "Test successful"
 									});
 								})
 								.catch((e) => {
-									console.log("error: ", e);
+									remixClient.emit("statusChanged", {
+										key: "failed",
+										type: "error",
+										title: "Test failed"
+									});
+									console.error(e);
 								});
 						}}
 					>
@@ -279,7 +289,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordion }) => {
 				}
 			}
 		} catch (e) {
-			console.log("Failed to get toml paths, function ended up with error: ", e);
+			console.error("Failed to get toml paths, function ended up with error: ", e);
 		}
 		return resTomlPaths;
 	}
@@ -328,7 +338,12 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordion }) => {
 					setTomlPaths(allTomlPaths);
 				}
 			} catch (e) {
-				console.log("error: ", e);
+				remixClient.emit("statusChanged", {
+					key: "failed",
+					type: "error",
+					title: "Failed to get toml paths"
+				});
+				console.error(e);
 			}
 		}, 100);
 	};
@@ -340,7 +355,12 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordion }) => {
 				const currWorkspace = await remixClient.filePanel.getCurrentWorkspace();
 				setCurrWorkspacePath(currWorkspace.absolutePath);
 			} catch (e) {
-				console.log("error: ", e);
+				remixClient.emit("statusChanged", {
+					key: "failed",
+					type: "error",
+					title: "Failed to get current workspace"
+				});
+				console.error(e);
 			}
 		});
 	});
@@ -397,13 +417,6 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordion }) => {
 			const compilationResult = await api.compile(compilationRequest);
 
 			if (compilationResult.status !== "Success") {
-				// TODO: remove notification call
-				// await remixClient.call(
-				// 	"notification" as any,
-				// 	"toast",
-				// 	"Cairo compilation request failed"
-				// );
-
 				await remixClient.terminal.log({
 					type: "error",
 					value: compilationResult.message
@@ -412,30 +425,31 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordion }) => {
 				throw new Error("Cairo Compilation Request Failed");
 			}
 
-			// TODO: remove notification call
-			// await remixClient.call(
-			// 	"notification" as any,
-			// 	"toast",
-			// 	"Cairo compilation request successful"
-			// );
-
 			try {
 				if (compilationResult.data !== null) {
 					await writeResultsToArtifacts(compilationResult.data);
 				}
 			} catch (e) {
-				console.log("error writing to artifacts: ", e);
+				remixClient.emit("statusChanged", {
+					key: "failed",
+					type: "error",
+					title: "Failed to write artifacts"
+				});
+				console.error(e);
 
 				throw new Error("Failed to write artifacts");
 			}
 
 			setIsCompiling(false);
 
-			console.log("compilationResult: ", compilationResult);
-
 			return compilationResult;
 		} catch (error) {
-			console.log("error: ", error);
+			console.error("error: ", error);
+			remixClient.emit("statusChanged", {
+				key: "failed",
+				type: "error",
+				title: "Cairo compilation failed"
+			});
 			setStatus(CompilationStatus.Error);
 			setIsCompiling(false);
 
@@ -456,28 +470,20 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordion }) => {
 			});
 
 			if (testResult.status !== "Success") {
-				// TODO: remove notification call
-				// await remixClient.call(
-				// 	"notification" as any,
-				// 	"toast",
-				// 	"Test request failed"
-				// );
 
 				throw new Error("Test Request Failed");
 			}
-
-			// TODO: remove notification call
-			// await remixClient.call(
-			// 	"notification" as any,
-			// 	"toast",
-			// 	"Test request successful"
-			// );
 
 			setIsCompiling(false);
 
 			return testResult;
 		} catch (error) {
-			console.log("error: ", error);
+			remixClient.emit("statusChanged", {
+				key: "failed",
+				type: "error",
+				title: "Test failed"
+			});
+			console.error(error);
 			setStatus(CompilationStatus.Error);
 			setIsCompiling(false);
 
@@ -493,8 +499,6 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordion }) => {
 			sierra: string;
 		}
 		> = {};
-
-		console.log(compileResult);
 
 		// First pass to collect artifacts
 		for (const file of compileResult) {
@@ -559,12 +563,11 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordion }) => {
 				);
 			} catch (e) {
 				if (e instanceof Error) {
-					// TODO: remove notification call
-					// await remixClient.call(
-					// 	"notification" as any,
-					// 	"toast",
-					// 	e.message + " try deleting the files: " + artifactsPath
-					// );
+					remixClient.emit("statusChanged", {
+						key: "failed",
+						type: "error",
+						title: "Failed to write artifacts"
+					});
 				}
 			}
 		}
@@ -593,12 +596,11 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordion }) => {
 		} catch (e) {
 			setStatus(CompilationStatus.Error);
 			if (e instanceof Error) {
-				// TODO: remove notification call
-				// await remixClient.call("notification" as any, "alert", {
-				// 	id: "starknetRemixPluginAlert",
-				// 	title: "Cairo Compilation Failed",
-				// 	message: e.message
-				// });
+				remixClient.emit("statusChanged", {
+					key: "failed",
+					type: "error",
+					title: "Cairo compilation failed"
+				});
 			}
 			console.error(e);
 		}
@@ -627,12 +629,11 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordion }) => {
 		} catch (e) {
 			setStatus(CompilationStatus.Error);
 			if (e instanceof Error) {
-				// TODO: remove notification call
-				// await remixClient.call("notification" as any, "alert", {
-				// 	id: "starknetRemixPluginAlert",
-				// 	title: "Test Failed",
-				// 	message: e.message
-				// });
+				remixClient.emit("statusChanged", {
+					key: "failed",
+					type: "error",
+					title: "Test failed"
+				});
 			}
 
 			console.error(e);
@@ -663,12 +664,11 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordion }) => {
 		} catch (e) {
 			setStatus("failed");
 			if (e instanceof Error) {
-				// TODO: remove notification call
-				// await remixClient.call("notification" as any, "alert", {
-				// 	id: "starknetRemixPluginAlert",
-				// 	title: "Cairo Compilation Failed",
-				// 	message: e.message
-				// });
+				remixClient.emit("statusChanged", {
+					key: "failed",
+					type: "error",
+					title: "Cairo compilation failed"
+				});
 			}
 
 			console.error(e);

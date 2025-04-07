@@ -78,13 +78,11 @@ const Plugin: React.FC = () => {
 					setCairoVersion(versions.data[0]);
 					setVersions(versions.data);
 				} else {
-					// TODO: remove notification call
-					// await remixClient.call(
-					// 	"notification" as any,
-					// 	"toast",
-					// 	"🔴 Failed to fetch cairo versions from the compilation server"
-					// );
-					console.error(versions);
+					remixClient.emit("statusChanged", {
+						key: "failed",
+						type: "error",
+						title: "Failed to fetch cairo versions from the compilation server"
+					});
 				}
 			};
 			fetchCairo().catch((e) => {

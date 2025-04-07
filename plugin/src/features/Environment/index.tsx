@@ -12,7 +12,6 @@ import { DevnetAccountStore } from "../../components/starknet/devnet-connector";
 import { Account } from "starknet";
 import { RpcProvider } from "starknet";
 import { devnet } from "@starknet-react/chains";
-import { useAccount } from "@starknet-react/core";
 
 const DEVNET_ENVIRONMENTS: string[] = ["customDevnet", "remoteDevnet", "localKatanaDevnet"];
 
@@ -46,8 +45,6 @@ const Environment: React.FC = () => {
 
 	// Initialize the devnet account
 	useEffect(() => {
-		console.log("availableDevnetAccounts", availableDevnetAccounts);
-
 		if (availableDevnetAccounts.length === 0) {
 			return;
 		}
@@ -60,18 +57,8 @@ const Environment: React.FC = () => {
 			availableDevnetAccounts[0].private_key
 		);
 
-		console.log("updating account", newAccount);
-
 		DevnetAccountStore.getInstance().updateAccount(newAccount);
-
-		console.log("Devnet account initialized");
 	}, [availableDevnetAccounts]);
-
-	const { account } = useAccount();
-
-	useEffect(() => {
-		console.log("account", account);
-	}, [account]);
 
 	return (
 		<Accordion.Root 

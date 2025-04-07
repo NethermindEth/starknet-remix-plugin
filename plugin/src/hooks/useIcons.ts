@@ -10,7 +10,6 @@ export const useIcon = (name: string): string => {
 		const loadTheme = async (): Promise<void> => {
 			try {
 				const currentTheme = await remixClient.call("theme", "currentTheme");
-				console.log("currentTheme", currentTheme);
 				setRemixTheme(currentTheme.brightness ?? currentTheme.quality ?? "dark");
 			} catch (error) {
 				console.error(error);
@@ -18,7 +17,6 @@ export const useIcon = (name: string): string => {
 		};
 
 		const updateTheme = (theme: Theme): void => {
-			console.log("updateTheme", theme);
 			setRemixTheme(theme.brightness ?? theme.quality ?? "dark");
 		};
 

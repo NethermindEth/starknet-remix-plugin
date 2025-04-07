@@ -76,7 +76,6 @@ export class DevnetAccountStore {
 	}
 
 	updateAccount(account: AccountInterface | null): void {
-		console.log("[STORE] updating account", account);
 		this.currentAccount = account;
 		this.listeners.forEach(listener => listener(account));
 	}
@@ -131,14 +130,11 @@ export class NethermindDevnetConnector extends Connector {
 
 	/** Whether connector is already authorized */
 	async ready(): Promise<boolean> {
-		console.log("Ready to connect to devnet");
 		return true;
 	}
 
 	/** Connect wallet. */
 	async connect(): Promise<ConnectorData> {
-		console.log("Connecting to devnet");
-		console.log(this._account);
 		return {
 			account: this._account?.address,
 			chainId: BigInt(nethermindDevnet.id),
@@ -147,7 +143,6 @@ export class NethermindDevnetConnector extends Connector {
 
 	async account(): Promise<AccountInterface> {
 		if (!this._account) {
-			console.log("Account not connected");
 			throw new Error("Account not connected");
 		}
 		return this._account;
@@ -155,7 +150,6 @@ export class NethermindDevnetConnector extends Connector {
 
 	/** Get current chain id. */
 	async chainId(): Promise<bigint> {
-		console.log("Getting chain id");
 		return BigInt(nethermindDevnet.id);
 	}
 
@@ -178,15 +172,11 @@ export class NethermindDevnetConnector extends Connector {
 				return true;
 			}
 			case "wallet_addDeclareTransaction": {
-				console.log("Adding declare transaction");
 				if (!params) throw new Error("Params are missing");
 				if (!this._account) throw new Error("Account not connected");
 
 				const { compiled_class_hash, contract_class, class_hash } =
 				params as AddDeclareTransactionParameters;
-				// console.log(contract_class);
-
-				// console.log("contract_class.abi");
 
 				return await this._account.declare({
 					compiledClassHash: compiled_class_hash,
@@ -196,7 +186,6 @@ export class NethermindDevnetConnector extends Connector {
 				});
 			}
 			case "wallet_addInvokeTransaction": {
-				console.log("Adding invoke transaction");
 				if (!params) throw new Error("Params are missing");
 				if (!this._account) throw new Error("Account not connected");
 
@@ -205,7 +194,6 @@ export class NethermindDevnetConnector extends Connector {
 				return await this._account.execute(transformCalls(calls));
 			}
 			case "wallet_signTypedData": {
-				console.log("Signing typed data");
 				if (!params) throw new Error("Params are missing");
 
 				if (!this._account) throw new Error("Account not connected");
