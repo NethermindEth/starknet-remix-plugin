@@ -1,37 +1,20 @@
 import React, { useEffect } from "react";
 import DevnetAccountSelector from "../../components/DevnetAccountSelector";
 import "./styles.css";
-import EnvironmentSelector from "../../components/EnvironmentSelector";
 import Wallet from "../../components/Wallet";
 import { useAtomValue } from "jotai";
-import { availableDevnetAccountsAtom, envAtom } from "../../atoms/environment";
-import * as Accordion from "@radix-ui/react-accordion";
-import { CurrentEnv } from "../../components/CurrentEnv";
-import { BsChevronDown } from "react-icons/bs";
+import { availableDevnetAccountsAtom } from "../../atoms/environment";
 import { DevnetAccountStore } from "../../components/starknet/devnet-connector";
 import { Account } from "starknet";
 import { RpcProvider } from "starknet";
 import { devnet } from "@starknet-react/chains";
 
-const DEVNET_ENVIRONMENTS: string[] = ["customDevnet", "remoteDevnet", "localKatanaDevnet"];
-
-const EnvSettings: React.FC<{ env: string }> = ({ env }) => {
-	const isDevnetEnv = DEVNET_ENVIRONMENTS.includes(env);
-
+const EnvSettings: React.FC = () => {
 	return (
-		<div className="flex flex-column">
+		<div className="flex flex-column p-2">
 			<div>
 				<div className="flex flex-column">
-					<label htmlFor="env-selector">Environment selection</label>
-					<div className="flex_dot">
-						<div className="env-selector-wrapper">
-							<EnvironmentSelector />
-						</div>
-					</div>
-				</div>
-				<div className="flex flex-column">
-					{isDevnetEnv && <DevnetAccountSelector />}
-					<Wallet />
+					<DevnetAccountSelector />
 				</div>
 			</div>
 		</div>
@@ -39,8 +22,6 @@ const EnvSettings: React.FC<{ env: string }> = ({ env }) => {
 };
 
 const Environment: React.FC = () => {
-	const env = useAtomValue(envAtom);
-
 	const availableDevnetAccounts = useAtomValue(availableDevnetAccountsAtom);
 
 	// Initialize the devnet account

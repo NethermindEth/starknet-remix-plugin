@@ -14,10 +14,8 @@ import {
 import { BsCheck, BsChevronDown } from "react-icons/bs";
 import * as Select from "../../components/ui_components/Select";
 import { DevnetAccountStore } from "../starknet/devnet-connector";
-import { useAccount } from "@starknet-react/core";
-const DevnetAccountSelector: React.FC = () => {
-	const { account } = useAccount();
 
+const DevnetAccountSelector: React.FC = () => {
 	const env = useAtomValue(envAtom);
 	const devnet = useAtomValue(devnetAtom);
 	const isDevnetAlive = useAtomValue(isDevnetAliveAtom);
@@ -102,7 +100,7 @@ const DevnetAccountSelector: React.FC = () => {
 					<button
 						className="btn"
 						onClick={() => {
-							copy(account?.address ?? "");
+							copy(availableDevnetAccounts[accountIdx]?.address ?? "");
 							setCopied(true);
 							setTimeout(() => {
 								setCopied(false);

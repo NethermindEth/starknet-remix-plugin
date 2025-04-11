@@ -110,7 +110,7 @@ export class NethermindDevnetConnector extends Connector {
 
 	/** Unique connector id. */
 	get id(): string {
-		return "nethermind-devnet-connector";
+		return "Nethermind Devnet";
 	}
 
 	/** Connector name. */
@@ -120,7 +120,7 @@ export class NethermindDevnetConnector extends Connector {
 
 	/** Connector icons. */
 	get icon(): string {
-		return "⭐";
+		return "https://cdn.prod.website-files.com/63bcd69729ab7f3ec1ad210a/673332c99b5216ff4b13e897_Nethermind_32px.png";
 	}
 
 	/** Whether connector is available for use */

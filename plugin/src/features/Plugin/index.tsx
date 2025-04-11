@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 
-import { Environment } from "../Environment";
+import { Environment, EnvSettings } from "../Environment";
 import "./styles.css";
 
 import Compilation from "../Compilation";
@@ -10,7 +10,6 @@ import Accordion, { AccordionContent, AccordionItem, AccordionTrigger } from "..
 import TransactionHistory from "../TransactionHistory";
 import Footer from "../Footer";
 import StateAction from "../../components/StateAction";
-import BackgroundNotices from "../../components/BackgroundNotices";
 import { useCurrentExplorer } from "../../components/ExplorerSelector";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { deploymentAtom, isDelcaringAtom } from "../../atoms/deployment";
@@ -207,7 +206,7 @@ const Plugin: React.FC = () => {
 								Transactions
 							</Tabs.Trigger>
 							<Tabs.Trigger value={"info"} className={"tabs-trigger"}>
-								Info
+								Env
 							</Tabs.Trigger>
 							<Tabs.Trigger value={"settings"} className={"tabs-trigger"}>
 								Settings
@@ -306,7 +305,7 @@ const Plugin: React.FC = () => {
 						</Tabs.Content>
 
 						<Tabs.Content value="info">
-							<BackgroundNotices />
+							<EnvSettings />
 						</Tabs.Content>
 
 						<Tabs.Content value={"settings"}>
