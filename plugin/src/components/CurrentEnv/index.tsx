@@ -6,8 +6,7 @@ import { selectedAccountAtom } from "../../atoms/manualAccount";
 import { getShortenedHash } from "../../utils/utils";
 import { ethers } from "ethers";
 import { DevnetStatus } from "../DevnetStatus";
-import { account } from "../../atoms/connection";
-import { walletBalanceAtom } from "../Wallet";
+import { account, walletBalanceAtom } from "../../atoms/connection";
 
 export const CurrentEnv: React.FC = () => {
 	const env = useAtomValue(envAtom);

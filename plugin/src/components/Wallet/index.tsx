@@ -13,10 +13,9 @@ import useAccountAtom from "../../hooks/useAccount";
 import useProviderAtom from "../../hooks/useProvider";
 import { declTxHashAtom, deployTxHashAtom } from "../../atoms/deployment";
 import { invokeTxHashAtom } from "../../atoms/interaction";
-import { atom, useSetAtom } from "jotai";
+import { useSetAtom } from "jotai";
 import { RpcProvider, Contract } from "starknet";
-
-export const walletBalanceAtom = atom<string | bigint | null>(null);
+import { walletBalanceAtom } from "../../atoms/connection";
 
 const Wallet: React.FC = () => {
 	const [showCopied, setCopied] = useState(false);
