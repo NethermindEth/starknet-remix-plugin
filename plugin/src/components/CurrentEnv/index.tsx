@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import "./styles.css";
 import { useAtomValue } from "jotai";
 import { envAtom, envName, selectedDevnetAccountAtom } from "../../atoms/environment";
@@ -7,8 +7,6 @@ import { getShortenedHash } from "../../utils/utils";
 import { ethers } from "ethers";
 import { DevnetStatus } from "../DevnetStatus";
 import { account } from "../../atoms/connection";
-import { MdCheck, MdCopyAll } from "react-icons/md";
-import copy from "copy-to-clipboard";
 
 export const CurrentEnv: React.FC = () => {
 	const env = useAtomValue(envAtom);
@@ -17,7 +15,6 @@ export const CurrentEnv: React.FC = () => {
 	const selectedAccountDevnet = useAtomValue(selectedDevnetAccountAtom);
 	const walletAccount = useAtomValue(account);
 	// const walletProvider = useAtomValue(provider)
-	const [showCopied, setCopied] = useState(false);
 
 	const selectedAccount =
 		env === "wallet"
@@ -52,21 +49,6 @@ export const CurrentEnv: React.FC = () => {
 				<span className={"chain-name"}>{envName(env)}</span>
 				<div className={"chain-account-info"}>
 					<span>{selectedAccountAddress} </span>
-					{selectedAccount.address != null && (
-						<button
-							className="copy-btn"
-							onClick={(e) => {
-								e.stopPropagation();
-								copy(selectedAccount.address ?? "");
-								setCopied(true);
-								setTimeout(() => {
-									setCopied(false);
-								}, 1000);
-							}}
-						>
-							{showCopied ? <MdCheck /> : <MdCopyAll />}
-						</button>
-					)}
 					<span>{selectedAccount != null ? ` (${selectedAccountBalance} ETH)` : ""}</span>
 				</div>
 			</div>
