@@ -78,6 +78,7 @@ button {
     border: 1px solid var(--bgPrimary);
     width: 100% !important;
     box-sizing: border-box !important;
+    cursor: pointer;
 }
 
 .SelectItem:hover,
