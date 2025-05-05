@@ -61,10 +61,24 @@ jobs:
           SCARB_VERSION=$(cat .scarb-version | sed 's/v//') 
           echo "scarb_version=${SCARB_VERSION}" >> $GITHUB_ENV
 
-      - name: Build, tag, and push docker image to Amazon ECR
-        run: |
-          docker build -t ${{ env.DOCKER_REGISTRY }}/${{ env.REPO_DEV }}/apiserver:latest --build-arg=SCARB_VERSION=${{ env.scarb_version }} -f ./DockerfileRocket .
-          docker push ${{ env.DOCKER_REGISTRY }}/$${{ env.REPO_DEV }}/apiserver:latest
+      # - name: Build, tag, and push docker image to Amazon ECR
+      #   run: |
+      #     docker build -t ${{ env.DOCKER_REGISTRY }}/${{ env.REPO_DEV }}/apiserver:latest --build-arg=SCARB_VERSION=${{ env.scarb_version }} -f ./DockerfileRocket .
+      #     docker push ${{ env.DOCKER_REGISTRY }}/$${{ env.REPO_DEV }}/apiserver:latest
+      
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: "linux/amd64"
+          push: true
+          file: ./DockerfileRocket
+          tags: |
+            ${{ env.DOCKER_REGISTRY }}/${{ env.REPO_DEV }}/starknet-api:${{ github.sha }}
+            ${{ env.DOCKER_REGISTRY }}/${{ env.REPO_DEV }}/starknet-api:latest
+          build-args: |
+            SCARB_VERSION=${{ env.scarb_version }}
+
 
   # BuildReact:
   #   runs-on: ubuntu-latest
