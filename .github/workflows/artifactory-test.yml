@@ -74,8 +74,8 @@ jobs:
           push: true
           file: ./DockerfileRocket
           tags: |
-            ${{ env.DOCKER_REGISTRY }}/${{ env.REPO_DEV }}/starknet-api:${{ github.sha }}
-            ${{ env.DOCKER_REGISTRY }}/${{ env.REPO_DEV }}/starknet-api:latest
+            ${{ env.DOCKER_REGISTRY }}/${{ env.REPO_DEV }}/starknet-remix-apiserver:${{ github.sha }}
+            ${{ env.DOCKER_REGISTRY }}/${{ env.REPO_DEV }}/starknet-remix-apiserver:latest
           build-args: |
             SCARB_VERSION=${{ env.scarb_version }}
 
