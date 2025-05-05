@@ -24,51 +24,51 @@ permissions:
   contents: write
 
 jobs:
-  BuildAPI:
-    name: Build Docker Image
-    runs-on: ubuntu-latest
+  # BuildAPI:
+  #   name: Build Docker Image
+  #   runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 0
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+  #     - name: Set up Docker Buildx
+  #       uses: docker/setup-buildx-action@v3
 
-      - name: Set up ORAS
-        uses: oras-project/setup-oras@v1
+  #     - name: Set up ORAS
+  #       uses: oras-project/setup-oras@v1
 
-      - name: Verify ORAS version
-        run: oras version
+  #     - name: Verify ORAS version
+  #       run: oras version
 
-      - uses: docker/login-action@v3
-        with:
-          registry: ${{ env.DOCKER_REGISTRY }}
-          username: ${{ secrets.ARTIFACTORY_NUBIA_USERNAME }}
-          password: ${{ secrets.ARTIFACTORY_NUBIA_TOKEN_DEVELOPER }}
+  #     - uses: docker/login-action@v3
+  #       with:
+  #         registry: ${{ env.DOCKER_REGISTRY }}
+  #         username: ${{ secrets.ARTIFACTORY_NUBIA_USERNAME }}
+  #         password: ${{ secrets.ARTIFACTORY_NUBIA_TOKEN_DEVELOPER }}
 
-      - name: Login to registry with ORAS
-        run: |
-          oras login ${{ env.DOCKER_REGISTRY }} \
-            -u ${{ secrets.ARTIFACTORY_NUBIA_USERNAME }} \
-            -p ${{ secrets.ARTIFACTORY_NUBIA_TOKEN_DEVELOPER }}
+  #     - name: Login to registry with ORAS
+  #       run: |
+  #         oras login ${{ env.DOCKER_REGISTRY }} \
+  #           -u ${{ secrets.ARTIFACTORY_NUBIA_USERNAME }} \
+  #           -p ${{ secrets.ARTIFACTORY_NUBIA_TOKEN_DEVELOPER }}
 
-      - name: Get Scarb version
-        id: get_scarb_version
-        run: |
-          SCARB_VERSION=$(cat .scarb-version | sed 's/v//') 
-          echo "scarb_version=${SCARB_VERSION}" >> $GITHUB_ENV
+  #     - name: Get Scarb version
+  #       id: get_scarb_version
+  #       run: |
+  #         SCARB_VERSION=$(cat .scarb-version | sed 's/v//') 
+  #         echo "scarb_version=${SCARB_VERSION}" >> $GITHUB_ENV
 
-      - name: Build, tag, and push docker image to Amazon ECR
-        env:
-          REGISTRY: ${{ env.DOCKER_REGISTRY }}
-          REPOSITORY: ${{ env.REPO_DEV }}
-          IMAGE_TAG: latest
-        run: |
-          docker build -t $REGISTRY/$REPOSITORY:apiserver-$IMAGE_TAG --build-arg=SCARB_VERSION=${{ env.scarb_version }} -f ./DockerfileRocket .
-          docker push $REGISTRY/$REPOSITORY:apiserver-$IMAGE_TAG
+  #     - name: Build, tag, and push docker image to Amazon ECR
+  #       env:
+  #         REGISTRY: ${{ env.DOCKER_REGISTRY }}
+  #         REPOSITORY: ${{ env.REPO_DEV }}
+  #         IMAGE_TAG: latest
+  #       run: |
+  #         docker build -t $REGISTRY/$REPOSITORY:apiserver-$IMAGE_TAG --build-arg=SCARB_VERSION=${{ env.scarb_version }} -f ./DockerfileRocket .
+  #         docker push $REGISTRY/$REPOSITORY:apiserver-$IMAGE_TAG
 
   BuildReact:
     runs-on: ubuntu-latest
@@ -107,7 +107,7 @@ jobs:
 
   DeployReact:
     runs-on: ubuntu-latest
-    needs: [BuildReact, BuildAPI]
+    needs: [BuildReact] #BuildAPI]
     steps:
 
       - name: Get artifact
