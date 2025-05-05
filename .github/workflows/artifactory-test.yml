@@ -64,7 +64,7 @@ jobs:
       - name: Build, tag, and push docker image to Amazon ECR
         env:
           REGISTRY: ${{ env.DOCKER_REGISTRY }}
-          REPOSITORY: ${{ env.nubia-oci-local-dev }}
+          REPOSITORY: ${{ env.REPO_DEV }}
           IMAGE_TAG: latest
         run: |
           docker build -t $REGISTRY/$REPOSITORY:apiserver-$IMAGE_TAG --build-arg=SCARB_VERSION=${{ env.scarb_version }} -f ./DockerfileRocket .
