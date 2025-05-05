@@ -63,8 +63,8 @@ jobs:
 
       - name: Build, tag, and push docker image to Amazon ECR
         run: |
-          docker build -t ${{ env.DOCKER_REGISTRY }}/${{ env.REPO_DEV }}:apiserver-latest --build-arg=SCARB_VERSION=${{ env.scarb_version }} -f ./DockerfileRocket .
-          docker push ${{ env.DOCKER_REGISTRY }}/$${{ env.REPO_DEV }}:apiserver-latest
+          docker build -t ${{ env.DOCKER_REGISTRY }}/${{ env.REPO_DEV }}/apiserver:latest --build-arg=SCARB_VERSION=${{ env.scarb_version }} -f ./DockerfileRocket .
+          docker push ${{ env.DOCKER_REGISTRY }}/$${{ env.REPO_DEV }}/apiserver:latest
 
   # BuildReact:
   #   runs-on: ubuntu-latest
