@@ -53,10 +53,10 @@ export const CurrentEnv: React.FC = () => {
 			</div>
 			<div className={"chain-info-box"}>
 				<span className={"chain-name"}>{envName(env)}</span>
-				<span className={"chain-account-info"}>
-					{selectedAccountAddress}{" "}
-					{selectedAccount != null ? `(${selectedAccountBalance} ETH)` : ""}
-				</span>
+				<div className={"chain-account-info"}>
+					<span>{selectedAccountAddress} </span>
+					<span>{selectedAccount != null ? ` (${selectedAccountBalance} ETH)` : ""}</span>
+				</div>
 			</div>
 		</div>
 	);
