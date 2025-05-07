@@ -43,7 +43,7 @@ export const Settings: React.FC = () => {
 								<Select.Portal>
 									<Select.Content>
 										<Select.Viewport>
-											{getVersions.map((v, i) => (
+											{getVersions.map((v: string) => (
 												<Select.Item value={v} key={v}>
 													<Select.ItemText>{v}</Select.ItemText>
 												</Select.Item>

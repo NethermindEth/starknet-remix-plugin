@@ -18,7 +18,7 @@ import useRemixClient from "../../hooks/useRemixClient";
 import { ABIForm, type CallbackReturnType } from "starknet-abi-forms";
 import "starknet-abi-forms/index.css";
 import { invokeTxHashAtom, isInvokingAtom } from "../../atoms/interaction";
-import { useWaitForTransaction } from "@starknet-react/core";
+import { useTransactionReceipt } from "@starknet-react/core";
 import AddDeployedContract from "../../components/AddDeployedContract";
 
 interface InteractionProps {
@@ -50,7 +50,7 @@ const Interaction: React.FC<InteractionProps> = (props) => {
 
 	const [invokeTxHash, setInvokeTxHash] = useAtom(invokeTxHashAtom);
 
-	const invokeTxStatus = useWaitForTransaction({
+	const invokeTxStatus = useTransactionReceipt({
 		hash: invokeTxHash,
 		watch: true
 	});
@@ -204,11 +204,12 @@ const Interaction: React.FC<InteractionProps> = (props) => {
 				if (currNotifCount !== undefined) {
 					const notifCount = parseInt(currNotifCount);
 					if (notifCount === 0) {
-						await remixClient.call(
-							"notification" as any,
-							"toast",
-							"ℹ️ Responses are written to the terminal log"
-						);
+						// TODO: remove notification call
+						// await remixClient.call(
+						// 	"notification" as any,
+						// 	"toast",
+						// 	"ℹ️ Responses are written to the terminal log"
+						// );
 					}
 					storage.set("notifCount", (notifCount + 1) % 7);
 				}
@@ -286,11 +287,12 @@ const Interaction: React.FC<InteractionProps> = (props) => {
 				if (currNotifCount !== undefined) {
 					const notifCount = parseInt(currNotifCount);
 					if (notifCount === 0) {
-						await remixClient.call(
-							"notification" as any,
-							"toast",
-							"ℹ️ Responses are written to the terminal log"
-						);
+						// TODO: remove notification call
+						// await remixClient.call(
+						// 	"notification" as any,
+						// 	"toast",
+						// 	"ℹ️ Responses are written to the terminal log"
+						// );
 					}
 					storage.set("notifCount", (notifCount + 1) % 7);
 				}

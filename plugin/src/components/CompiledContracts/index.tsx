@@ -14,7 +14,7 @@ interface CompiledContractsProps {
 	show: "class" | "contract";
 }
 
-const CompiledContracts: React.FC<CompiledContractsProps> = (props): JSX.Element => {
+const CompiledContracts: React.FC<CompiledContractsProps> = (props): React.ReactElement => {
 	const [compiledContracts, setCompiledContracts] = useAtom(compiledContractsAtom);
 	const [selectedCompiled, setSelectedCompiled] = useAtom(selectedCompiledContract);
 	const [deployedContracts, setDeployedContracts] = useAtom(deployedContractsAtom);
@@ -106,9 +106,10 @@ const CompiledContracts: React.FC<CompiledContractsProps> = (props): JSX.Element
 
 const SelectItemWithDelete = React.forwardRef(
 	(
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		{ children, onDelete, index, value, ...props }: any,
 		ref: React.Ref<HTMLDivElement>
-	): JSX.Element => (
+	): React.ReactElement => (
 		<div className="SelectItemWithDelete">
 			<Select.Item {...props} ref={ref} value={value} className="w-full">
 				<Select.ItemText>{children}</Select.ItemText>
