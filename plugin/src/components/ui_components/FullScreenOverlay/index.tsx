@@ -1,10 +1,10 @@
-import React from 'react'
-import './overlay.css'
+import React from "react";
+import "./styles.css";
 
 const FullScreenOverlay: React.FC<{
-  children: React.ReactNode
+	children: React.ReactNode;
 }> = ({ children }) => {
-  return <div className={'full-overlay'}>{children}</div>
-}
+	return <div className={"full-overlay"}>{children}</div>;
+};
 
-export default FullScreenOverlay
+export default FullScreenOverlay;

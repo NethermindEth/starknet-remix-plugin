@@ -1,0 +1,38 @@
+name: (prod) Deploy DevNet service
+on: 
+  workflow_dispatch:
+
+permissions:
+      id-token: write
+      contents: read
+
+jobs:
+  DeployDevNet_Prod:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: us-east-2
+          role-to-assume: arn:aws:iam::228016254426:role/Aws-GH-Action-Assume-Role-Starknet-Production
+          role-session-name: GHStarknet
+
+      - name: Download task definition
+        run: |
+          aws ecs describe-task-definition --task-definition starknet-remix-production-devnet --query taskDefinition > task-definition.json
+
+      - name: Update the task definition to use the image from Docker Hub
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: "devnet"
+          image: shardlabs/starknet-devnet-rs:latest
+
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: devnet-production-svc
+          cluster: starknet-remix-plugin-production-ecs-cluster
+          wait-for-service-stability: true

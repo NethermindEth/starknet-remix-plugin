@@ -1,4 +1,4 @@
-import { type networkExplorerUrls as EXPLORERS } from '../utils/constants'
-import { atom } from 'jotai'
+import { type networkExplorerUrls as EXPLORERS } from "../utils/constants";
+import { atom } from "jotai";
 
-export const currentExplorerAtom = atom<keyof typeof EXPLORERS>('voyager')
+export const currentExplorerAtom = atom<keyof typeof EXPLORERS>("voyager");

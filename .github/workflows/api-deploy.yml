@@ -10,6 +10,7 @@ on:
       - '.scarb-version'
   schedule:
     - cron: '0 0 * * *' # Runs daily at midnight UTC
+  workflow_dispatch:
 
 permissions:
   id-token: write
@@ -94,7 +95,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: Build
     steps:
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -117,12 +117,17 @@ jobs:
           environment-variables: |
             RUST_LOG=INFO
             LOG_LEVEL=normal
+            ENVIRONMENT=dev
+            METRICS_PORT=8001
             VITE_URL=https://cairo-remix-dev.nethermind.io
+            SERVICE_VERSION=v${{ needs.Build.outputs.image-version }}
             PROMTAIL_USERNAME=${{secrets.PROMTAIL_USERNAME}}
             PROMTAIL_PASSWORD=${{secrets.PROMTAIL_PASSWORD}}
+            PROMETHEUS_USERNAME=${{secrets.PROMETHEUS_USERNAME}}
+            PROMETHEUS_PASSWORD=${{secrets.PROMETHEUS_PASSWORD}}
 
       - name: Deploy Amazon ECS task definition
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
           service: ${{ env.DEV_SERVICE_NAME }}
@@ -133,7 +138,6 @@ jobs:
     runs-on: ubuntu-latest
     needs: Build
     steps:
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -156,12 +160,17 @@ jobs:
           environment-variables: |
             RUST_LOG=INFO
             LOG_LEVEL=normal
+            ENVIRONMENT=prod
+            METRICS_PORT=8001
             VITE_URL=https://cairo-remix-dev.nethermind.io
+            SERVICE_VERSION=v${{ needs.Build.outputs.image-version }}
             PROMTAIL_USERNAME=${{secrets.PROMTAIL_USERNAME}}
             PROMTAIL_PASSWORD=${{secrets.PROMTAIL_PASSWORD}}
+            PROMETHEUS_USERNAME=${{secrets.PROMETHEUS_USERNAME}}
+            PROMETHEUS_PASSWORD=${{secrets.PROMETHEUS_PASSWORD}}
 
       - name: Deploy Amazon ECS task definition
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
           service: ${{ env.PROD_SERVICE_NAME }}

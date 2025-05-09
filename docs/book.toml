@@ -1,0 +1,6 @@
+[book]
+authors = ["Bohdan Ohorodnii"]
+language = "en"
+multilingual = false
+src = "src"
+title = "Starknet Remix Plugin Docs"

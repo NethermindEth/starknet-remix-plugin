@@ -1,13 +1,10 @@
-import { atom } from 'jotai'
-import {
-  type AccountInterface,
-  type ProviderInterface
-} from 'starknet'
+import { atom } from "jotai";
+import { type AccountInterface, type ProviderInterface } from "starknet";
 
-import { type StarknetWindowObject } from 'get-starknet'
+import { type StarknetWindowObject } from "get-starknet";
 
-const account = atom<AccountInterface | null>(null)
-const provider = atom<ProviderInterface | null>(null)
-const starknetWindowObject = atom<StarknetWindowObject | null>(null)
+const account = atom<AccountInterface | null>(null);
+const provider = atom<ProviderInterface | null>(null);
+const starknetWindowObject = atom<StarknetWindowObject | null>(null);
 
-export { account, provider, starknetWindowObject }
+export { account, provider, starknetWindowObject };

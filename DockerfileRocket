@@ -5,18 +5,19 @@ ARG SCARB_VERSION
 ENV DEBIAN_FRONTEND=noninteractive
 ENV DEBCONF_NONINTERACTIVE_SEEN=true
 ENV SCARB_VERSION=${SCARB_VERSION}
-
 RUN apt-get clean
 
 RUN apt-get update
-RUN apt-get install -y curl \
+RUN apt-get install -y --no-install-recommends curl \
     git \
     cmake \
     build-essential \
     gcc \
     apt-transport-https \
     software-properties-common \
-    wget
+    wget \
+    pkg-config \
+    libssl-dev
 
 # Installing grafana agent
 RUN mkdir -p /etc/apt/keyrings/
@@ -24,38 +25,70 @@ RUN wget -q -O - https://apt.grafana.com/gpg.key | gpg --dearmor | tee /etc/apt/
 RUN echo "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com stable main" | tee -a /etc/apt/sources.list.d/grafana.list
 
 RUN apt-get update
+RUN apt-get install grafana-agent-flow
 
-RUN apt-get install grafana-agent
+# ----------------------------------------------------------------------------
+# ASDF INSTALLATION
+# ----------------------------------------------------------------------------
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        automake \
+        autoconf \
+        libreadline-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+ENV ASDF_VERSION="v0.13.1"
+RUN git clone --branch "${ASDF_VERSION}" https://github.com/asdf-vm/asdf.git ~/.asdf
+
+ENV ASDF_DIR="/root/.asdf"
+ENV PATH="${ASDF_DIR}/bin:${ASDF_DIR}/shims:${PATH}"
+RUN echo -e '\n. $ASDF_DIR/asdf.sh' >> /root/.bashrc && \
+    echo -e '\n. $ASDF_DIR/completions/asdf.bash' >> /root/.bashrc
+# ----------------------------------------------------------------------------
+
+# ----------------------------------------------------------------------------
+# INSTALL SCARB USING ASDF
+# ----------------------------------------------------------------------------
+RUN asdf plugin add scarb
+RUN asdf install scarb ${SCARB_VERSION}
+RUN asdf global scarb ${SCARB_VERSION}
+# ----------------------------------------------------------------------------
+
+# ----------------------------------------------------------------------------
+# INSTALL UNIVERSAL SIERRA COMPILER
+# ----------------------------------------------------------------------------
+RUN curl -L https://raw.githubusercontent.com/software-mansion/universal-sierra-compiler/master/scripts/install.sh | bash
+
+ENV PATH="/root/.local/bin:${PATH}"
+# ----------------------------------------------------------------------------
+
+# ----------------------------------------------------------------------------
+# INSTALL FOUNDRY USING ASDF
+# ----------------------------------------------------------------------------
+RUN asdf plugin add starknet-foundry
+RUN asdf install starknet-foundry latest
+RUN asdf global starknet-foundry latest
+# ----------------------------------------------------------------------------
 
 WORKDIR /opt/app
-
 SHELL ["/bin/bash", "-lc"]
 
-# install Scarb (NOTE: a SPECIFIC version of Scarb is installed)
-RUN curl --proto '=https' --tlsv1.2 -sSf https://docs.swmansion.com/scarb/install.sh | bash -s -- -v $SCARB_VERSION
-ENV PATH="/root/.local/bin:${PATH}"
-
-# copy Remix plugin source and install Rust
-COPY . /opt/app
-
+# ----------------------------------------------------------------------------
+# INSTALL RUST
+# ----------------------------------------------------------------------------
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain stable -y
-
 RUN whoami
-
 ENV PATH="/root/.cargo/bin:${PATH}"
+# ----------------------------------------------------------------------------
 
+# copy Remix plugin source
+COPY . /opt/app
 RUN git submodule update --init
 
 # Build the API service
 WORKDIR /opt/app/api
-
 RUN cargo build --release
-
 RUN chmod +x ./docker_run.sh
-
-# Build the cairo compiler
-WORKDIR /opt/app/api/cairo_compilers
-RUN chmod +x ./build.sh; ./build.sh
 
 EXPOSE 8000
 

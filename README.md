@@ -4,7 +4,7 @@
 
 <!-- markdownlint-disable -->
 <div align="center">
-  <img src="docs/images/starknet-remix-logo.svg" height="256"/>
+  <img src="old-docs/images/starknet-remix-logo.svg" height="256"/>
 </div>
 
 <div align="center">
@@ -64,11 +64,11 @@ More specific potential error causes are also described in detail below.
 <br/>
 Searching for online plugins in Remix IDE may return blank or otherwise incorrect content, such as on screenshot below:
 
-![Plugin search not working](docs/images/plugin-search-error.png)
+![Plugin search not working](old-docs/images/plugin-search-error.png)
 Ensure that the following URL is accessible from a web browser, and that a JSON metadata code is returned -  
 https://raw.githubusercontent.com/ethereum/remix-plugins-directory/master/build/metadata.json :
 
-![Correct plugin metadata](docs/images/plugin-metadata-connectivity.png)
+![Correct plugin metadata](old-docs/images/plugin-metadata-connectivity.png)
 
 </details>
 
@@ -87,12 +87,12 @@ Starknet plugin launch issues may be caused by connectivity errors or plugin com
 <br/>
 The following error indicates that the browser is blocking access to `localStorage` element of the webpage:
 
-![localStorage access error](docs/images/plugin-localStorage-error.png)
+![localStorage access error](old-docs/images/plugin-localStorage-error.png)
 Possible causes:
   
    - Chrome is launched in incognito mode
    - Chrome setting "Block third-party cookies" is activated (see [chrome://settings/cookies](chrome://settings/cookies)):
-![Chrome cookies settings](docs/images/plugin-chrome-cookies-settings.png)
+![Chrome cookies settings](old-docs/images/plugin-chrome-cookies-settings.png)
 Note: even with "Block third-party cookies" activate, exceptions can be added to a whitelist - the whitelist must include:
      - https://remix.ethereum.org
      - https://cairo-remix-test.nethermind.io
@@ -170,13 +170,13 @@ In [Remix](http://remix-alpha.ethereum.org/), go to the `Plugin Manager` at the 
 
 Then, chose a name for the plugin, and in the `URL` field, enter `http://localhost:3000`, the `Type of Connection` should `iframe` and the `Location in remix` `Side Panel` and click on `Ok`, see the image below.
 
-![Plugin Manager](./docs/images/plugin-import.png)
+![Plugin Manager](./old-docs/images/plugin-import.png)
 
 You should be all set to see the magic happen! Activate the plugin and it should now be visible and ready to be hacked with! 🚀
 
 ## Support and Contributions
 
-Feel free to contribute! Spotted any [issues](https://github.com/NethermindEth/Starknet-remix-plugin/issues)? Head on over to our [good first issues](https://github.com/NethermindEth/Starknet-remix-plugin/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) or read through our [Contribution Guidelines](/docs/CONTRIBUTING.md) to get started. 📝
+Feel free to contribute! Spotted any [issues](https://github.com/NethermindEth/Starknet-remix-plugin/issues)? Head on over to our [good first issues](https://github.com/NethermindEth/Starknet-remix-plugin/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) or read through our [Contribution Guidelines](/old-docs/CONTRIBUTING.md) to get started. 📝
 
 Jump into our [Discord channel](https://discord.com/invite/PaCMRFdvWT) and join our thriving [community](https://community.nethermind.io/)! Connect with other users, share insights, and get all your questions answered. Our community is always eager to help newcomers! 🤝
 

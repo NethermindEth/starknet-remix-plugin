@@ -99,7 +99,7 @@ jobs:
         run: pnpm run build
 
       - name: 'Upload Artifact'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: react-github-actions-build
           path: ./plugin/build/**/*
@@ -132,12 +132,17 @@ jobs:
           # inject the expected React package URL for CORS logic
           environment-variables: |
             RUST_LOG=INFO
+            ENVIRONMENT=dev
+            METRICS_PORT=8001
             VITE_URL=https://cairo-remix.nethermind.io
+            SERVICE_VERSION=v${{ needs.Build.outputs.image-version }}
             PROMTAIL_USERNAME=${{secrets.PROMTAIL_USERNAME}}
             PROMTAIL_PASSWORD=${{secrets.PROMTAIL_PASSWORD}}
+            PROMETHEUS_USERNAME=${{secrets.PROMETHEUS_USERNAME}}
+            PROMETHEUS_PASSWORD=${{secrets.PROMETHEUS_PASSWORD}}
 
       - name: Deploy Amazon ECS task definition
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
           service: ${{ env.PROD_SERVICE_NAME }}
@@ -151,7 +156,7 @@ jobs:
     steps:
 
       - name: Get artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: react-github-actions-build
           path: artifact

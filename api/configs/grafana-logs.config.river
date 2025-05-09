@@ -1,0 +1,52 @@
+local.file_match "logs" {
+	path_targets = [{
+		__address__ = "localhost",
+        __path__    = env("PROMTAIL_BASE_DIR") + "/logs/*",
+		host        = "localhost",
+		job         = "starknet-remix-docker-logs",
+	}]
+}
+
+loki.source.file "logs" {
+    targets = local.file_match.logs.targets
+    forward_to = [loki.write.logs.receiver]
+}
+
+loki.write "logs" {
+    external_labels = {
+        environment = env("ENVIRONMENT"),
+        service_version = env("SERVICE_VERSION"),
+    }
+    endpoint {
+        url = "https://logs-prod-us-central1.grafana.net/loki/api/v1/push"
+        basic_auth {
+          username = env("PROMTAIL_USERNAME")
+          password = env("PROMTAIL_PASSWORD")
+        }
+    }
+}
+
+prometheus.remote_write "metrics" {
+    endpoint {
+        name = "starknet-remix-metrics"
+        url = "https://prometheus-us-central1.grafana.net/api/prom/push"
+
+        basic_auth {
+            username = env("PROMETHEUS_USERNAME")
+            password = env("PROMETHEUS_PASSWORD")
+        }
+    }
+}
+
+prometheus.scrape "metrics" {
+    targets = [{
+        __address__ = "localhost:" + env("METRICS_PORT"),
+        __metrics_path__ = "/metrics",
+        environment = env("ENVIRONMENT"),
+        service_version = env("SERVICE_VERSION"),
+    }]
+    forward_to = [prometheus.remote_write.metrics.receiver]
+
+    job_name = "starknet-remix-metrics-job"
+    scrape_interval = "30s"
+}

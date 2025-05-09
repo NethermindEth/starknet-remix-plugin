@@ -1,344 +1,349 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState } from "react";
 
-import { Environment } from '../Environment'
-import './styles.css'
+import { Environment } from "../Environment";
+import "./styles.css";
 
-import Compilation from '../Compilation'
-import Deployment from '../Deployment'
-import Interaction from '../Interaction'
-import Accordian, {
-  AccordianItem,
-  AccordionContent,
-  AccordionTrigger
-} from '../../components/ui_components/Accordian'
-import TransactionHistory from '../TransactionHistory'
-import Footer from '../Footer'
-import StateAction from '../../components/StateAction'
-import BackgroundNotices from '../../components/BackgroundNotices'
-import { useCurrentExplorer } from '../../components/ExplorerSelector'
-import { useAtomValue, useSetAtom, useAtom } from 'jotai'
-import { isCompilingAtom, statusAtom } from '../../atoms/compilation'
-import { deploymentAtom, isDelcaringAtom } from '../../atoms/deployment'
-import { pluginLoaded as atomPluginLoaded } from '../../atoms/remixClient'
-import useRemixClient from '../../hooks/useRemixClient'
-// import { fetchGitHubFilesRecursively } from '../../utils/initial_scarb_codes'
-import * as Tabs from '@radix-ui/react-tabs'
-import { Settings } from '../../components/Settings'
-import { versionsAtom, cairoVersionAtom } from '../../atoms/cairoVersion'
-import { apiUrl } from '../../utils/network'
-import { StarknetProvider } from '../../components/starknet/starknet-provider'
-export type AccordianTabs =
-  | 'compile'
-  | 'deploy'
-  | 'interaction'
-  | 'transactions'
-  | ''
+import Compilation from "../Compilation";
+import Deployment from "../Deployment";
+import Interaction from "../Interaction";
+import Accordian, { AccordionContent, AccordionItem, AccordionTrigger } from "../../components/ui_components/Accordian";
+import TransactionHistory from "../TransactionHistory";
+import Footer from "../Footer";
+import StateAction from "../../components/StateAction";
+import BackgroundNotices from "../../components/BackgroundNotices";
+import { useCurrentExplorer } from "../../components/ExplorerSelector";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { deploymentAtom, isDelcaringAtom } from "../../atoms/deployment";
+import { pluginLoaded as atomPluginLoaded } from "../../atoms/remixClient";
+import useRemixClient from "../../hooks/useRemixClient";
+import * as Tabs from "@radix-ui/react-tabs";
+import { Settings } from "../../components/Settings";
+import { cairoVersionAtom, versionsAtom } from "../../atoms/cairoVersion";
+import { apiUrl, getAccounts } from "../../utils/network";
+import { StarknetProvider } from "../../components/starknet/starknet-provider";
+import { CompilationStatus, statusAtom } from "../../atoms/compilation";
+import { useApi } from "../../utils/api";
+import { Account, RpcProvider } from "starknet";
+import {
+	availableDevnetAccountsAtom,
+	devnetAtom,
+	envAtom,
+	isDevnetAliveAtom,
+	selectedDevnetAccountAtom
+} from "../../atoms/environment";
+import useAccount from "../../hooks/useAccount";
+import useProvider from "../../hooks/useProvider";
+
+export type AccordianTabs = "compile" | "deploy" | "interaction" | "transactions" | "";
 
 const Plugin: React.FC = () => {
-  const isCompiling = useAtomValue(isCompilingAtom)
-  const status = useAtomValue(statusAtom)
+	const status = useAtomValue(statusAtom);
 
-  const { isDeploying, deployStatus } = useAtomValue(deploymentAtom)
+	const {
+		isDeploying,
+		deployStatus
+	} = useAtomValue(deploymentAtom);
 
-  const isDeclaring = useAtomValue(isDelcaringAtom)
+	const isDeclaring = useAtomValue(isDelcaringAtom);
 
-  const isDeclaringOrDeploying = isDeploying || isDeclaring
+	const isDeclaringOrDeploying = isDeploying || isDeclaring;
 
-  // Interaction state variables
-  const [interactionStatus, setInteractionStatus] = useState<
-  'loading' | 'success' | 'error' | ''
-  >('')
+	// Interaction state variables
+	const [interactionStatus, setInteractionStatus] = useState<
+	"loading" | "success" | "error" | ""
+	>("");
 
-  const [currentAccordian, setCurrentAccordian] =
-    useState<AccordianTabs>('compile')
+	const [currentAccordian, setCurrentAccordian] = useState<AccordianTabs>("compile");
 
-  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-  const handleTabView = (clicked: AccordianTabs) => {
-    if (currentAccordian === clicked) {
-      setCurrentAccordian('')
-    } else {
-      setCurrentAccordian(clicked)
-    }
-  }
+	// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+	const handleTabView = (clicked: AccordianTabs) => {
+		if (currentAccordian === clicked) {
+			setCurrentAccordian("");
+		} else {
+			setCurrentAccordian(clicked);
+		}
+	};
 
-  const setCairoVersion = useSetAtom(cairoVersionAtom)
-  const [getVersions, setVersions] = useAtom(versionsAtom)
-  const { remixClient } = useRemixClient()
+	const setCairoVersion = useSetAtom(cairoVersionAtom);
+	const setVersions = useSetAtom(versionsAtom);
+	const { remixClient } = useRemixClient();
+	const api = useApi(apiUrl);
 
-  const envViteVersion: string | undefined = import.meta.env.VITE_VERSION
-  const pluginVersion =
-    envViteVersion !== undefined ? `v${envViteVersion}` : 'v0.2.5'
+	const envViteVersion: string | undefined = import.meta.env.VITE_VERSION;
+	const pluginVersion = envViteVersion !== undefined ? `v${envViteVersion}` : "v0.2.5";
 
-  useEffect(() => {
-    const fetchCairoVersions = async (): Promise<void> => {
-      try {
-        if (apiUrl !== undefined) {
-          const response = await fetch(`${apiUrl}/cairo_versions`, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/octet-stream'
-            },
-            redirect: 'follow'
-          })
-          const versions = JSON.parse(await response.text())
-          versions.sort()
-          setVersions(versions)
-        }
-      } catch (e) {
-        await remixClient.call(
-          'notification' as any,
-          'toast',
-          '🔴 Failed to fetch cairo versions from the compilation server'
-        )
-        console.error(e)
-        await remixClient.terminal.log(
-          `🔴 Failed to fetch cairo versions from the compilation server ${
-            e as string
-          }` as any
-        )
-      }
-    }
+	useEffect(() => {
+		setTimeout(() => {
+			const fetchCairo = async (): Promise<void> => {
+				const versions = await api.allowedVersions();
 
-    setTimeout(() => {
-      const fetchCairo = async (): Promise<void> => {
-        await fetchCairoVersions()
+				if (versions.data !== null && versions.data.length > 0) {
+					setCairoVersion(versions.data[0]);
+					setVersions(versions.data);
+				} else {
+					await remixClient.call(
+						"notification" as any,
+						"toast",
+						"🔴 Failed to fetch cairo versions from the compilation server"
+					);
+					console.error(versions);
+				}
+			};
+			fetchCairo().catch((e) => {
+				console.error(e);
+			});
+		}, 10000);
+	}, [remixClient]);
 
-        if (getVersions.length > 0) {
-          setCairoVersion(getVersions[getVersions.length - 1])
-        }
-      }
-      fetchCairo().catch((e) => {
-        console.error(e)
-      })
-    }, 10000)
-  }, [remixClient])
+	const explorerHook = useCurrentExplorer();
 
-  useEffect(() => {
-    if (getVersions.length > 0) {
-      setCairoVersion(getVersions[getVersions.length - 1])
-    }
-  }, [remixClient, getVersions])
+	const setPluginLoaded = useSetAtom(atomPluginLoaded);
 
-  const explorerHook = useCurrentExplorer()
+	useEffect(() => {
+		// eslint-disable-next-line @typescript-eslint/no-misused-promises
+		const id = setTimeout(async (): Promise<void> => {
+			await remixClient.onload(() => {
+				setPluginLoaded(true);
+			});
+		}, 1);
+		return () => {
+			clearInterval(id);
+		};
+	}, []);
 
-  const setPluginLoaded = useSetAtom(atomPluginLoaded)
+	const devnet = useAtomValue(devnetAtom);
+	const [isDevnetAlive, setIsDevnetAlive] = useAtom(isDevnetAliveAtom);
+	const [selectedDevnetAccount, setSelectedDevnetAccount] = useAtom(selectedDevnetAccountAtom);
+	const [availableDevnetAccounts, setAvailableDevnetAccounts] = useAtom(
+		availableDevnetAccountsAtom
+	);
+	const { setAccount } = useAccount();
+	const { setProvider } = useProvider();
+	const env = useAtomValue(envAtom);
 
-  useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    const id = setTimeout(async (): Promise<void> => {
-      await remixClient.onload(() => {
-        setPluginLoaded(true)
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        // setTimeout(async () => {
-        //   const workspaces = await remixClient.filePanel.getWorkspaces()
+	const checkDevnetUrl = async (): Promise<void> => {
+		try {
+			const isKatanaEnv = env === "localKatanaDevnet";
+			const response = await fetch(`${devnet.url}/${isKatanaEnv ? "" : "is_alive"}`, {
+				method: "GET",
+				redirect: "follow",
+				headers: {
+					"Content-Type": "application/json"
+				}
+			});
+			const status = await response.text();
+			if (isKatanaEnv) {
+				const jsonStatus: { health: boolean } = JSON.parse(status);
+				if (jsonStatus.health) {
+					setIsDevnetAlive(true);
+				} else {
+					setIsDevnetAlive(false);
+				}
+			} else if (status !== "Alive!!!" || response.status !== 200) {
+				setIsDevnetAlive(false);
+			} else {
+				setIsDevnetAlive(true);
+			}
+		} catch (error) {
+			setIsDevnetAlive(false);
+		}
+	};
 
-        //   const workspaceLets: Array<{ name: string, isGitRepo: boolean }> =
-        //                 JSON.parse(JSON.stringify(workspaces))
+	const refreshDevnetAccounts = async (): Promise<void> => {
+		try {
+			const accounts = await getAccounts(devnet.url, env === "localKatanaDevnet");
+			if (JSON.stringify(accounts) !== JSON.stringify(availableDevnetAccounts)) {
+				if (accounts !== undefined) {
+					setAvailableDevnetAccounts(accounts);
+					if (accounts.length > 0 && selectedDevnetAccount === null) {
+						setSelectedDevnetAccount(accounts[0]);
+					}
+				} else {
+					setAvailableDevnetAccounts([]);
+				}
+			}
+		} catch (e) {
+			setAvailableDevnetAccounts([]);
+			await remixClient.terminal.log({
+				type: "error",
+				value: `Failed to get accounts information from ${devnet.url}`
+			});
+		}
+	};
 
-        //   if (
-        //     !workspaceLets.some(
-        //       (workspaceLet) => workspaceLet.name === 'cairo_scarb_sample'
-        //     )
-        //   ) {
-        //     await remixClient.filePanel.createWorkspace(
-        //       'cairo_scarb_sample',
-        //       true
-        //     )
-        //     try {
-        //       await remixClient.fileManager.mkdir('hello_world')
-        //     } catch (e) {
-        //       console.log(e)
-        //     }
-        //     const exampleRepo = await fetchGitHubFilesRecursively(
-        //       'software-mansion/scarb',
-        //       'examples/starknet_multiple_contracts'
-        //     )
+	// Check devnet status periodically
+	useEffect(() => {
+		const interval = setInterval(() => {
+			checkDevnetUrl().catch((e) => {
+				console.error(e);
+			});
+		}, 3000);
+		return () => {
+			clearInterval(interval);
+		};
+	}, [devnet]);
 
-        //     console.log('exampleRepo', exampleRepo)
+	// Initialize accounts and provider when devnet status changes
+	useEffect(() => {
+		if (!isDevnetAlive) {
+			setAvailableDevnetAccounts([]);
+			setAccount(null);
+			setSelectedDevnetAccount(null);
+		} else {
+			refreshDevnetAccounts().catch((e) => {
+				console.error(e);
+			});
+		}
+	}, [devnet, isDevnetAlive]);
 
-        //     try {
-        //       for (const file of exampleRepo) {
-        //         const filePath = file?.path
-        //           .replace('examples/starknet_multiple_contracts/', '')
-        //           .replace('examples/starknet_multiple_contracts', '') ?? ''
+	// Initialize provider and account when selected account changes
+	useEffect(() => {
+		const newProvider = new RpcProvider({ nodeUrl: devnet.url });
+		if (selectedDevnetAccount != null) {
+			setAccount(
+				new Account(
+					newProvider,
+					selectedDevnetAccount.address,
+					selectedDevnetAccount.private_key
+				)
+			);
+		}
+		setProvider(newProvider);
+	}, [devnet, selectedDevnetAccount]);
 
-        //         let fileContent: string = file?.content ?? ''
+	return (
+		<StarknetProvider>
+			<div className="plugin-wrapper">
+				<div className="plugin-main-wrapper">
+					<div className={"plugin-version-wrapper"}>
+						<div className={"plugin-version-label"}>ALPHA</div>
+						<div className={"plugin-version"}>Using {pluginVersion}</div>
+					</div>
+					<div>
+						<Environment />
+					</div>
 
-        //         if (file != null && file.fileName === 'Scarb.toml') {
-        //           fileContent = fileContent.concat('\ncasm = true')
-        //         }
+					<Tabs.Root defaultValue={"home"}>
+						<Tabs.List className={"tab-list"}>
+							<Tabs.Trigger value={"home"} className={"tabs-trigger"}>
+								Home
+							</Tabs.Trigger>
+							<Tabs.Trigger value={"transactions"} className={"tabs-trigger"}>
+								Transactions
+							</Tabs.Trigger>
+							<Tabs.Trigger value={"info"} className={"tabs-trigger"}>
+								Info
+							</Tabs.Trigger>
+							<Tabs.Trigger value={"settings"} className={"tabs-trigger"}>
+								Settings
+							</Tabs.Trigger>
+						</Tabs.List>
 
-        //         // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-        //         await remixClient.fileManager.writeFile(
-        //                             `hello_world/${
-        //                             // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-        //                             filePath
-        //                             // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-        //                             }/${file?.fileName}`,
-        //                             fileContent
-        //         )
-        //       }
-        //     } catch (e) {
-        //       if (e instanceof Error) {
-        //         await remixClient.call('notification' as any, 'alert', {
-        //           id: 'starknetRemixPluginAlert',
-        //           title: 'Please check the write file permission',
-        //           message: e.message + '\n' + 'Did you provide the write file permission?'
-        //         })
-        //       }
-        //       console.log(e)
-        //     }
-        //   }
-        // })
-      })
-    }, 1)
-    return () => {
-      clearInterval(id)
-    }
-  }, [])
+						<Tabs.Content value="home">
+							<Accordian
+								type="single"
+								value={currentAccordian}
+								defaultValue={"compile"}
+							>
+								<AccordionItem value="compile">
+									<AccordionTrigger
+										onClick={() => {
+											handleTabView("compile");
+										}}
+									>
+										<span
+											className="d-flex align-items-center"
+											style={{ gap: "0.5rem" }}
+										>
+											<span className={"accordian-list-number"}>1</span>
+											<p style={{ all: "unset" }}>Compile</p>
+											<StateAction
+												value={
+													status === CompilationStatus.Compiling
+														? "loading"
+														: status === CompilationStatus.Success
+															? "success"
+															: status === CompilationStatus.Error
+																? "error"
+																: ""
+												}
+											/>
+										</span>
+									</AccordionTrigger>
+									<AccordionContent>
+										<Compilation setAccordian={setCurrentAccordian} />
+									</AccordionContent>
+								</AccordionItem>
 
-  return (
-    <StarknetProvider>
-      <div className="plugin-wrapper">
-        <div className="plugin-main-wrapper">
-          <div className={'plugin-version-wrapper'}>
-            <div className={'plugin-version-label'}>ALPHA</div>
-            <div className={'plugin-version'}>Using {pluginVersion}</div>
-          </div>
-          <div>
-            <Environment />
-          </div>
+								<AccordionItem value="deploy">
+									<AccordionTrigger
+										onClick={() => {
+											handleTabView("deploy");
+										}}
+									>
+										<span
+											className="d-flex align-items-center"
+											style={{ gap: "0.5rem" }}
+										>
+											<span className={"accordian-list-number"}>2</span>
+											<p style={{ all: "unset" }}>Deploy</p>
+											<StateAction
+												value={
+													isDeclaringOrDeploying
+														? "loading"
+														: deployStatus === "ERROR"
+															? "error"
+															: deployStatus === "DONE"
+																? "success"
+																: ""
+												}
+											/>
+										</span>
+									</AccordionTrigger>
+									<AccordionContent>
+										<Deployment setActiveTab={setCurrentAccordian} />
+									</AccordionContent>
+								</AccordionItem>
+								<AccordionItem value="interaction">
+									<AccordionTrigger
+										onClick={() => {
+											handleTabView("interaction");
+										}}
+									>
+										<span
+											className="d-flex align-items-center"
+											style={{ gap: "0.5rem" }}
+										>
+											<span className={"accordian-list-number"}>3</span>
+											<p style={{ all: "unset" }}>Interact</p>
+											<StateAction value={interactionStatus} />
+										</span>
+									</AccordionTrigger>
+									<AccordionContent>
+										<Interaction setInteractionStatus={setInteractionStatus} />
+									</AccordionContent>
+								</AccordionItem>
+							</Accordian>
+						</Tabs.Content>
 
-          <Tabs.Root defaultValue={'home'}>
-            {/* <Tabs.List> */}
-            {/*  <Tabs.Trigger value='home'>Home</Tabs.Trigger> */}
-            {/*  <Tabs.Trigger value='transactions'>Transactions</Tabs.Trigger> */}
-            {/*  <Tabs.Trigger value='info'>Info</Tabs.Trigger> */}
-            {/* </Tabs.List> */}
+						<Tabs.Content value="transactions">
+							<TransactionHistory controlHook={explorerHook} />
+						</Tabs.Content>
 
-            {/* apply styles */}
-            <Tabs.List className={'flex justify-between rounded tab-list'}>
-              <div className={'tabs-trigger'}></div>
-              <Tabs.Trigger value={'home'} className={'tabs-trigger'}>
-                Home
-              </Tabs.Trigger>
-              <Tabs.Trigger value={'transactions'} className={'tabs-trigger'}>
-                Transactions
-              </Tabs.Trigger>
-              <Tabs.Trigger value={'info'} className={'tabs-trigger'}>
-                Info
-              </Tabs.Trigger>
-              <Tabs.Trigger value={'settings'} className={'tabs-trigger'}>
-                Settings
-              </Tabs.Trigger>
-              <div className={'tabs-trigger'}></div>
-            </Tabs.List>
+						<Tabs.Content value="info">
+							<BackgroundNotices />
+						</Tabs.Content>
 
-            <Tabs.Content value="home">
-              <Accordian
-                type="single"
-                value={currentAccordian}
-                defaultValue={'compile'}
-              >
-                <AccordianItem value="compile">
-                  <AccordionTrigger
-                    onClick={() => {
-                      handleTabView('compile')
-                    }}
-                  >
-                    <span
-                      className="d-flex align-items-center"
-                      style={{ gap: '0.5rem' }}
-                    >
-                      <span className={'accordian-list-number'}>1</span>
-                      <p style={{ all: 'unset' }}>Compile</p>
-                      <StateAction
-                        value={
-                          isCompiling
-                            ? 'loading'
-                            : status === 'done'
-                              ? 'success'
-                              : status === 'failed'
-                                ? 'error'
-                                : ''
-                        }
-                      />
-                    </span>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <Compilation setAccordian={setCurrentAccordian} />
-                  </AccordionContent>
-                </AccordianItem>
+						<Tabs.Content value={"settings"}>
+							<Settings />
+						</Tabs.Content>
+					</Tabs.Root>
+					<div className={"blank-placeholder"}></div>
+				</div>
+				<Footer />
+			</div>
+		</StarknetProvider>
+	);
+};
 
-                <AccordianItem value="deploy">
-                  <AccordionTrigger
-                    onClick={() => {
-                      handleTabView('deploy')
-                    }}
-                  >
-                    <span
-                      className="d-flex align-items-center"
-                      style={{ gap: '0.5rem' }}
-                    >
-                      <span className={'accordian-list-number'}>2</span>
-                      <p style={{ all: 'unset' }}>Deploy</p>
-                      <StateAction
-                        value={
-                          isDeclaringOrDeploying
-                            ? 'loading'
-                            : deployStatus === 'ERROR'
-                              ? 'error'
-                              : deployStatus === 'DONE'
-                                ? 'success'
-                                : ''
-                        }
-                      />
-                    </span>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <Deployment setActiveTab={setCurrentAccordian} />
-                  </AccordionContent>
-                </AccordianItem>
-                <AccordianItem value="interaction">
-                  <AccordionTrigger
-                    onClick={() => {
-                      handleTabView('interaction')
-                    }}
-                  >
-                    <span
-                      className="d-flex align-items-center"
-                      style={{ gap: '0.5rem' }}
-                    >
-                      <span className={'accordian-list-number'}>3</span>
-                      <p style={{ all: 'unset' }}>Interact</p>
-                      <StateAction value={interactionStatus} />
-                    </span>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <Interaction setInteractionStatus={setInteractionStatus} />
-                  </AccordionContent>
-                </AccordianItem>
-              </Accordian>
-            </Tabs.Content>
-
-            <Tabs.Content value="transactions">
-              <TransactionHistory controlHook={explorerHook} />
-            </Tabs.Content>
-
-            <Tabs.Content value="info">
-              <BackgroundNotices />
-            </Tabs.Content>
-
-            <Tabs.Content value={'settings'}>
-              <Settings />
-            </Tabs.Content>
-          </Tabs.Root>
-          <div className={'blank-placeholder'}></div>
-        </div>
-        <Footer />
-      </div>
-    </StarknetProvider>
-  )
-}
-
-export default Plugin
+export default Plugin;
