@@ -2,7 +2,7 @@ name: Build and Push API
 on:
   push:
     branches:
-      - feature/update_deployment_pipelines
+      - main
     paths:
       - 'api/**'
       - '.github/workflows/build-and-push-api.yml'

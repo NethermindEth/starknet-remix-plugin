@@ -2,7 +2,7 @@ name: Build and Deploy Remix
 on:
   push:
     branches:
-      - feature/update_deployment_pipelines
+      - main
     paths:
       - 'plugin/**'
       - '.github/workflows/build-and-deploy-remix.yml'
