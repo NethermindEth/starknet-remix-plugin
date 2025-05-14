@@ -1,12 +1,11 @@
 name: Promote apiserver to Prod
 on:
-  push:
-    branches:
-      - develop
-    paths:
-      - 'plugin/**'
-      - '.github/workflows/deploy-apiserver.yml'
   workflow_dispatch:
+    inputs:
+      docker_tag:
+        description: 'Docker tag to promote.  Example: 4c8509c'
+        required: true
+        default: latest
 
 env:
   DOCKER_REGISTRY: nethermind.jfrog.io
