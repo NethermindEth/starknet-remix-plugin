@@ -3,11 +3,11 @@ on:
   push:
     branches:
       - update_pipelines
-    paths:
-      - 'api/**'
-      - '.github/workflows/build-and-push-api.yml'
-      - 'DockerfileRocket'
-      - '.scarb-version'
+    # paths:
+    #   - 'api/**'
+    #   - '.github/workflows/build-and-push-api.yml'
+    #   - 'DockerfileRocket'
+    #   - '.scarb-version'
   workflow_dispatch:
 
 permissions:
