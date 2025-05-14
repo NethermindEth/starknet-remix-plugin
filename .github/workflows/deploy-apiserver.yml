@@ -43,3 +43,4 @@ jobs:
       - name: Promote to Prod
         run: |
           oras cp -r $OLD_TAG $NEW_TAG
+          oras tag $NEW_TAG $NEW_TAG latest
