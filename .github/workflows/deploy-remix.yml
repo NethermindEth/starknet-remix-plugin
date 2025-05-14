@@ -1,30 +1,28 @@
-name: Build and Push API
+name: Build and Deploy Remix
 on:
   push:
     branches:
       - update_pipelines
     # paths:
-    #   - 'api/**'
-    #   - '.github/workflows/build-apiserver.yml'
-    #   - 'DockerfileRocket'
-    #   - '.scarb-version'
+    #   - 'plugin/**'
+    #   - '.github/workflows/deploy-apiserver-remix.yml'
   workflow_dispatch:
 
-permissions:
-  id-token: write
-  contents: read
-
 env:
-  DOCKER_REGISTRY: nethermind.jfrog.io
-  IMAGE_NAME: starknet-remix-apiserver
-  REPO: nubia-oci-local-dev
+  NODE_VERSION: '20.x'
+  BUCKET_NAME: 'starknet-remix-plugin-prod'
+  API_SERVICE_URL: "https://cairo-remix-api-dev.nethermind.io"
+  STARKNET_DEVNET_URL: "https://starknet-remix-devnet.nethermind.io"
 
+permissions:
+      id-token: write
+      contents: read
 jobs:
-  Build:
+  build-remix:
     runs-on: ubuntu-latest
     steps:
       - name: Clone repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -59,37 +57,51 @@ jobs:
           # If enabled, diagnostic information will be added to the action output.
           debug: false
 
-      - name: Define image tag
+      - name: Inject version
+        env:
+          SED_COMMAND: 's/\"version\"\:[ ]\"0.1.0\"/\"version\": \"0.3.0\"/g'
         run: |
-          TAG=$(git describe --tags --always)
-          echo "DOCKER_IMAGE_TAG=$TAG" >> $GITHUB_ENV
-          echo "TAG: $TAG"
-      
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
+          sed -i 's/\"version\"\:[ ]\"[0-9].[0-9]*.[0-9]*\"/\"version\": \"${{ steps.determine-version.outputs.version }}\"/g' ./plugin/package.json
+
+      - name: Setup Node ${{ env.NODE_VERSION }} Environment
+        uses: actions/setup-node@v1
         with:
-          registry: ${{ env.DOCKER_REGISTRY }}
-          username: ${{ secrets.ARTIFACTORY_NUBIA_USERNAME }}
-          password: ${{ secrets.ARTIFACTORY_NUBIA_TOKEN_DEVELOPER }}
+          node-version: ${{ env.NODE_VERSION }}
 
-      - name: Get Scarb version
-        id: get_scarb_version
-        run: |
-          SCARB_VERSION=$(cat .scarb-version | sed 's/v//') 
-          echo "scarb_version=${SCARB_VERSION}" >> $GITHUB_ENV
+      - name: Install dependencies
+        run: npm install -g pnpm
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v6
+      - name: pnpm install
+        working-directory: ./plugin
+        run: pnpm install
+
+      - name: pnpm build
+        working-directory: ./plugin
+        run: pnpm run build
+
+      - name: 'Upload Artifact'
+        uses: actions/upload-artifact@v4
         with:
-          context: .
-          platforms: "linux/amd64"
-          push: true
-          file: ./DockerfileRocket
-          tags: |
-            ${{ env.DOCKER_REGISTRY }}/${{ env.REPO }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
-            ${{ env.DOCKER_REGISTRY }}/${{ env.REPO }}/${{ env.IMAGE_NAME }}:${{ steps.determine-version.outputs.version }}
-            ${{ env.DOCKER_REGISTRY }}/${{ env.REPO }}/${{ env.IMAGE_NAME }}:latest
+          name: react-github-actions-build
+          path: ./plugin/build/**/*
 
-          build-args: |
-            SCARB_VERSION=${{ env.scarb_version }}
+  deploy-remix:
+    runs-on: ubuntu-latest
+    needs: build-remix
+    steps:
+      - name: Get artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: react-github-actions-build
+          path: artifact
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-region: eu-west-1
+          role-to-assume: arn:aws:iam::228016254426:role/starknet-remix-plugin-github-oidc-role
+          role-session-name: GHStarknet
+
+      - name: Deploy to S3
+        run: aws s3 sync . s3://${{ env.BUCKET_NAME }} --acl public-read
+        working-directory: artifact
