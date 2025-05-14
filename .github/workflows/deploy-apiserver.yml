@@ -1,11 +1,11 @@
-name: Build and Deploy Remix
+name: Promote apiserver to Prod
 on:
   push:
     branches:
-      - update_pipelines
-    # paths:
-    #   - 'plugin/**'
-    #   - '.github/workflows/deploy-apiserver-remix.yml'
+      - develop
+    paths:
+      - 'plugin/**'
+      - '.github/workflows/deploy-apiserver.yml'
   workflow_dispatch:
 
 env:
@@ -39,7 +39,7 @@ jobs:
 
       - name: Login to registry
         run: |
-          oras login ${{ env.DOCKER_REGISTRY }} -u ${{ secrets.ARTIFACTORY_MODULAR_USERNAME }} -p ${{ secrets.ARTIFACTORY_MODULAR_TOKEN_DEVELOPER }}
+          oras login ${{ env.DOCKER_REGISTRY }} -u ${{ secrets.ARTIFACTORY_NUBIA_USERNAME }} -p ${{ secrets.ARTIFACTORY_NUBIA_TOKEN_DEVELOPER }}
 
       - name: Promote to Prod
         run: |

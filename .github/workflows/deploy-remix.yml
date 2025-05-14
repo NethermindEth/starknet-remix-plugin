@@ -2,10 +2,10 @@ name: Build and Deploy Remix
 on:
   push:
     branches:
-      - update_pipelines
-    # paths:
-    #   - 'plugin/**'
-    #   - '.github/workflows/deploy-apiserver-remix.yml'
+      - develop
+    paths:
+      - 'plugin/**'
+      - '.github/workflows/deploy-remix.yml'
   workflow_dispatch:
 
 env:

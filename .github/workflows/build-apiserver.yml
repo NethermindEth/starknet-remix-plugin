@@ -2,12 +2,12 @@ name: Build and Push API
 on:
   push:
     branches:
-      - update_pipelines
-    # paths:
-    #   - 'api/**'
-    #   - '.github/workflows/build-apiserver.yml'
-    #   - 'DockerfileRocket'
-    #   - '.scarb-version'
+      - develop
+    paths:
+      - 'api/**'
+      - '.github/workflows/build-apiserver.yml'
+      - 'DockerfileRocket'
+      - '.scarb-version'
   workflow_dispatch:
 
 permissions:
