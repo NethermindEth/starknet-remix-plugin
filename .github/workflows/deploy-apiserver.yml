@@ -1,0 +1,46 @@
+name: Promote apiserver to Prod
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - 'plugin/**'
+      - '.github/workflows/deploy-apiserver.yml'
+  workflow_dispatch:
+
+env:
+  DOCKER_REGISTRY: nethermind.jfrog.io
+  IMAGE_NAME: starknet-remix-apiserver
+  REPO: nubia-oci-local
+
+
+permissions:
+      id-token: write
+      contents: read
+jobs:
+  promote-apiserver:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup environment variables
+        id: setup
+        run: |
+          OLD_TAG=${{ env.DOCKER_REGISTRY }}/${{ env.REPO }}-dev/${{ env.IMAGE_NAME }}:${{ github.event.inputs.docker_tag }}
+          NEW_TAG=${{ env.DOCKER_REGISTRY }}/${{ env.REPO }}-prod/${{ env.IMAGE_NAME }}:${{ github.event.inputs.docker_tag }}
+
+          echo "DOCKER_IMAGE_TAG=${{ github.event.inputs.docker_tag }}" >> $GITHUB_ENV
+          echo "OLD_TAG=$OLD_TAG" >> $GITHUB_ENV
+          echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
+
+      - name: Setup oras cli
+        uses: oras-project/setup-oras@v1
+
+      - name: Login to registry
+        run: |
+          oras login ${{ env.DOCKER_REGISTRY }} -u ${{ secrets.ARTIFACTORY_NUBIA_USERNAME }} -p ${{ secrets.ARTIFACTORY_NUBIA_TOKEN_DEVELOPER }}
+
+      - name: Promote to Prod
+        run: |
+          oras cp -r $OLD_TAG $NEW_TAG

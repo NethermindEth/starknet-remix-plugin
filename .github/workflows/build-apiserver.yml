@@ -1,0 +1,95 @@
+name: Build and Push API
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - 'api/**'
+      - '.github/workflows/build-apiserver.yml'
+      - 'DockerfileRocket'
+      - '.scarb-version'
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  DOCKER_REGISTRY: nethermind.jfrog.io
+  IMAGE_NAME: starknet-remix-apiserver
+  REPO: nubia-oci-local-dev
+
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone repository
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Determine version numbers
+        id: determine-version
+        uses: paulhatch/semantic-version@v5.2.1
+        with:
+          # The prefix to use to identify tags
+          tag_prefix: "v"
+          # A string which, if present in a git commit, indicates that a change represents a
+          # major (breaking) change, supports regular expressions wrapped with '/'
+          major_pattern: "(MAJOR)"
+          # A string which indicates the flags used by the `major_pattern` regular expression. Supported flags: idgs
+          major_regexp_flags: ""
+          # Same as above except indicating a minor change, supports regular expressions wrapped with '/'
+          minor_pattern: "(MINOR)"
+          # A string which indicates the flags used by the `minor_pattern` regular expression. Supported flags: idgs
+          minor_regexp_flags: ""
+          # A string to determine the format of the version output
+          version_format: "${major}.${minor}.${patch}-dev${increment}"
+          # If this is set to true, *every* commit will be treated as a new version.
+          bump_each_commit: false
+          # If bump_each_commit is also set to true, setting this value will cause the version to increment only if the pattern specified is matched.
+          bump_each_commit_patch_pattern: ""
+          # If true, the body of commits will also be searched for major/minor patterns to determine the version type.
+          search_commit_body: false
+          # The output method used to generate list of users, 'csv' or 'json'.
+          user_format_type: "csv"
+          # Prevents pre-v1.0.0 version from automatically incrementing the major version.
+          # If enabled, when the major version is 0, major releases will be treated as minor and minor as patch. Note that the version_type output is unchanged.
+          enable_prerelease_mode: true
+          # If enabled, diagnostic information will be added to the action output.
+          debug: false
+
+      - name: Define image tag
+        run: |
+          TAG=$(git describe --tags --always)
+          echo "DOCKER_IMAGE_TAG=$TAG" >> $GITHUB_ENV
+          echo "TAG: $TAG"
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ${{ env.DOCKER_REGISTRY }}
+          username: ${{ secrets.ARTIFACTORY_NUBIA_USERNAME }}
+          password: ${{ secrets.ARTIFACTORY_NUBIA_TOKEN_DEVELOPER }}
+
+      - name: Get Scarb version
+        id: get_scarb_version
+        run: |
+          SCARB_VERSION=$(cat .scarb-version | sed 's/v//') 
+          echo "scarb_version=${SCARB_VERSION}" >> $GITHUB_ENV
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: "linux/amd64"
+          push: true
+          file: ./DockerfileRocket
+          tags: |
+            ${{ env.DOCKER_REGISTRY }}/${{ env.REPO }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.DOCKER_REGISTRY }}/${{ env.REPO }}/${{ env.IMAGE_NAME }}:${{ steps.determine-version.outputs.version }}
+            ${{ env.DOCKER_REGISTRY }}/${{ env.REPO }}/${{ env.IMAGE_NAME }}:latest
+
+          build-args: |
+            SCARB_VERSION=${{ env.scarb_version }}
