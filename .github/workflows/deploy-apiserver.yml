@@ -43,4 +43,4 @@ jobs:
       - name: Promote to Prod
         run: |
           oras cp -r $OLD_TAG $NEW_TAG
-          oras tag $NEW_TAG $NEW_TAG latest
+          oras tag $NEW_TAG $NEW_TAG ${{ env.DOCKER_REGISTRY }}/${{ env.REPO }}-prod/${{ env.IMAGE_NAME }}:latest
