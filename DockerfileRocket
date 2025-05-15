@@ -73,24 +73,27 @@ RUN asdf global starknet-foundry latest
 WORKDIR /opt/app
 SHELL ["/bin/bash", "-lc"]
 
+RUN useradd -s /bin/bash -d /opt/app/ appuser
+RUN chown -R appuser:appuser /opt/app
+USER appuser
+
 # ----------------------------------------------------------------------------
 # INSTALL RUST
 # ----------------------------------------------------------------------------
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain stable -y
 RUN whoami
-ENV PATH="/root/.cargo/bin:${PATH}"
+ENV PATH="~/.cargo/bin:${PATH}"
+
 # ----------------------------------------------------------------------------
 
 # copy Remix plugin source
-COPY . /opt/app
+COPY --chown=appuser:appuser . /opt/app
+RUN git config --global --add safe.directory /opt/app
 RUN git submodule update --init
 
 # Build the API service
 WORKDIR /opt/app/api
 RUN cargo build --release
 RUN chmod +x ./docker_run.sh
-
 EXPOSE 8000
-
-WORKDIR /opt/app/api
 ENTRYPOINT [ "./docker_run.sh" ]

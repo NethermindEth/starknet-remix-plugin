@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # Note: This script needs to run from inside /api dir
 export PROMTAIL_BASE_DIR=$(pwd)  
