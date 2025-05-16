@@ -134,3 +134,37 @@
 .tag-remoteDevnet {
   background: var(--bgPrimary);
 }
+
+.copy-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+  padding: 0;
+  margin: 0;
+  font-size: 14px;
+  opacity: 0.7;
+  margin-left: 4px;
+}
+
+.copy-btn:hover {
+  opacity: 1;
+}
+
+.address-with-copy {
+  display: flex;
+  align-items: center;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.address-with-copy a {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
