@@ -5,6 +5,33 @@ const devnetUrl = "http://127.0.0.1:5050";
 
 type Network = "goerli" | "sepolia" | "mainnet";
 
+export const RPC_URLS = {
+	sepolia: "https://free-rpc.nethermind.io/sepolia-juno/v0_7",
+	mainnet: "https://free-rpc.nethermind.io/mainnet-juno/v0_7"
+};
+
+export const ETH_TOKEN_ADDRESS = "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7";
+
+export const ERC20_ABI = [
+	{
+		inputs: [
+			{
+				name: "account",
+				type: "felt"
+			}
+		],
+		name: "balanceOf",
+		outputs: [
+			{
+				name: "balance",
+				type: "Uint256"
+			}
+		],
+		stateMutability: "view",
+		type: "function"
+	}
+];
+
 const networks = [
 	{
 		name: "Testnet",

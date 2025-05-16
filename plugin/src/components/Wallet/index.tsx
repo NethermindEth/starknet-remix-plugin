@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import copy from "copy-to-clipboard";
 import "./styles.css";
 import { MdCheck, MdCopyAll } from "react-icons/md";
-import { type Network } from "../../utils/constants";
+import { type Network, ETH_TOKEN_ADDRESS, ERC20_ABI, RPC_URLS } from "../../utils/constants";
 import { useCurrentExplorer } from "../ExplorerSelector";
 import { getExplorerUrl, trimStr } from "../../utils/utils";
 import { useAccount, useNetwork, useProvider } from "@starknet-react/core";
@@ -14,6 +14,8 @@ import useProviderAtom from "../../hooks/useProvider";
 import { declTxHashAtom, deployTxHashAtom } from "../../atoms/deployment";
 import { invokeTxHashAtom } from "../../atoms/interaction";
 import { useSetAtom } from "jotai";
+import { RpcProvider, Contract } from "starknet";
+import { walletBalanceAtom } from "../../atoms/connection";
 
 const Wallet: React.FC = () => {
 	const [showCopied, setCopied] = useState(false);
@@ -33,6 +35,7 @@ const Wallet: React.FC = () => {
 	const setDeclTxHash = useSetAtom(declTxHashAtom);
 	const setDeployTxHash = useSetAtom(deployTxHashAtom);
 	const setInvokeTxHash = useSetAtom(invokeTxHashAtom);
+	const setBalance = useSetAtom(walletBalanceAtom);
 
 	useEffect(() => {
 		if (status === "connected") {
@@ -41,11 +44,44 @@ const Wallet: React.FC = () => {
 		} else {
 			setAccount(null);
 			setProvider(null);
+			setBalance(null);
 		}
 		setDeployTxHash("");
 		setDeclTxHash("");
 		setInvokeTxHash("");
 	}, [status]);
+
+	useEffect(() => {
+		const fetchBalance = async (): Promise<void> => {
+			try {
+				const networkName = getChainName(chain.id.toString() ?? "").toLowerCase();
+				const rpcUrl = networkName === "mainnet" ? RPC_URLS.mainnet : RPC_URLS.sepolia;
+
+				const customProvider = new RpcProvider({
+					nodeUrl: rpcUrl
+				});
+
+				const ethContract = new Contract(
+					ERC20_ABI,
+					ETH_TOKEN_ADDRESS,
+					customProvider
+				);
+
+				const balanceResponse = await ethContract.balanceOf(address);
+				const balanceValue = balanceResponse.balance;
+
+				setBalance(balanceValue);
+			} catch (error) {
+				console.error("Error fetching wallet balance:", error);
+			}
+		};
+
+		const isConnectedWithAddress = status === "connected" && address !== undefined && address !== null;
+
+		if (isConnectedWithAddress) {
+			fetchBalance().catch(console.error);
+		}
+	}, [status, address, chain.id]);
 
 	const formattedAddress = formatWalletAddress(address);
 	const explorerHook = useCurrentExplorer();
@@ -74,23 +110,23 @@ const Wallet: React.FC = () => {
 							</div>
 						</div>
 						<div className="wallet-account-wrapper">
-							<p className="text account" title={formattedAddress ?? ""}>
+							<p className="text account" title={formattedAddress !== undefined && formattedAddress !== null ? formattedAddress : ""}>
 								<a
 									href={`${getExplorerUrl(
 										explorerHook.explorer,
 										getChainName(chain.id.toString() ?? "") as Network
-									)}/contract/${formattedAddress ?? ""}`}
+									)}/contract/${formattedAddress !== undefined && formattedAddress !== null ? formattedAddress : ""}`}
 									target="_blank"
 									rel="noreferer noopener noreferrer"
 								>
-									{trimStr(formattedAddress ?? "", 10)}
+									{trimStr(formattedAddress !== undefined && formattedAddress !== null ? formattedAddress : "", 10)}
 								</a>
 							</p>
 							<span style={{ position: "relative" }}>
 								<button
 									className="btn p-0"
 									onClick={() => {
-										copy(formattedAddress ?? "");
+										copy(formattedAddress !== undefined && formattedAddress !== null ? formattedAddress : "");
 										setCopied(true);
 										setTimeout(() => {
 											setCopied(false);
