@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import useRemixClient from "./useRemixClient";
+import { Theme } from "@remixproject/plugin-api";
 
 export const useIcon = (name: string): string => {
 	const { remixClient } = useRemixClient();
@@ -9,14 +10,16 @@ export const useIcon = (name: string): string => {
 		const loadTheme = async (): Promise<void> => {
 			try {
 				const currentTheme = await remixClient.call("theme", "currentTheme");
-				setRemixTheme(currentTheme.quality ?? "dark");
+				console.log("currentTheme", currentTheme);
+				setRemixTheme(currentTheme.brightness ?? currentTheme.quality ?? "dark");
 			} catch (error) {
 				console.error(error);
 			}
 		};
 
-		const updateTheme = (theme: any): void => {
-			setRemixTheme(theme.quality);
+		const updateTheme = (theme: Theme): void => {
+			console.log("updateTheme", theme);
+			setRemixTheme(theme.brightness ?? theme.quality ?? "dark");
 		};
 
 		loadTheme().catch(console.error);

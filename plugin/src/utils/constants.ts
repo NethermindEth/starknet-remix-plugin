@@ -3,13 +3,9 @@ import { type Status } from "../atoms/deployment";
 
 const devnetUrl = "http://127.0.0.1:5050";
 
-type Network = "goerli" | "sepolia" | "mainnet";
+type Network = "sepolia" | "mainnet";
 
 const networks = [
-	{
-		name: "Testnet",
-		value: "goerli"
-	},
 	{
 		name: "Sepolia",
 		value: "sepolia"
@@ -22,25 +18,21 @@ const networks = [
 
 const networkExplorerUrls = {
 	voyager: {
-		goerli: "https://goerli.voyager.online",
 		sepolia: "https://sepolia.voyager.online",
 		mainnet: "https://voyager.online"
 	},
 	starkscan: {
-		goerli: "https://testnet.starkscan.co",
 		sepolia: "https://sepolia.starkscan.co",
 		mainnet: "https://starkscan.co"
 	}
 };
 
 const networkEquivalents = new Map([
-	["goerli", constants.StarknetChainId.SN_GOERLI],
 	["sepolia", constants.StarknetChainId.SN_SEPOLIA],
 	["mainnet", constants.StarknetChainId.SN_MAIN]
 ]);
 
 const networkEquivalentsRev = new Map([
-	[constants.StarknetChainId.SN_GOERLI, "goerli"],
 	[constants.StarknetChainId.SN_SEPOLIA, "sepolia"],
 	[constants.StarknetChainId.SN_MAIN, "mainnet"]
 ]);

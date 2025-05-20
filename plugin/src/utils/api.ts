@@ -52,7 +52,7 @@ export class Api {
 	private async asyncFetch<T> (
 		method: string,
 		getterMethod: string,
-		body?: any
+		body?: BaseRequest | CompilationRequest | TestRequest
 	): Promise<T> {
 		const response = await fetch(`${this.apiUrl}/${method}`, {
 			method: "POST",

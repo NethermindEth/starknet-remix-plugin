@@ -1,11 +1,10 @@
+import { useState, useEffect, useMemo } from "react";
 import { PluginClient } from "@remixproject/plugin";
 import { createClient } from "@remixproject/plugin-webview";
-import { fetchGitHubFilesRecursively, type RemixFileInfo } from "../utils/initial_scarb_codes";
-import { SCARB_VERSION_REF } from "../utils/constants";
+import { fetchGitHubFilesRecursively } from "../utils/initial_scarb_codes";
 import axios from "axios";
-import { apiUrl } from "../utils/network";
 
-export class RemixClient extends PluginClient {
+class RemixClient extends PluginClient {
 	constructor() {
 		super();
 		this.methods = ["loadFolderFromUrl", "loadFolderFromGithub"];
@@ -63,97 +62,80 @@ export class RemixClient extends PluginClient {
 		}
 	}
 }
-const remixClient = createClient(new RemixClient());
 
-async function remixWriteFiles(files: RemixFileInfo[]): Promise<void> {
-	for (const file of files) {
-		const filePath =
-			file?.path
-				.replace("examples/starknet_multiple_contracts/", "")
-				.replace("examples/starknet_multiple_contracts", "") ?? "";
+// Create the client instance outside the hook to ensure it's a singleton
+const remixClientInstance = createClient(new RemixClient());
 
-		let fileContent: string = file?.content ?? "";
-		if (file != null && file.fileName === "Scarb.toml") {
-			fileContent = fileContent.concat("\ncasm = true");
-		}
+/**
+ * React hook for interacting with the Remix client
+ * @returns Hook state and methods for interacting with Remix
+ */
+const useRemixClient = () => {
+	// Track connection state
+	const [isConnected, setIsConnected] = useState(false);
+	const [isLoading, setIsLoading] = useState(true);
+	const [error, setError] = useState<Error | null>(null);
 
-		// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-		await remixClient.fileManager.writeFile(
-			`hello_world/${
-				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-				filePath
-				// eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-			}/${file?.fileName}`,
-			fileContent
-		);
-	}
-}
-
-async function onPluginLaunched(): Promise<void> {
-	try {
-		const response = await fetch(`${apiUrl}/on-plugin-launched`, {
-			method: "POST",
-			redirect: "follow",
-			headers: {
-				"Content-Type": "application/octet-stream"
+	// Initialize the client on mount
+	useEffect(() => {
+		const initializeClient = async () => {
+			try {
+				setIsLoading(true);
+				await remixClientInstance.onload();
+				setIsConnected(true);
+				setError(null);
+			} catch (err) {
+				setError(err instanceof Error ? err : new Error(String(err)));
+				console.error("Failed to initialize Remix client:", err);
+			} finally {
+				setIsLoading(false);
 			}
+		};
+
+		initializeClient();
+
+		remixClientInstance.onload(() => {
+			setIsConnected(true);
 		});
 
-		console.log("on-plugin-launched");
-		if (!response.ok) {
-			console.log("Could not post on launch");
+		// Cleanup function
+		return () => {};
+	}, []);
+
+	// Wrap client methods to handle errors consistently
+	const loadFolderFromUrl = async (url: string) => {
+		try {
+			return await remixClientInstance.loadFolderFromUrl(url);
+		} catch (err) {
+			setError(err instanceof Error ? err : new Error(String(err)));
+			throw err;
 		}
-	} catch (error) {
-		console.log("Could not post on launch", error);
-	}
-}
+	};
 
-remixClient
-	.onload()
-	.then(async () => {
-		await onPluginLaunched();
-
-		const workspaces = await remixClient.filePanel.getWorkspaces();
-		const workspaceLets: Array<{ name: string; isGitRepo: boolean }> = JSON.parse(
-			JSON.stringify(workspaces)
-		);
-
-		if (!workspaceLets.some((workspaceLet) => workspaceLet.name === "cairo_scarb_sample")) {
-			await remixClient.filePanel.createWorkspace("cairo_scarb_sample", true);
-			try {
-				await remixClient.fileManager.mkdir("hello_world");
-			} catch (e) {
-				console.log(e);
-			}
-			const exampleRepo = await fetchGitHubFilesRecursively(
-				"software-mansion/scarb",
-				"examples/starknet_multiple_contracts",
-				SCARB_VERSION_REF
-			);
-
-			try {
-				console.log("exampleRepo", exampleRepo);
-				await remixWriteFiles(exampleRepo);
-			} catch (e) {
-				if (e instanceof Error) {
-					await remixClient.call("notification" as any, "alert", {
-						id: "starknetRemixPluginAlert",
-						title: "Please check the write file permission",
-						message: e.message + "\n" + "Did you provide the write file permission?"
-					});
-				}
-				console.log(e);
-			}
+	const loadFolderFromGithub = async (url: string, folderPath: string) => {
+		try {
+			return await remixClientInstance.loadFolderFromGithub(url, folderPath);
+		} catch (err) {
+			setError(err instanceof Error ? err : new Error(String(err)));
+			throw err;
 		}
-	})
-	.catch((error) => {
-		console.error("Error loading remix client:", error);
-	});
+	};
 
-const useRemixClient = (): {
-	remixClient: typeof remixClient;
-} => {
-	return { remixClient };
+	// Reset error state
+	const clearError = () => setError(null);
+
+	// Memoize the return value to prevent unnecessary re-renders
+	const hookValue = useMemo(() => ({
+		remixClient: remixClientInstance,
+		isConnected,
+		isLoading,
+		error,
+		clearError,
+		loadFolderFromUrl,
+		loadFolderFromGithub
+	}), [isConnected, isLoading, error]);
+
+	return hookValue;
 };
 
 export default useRemixClient;

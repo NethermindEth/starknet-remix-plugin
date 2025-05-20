@@ -6,7 +6,7 @@ const devnetAtom = atom<Devnet>(devnets[1]);
 const customDevnetUrlAtom = atom<string>("http://localhost:5050");
 const isCustomDevnetConnectedAtom = atom<boolean>(true);
 
-export type Env = "remoteDevnet" | "wallet" | "manual" | "customDevnet" | "localKatanaDevnet";
+export type Env = "remoteDevnet" | "wallet" | "customDevnet" | "localKatanaDevnet";
 
 export const envName = (env: Env): string => {
 	switch (env) {
@@ -14,8 +14,6 @@ export const envName = (env: Env): string => {
 			return "Remote Devnet";
 		case "wallet":
 			return "Wallet";
-		case "manual":
-			return "Manual";
 		case "customDevnet":
 			return "Custom Devnet";
 		case "localKatanaDevnet":
