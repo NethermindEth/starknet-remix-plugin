@@ -1,9 +1,6 @@
 FROM ubuntu:20.04
 
 ARG SCARB_VERSION
-ARG USERNAME=appuser
-ARG USER_UID=1001
-ARG USER_GID=1001
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV DEBCONF_NONINTERACTIVE_SEEN=true
@@ -30,7 +27,9 @@ RUN echo "deb [signed-by=/etc/apt/keyrings/grafana.gpg] https://apt.grafana.com 
 RUN apt-get update
 RUN apt-get install grafana-agent-flow
 
-
+# ----------------------------------------------------------------------------
+# ASDF INSTALLATION
+# ----------------------------------------------------------------------------
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         automake \
@@ -38,31 +37,13 @@ RUN apt-get update && \
         libreadline-dev && \
     rm -rf /var/lib/apt/lists/*
 
-# ----------------------------------------------------------------------------
-# USE NON_ROOT USER
-# ----------------------------------------------------------------------------
-RUN groupadd --gid $USER_GID $USERNAME \
-  && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME -s /bin/bash
-USER $USERNAME
-WORKDIR /home/$USERNAME
-
-# ----------------------------------------------------------------------------
-# ASDF INSTALLATION
-# ----------------------------------------------------------------------------
 ENV ASDF_VERSION="v0.13.1"
 RUN git clone --branch "${ASDF_VERSION}" https://github.com/asdf-vm/asdf.git ~/.asdf
 
-RUN echo '. $HOME/.asdf/asdf.sh' >> ~/.bashrc \
-  && echo '. $HOME/.asdf/completions/asdf.bash' >> ~/.bashrc \
-  && echo 'export PATH="$HOME/.asdf/bin:$HOME/.asdf/shims:$PATH"' >> ~/.bashrc
-ENV PATH="/home/$USERNAME/.asdf/bin:/home/$USERNAME/.asdf/shims:${PATH}"
-
-# ENV ASDF_DIR="~/.asdf"
-# ENV PATH="${ASDF_DIR}/bin:${ASDF_DIR}/shims:${PATH}"
-# RUN echo ". ~/.asdf/asdf.sh" >> ${APP_HOMEDIR}/.bashrc && \
-#     echo ". ~/.asdf/completions/asdf.bash" >> ${APP_HOMEDIR}/.bashrc
-# # RUN bash -c "source ~/.bashrc && asdf --version"
-
+ENV ASDF_DIR="/root/.asdf"
+ENV PATH="${ASDF_DIR}/bin:${ASDF_DIR}/shims:${PATH}"
+RUN echo -e '\n. $ASDF_DIR/asdf.sh' >> /root/.bashrc && \
+    echo -e '\n. $ASDF_DIR/completions/asdf.bash' >> /root/.bashrc
 # ----------------------------------------------------------------------------
 
 # ----------------------------------------------------------------------------
@@ -78,7 +59,7 @@ RUN asdf global scarb ${SCARB_VERSION}
 # ----------------------------------------------------------------------------
 RUN curl -L https://raw.githubusercontent.com/software-mansion/universal-sierra-compiler/master/scripts/install.sh | bash
 
-ENV PATH="/home/$USERNAME/.local/bin:${PATH}"
+ENV PATH="/root/.local/bin:${PATH}"
 # ----------------------------------------------------------------------------
 
 # ----------------------------------------------------------------------------
@@ -89,28 +70,27 @@ RUN asdf install starknet-foundry latest
 RUN asdf global starknet-foundry latest
 # ----------------------------------------------------------------------------
 
-# WORKDIR ${APP_HOMEDIR}
-# SHELL ["/bin/bash", "-lc"]
-# RUN chown -R appuser:appuser /opt/app
+WORKDIR /opt/app
+SHELL ["/bin/bash", "-lc"]
 
 # ----------------------------------------------------------------------------
 # INSTALL RUST
 # ----------------------------------------------------------------------------
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- --default-toolchain stable -y
 RUN whoami
-ENV PATH="~/.cargo/bin:${PATH}"
-
-# # ----------------------------------------------------------------------------
+ENV PATH="/root/.cargo/bin:${PATH}"
+# ----------------------------------------------------------------------------
 
 # copy Remix plugin source
-COPY --chown=appuser:appuser . /home/$USERNAME
-RUN git config --global --add safe.directory /home/$USERNAME
+COPY . /opt/app
 RUN git submodule update --init
 
 # Build the API service
-WORKDIR /home/$USERNAME/api
-SHELL ["/bin/bash", "-lc"]
+WORKDIR /opt/app/api
 RUN cargo build --release
 RUN chmod +x ./docker_run.sh
+
 EXPOSE 8000
-ENTRYPOINT [ "bash", "docker_run.sh" ]
+
+WORKDIR /opt/app/api
+ENTRYPOINT [ "./docker_run.sh" ]
