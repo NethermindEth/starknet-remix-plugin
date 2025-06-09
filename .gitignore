@@ -54,5 +54,3 @@ terraform.rc
 
 # Ignore the python virtualenv
 venv
-
-.git
