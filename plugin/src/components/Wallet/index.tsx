@@ -35,17 +35,32 @@ const Wallet: React.FC = () => {
 	const setInvokeTxHash = useSetAtom(invokeTxHashAtom);
 
 	useEffect(() => {
-		if (status === "connected") {
-			setAccount(account ?? null);
-			setProvider(provider);
-		} else {
+		const updateAccount = async (): Promise<void> => {
+			if (status === "connected") {
+				if (account !== undefined && account !== null) {
+					setAccount(account);
+				} else if (connector !== undefined && connector !== null) {
+					const fetchedAccount = await connector.account(provider);
+					setAccount(fetchedAccount);
+				} else {
+					setAccount(null);
+				}
+				setProvider(provider);
+			} else {
+				setAccount(null);
+				setProvider(null);
+			}
+			setDeployTxHash("");
+			setDeclTxHash("");
+			setInvokeTxHash("");
+		};
+
+		updateAccount().catch(error => {
+			console.error("Failed to update account:", error);
 			setAccount(null);
 			setProvider(null);
-		}
-		setDeployTxHash("");
-		setDeclTxHash("");
-		setInvokeTxHash("");
-	}, [status]);
+		});
+	}, [address, status]);
 
 	const formattedAddress = formatWalletAddress(address);
 	const explorerHook = useCurrentExplorer();
@@ -65,7 +80,7 @@ const Wallet: React.FC = () => {
 					<>
 						<div className="wallet-row-wrapper">
 							<div className="wallet-wrapper">
-								<img src={connector?.icon?.dark} alt="wallet icon" />
+								<img src={connector !== undefined ? (typeof connector.icon === "string" ? connector.icon : connector.icon.dark) : ""} alt="wallet icon" />
 								<p className="text"> {connector?.id}</p>
 								<p className="text text-right text-secondary">
 									{" "}

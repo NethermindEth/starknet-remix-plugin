@@ -56,7 +56,7 @@ components/
 │   ├── connect/          # Wallet connection dialogs
 │   └── disconnect/       # Wallet disconnection handling
 └── ui_components/        # Shared UI building blocks
-    ├── Accordian/        # Collapsible content sections
+    ├── Accordion/        # Collapsible content sections
     ├── CircularLoader/   # Loading spinner animation
     ├── Container/        # Layout container component
     ├── Dropdown/         # Dropdown menu component

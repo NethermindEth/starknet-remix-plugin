@@ -1,5 +1,5 @@
 import React from "react";
-import { sepolia, goerli, mainnet } from "@starknet-react/chains";
+import { sepolia, mainnet } from "@starknet-react/chains";
 import {
 	StarknetConfig,
 	publicProvider,
@@ -8,7 +8,7 @@ import {
 	useInjectedConnectors
 } from "@starknet-react/core";
 
-export function StarknetProvider({ children }: { children: React.ReactNode }): JSX.Element {
+export function StarknetProvider({ children }: { children: React.ReactNode }): React.ReactElement {
 	const { connectors } = useInjectedConnectors({
 		// Show these connectors if the user has no connector installed.
 		recommended: [argent(), braavos()],
@@ -20,7 +20,7 @@ export function StarknetProvider({ children }: { children: React.ReactNode }): J
 
 	return (
 		<StarknetConfig
-			chains={[mainnet, goerli, sepolia]}
+			chains={[mainnet, sepolia]}
 			provider={publicProvider()}
 			connectors={connectors}
 		>

@@ -1,8 +1,8 @@
 /* reset */
 
 :root {
-  --accordian-border-radius: 8px;
-  --accordian-bg-color: var(--light);
+  --Accordion-border-radius: 8px;
+  --Accordion-bg-color: var(--light);
 }
 
 button,
@@ -56,9 +56,9 @@ h3 {
   line-height: 1;
   color: var(--text);
   transition: all 0.1s ease;
-  background-color: var(--accordian-bg-color) !important;
+  background-color: var(--Accordion-bg-color) !important;
 
-  border-radius: var(--accordian-border-radius);
+  border-radius: var(--Accordion-border-radius);
 
   padding: 8px 16px 8px 16px;
 
@@ -75,7 +75,7 @@ h3 {
 }
 
 .AccordionTrigger:hover {
-  background-color: var(--accordian-bg-color) !important;
+  background-color: var(--Accordion-bg-color) !important;
   color: var(--text);
 }
 
@@ -83,7 +83,7 @@ h3 {
   overflow: hidden;
   font-size: 1rem;
   color: var(--text);
-  background-color: var(--accordian-bg-color) !important;
+  background-color: var(--Accordion-bg-color) !important;
   /*  make text to not break words */
   word-break: keep-all !important;
   overflow-wrap: break-word !important;
@@ -92,8 +92,8 @@ h3 {
 .AccordionContent[data-state='open'] {
   animation: slideDown 300ms cubic-bezier(0.87, 0, 0.13, 1);
 
-  border-bottom-left-radius: var(--accordian-border-radius);
-  border-bottom-right-radius: var(--accordian-border-radius);
+  border-bottom-left-radius: var(--Accordion-border-radius);
+  border-bottom-right-radius: var(--Accordion-border-radius);
 }
 
 .AccordionContent[data-state='closed'] {

@@ -1,4 +1,4 @@
-import { atom } from "jotai";
+import { atom, type Getter, type Setter } from "jotai";
 import { type CallDataObject, type Input } from "../utils/types/contracts";
 
 export type Status = "IDLE" | "IN_PROGRESS" | "ERROR" | "DONE";
@@ -37,7 +37,7 @@ interface SetDeploymentAtom {
 }
 
 const deploymentAtom = atom(
-	(get) => {
+	(get: Getter) => {
 		return {
 			isDeploying: get(isDeployingAtom),
 			deployStatus: get(deployStatusAtom),
@@ -50,7 +50,7 @@ const deploymentAtom = atom(
 			deployTxHash: get(deployTxHashAtom)
 		};
 	},
-	(_get, set, newValue: SetDeploymentAtom) => {
+	(_get: Getter, set: Setter, newValue: SetDeploymentAtom) => {
 		switch (newValue?.key) {
 			case "isDeploying":
 				typeof newValue?.value === "boolean" && set(isDeployingAtom, newValue?.value);
