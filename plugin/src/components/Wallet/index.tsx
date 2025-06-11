@@ -4,11 +4,11 @@ import "./styles.css";
 import { MdCheck, MdCopyAll } from "react-icons/md";
 import { type Network } from "../../utils/constants";
 import { useCurrentExplorer } from "../ExplorerSelector";
-import { getExplorerUrl, trimStr } from "../../utils/utils";
+import { getExplorerUrl, getShortenedHash } from "../../utils/utils";
 import { useAccount, useNetwork, useProvider } from "@starknet-react/core";
 import ConnectModal from "../starknet/connect";
 import DisconnectModal from "../starknet/disconnect";
-import { formatWalletAddress, getChainName } from "../../utils/starknet";
+import { getChainName } from "../../utils/starknet";
 import useAccountAtom from "../../hooks/useAccount";
 import useProviderAtom from "../../hooks/useProvider";
 import { declTxHashAtom, deployTxHashAtom } from "../../atoms/deployment";
@@ -47,7 +47,9 @@ const Wallet: React.FC = () => {
 		setInvokeTxHash("");
 	}, [status]);
 
-	const formattedAddress = formatWalletAddress(address);
+	const shortenedAddress = address !== undefined && address !== null
+		? getShortenedHash(address, 6, 4)
+		: "";
 	const explorerHook = useCurrentExplorer();
 
 	return (
@@ -74,23 +76,23 @@ const Wallet: React.FC = () => {
 							</div>
 						</div>
 						<div className="wallet-account-wrapper">
-							<p className="text account" title={formattedAddress ?? ""}>
+							<p className="text account" title={address ?? ""}>
 								<a
 									href={`${getExplorerUrl(
 										explorerHook.explorer,
 										getChainName(chain.id.toString() ?? "") as Network
-									)}/contract/${formattedAddress ?? ""}`}
+									)}/contract/${address ?? ""}`}
 									target="_blank"
 									rel="noreferer noopener noreferrer"
 								>
-									{trimStr(formattedAddress ?? "", 10)}
+									{shortenedAddress}
 								</a>
 							</p>
 							<span style={{ position: "relative" }}>
 								<button
 									className="btn p-0"
 									onClick={() => {
-										copy(formattedAddress ?? "");
+										copy(address ?? "");
 										setCopied(true);
 										setTimeout(() => {
 											setCopied(false);
