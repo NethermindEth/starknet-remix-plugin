@@ -6,7 +6,7 @@ import { selectedAccountAtom } from "../../atoms/manualAccount";
 import { getShortenedHash } from "../../utils/utils";
 import { ethers } from "ethers";
 import { DevnetStatus } from "../DevnetStatus";
-import { account } from "../../atoms/connection";
+import { account, walletBalanceAtom } from "../../atoms/connection";
 
 export const CurrentEnv: React.FC = () => {
 	const env = useAtomValue(envAtom);
@@ -14,15 +14,14 @@ export const CurrentEnv: React.FC = () => {
 	const selectedAccountManual = useAtomValue(selectedAccountAtom);
 	const selectedAccountDevnet = useAtomValue(selectedDevnetAccountAtom);
 	const walletAccount = useAtomValue(account);
-	// const walletProvider = useAtomValue(provider)
-
+	const walletBalance = useAtomValue(walletBalanceAtom);
 	const selectedAccount =
 		env === "wallet"
 			? {
 				address: walletAccount?.address,
-				balance: walletAccount?.address != null
-					? ethers.BigNumber.from(2000000000000000)
-					: ethers.BigNumber.from(0)
+				balance: walletBalance !== null && walletBalance !== undefined
+					? walletBalance
+					: 0
 			}
 			: env === "manual"
 				? {
@@ -33,20 +32,20 @@ export const CurrentEnv: React.FC = () => {
 					address: selectedAccountDevnet?.address,
 					balance: selectedAccountDevnet?.initial_balance
 				};
-
 	const selectedAccountAddress =
 		selectedAccount.address != null
 			? getShortenedHash(selectedAccount.address, 6, 4)
 			: "No account selected";
 
-	const balanceInEther = parseFloat(ethers.utils.formatEther(selectedAccount.balance ?? 0));
-	const isInteger = Number.isInteger(balanceInEther);
-	const selectedAccountBalance = isInteger
-		? balanceInEther.toFixed(0)
-		: balanceInEther.toFixed(3);
+	const selectedAccountBalance = ethers.utils.formatEther(selectedAccount.balance ?? 0);
+
+	const balanceValue = parseFloat(selectedAccountBalance);
+	const isInteger = Number.isInteger(balanceValue);
+	const formattedBalance = isInteger
+		? balanceValue.toFixed(0)
+		: balanceValue.toFixed(3);
 
 	return (
-		// <div>{ envName(env) }, { selectedAccountAddress }, { selectedAccountBalance } ETH </div>
 		<div className={"current-env-root"}>
 			<div className={"devnet-status"}>
 				<DevnetStatus />
@@ -55,7 +54,7 @@ export const CurrentEnv: React.FC = () => {
 				<span className={"chain-name"}>{envName(env)}</span>
 				<span className={"chain-account-info"}>
 					{selectedAccountAddress}{" "}
-					{selectedAccount != null ? `(${selectedAccountBalance} ETH)` : ""}
+					{selectedAccount !== null && selectedAccount !== undefined ? `(${formattedBalance} ETH)` : ""}
 				</span>
 			</div>
 		</div>
