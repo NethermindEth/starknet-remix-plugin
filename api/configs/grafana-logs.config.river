@@ -49,7 +49,7 @@ prometheus.scrape "metrics" {
         __metrics_path__ = "/metrics",
         environment = env("ENVIRONMENT"),
         service_version = env("SERVICE_VERSION"),
-        environment = "production",
+        project_code = "SWI-RXP-01",
     }]
     forward_to = [prometheus.remote_write.metrics.receiver]
 
