@@ -1,10 +1,10 @@
 local.file_match "logs" {
 	path_targets = [{
 		__address__  = "localhost",
+        project_code = "SWI-RXP-01", 
         __path__     = env("PROMTAIL_BASE_DIR") + "/logs/*",
 		host         = "localhost",
 		job          = "starknet-remix-docker-logs",
-        project_code = "SWI-RXP-01",
 	}]
 }
 
