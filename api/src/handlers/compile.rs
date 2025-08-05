@@ -25,13 +25,12 @@ name = "___testsingle"
 version = "0.1.0"
 
 [dependencies]
-starknet = "{}"
+starknet = "{version}"
 
 [[target.starknet-contract]]
 sierra = true
 casm = true
-"#,
-        version
+"#
     )
 }
 
@@ -142,7 +141,7 @@ pub async fn do_compile(
             error!("Failed to parse stderr as UTF-8: {:?}", e);
             FileError::UTF8Error(e)
         })?;
-        format!("{}{}", stdout, stderr).replace(&temp_dir, "")
+        format!("{stdout}{stderr}").replace(&temp_dir, "")
     };
 
     let (status, code) = match output.status.code() {

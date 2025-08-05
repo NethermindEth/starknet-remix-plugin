@@ -19,7 +19,7 @@ pub const DEFAULT_CAIRO_VERSION: &str = "v2.5.4";
 pub const DURATION_TO_PURGE: u64 = 60 * 5; // 5 minutes
 
 pub fn get_file_ext(file_path: &str) -> String {
-    match file_path.split('.').last() {
+    match file_path.split('.').next_back() {
         Some(ext) => ext.to_string(),
         None => {
             debug!("LOG: File extension not found");
