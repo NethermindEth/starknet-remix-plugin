@@ -84,7 +84,7 @@ pub fn do_scarb_version() -> Result<ApiResponse<String>> {
         })?;
 
         Ok(ApiResponse::ok(result.clone())
-            .with_message(format!("{}{}", result_with_stderr, result))
+            .with_message(format!("{result_with_stderr}{result}"))
             .with_success(true)
             .with_status("Success".to_string())
             .with_code(200))

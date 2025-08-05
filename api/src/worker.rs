@@ -29,7 +29,7 @@ impl Display for ProcessState {
             ProcessState::New => write!(f, "New"),
             ProcessState::Running => write!(f, "Running"),
             ProcessState::Completed(_) => write!(f, "Completed"),
-            ProcessState::Error(e) => write!(f, "Error({:?})", e),
+            ProcessState::Error(e) => write!(f, "Error({e:?})"),
         }
     }
 }
@@ -178,8 +178,7 @@ impl WorkerEngine {
         match self.arc_command_queue.push((uuid, command)) {
             Ok(()) => Ok(uuid),
             Err((uuid, command)) => Err(format!(
-                "Error enqueueing command {:?} in process {:?}",
-                command, uuid
+                "Error enqueueing command {command:?} in process {uuid:?}"
             )),
         }
     }
