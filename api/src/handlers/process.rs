@@ -27,7 +27,7 @@ pub async fn get_process_status(
                         .to_string(),
                 )
             } else {
-                ApiResponse::not_found(format!("Process with id={} not found", process_id))
+                ApiResponse::not_found(format!("Process with id={process_id} not found"))
             }
         }
         Err(e) => ApiResponse::bad_request(e.to_string()),
@@ -54,7 +54,7 @@ where
 {
     let process_uuid = Uuid::parse_str(process_id).map_err(|e| {
         error!("Failed to parse process UUID: {}", e);
-        ApiResponse::<()>::bad_request(format!("Failed to parse process UUID: {}", e))
+        ApiResponse::<()>::bad_request(format!("Failed to parse process UUID: {e}"))
     })?;
 
     let process_state = engine
@@ -62,7 +62,7 @@ where
         .get(&process_uuid)
         .ok_or_else(|| {
             error!("Process not found: {}", process_id);
-            ApiResponse::<()>::not_found(format!("Process id not found: {}", process_id))
+            ApiResponse::<()>::not_found(format!("Process id not found: {process_id}"))
         })?;
 
     match process_state.value() {
@@ -71,16 +71,14 @@ where
             T::try_from(result).map_err(|e| {
                 error!("Failed to convert result type: {:?}", e);
                 Box::new(ApiResponse::bad_request(format!(
-                    "Failed to convert result type: {:?}",
-                    e
+                    "Failed to convert result type: {e:?}"
                 )))
             })
         }
         ProcessState::Error(e) => {
             error!("Process error: {:?}", e);
             Err(Box::new(ApiResponse::not_found(format!(
-                "Process error: {}",
-                e
+                "Process error: {e}"
             ))))
         }
         _ => {

@@ -17,7 +17,7 @@ impl From<String> for LogType {
         match input.as_str() {
             "formatted" => Self::Formatted,
             "json" => Self::Json,
-            _ => panic!("Unkown log type {}", input),
+            _ => panic!("Unkown log type {input}"),
         }
     }
 }

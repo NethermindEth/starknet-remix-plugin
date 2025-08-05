@@ -164,10 +164,7 @@ pub async fn init_directories(base_request: &BaseRequest) -> Result<String> {
     temp_dir
         .to_str()
         .ok_or_else(|| {
-            ApiError::System(SystemError::FailedToParseFilePath(format!(
-                "{:?}",
-                temp_dir
-            )))
+            ApiError::System(SystemError::FailedToParseFilePath(format!("{temp_dir:?}")))
         })
         .map(|s| s.to_string())
 }
