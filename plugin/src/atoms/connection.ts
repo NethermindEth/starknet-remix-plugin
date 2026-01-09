@@ -6,5 +6,6 @@ import { type StarknetWindowObject } from "get-starknet";
 const account = atom<AccountInterface | null>(null);
 const provider = atom<ProviderInterface | null>(null);
 const starknetWindowObject = atom<StarknetWindowObject | null>(null);
+const walletBalanceAtom = atom<string | bigint | null>(null);
 
-export { account, provider, starknetWindowObject };
+export { account, provider, starknetWindowObject, walletBalanceAtom };
