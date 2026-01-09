@@ -4,6 +4,7 @@ import Index from "../../components/TransactionCard";
 import { type IExplorerSelector } from "../../utils/misc";
 import { useAtomValue } from "jotai";
 import transactionsAtom from "../../atoms/transactions";
+import { Transaction } from "@/utils/types/transaction";
 
 const TransactionHistory: React.FC<IExplorerSelector> = (props) => {
 	const transactions = useAtomValue(transactionsAtom);
@@ -21,7 +22,7 @@ const TransactionHistory: React.FC<IExplorerSelector> = (props) => {
 						<div className={"w-100 text-center font-bold pt-4"}>No transactions yet</div>
 					)
 					: (
-						transactions.map((transaction, index) => {
+						transactions.map((transaction: Transaction) => {
 							return (
 								<Index
 									key={transaction.txId}

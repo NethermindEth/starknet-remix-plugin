@@ -31,7 +31,6 @@ export const useCurrentExplorer = (): IUseCurrentExplorer => {
 };
 
 const ExplorerSelector: React.FC<IExplorerSelector> = ({
-	isInline,
 	controlHook
 }) => {
 	const {
@@ -49,7 +48,7 @@ const ExplorerSelector: React.FC<IExplorerSelector> = ({
 				<Select.Root
 					value={explorer}
 					onValueChange={(value) => {
-						setExplorer(value as any);
+						setExplorer(value as keyof typeof EXPLORERS);
 					}}
 				>
 					<Select.Trigger className="network-dropdown-trigger">
@@ -70,12 +69,12 @@ const ExplorerSelector: React.FC<IExplorerSelector> = ({
 					<Select.Portal>
 						<Select.Content>
 							<Select.Viewport>
-								{Object.keys(EXPLORERS).map((v, i) => (
+								{Object.keys(EXPLORERS).map((v: string): React.ReactNode => (
 									<Select.Item value={v} key={v} className="styled-dropdown-item">
 										<Select.ItemText>
 											<img
 												className="img-explorer-logo"
-												src={explorerToLogo(v as any)}
+												src={explorerToLogo(v as keyof typeof EXPLORERS)}
 											/>
 											<p>{v}</p>
 										</Select.ItemText>

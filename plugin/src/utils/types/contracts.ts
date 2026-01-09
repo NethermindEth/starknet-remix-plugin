@@ -1,22 +1,27 @@
 import { type BigNumberish } from "ethers";
 import { type AccountInterface, type CairoAssembly, type constants, type InvokeFunctionResponse } from "starknet";
 
+interface DeployedInfo {
+	address: string;
+	chainId: constants.StarknetChainId;
+}
+
+interface DeclaredInfo {
+	chainId: constants.StarknetChainId;
+	env: string;
+}
+
 interface Contract {
 	name: string;
 	compiledClassHash: string;
 	classHash: string;
 	sierraClassHash: string;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	sierra: any;
 	casm: CairoAssembly;
 	abi: Abi;
-	deployedInfo: Array<{
-		address: string;
-		chainId: constants.StarknetChainId;
-	}>;
-	declaredInfo: Array<{
-		chainId: constants.StarknetChainId;
-		env: string;
-	}>;
+	deployedInfo: DeployedInfo[];
+	declaredInfo: DeclaredInfo[];
 	address: string;
 }
 
@@ -58,5 +63,7 @@ export type {
 	Contract,
 	Input,
 	Output,
-	CallDataObj
+	CallDataObj,
+	DeployedInfo,
+	DeclaredInfo
 };

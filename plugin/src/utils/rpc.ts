@@ -10,7 +10,6 @@ const emptyEntryPoints = {
 export async function fetchContractClass(
 	provider: ProviderInterface,
 	classHash: string,
-	blockTag: string = "latest"
 ): Promise<Contract | null> {
 	try {
 		const result = await provider.getClassByHash(classHash);
@@ -50,7 +49,6 @@ export async function fetchContractClass(
 export async function fetchClassHashAt(
 	provider: ProviderInterface,
 	contractAddress: string,
-	blockTag: string = "latest"
 ): Promise<string | null> {
 	try {
 		const result = await provider.getClassHashAt(contractAddress);

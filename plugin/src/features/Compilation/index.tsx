@@ -3,7 +3,7 @@ import React, { useEffect } from "react";
 import { artifactFolder, getFileNameFromPath, isValidCairo } from "../../utils/utils";
 import "./styles.css";
 import Container from "../../components/ui_components/Container";
-import { type AccordianTabs } from "../Plugin";
+import { type AccordionTabs } from "../Plugin";
 import * as D from "../../components/ui_components/Dropdown";
 import { BsChevronDown } from "react-icons/bs";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
@@ -135,7 +135,7 @@ const CompilationCard: React.FC<{
 						</D.Trigger>
 						<D.Portal>
 							<D.Content>
-								{tomlPaths.map((tomlPath, i) => {
+								{tomlPaths.map((tomlPath: string, i: number) => {
 									return (
 										<D.Item
 											key={i.toString() + tomlPath}
@@ -198,10 +198,10 @@ const CompilationCard: React.FC<{
 };
 
 interface CompilationProps {
-	setAccordian: React.Dispatch<React.SetStateAction<AccordianTabs>>;
+	setAccordion: React.Dispatch<React.SetStateAction<AccordionTabs>>;
 }
 
-const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
+const Compilation: React.FC<CompilationProps> = ({ setAccordion }) => {
 	const { remixClient } = useRemixClient();
 
 	const [contracts, setContracts] = useAtom(compiledContractsAtom);
@@ -247,7 +247,7 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 				}
 			}
 
-			remixClient.on("fileManager", "currentFileChanged", (currentFileChanged: any) => {
+			remixClient.fileManager.on("currentFileChanged", (currentFileChanged: string) => {
 				const filename = getFileNameFromPath(currentFileChanged);
 				setCurrentFilename(filename);
 				remixClient.emit("statusChanged", {
@@ -291,6 +291,8 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 		const files = [] as FileContentMap[];
 		const pathFiles = await remixClient.fileManager.readdir(`${workspacePath}/${dirPath}`);
 
+		// allow any type for pathFiles, since their return type is not properly typed
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		for (const [path, entry] of Object.entries<any>(pathFiles)) {
 			if (entry.isDirectory === true) {
 				if (path.startsWith(".")) {
@@ -361,27 +363,27 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 	useEffect(() => {
 		// eslint-disable-next-line @typescript-eslint/no-misused-promises
 		setTimeout(async () => {
-			remixClient.on("fileManager", "fileSaved", (_: any) => {
+			remixClient.on("fileManager", "fileSaved", () => {
 				updateTomlPaths();
 			});
 
-			remixClient.on("fileManager", "fileAdded", (_: any) => {
+			remixClient.on("fileManager", "fileAdded", () => {
 				updateTomlPaths();
 			});
 
-			remixClient.on("fileManager", "folderAdded", (_: any) => {
+			remixClient.on("fileManager", "folderAdded", () => {
 				updateTomlPaths();
 			});
 
-			remixClient.on("fileManager", "fileRemoved", (_: any) => {
+			remixClient.on("fileManager", "fileRemoved", () => {
 				updateTomlPaths();
 			});
 
-			remixClient.on("filePanel", "workspaceCreated", (_: any) => {
+			remixClient.on("filePanel", "workspaceCreated", () => {
 				updateTomlPaths();
 			});
 
-			remixClient.on("filePanel", "workspaceRenamed", (_: any) => {
+			remixClient.on("filePanel", "workspaceRenamed", () => {
 				updateTomlPaths();
 			});
 		}, 500);
@@ -395,11 +397,12 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 			const compilationResult = await api.compile(compilationRequest);
 
 			if (compilationResult.status !== "Success") {
-				await remixClient.call(
-					"notification" as any,
-					"toast",
-					"Cairo compilation request failed"
-				);
+				// TODO: remove notification call
+				// await remixClient.call(
+				// 	"notification" as any,
+				// 	"toast",
+				// 	"Cairo compilation request failed"
+				// );
 
 				await remixClient.terminal.log({
 					type: "error",
@@ -409,11 +412,12 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 				throw new Error("Cairo Compilation Request Failed");
 			}
 
-			await remixClient.call(
-				"notification" as any,
-				"toast",
-				"Cairo compilation request successful"
-			);
+			// TODO: remove notification call
+			// await remixClient.call(
+			// 	"notification" as any,
+			// 	"toast",
+			// 	"Cairo compilation request successful"
+			// );
 
 			try {
 				if (compilationResult.data !== null) {
@@ -452,20 +456,22 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 			});
 
 			if (testResult.status !== "Success") {
-				await remixClient.call(
-					"notification" as any,
-					"toast",
-					"Test request failed"
-				);
+				// TODO: remove notification call
+				// await remixClient.call(
+				// 	"notification" as any,
+				// 	"toast",
+				// 	"Test request failed"
+				// );
 
 				throw new Error("Test Request Failed");
 			}
 
-			await remixClient.call(
-				"notification" as any,
-				"toast",
-				"Test request successful"
-			);
+			// TODO: remove notification call
+			// await remixClient.call(
+			// 	"notification" as any,
+			// 	"toast",
+			// 	"Test request successful"
+			// );
 
 			setIsCompiling(false);
 
@@ -553,11 +559,12 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 				);
 			} catch (e) {
 				if (e instanceof Error) {
-					await remixClient.call(
-						"notification" as any,
-						"toast",
-						e.message + " try deleting the files: " + artifactsPath
-					);
+					// TODO: remove notification call
+					// await remixClient.call(
+					// 	"notification" as any,
+					// 	"toast",
+					// 	e.message + " try deleting the files: " + artifactsPath
+					// );
 				}
 			}
 		}
@@ -581,16 +588,17 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
 			if (result != null) {
 				setStatus(CompilationStatus.Success);
-				setAccordian("deploy");
+				setAccordion("deploy");
 			}
 		} catch (e) {
 			setStatus(CompilationStatus.Error);
 			if (e instanceof Error) {
-				await remixClient.call("notification" as any, "alert", {
-					id: "starknetRemixPluginAlert",
-					title: "Cairo Compilation Failed",
-					message: e.message
-				});
+				// TODO: remove notification call
+				// await remixClient.call("notification" as any, "alert", {
+				// 	id: "starknetRemixPluginAlert",
+				// 	title: "Cairo Compilation Failed",
+				// 	message: e.message
+				// });
 			}
 			console.error(e);
 		}
@@ -619,11 +627,12 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 		} catch (e) {
 			setStatus(CompilationStatus.Error);
 			if (e instanceof Error) {
-				await remixClient.call("notification" as any, "alert", {
-					id: "starknetRemixPluginAlert",
-					title: "Test Failed",
-					message: e.message
-				});
+				// TODO: remove notification call
+				// await remixClient.call("notification" as any, "alert", {
+				// 	id: "starknetRemixPluginAlert",
+				// 	title: "Test Failed",
+				// 	message: e.message
+				// });
 			}
 
 			console.error(e);
@@ -649,16 +658,17 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
 			if (result != null) {
 				setStatus("done");
-				setAccordian("deploy");
+				setAccordion("deploy");
 			}
 		} catch (e) {
 			setStatus("failed");
 			if (e instanceof Error) {
-				await remixClient.call("notification" as any, "alert", {
-					id: "starknetRemixPluginAlert",
-					title: "Cairo Compilation Failed",
-					message: e.message
-				});
+				// TODO: remove notification call
+				// await remixClient.call("notification" as any, "alert", {
+				// 	id: "starknetRemixPluginAlert",
+				// 	title: "Cairo Compilation Failed",
+				// 	message: e.message
+				// });
 			}
 
 			console.error(e);

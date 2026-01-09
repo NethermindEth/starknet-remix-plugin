@@ -2,7 +2,7 @@ import React from "react";
 
 import { useDisconnect } from "@starknet-react/core";
 
-export default function DisconnectModal(): JSX.Element {
+export default function DisconnectModal(): React.ReactElement {
 	const { disconnect } = useDisconnect();
 
 	return (

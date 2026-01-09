@@ -1,7 +1,7 @@
 import { atom } from "jotai";
 import { type AccountInterface, type ProviderInterface } from "starknet";
 
-import { type StarknetWindowObject } from "get-starknet";
+import { type StarknetWindowObject } from "@starknet-io/get-starknet-core";
 
 const account = atom<AccountInterface | null>(null);
 const provider = atom<ProviderInterface | null>(null);

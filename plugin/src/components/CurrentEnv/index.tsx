@@ -2,7 +2,6 @@ import React from "react";
 import "./styles.css";
 import { useAtomValue } from "jotai";
 import { envAtom, envName, selectedDevnetAccountAtom } from "../../atoms/environment";
-import { selectedAccountAtom } from "../../atoms/manualAccount";
 import { getShortenedHash } from "../../utils/utils";
 import { ethers } from "ethers";
 import { DevnetStatus } from "../DevnetStatus";
@@ -11,7 +10,6 @@ import { account } from "../../atoms/connection";
 export const CurrentEnv: React.FC = () => {
 	const env = useAtomValue(envAtom);
 
-	const selectedAccountManual = useAtomValue(selectedAccountAtom);
 	const selectedAccountDevnet = useAtomValue(selectedDevnetAccountAtom);
 	const walletAccount = useAtomValue(account);
 	// const walletProvider = useAtomValue(provider)
@@ -24,15 +22,10 @@ export const CurrentEnv: React.FC = () => {
 					? ethers.BigNumber.from(2000000000000000)
 					: ethers.BigNumber.from(0)
 			}
-			: env === "manual"
-				? {
-					address: selectedAccountManual?.address,
-					balance: selectedAccountManual?.balance
-				}
-				: {
-					address: selectedAccountDevnet?.address,
-					balance: selectedAccountDevnet?.initial_balance
-				};
+			: {
+				address: selectedAccountDevnet?.address,
+				balance: selectedAccountDevnet?.initial_balance
+			};
 
 	const selectedAccountAddress =
 		selectedAccount.address != null

@@ -4,10 +4,12 @@ import { BsChevronDown } from "react-icons/bs";
 import "./styles.css";
 
 // eslint-disable-next-line react/display-name
-export const AccordionTrigger = React.forwardRef<any, any>(
+export const AccordionTrigger = React.forwardRef<
+React.ComponentRef<typeof AccordionPrimitive.Trigger>,
+React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Trigger>
+>(
 	({
 		children,
-		className,
 		...props
 	}, forwardedRef) => (
 		<AccordionPrimitive.Header className="AccordionHeader">
@@ -24,10 +26,12 @@ export const AccordionTrigger = React.forwardRef<any, any>(
 );
 
 // eslint-disable-next-line react/display-name
-export const AccordionContent = React.forwardRef<any, any>(
+export const AccordionContent = React.forwardRef<
+React.ComponentRef<typeof AccordionPrimitive.Content>,
+React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Content>
+>(
 	({
 		children,
-		className,
 		...props
 	}, forwardedRef) => (
 		<AccordionPrimitive.Content className={"AccordionContent"} {...props} ref={forwardedRef}>
@@ -38,30 +42,12 @@ export const AccordionContent = React.forwardRef<any, any>(
 
 export const AccordionItem = AccordionPrimitive.Item;
 
-interface IAccordion {
-	type: "single" | "multiple";
-	defaultValue: any;
-	value?: any;
-	children: React.ReactNode;
-	className?: string;
-}
+type IAccordion = AccordionPrimitive.AccordionSingleProps | AccordionPrimitive.AccordionMultipleProps;
 
-const Accordian: React.FC<IAccordion> = ({
-	type = "single",
-	children,
-	defaultValue,
-	value,
-	className
-}) => (
-	<AccordionPrimitive.Root
-		className={className ?? "AccordionRoot"}
-		type={type}
-		value={value}
-		defaultValue={defaultValue}
-		collapsible={type === "single"}
-	>
-		{children}
+const Accordion: React.FC<IAccordion> = (props: IAccordion) => (
+	<AccordionPrimitive.Root {...props}>
+		{props.children}
 	</AccordionPrimitive.Root>
 );
 
-export default Accordian;
+export default Accordion;
