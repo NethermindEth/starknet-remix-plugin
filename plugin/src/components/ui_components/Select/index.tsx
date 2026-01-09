@@ -24,11 +24,26 @@ export const Content: React.FC<CommonProps> = ({
 	children,
 	className,
 	...props
-}) => (
-	<SelectPrimitive.Content asChild {...props}>
-		<div className={`SelectContent ${className ?? ""}`}>{children}</div>
-	</SelectPrimitive.Content>
-);
+}) => {
+	const allProps = { ...props, forceMount: true };
+
+	return (
+		<SelectPrimitive.Portal>
+			<SelectPrimitive.Content
+				asChild
+				position="popper"
+				sideOffset={4}
+				{...allProps}
+			>
+				<div className={`SelectContent ${className ?? ""}`}>
+					<SelectPrimitive.Viewport className="SelectViewport">
+						{children}
+					</SelectPrimitive.Viewport>
+				</div>
+			</SelectPrimitive.Content>
+		</SelectPrimitive.Portal>
+	);
+};
 
 export const Item: React.FC<SelectPrimitive.SelectItemProps & CommonProps> = ({
 	children,
