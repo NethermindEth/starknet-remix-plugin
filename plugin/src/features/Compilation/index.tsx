@@ -33,6 +33,7 @@ import {
 import { apiUrl } from "../../utils/network";
 import { cairoVersionAtom } from "../../atoms/cairoVersion";
 import { testEngineAtom } from "../../atoms/testing";
+import { logActionStart, logActionEnd, logError, logInfo } from "../../utils/terminal";
 
 const CompilationCard: React.FC<{
 	validation: boolean;
@@ -391,6 +392,12 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 		setIsCompiling(true);
 		setStatus(CompilationStatus.Compiling);
 
+		const fileLabel = compilationRequest.files.length === 1
+			? compilationRequest.files[0].file_name
+			: `${compilationRequest.files.length} files`;
+
+		await logActionStart(remixClient, "Compile", fileLabel);
+
 		try {
 			const compilationResult = await api.compile(compilationRequest);
 
@@ -401,10 +408,8 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 					"Cairo compilation request failed"
 				);
 
-				await remixClient.terminal.log({
-					type: "error",
-					value: compilationResult.message
-				});
+				await logError(remixClient, compilationResult.message);
+				await logActionEnd(remixClient, "Compile", false, fileLabel);
 
 				throw new Error("Cairo Compilation Request Failed");
 			}
@@ -427,6 +432,8 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 
 			setIsCompiling(false);
 
+			await logActionEnd(remixClient, "Compile", true, fileLabel);
+
 			console.log("compilationResult: ", compilationResult);
 
 			return compilationResult;
@@ -443,9 +450,13 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 		setIsCompiling(true);
 		setStatus(CompilationStatus.Compiling);
 
+		const engineLabel = testRequest.test_engine ?? "scarb";
+		await logActionStart(remixClient, "Test", `engine: ${engineLabel}`);
+
 		try {
 			const testResult = await api.test(testRequest);
 
+			await logInfo(remixClient, "Test output:");
 			await remixClient.terminal.log({
 				type: "log",
 				value: testResult.message
@@ -458,6 +469,8 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 					"Test request failed"
 				);
 
+				await logActionEnd(remixClient, "Test", false, `engine: ${engineLabel}`);
+
 				throw new Error("Test Request Failed");
 			}
 
@@ -468,6 +481,8 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 			);
 
 			setIsCompiling(false);
+
+			await logActionEnd(remixClient, "Test", true, `engine: ${engineLabel}`);
 
 			return testResult;
 		} catch (error) {

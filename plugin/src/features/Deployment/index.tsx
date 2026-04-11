@@ -38,6 +38,7 @@ import { type CallbackReturnType, ConstructorForm } from "starknet-abi-forms";
 import { useIcon } from "../../hooks/useIcons";
 import { DeclareStatusLabels } from "../../utils/constants";
 import AddContractArtifacts from "../../components/AddContractArtifacts";
+import { logActionStart, logActionEnd, logJsonResponse, logError } from "../../utils/terminal";
 
 interface DeploymentProps {
 	setActiveTab: (tab: AccordianTabs) => void;
@@ -303,10 +304,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 						title: `Contract ${selectedContract?.name ?? ""} declared!`
 					});
 				} catch (error) {
-					await remixClient.call("terminal", "log", {
-						value: `------------------------ Declaring contract: ${selectedContract.name} ------------------------`,
-						type: "info"
-					});
+					await logActionStart(remixClient, "Declare", selectedContract.name);
 					const declareResponse = await account.declare(
 						{
 							contract: selectedContract.sierra,
@@ -315,14 +313,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 						},
 						{ maxFee: 1e18 }
 					);
-					await remixClient.call("terminal", "log", {
-						value: JSON.stringify(declareResponse, null, 2),
-						type: "info"
-					});
-					await remixClient.call("terminal", "log", {
-						value: `---------------------- End Declaring contract: ${selectedContract.name} ----------------------`,
-						type: "info"
-					});
+					await logJsonResponse(remixClient, "Declare response", declareResponse);
 					updatedTransactions = [
 						{
 							type: "declare",
@@ -337,21 +328,12 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 					if (env === "wallet") {
 						setDeclTxHash(declareResponse.transaction_hash);
 					} else {
-						await remixClient.call("terminal", "log", {
-							value: `--------------------- Getting declare contract: ${selectedContract.name} tx receipt --------------------`,
-							type: "info"
-						});
+						await logActionStart(remixClient, "Waiting for declare tx receipt", selectedContract.name);
 						const txReceipt = await account.waitForTransaction(
 							declareResponse.transaction_hash
 						);
-						await remixClient.call("terminal", "log", {
-							value: JSON.stringify(txReceipt, null, 2),
-							type: "info"
-						});
-						await remixClient.call("terminal", "log", {
-							value: `--------------------- End getting declare contract: ${selectedContract.name} tx receipt ------------------`,
-							type: "info"
-						});
+						await logJsonResponse(remixClient, "Declare tx receipt", txReceipt);
+						await logActionEnd(remixClient, "Declare", true, selectedContract.name);
 						setDeclStatus("DONE");
 						setIsDeclaring(false);
 					}
@@ -361,10 +343,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 				setDeclStatus("ERROR");
 				setIsDeclaring(false);
 				if (error instanceof Error) {
-					await remixClient.call("terminal", "log", {
-						value: error.message,
-						type: "error"
-					});
+					await logError(remixClient, error.message);
 					throw new Error(
 						error.message +
 						"\n Aborting deployment... Couldn't get declare infomation" +
@@ -376,10 +355,7 @@ const Deployment: React.FC<DeploymentProps> = ({ setActiveTab }) => {
 			setDeclStatus("ERROR");
 			setIsDeclaring(false);
 			if (error instanceof Error) {
-				await remixClient.call("terminal", "log", {
-					value: error.message,
-					type: "error"
-				});
+				await logError(remixClient, error.message);
 			}
 			remixClient.emit("statusChanged", {
 				key: "failed",
