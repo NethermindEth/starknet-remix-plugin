@@ -31,6 +31,7 @@ const Interaction: React.FC<InteractionProps> = (props) => {
 	const deployedContracts = useAtomValue(deployedContractsAtom);
 	const [selectedContract, setSelectedContract] = useAtom(selectedDeployedContract);
 	const [isAddContractOpen, setIsAddContractOpen] = useState(false);
+	const [response, setResponse] = useState<any>(null);
 
 	useEffect(() => {
 		if (deployedContracts.length > 0) {
@@ -186,6 +187,14 @@ const Interaction: React.FC<InteractionProps> = (props) => {
 					type: "success",
 					title: "Function call succeeded, results are written to the terminal log"
 				});
+				// Store response in state for display
+				setResponse({
+					type: "view",
+					functionName: res.functionName,
+					contract: selectedContract?.name,
+					data: resp,
+					timestamp: new Date().toISOString()
+				});
 				// writing the result of the call to the terminal log
 				await remixClient.call("terminal", "log", {
 					value: JSON.stringify(
@@ -246,6 +255,15 @@ const Interaction: React.FC<InteractionProps> = (props) => {
 					key: "succeed",
 					type: "success",
 					title: "Transaction sent with Hash: " + resp.transaction_hash
+				});
+				// Store response in state for display
+				setResponse({
+					type: "invoke",
+					functionName: res.functionName,
+					contract: selectedContract?.name,
+					txHash: resp.transaction_hash,
+					data: resp,
+					timestamp: new Date().toISOString()
 				});
 				setTransactions([
 					{
@@ -360,12 +378,82 @@ const Interaction: React.FC<InteractionProps> = (props) => {
 			)}
 
 			{isContractSelected && isContractValid ? (
-				<ABIForm
-					key={selectedContract?.compiledClassHash + selectedContract?.address}
-					abi={selectedContract?.abi}
-					// eslint-disable-next-line @typescript-eslint/no-misused-promises
-					callBackFn={handleCallBack}
-				/>
+				<div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", marginTop: "1rem" }}>
+					<div>
+						<ABIForm
+							key={selectedContract?.compiledClassHash + selectedContract?.address}
+							abi={selectedContract?.abi}
+							// eslint-disable-next-line @typescript-eslint/no-misused-promises
+							callBackFn={handleCallBack}
+						/>
+					</div>
+					{response && (
+						<div style={{
+							border: "1px solid var(--accentColor)",
+							borderRadius: "0.5rem",
+							padding: "1rem",
+							backgroundColor: "var(--light)",
+							maxHeight: "600px",
+							overflowY: "auto"
+						}}>
+							<h3 style={{ margin: "0 0 0.5rem 0", fontSize: "14px", fontWeight: "600" }}>
+								Response: {response.functionName}
+							</h3>
+							{response.type === "invoke" ? (
+								<div>
+									<p style={{ margin: "0.5rem 0", fontSize: "12px" }}>
+										<strong>Type:</strong> Invoke
+									</p>
+									<p style={{ margin: "0.5rem 0", fontSize: "12px", wordBreak: "break-all" }}>
+										<strong>TX Hash:</strong> {response.txHash}
+									</p>
+									<p style={{ margin: "0.5rem 0", fontSize: "12px" }}>
+										<strong>Contract:</strong> {response.contract}
+									</p>
+									<details style={{ marginTop: "0.5rem" }}>
+										<summary style={{ cursor: "pointer", fontSize: "12px", fontWeight: "500" }}>
+											Full Response
+										</summary>
+										<pre style={{
+											fontSize: "11px",
+											marginTop: "0.5rem",
+											padding: "0.5rem",
+											backgroundColor: "var(--bgPrimary)",
+											borderRadius: "0.25rem",
+											overflow: "auto"
+										}}>
+											{JSON.stringify(response.data, null, 2)}
+										</pre>
+									</details>
+								</div>
+							) : (
+								<div>
+									<p style={{ margin: "0.5rem 0", fontSize: "12px" }}>
+										<strong>Type:</strong> View Call
+									</p>
+									<p style={{ margin: "0.5rem 0", fontSize: "12px" }}>
+										<strong>Contract:</strong> {response.contract}
+									</p>
+									<details style={{ marginTop: "0.5rem" }}>
+										<summary style={{ cursor: "pointer", fontSize: "12px", fontWeight: "500" }}>
+											Results
+										</summary>
+										<pre style={{
+											fontSize: "11px",
+											marginTop: "0.5rem",
+											padding: "0.5rem",
+											backgroundColor: "var(--bgPrimary)",
+											borderRadius: "0.25rem",
+											overflow: "auto"
+										}}>
+											{JSON.stringify(response.data, null, 2)}
+										</pre>
+									</details>
+								</div>
+							)}
+						</div>
+					)}
+				</div>
 			) : (
 				<p className={"mt-3 text-center font-bold"}>
 					Selected contract is not deployed yet...
