@@ -7,7 +7,6 @@ import { type AccordianTabs } from "../Plugin";
 import * as D from "../../components/ui_components/Dropdown";
 import { BsChevronDown } from "react-icons/bs";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { hash } from "starknet";
 
 // Imported Atoms
 import {
@@ -22,6 +21,7 @@ import useRemixClient from "../../hooks/useRemixClient";
 import { useIcon } from "../../hooks/useIcons";
 import { type Contract } from "../../utils/types/contracts";
 import { compiledContractsAtom } from "../../atoms/compiledContracts";
+import { buildContractsFromCompileResult } from "../../utils/artifacts";
 import {
 	type CompilationRequest,
 	type CompilationResponse,
@@ -420,7 +420,10 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 					await writeResultsToArtifacts(compilationResult.data);
 				}
 			} catch (e) {
-				console.log("error writing to artifacts: ", e);
+				await remixClient.terminal.log({
+					type: "error",
+					value: `Failed to write artifacts: ${e instanceof Error ? e.message : String(e)}`
+				});
 
 				throw new Error("Failed to write artifacts");
 			}
@@ -480,62 +483,13 @@ const Compilation: React.FC<CompilationProps> = ({ setAccordian }) => {
 	}
 
 	const writeResultsToArtifacts = async (compileResult: FileContentMap[]): Promise<void> => {
-		const contractToArtifacts: Record<
-		string,
-		{
-			casm: string;
-			sierra: string;
-		}
-		> = {};
+		const { contracts: updatedContracts, problems } = buildContractsFromCompileResult(compileResult);
 
-		console.log(compileResult);
-
-		// First pass to collect artifacts
-		for (const file of compileResult) {
-			if (!file.file_name.endsWith(".compiled_contract_class.json") && !file.file_name.endsWith(".contract_class.json")) continue;
-
-			const basePath = file.file_name.replace(".compiled_contract_class.json", "").replace(".contract_class.json", "").replace("___testsingle_", "");
-
-			if (!(basePath in contractToArtifacts)) {
-				contractToArtifacts[basePath] = {
-					casm: "",
-					sierra: ""
-				};
-			}
-
-			if (file.file_name.endsWith(".contract_class.json")) {
-				contractToArtifacts[basePath].sierra = file.file_content;
-			} else if (file.file_name.endsWith(".compiled_contract_class.json")) {
-				contractToArtifacts[basePath].casm = file.file_content;
-			}
-		}
-
-		// Create or update contracts
-		const updatedContracts: Contract[] = [];
-		for (const [name, artifacts] of Object.entries(contractToArtifacts)) {
-			const sierraContent = JSON.parse(artifacts.sierra);
-			const casmContent = JSON.parse(artifacts.casm);
-
-			const classHash = hash.computeContractClassHash(sierraContent);
-
-			const compiledClassHash = hash.computeCompiledClassHash(casmContent);
-			const sierraClassHash = hash.computeSierraContractClassHash(sierraContent);
-
-			// Create new contract
-			const newContract: Contract = {
-				name,
-				abi: sierraContent.abi,
-				sierra: artifacts.sierra,
-				casm: casmContent,
-				classHash,
-				compiledClassHash,
-				sierraClassHash,
-				deployedInfo: [],
-				declaredInfo: [],
-				address: ""
-			};
-
-			updatedContracts.push(newContract);
+		for (const problem of problems) {
+			await remixClient.terminal.log({
+				type: "error",
+				value: problem
+			});
 		}
 
 		// Update contracts state with filtered + new contracts
